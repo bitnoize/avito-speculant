@@ -1,27 +1,12 @@
 {
-  "include": ["src"],
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist",
-    "tsBuildInfoFile": ".cache/tsbuildinfo",
-    "target": "esnext",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "declaration": true,
-    "removeComments": true,
-    "sourceMap": false,
-    "incremental": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "alwaysStrict": true,
-    "allowJs": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "composite": true
-  }
+  "files": [],
+  "references": [
+    { "path": "libs/logger" },
+    { "path": "libs/database" },
+    { "path": "libs/redis" },
+    { "path": "libs/queue" },
+    { "path": "apps/manager" },
+    { "path": "apps/bot" },
+    { "path": "apps/scheduler" }
+  ]
 }

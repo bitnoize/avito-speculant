@@ -1,0 +1,25 @@
+{
+  "name": "@avito-speculant/database",
+  "type": "module",
+  "version": "0.0.2",
+  "description": "Avito-Speculant Database shared library",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "format": "prettier -w \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "clean": "rimraf .cache dist",
+    "prebuild": "npm run clean",
+    "build": "tsc -b",
+    "build:watch": "tsc -b -w"
+  },
+  "dependencies": {
+    "@avito-speculant/logger": "*",
+    "kysely": "^0.27.2",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.9"
+  }
+}

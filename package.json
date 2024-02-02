@@ -1,37 +1,30 @@
 {
   "name": "avito-speculant",
   "type": "module",
-  "version": "0.0.1",
-  "description": "Avito Speculant Bot",
-  "scripts": {
-    "format": "prettier -w \"src/**/*.ts\"",
-    "lint": "eslint \"src/**/*.ts\"",
-    "clean": "rimraf .cache dist",
-    "prebuild": "npm run clean",
-    "build": "tsc -b",
-    "build:watch": "tsc -b -w",
-    "start:db-migrate": "node dist/db-migrate.js",
-    "start:scheduler": "node dist/scheduler.js"
-  },
-  "dependencies": {
-    "@sinclair/typebox": "^0.32.12",
-    "bullmq": "^5.1.6",
-    "env-schema": "^5.2.1",
-    "fastify": "^4.25.2",
-    "ioredis": "^5.3.2",
-    "kysely": "^0.27.2",
-    "pg": "^8.11.3",
-    "pino": "^8.17.2",
-    "pino-pretty": "^10.3.1"
+  "version": "0.0.0",
+  "description": "Avito-Speculant Monorepo",
+  "private": true,
+  "workspaces": [
+    "libs/logger",
+    "libs/database",
+    "libs/redis",
+    "libs/queue",
+    "apps/manager",
+    "apps/bot",
+    "apps/scheduler"
+  ],
+  "engines": {
+    "npm": ">=9.8.0",
+    "node": ">=20.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "@types/pg": "^8.10.9",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
     "eslint": "^8.44.0",
+    "nodemon": "^2.0.22",
     "prettier": "^3.0.0",
     "rimraf": "^5.0.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "@types/node": "^18.15.11"
   }
 }

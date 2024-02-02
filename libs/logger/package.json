@@ -1,0 +1,21 @@
+{
+  "name": "@avito-speculant/logger",
+  "type": "module",
+  "version": "0.0.2",
+  "description": "Avito-Speculant logger shared library",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "format": "prettier -w \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "clean": "rimraf .cache dist",
+    "prebuild": "npm run clean",
+    "build": "tsc -b",
+    "build:watch": "tsc -b -w"
+  },
+  "dependencies": {
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1"
+  }
+}
