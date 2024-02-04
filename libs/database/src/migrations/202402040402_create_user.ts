@@ -1,20 +1,22 @@
 import { Kysely, sql } from 'kysely'
+import { UserStatuses, UserDefaultStatus } from '../user/user.js'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
+  await db.schema.createType('user_status').asEnum(UserStatuses).execute()
+
   await db.schema
     .createTable('user')
     .addColumn('id', 'serial', (col) => col.primaryKey())
     .addColumn('tg_from_id', 'bigint', (col) => col.notNull())
-    .addColumn('first_name', 'varchar', (col) => col.notNull())
-    .addColumn('last_name', 'varchar')
-    .addColumn('username', 'varchar')
-    .addColumn('language_code', 'varchar')
+    .addColumn('status', sql`user_status`, (col) =>
+      col.notNull().defaultTo(UserDefaultStatus)
+    )
     .addColumn('created_at', 'timestamptz', (col) =>
-      col.defaultTo(sql`NOW()`).notNull()
+      col.notNull().defaultTo(sql`NOW()`)
     )
     .addColumn('updated_at', 'timestamptz', (col) =>
-      col.defaultTo(sql`NOW()`).notNull()
+      col.notNull().defaultTo(sql`NOW()`)
     )
     .execute()
 
@@ -23,6 +25,12 @@ export async function up(db: Kysely<any>): Promise<void> {
     .on('user')
     .column('tg_from_id')
     .unique()
+    .execute()
+
+  await db.schema
+    .createIndex('user_status_key')
+    .on('user')
+    .column('status')
     .execute()
 
   await db.schema
@@ -41,4 +49,5 @@ export async function up(db: Kysely<any>): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropTable('user').execute()
+  await db.schema.dropType('user_status').execute()
 }

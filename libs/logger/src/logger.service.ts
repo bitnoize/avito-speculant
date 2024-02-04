@@ -1,8 +1,6 @@
 import { pino, LoggerOptions, Logger } from 'pino'
 import { LoggerConfig } from './logger.js'
 
-export { Logger } from 'pino'
-
 /*
  * Get LoggerOptions from config
  */

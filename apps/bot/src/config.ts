@@ -6,12 +6,17 @@ import { envSchema } from 'env-schema'
  */
 export const configSchema = Type.Object({
   LOG_LEVEL: Type.Readonly(Type.String({ default: 'info' })),
-  BOT_TOKEN: Type.Readonly(Type.String()),
+  REDIS_HOST: Type.Readonly(Type.String()),
+  REDIS_PORT: Type.Readonly(Type.Integer()),
+  REDIS_DATABASE: Type.Readonly(Type.Integer()),
+  REDIS_USERNAME: Type.ReadonlyOptional(Type.String()),
+  REDIS_PASSWORD: Type.ReadonlyOptional(Type.String()),
   POSTGRES_HOST: Type.Readonly(Type.String()),
   POSTGRES_PORT: Type.Readonly(Type.Integer()),
   POSTGRES_DATABASE: Type.Readonly(Type.String()),
   POSTGRES_USERNAME: Type.ReadonlyOptional(Type.String()),
-  POSTGRES_PASSWORD: Type.ReadonlyOptional(Type.String())
+  POSTGRES_PASSWORD: Type.ReadonlyOptional(Type.String()),
+  BOT_TOKEN: Type.Readonly(Type.String())
 })
 
 /**

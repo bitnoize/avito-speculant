@@ -1,37 +1,38 @@
 import { Kysely } from 'kysely'
-import { CreateUserRequest, User } from './user.js'
-import { UserRow } from './user.table.js'
+import { User, AuthorizeUserRequest } from './user.js'
+import { UserRow, InsertableUserRow } from './user.table.js'
 import * as userRepository from './user.repository.js'
 import { Database } from '../database.js'
 
-export async function createUser(
+export async function authorizeUser(
   db: Kysely<Database>,
-  request: CreateUserRequest
+  request: AuthorizeUserRequest
 ): Promise<User> {
-  const userRow = await userRepository.upsertUser(db, {
-    tg_from_id: request.tgFromId,
-    first_name: request.firstName,
-    last_name: request.lastName ?? null,
-    username: request.username ?? null,
-    language_code: request.languageCode ?? null
-  })
+  const insertableUserRow: InsertableUserRow = {
+    tg_from_id: request.tgFromId
+  }
 
-  const user = userRowToUser(userRow)
+  const userRow = await userRepository.selectOrInsertRow(
+    db,
+    insertableUserRow,
+    request.data
+  )
+
+  return makeUserFromRow(userRow)
+}
+
+const makeUserFromRow = (row: UserRow): User => {
+  const user: User = {
+    id: row.id,
+    tgFromId: row.tg_from_id,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }
 
   return user
 }
 
-export function userRowToUser(userRow: UserRow): User {
-  const user: User = {
-    id: userRow.id,
-    tgFromId: userRow.tg_from_id,
-    firstName: userRow.first_name,
-    lastName: userRow.last_name,
-    username: userRow.username,
-    languageCode: userRow.language_code,
-    createdAt: userRow.created_at,
-    updatedAt: userRow.updated_at
-  }
-
-  return user
+const makeUsersFromRows = (rows: UserRow[]): User[] => {
+  return rows.map((row) => makeUserFromRow(row))
 }

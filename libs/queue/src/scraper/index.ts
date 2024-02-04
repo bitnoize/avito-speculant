@@ -1,2 +1,2 @@
 export * from './scraper.js'
-export * from './scraper.service.js'
+export * as scraperService from './scraper.service.js'

@@ -1,26 +1,25 @@
-import { getLoggerOptions, initLogger } from '@avito-speculant/logger'
-import {
-  getDatabaseConfig,
-  initDatabase,
-  migrateToLatest
-} from '@avito-speculant/database'
-import { getRedisOptions, initRedis } from '@avito-speculant/redis'
+import { loggerService } from '@avito-speculant/logger'
+import { databaseService } from '@avito-speculant/database'
+import { redisService } from '@avito-speculant/redis'
 import { Config, config } from './config.js'
 
 async function bootstrap(): Promise<void> {
-  const loggerOptions = getLoggerOptions<Config>(config)
-  const logger = initLogger(loggerOptions)
+  const loggerOptions = loggerService.getLoggerOptions<Config>(config)
+  const logger = loggerService.initLogger(loggerOptions)
 
-  const databaseConfig = getDatabaseConfig<Config>(config)
-  const db = initDatabase(databaseConfig, logger)
+  const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
+  const db = databaseService.initDatabase(databaseConfig, logger)
 
-  const redisOptions = getRedisOptions<Config>(config)
-  const redis = initRedis(redisOptions, logger)
+  const redisOptions = redisService.getRedisOptions<Config>(config)
+  const redis = redisService.initRedis(redisOptions, logger)
 
-  await migrateToLatest(db, logger)
+  await databaseService.migrateToLatest(db, logger)
 
-  await redis.disconnect()
-  await db.destroy()
+  await databaseService.closeDatabase(db, logger)
+  await redisService.closeRedis(redis, logger)
 }
 
-bootstrap()
+bootstrap().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})

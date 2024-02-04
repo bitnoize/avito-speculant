@@ -1,2 +1,4 @@
+export { Redis } from 'ioredis'
+
 export * from './redis.js'
-export * from './redis.service.js'
+export * as redisService from './redis.service.js'

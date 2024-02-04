@@ -1,4 +1,5 @@
 import { UserTable } from './user/user.table.js'
+import { UserLogTable } from './user-log/user-log.table.js'
 
 export type DatabaseConfig = {
   POSTGRES_HOST: string
@@ -8,9 +9,7 @@ export type DatabaseConfig = {
   POSTGRES_PASSWORD?: string
 }
 
-/**
- * Database
- */
 export interface Database {
   user: UserTable
+  user_log: UserLogTable
 }

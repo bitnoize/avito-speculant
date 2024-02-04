@@ -22,10 +22,10 @@ export function getQueueConnection<T extends QueueConfig>(
 /**
  * Initialize FlowProducer instance
  */
-export async function initFlowProducer(
+export function initFlowProducer(
   connection: ConnectionOptions,
   logger: Logger
-): Promise<FlowProducer> {
+): FlowProducer {
   const queueOptions: QueueBaseOptions = {
     connection
   }

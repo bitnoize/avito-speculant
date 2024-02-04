@@ -1,18 +1,16 @@
+export const UserStatuses = ['free', 'paid', 'hold']
+export const UserDefaultStatus = UserStatuses[0]
+export type UserStatus = (typeof UserStatuses)[number]
+
 export interface User {
   id: number
   tgFromId: string
-  firstName: string
-  lastName: string | null
-  username: string | null
-  languageCode: string | null
+  status: UserStatus
   createdAt: Date
   updatedAt: Date
 }
 
-export interface CreateUserRequest {
+export interface AuthorizeUserRequest {
   tgFromId: string
-  firstName: string
-  lastName?: string
-  username?: string
-  languageCode?: string
+  data: unknown
 }

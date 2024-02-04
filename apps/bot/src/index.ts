@@ -1,43 +1,72 @@
-import { Bot } from 'grammy'
-import { getLoggerOptions, initLogger } from '@avito-speculant/logger'
+import { Bot, GrammyError, HttpError, session } from 'grammy'
+import { RedisAdapter } from '@grammyjs/storage-redis'
+import { loggerService } from '@avito-speculant/logger'
 import {
-  getDatabaseConfig,
-  initDatabase,
-  userService,
-  CreateUserRequest
+  DatabaseError,
+  databaseService,
+  AuthorizeUserRequest,
+  userService
 } from '@avito-speculant/database'
+import { redisService } from '@avito-speculant/redis'
 import { Config, config } from './config.js'
+import { BotContext } from './context.js'
 
 async function bootstrap(): Promise<void> {
-  const loggerOptions = getLoggerOptions<Config>(config)
-  const logger = initLogger(loggerOptions)
+  const loggerOptions = loggerService.getLoggerOptions<Config>(config)
+  const logger = loggerService.initLogger(loggerOptions)
 
-  const databaseConfig = getDatabaseConfig<Config>(config)
-  const db = initDatabase(databaseConfig, logger)
+  const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
+  const db = databaseService.initDatabase(databaseConfig, logger)
 
-  const bot = new Bot(config.BOT_TOKEN)
+  const redisOptions = redisService.getRedisOptions<Config>(config)
+  const redis = redisService.initRedis(redisOptions, logger)
 
-  bot.command('start', (ctx) => ctx.reply(`blablabla`))
+  const storage = new RedisAdapter({ instance: redis, ttl: 10 })
 
-  bot.start()
+  const bot = new Bot<BotContext>(config.BOT_TOKEN)
 
   /*
-  const body: CreateUserRequest = {
-    tgFromId: '1020',
-    firstName: 'Foo',
-    lastName: 'Bar',
-    //username: null,
-    languageCode: 'ru'
-  }
-
-  const result = await db.transaction().execute(async (trx) => {
-    return userService.createUser(trx, body)
-  })
-
-  logger.info(result, `Created user`)
+  bot.use(session({
+    storage
+  }))
   */
 
-  //await db.destroy()
+  bot.use(async (ctx, next) => {
+    if (ctx.from) {
+      const authorizeUserRequest: AuthorizeUserRequest = {
+        tgFromId: ctx.from.id.toString(),
+        data: ctx.from
+      }
+
+      ctx.user = await userService.authorizeUser(db, authorizeUserRequest)
+
+      await next()
+    }
+  })
+
+  bot.command('start', async (ctx) => {
+    logger.info(ctx.user, `User authorized for start`)
+
+    await ctx.reply(`blablabla: ${ctx.user.status}`)
+  })
+
+  bot.catch(async (botError) => {
+    const { error, ctx } = botError
+
+    if (error instanceof GrammyError) {
+      logger.error(error, `Grammy error`)
+    } else if (error instanceof HttpError) {
+      logger.error(error, `HTTP error`)
+    } else if (error instanceof DatabaseError) {
+      logger.error(error, `Database error`)
+    } else if (error instanceof Error) {
+      logger.error(error, `Internal error`)
+    } else {
+      logger.error(error, `Unknown error`)
+    }
+  })
+
+  bot.start()
 }
 
 bootstrap()

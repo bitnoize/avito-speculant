@@ -17,12 +17,12 @@ import {
 } from './scraper.js'
 
 /**
- * Initialize ScraperQueue instance
+ * Initialize Queue instance
  */
-export async function initScraperQueue(
+export function initQueue(
   connection: ConnectionOptions,
   logger: Logger
-): Promise<Queue<ScraperData, ScraperResult>> {
+): Queue<ScraperData, ScraperResult> {
   const queueOptions: QueueOptions = {
     connection
   }
@@ -42,20 +42,30 @@ export async function initScraperQueue(
 }
 
 /**
- * Get ScraperWorkerConcurrency from config
+ * Close Queue instance
  */
-export function getScraperWorkerConcurrency<T extends ScraperConfig>(
-  config: T
-): number {
+export async function closeQueue(
+  queue: Queue<ScraperData, ScraperResult>,
+  logger: Logger
+): Promise<void> {
+  await queue.close()
+
+  logger.debug(`ScraperQueue successfully closed`)
+}
+
+/**
+ * Get Worker concurrency from config
+ */
+export function getWorkerConcurrency<T extends ScraperConfig>(config: T): number {
   const concurrency: number = config.SCRAPER_CONCURRENCY
 
   return concurrency
 }
 
 /**
- * Get ScraperWorkerLimiter from config
+ * Get Worker limiter from config
  */
-export function getScraperWorkerLimiter<T extends ScraperConfig>(
+export function getWorkerLimiter<T extends ScraperConfig>(
   config: T
 ): RateLimiterOptions {
   const limiter: RateLimiterOptions = {
@@ -67,15 +77,15 @@ export function getScraperWorkerLimiter<T extends ScraperConfig>(
 }
 
 /**
- * Initialize ScraperWorker instance
+ * Initialize Worker instance
  */
-export async function initScraperWorker(
+export function initWorker(
   processor: Processor<ScraperData, ScraperResult>,
   connection: ConnectionOptions,
   concurrency: number,
   limiter: RateLimiterOptions,
   logger: Logger
-): Promise<Worker<ScraperData, ScraperResult>> {
+): Worker<ScraperData, ScraperResult> {
   const workerOptions: WorkerOptions = {
     connection,
     concurrency,
@@ -104,4 +114,16 @@ export async function initScraperWorker(
   logger.debug(`ScraperWorker successfully initialized`)
 
   return worker
+}
+
+/**
+ * Close Worker instance
+ */
+export async function closeWorker(
+  worker: Worker<ScraperData, ScraperResult>,
+  logger: Logger
+): Promise<void> {
+  await worker.close()
+
+  logger.debug(`ScraperWorker successfully closed`)
 }

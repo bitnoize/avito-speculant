@@ -20,6 +20,7 @@
     "@avito-speculant/logger": "*",
     "@avito-speculant/queue": "*",
     "@avito-speculant/redis": "*",
+    "@grammyjs/storage-redis": "^2.4.1",
     "@sinclair/typebox": "^0.32.12",
     "env-schema": "^5.2.1",
     "fastify": "^4.26.0",

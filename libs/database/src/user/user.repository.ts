@@ -1,25 +1,53 @@
-import { Kysely } from 'kysely'
+import { Kysely, Transaction } from 'kysely'
 import { UserRow, InsertableUserRow, UpdateableUserRow } from './user.table.js'
+import { InsertableUserLogRow } from '../user-log/user-log.table.js'
+import * as userLogRepository from '../user-log/user-log.repository.js'
 import { Database } from '../database.js'
 
-export async function upsertUser(
+export async function selectOrInsertRow(
   db: Kysely<Database>,
-  user: InsertableUserRow
+  insertableUserRow: InsertableUserRow,
+  data: unknown
 ): Promise<UserRow> {
-  const insertedUser = await db
-    .insertInto('user')
-    .values(user)
-    .onConflict((oc) =>
-      oc.column('tg_from_id').doUpdateSet({
-        first_name: (eb) => eb.ref('excluded.first_name'),
-        last_name: (eb) => eb.ref('excluded.last_name'),
-        username: (eb) => eb.ref('excluded.username'),
-        language_code: (eb) => eb.ref('excluded.language_code'),
-        updated_at: (eb) => eb.ref('excluded.updated_at')
-      })
+  return await db.transaction().execute(async (trx) => {
+    const selectedUserRow = await selectRowByTgFromIdForShare(
+      trx,
+      insertableUserRow.tg_from_id
     )
-    .returningAll()
-    .executeTakeFirstOrThrow()
 
-  return insertedUser
+    if (selectedUserRow !== undefined) {
+      return selectedUserRow
+    }
+
+    const insertedUserRow = await trx
+      .insertInto('user')
+      .values(insertableUserRow)
+      .returningAll()
+      .executeTakeFirstOrThrow()
+
+    const insertableUserLogRow: InsertableUserLogRow = {
+      user_id: insertedUserRow.id,
+      action: 'register_user',
+      status: insertedUserRow.status,
+      data
+    }
+
+    await userLogRepository.insert(trx, insertableUserLogRow)
+
+    return insertedUserRow
+  })
+}
+
+export async function selectRowByTgFromIdForShare(
+  trx: Transaction<Database>,
+  tg_from_id: string
+): Promise<UserRow | undefined> {
+  const selectedUserRow = await trx
+    .selectFrom('user')
+    .selectAll()
+    .where('tg_from_id', '=', tg_from_id)
+    .forShare()
+    .executeTakeFirst()
+
+  return selectedUserRow
 }

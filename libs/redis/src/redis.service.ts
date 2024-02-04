@@ -27,3 +27,12 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
 
   return redis
 }
+
+/*
+ * Close Redis instance
+ */
+export async function closeRedis(redis: Redis, logger: Logger): Promise<void> {
+  await redis.disconnect()
+
+  logger.debug(`Redis successfully closed`)
+}

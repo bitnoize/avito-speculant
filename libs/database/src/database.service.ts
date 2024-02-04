@@ -2,9 +2,11 @@ import * as path from 'path'
 import { promises as fs } from 'fs'
 import pg from 'pg'
 import {
-  Kysely,
+  PostgresDialectConfig,
   PostgresDialect,
-  //CamelCasePlugin,
+  KyselyConfig,
+  Logger as KyselyLogger,
+  Kysely,
   Migrator,
   FileMigrationProvider
 } from 'kysely'
@@ -41,18 +43,68 @@ export function initDatabase(
     parseInt(value)
   )
 
-  const dialect = new PostgresDialect({
-    pool
-  })
+  const dialectOptions: PostgresDialectConfig = {
+    pool,
+    onCreateConnection: async () => {
+      logger.debug(`Database connection estabilished`)
+    }
+  }
 
-  const db = new Kysely<Database>({
+  const dialect = new PostgresDialect(dialectOptions)
+
+  const log: KyselyLogger = async (event) => {
+    const { sql, parameters } = event.query
+    const duration = event.queryDurationMillis.toFixed(2)
+
+    if (event.level === 'query') {
+      const data = {
+        sql,
+        duration
+      }
+
+      logger.debug(data, `Database query event log`)
+    } else if (event.level === 'error') {
+      if (event.error instanceof Error) {
+        const data = {
+          sql,
+          parameters
+        }
+
+        logger.error(data, event.error.stack ?? event.error.message)
+      } else {
+        const data = {
+          sql,
+          parameters,
+          error: event.error
+        }
+
+        logger.error(data, `Database error event log`)
+      }
+    }
+  }
+
+  const kyselyConfig: KyselyConfig = {
     dialect,
-    //plugins: [new CamelCasePlugin()]
-  })
+    log
+  }
+
+  const db = new Kysely<Database>(kyselyConfig)
 
   logger.debug(`Database successfully initialized`)
 
   return db
+}
+
+/*
+ * Close Database instance
+ */
+export async function closeDatabase(
+  db: Kysely<Database>,
+  logger: Logger
+): Promise<void> {
+  await db.destroy()
+
+  logger.debug(`Database successfully closed`)
 }
 
 /*
@@ -63,13 +115,14 @@ export async function migrateToLatest(
   logger: Logger
 ): Promise<void> {
   const migrationFolder = new URL('./migrations', import.meta.url).pathname
+  const provider = new FileMigrationProvider({
+    fs,
+    path,
+    migrationFolder
+  })
   const migrator = new Migrator({
     db,
-    provider: new FileMigrationProvider({
-      fs,
-      path,
-      migrationFolder
-    })
+    provider
   })
 
   const { error, results } = await migrator.migrateToLatest()
@@ -85,9 +138,8 @@ export async function migrateToLatest(
   }
 
   if (error !== undefined) {
-    logger.fatal(error, `Failed to apply database migrations`)
     process.exit(1)
   }
 
-  logger.debug(`Database migrations successfully applied`)
+  logger.debug(`All database migrations successfully applied`)
 }

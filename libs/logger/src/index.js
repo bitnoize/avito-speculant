@@ -1,2 +1,4 @@
+export { Logger } from 'pino'
+
 export * from './logger.js'
-export * from './logger.service.js'
+export * as loggerService from './logger.service.js'

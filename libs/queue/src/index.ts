@@ -1,3 +1,6 @@
+export { FlowProducer, Queue, QueueEvents, Worker, Processor, Job } from 'bullmq'
+
 export * from './queue.js'
-export * from './queue.service.js'
+export * as queueService from './queue.service.js'
+
 export * from './scraper/index.js'
