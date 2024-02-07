@@ -1,38 +1,45 @@
 import { Kysely } from 'kysely'
-import { User, AuthorizeUserRequest } from './user.js'
-import { UserRow, InsertableUserRow } from './user.table.js'
+import { AuthorizeUserRequest, AuthorizeUserResponse } from './user.js'
 import * as userRepository from './user.repository.js'
+import * as userLogRepository from '../user-log/user-log.repository.js'
 import { Database } from '../database.js'
 
 export async function authorizeUser(
   db: Kysely<Database>,
   request: AuthorizeUserRequest
-): Promise<User> {
-  const insertableUserRow: InsertableUserRow = {
-    tg_from_id: request.tgFromId
-  }
+): Promise<AuthorizeUserResponse> {
+  return await db.transaction().execute(async (trx) => {
+    const selectedUserRow = await userRepository.selectRowByTgFromIdForShare(
+      trx,
+      request.tgFromId
+    )
 
-  const userRow = await userRepository.selectOrInsertRow(
-    db,
-    insertableUserRow,
-    request.data
-  )
+    if (selectedUserRow !== undefined) {
+      return {
+        user: userRepository.buildModel(selectedUserRow)
+      }
+    }
 
-  return makeUserFromRow(userRow)
-}
+    const insertedUserRow = await userRepository.insertRow(
+      trx,
+      {
+        tg_from_id: request.tgFromId
+      }
+    )
 
-const makeUserFromRow = (row: UserRow): User => {
-  const user: User = {
-    id: row.id,
-    tgFromId: row.tg_from_id,
-    status: row.status,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  }
+    await userLogRepository.insertRow(
+      trx,
+      {
+        user_id: insertedUserRow.id,
+        action: 'authorize_create_user',
+        status: insertedUserRow.status,
+        subscriptions: insertedUserRow.subscriptions,
+        data: request.data
+      }
+    )
 
-  return user
-}
-
-const makeUsersFromRows = (rows: UserRow[]): User[] => {
-  return rows.map((row) => makeUserFromRow(row))
+    return {
+      user: userRepository.buildModel(insertedUserRow)
+    }
+  })
 }

@@ -1,12 +1,14 @@
-import { ColumnType, Generated, Selectable, Insertable, Updateable } from 'kysely'
+import { Generated, ColumnType, Selectable, Insertable, Updateable } from 'kysely'
 import { UserStatus } from './user.js'
 
 export interface UserTable {
   id: Generated<number>
   tg_from_id: ColumnType<string, string, never>
-  status: ColumnType<UserStatus, never, UserStatus>
-  created_at: ColumnType<Date, never, never>
-  updated_at: ColumnType<Date, never, string | undefined>
+  status: ColumnType<UserStatus, never, never>
+  subscriptions: ColumnType<number, never, never>
+  create_time: ColumnType<Date, never, never>
+  update_time: ColumnType<Date, never, never>
+  process_time: ColumnType<Date, never, never>
 }
 
 export type UserRow = Selectable<UserTable>

@@ -1,53 +1,61 @@
-import { Kysely, Transaction } from 'kysely'
+import { Transaction, sql } from 'kysely'
 import { UserRow, InsertableUserRow, UpdateableUserRow } from './user.table.js'
-import { InsertableUserLogRow } from '../user-log/user-log.table.js'
-import * as userLogRepository from '../user-log/user-log.repository.js'
+import { User } from './user.js'
 import { Database } from '../database.js'
 
-export async function selectOrInsertRow(
-  db: Kysely<Database>,
-  insertableUserRow: InsertableUserRow,
-  data: unknown
+export async function insertRow(
+  trx: Transaction<Database>,
+  row: InsertableUserRow
 ): Promise<UserRow> {
-  return await db.transaction().execute(async (trx) => {
-    const selectedUserRow = await selectRowByTgFromIdForShare(
-      trx,
-      insertableUserRow.tg_from_id
-    )
+  return await trx
+    .insertInto('user')
+    .values(() => ({
+      ...row,
+      status: 'blank',
+      create_time: sql`NOW()`,
+      update_time: sql`NOW()`,
+      process_time: sql`NOW()`
+    }))
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
 
-    if (selectedUserRow !== undefined) {
-      return selectedUserRow
-    }
-
-    const insertedUserRow = await trx
-      .insertInto('user')
-      .values(insertableUserRow)
-      .returningAll()
-      .executeTakeFirstOrThrow()
-
-    const insertableUserLogRow: InsertableUserLogRow = {
-      user_id: insertedUserRow.id,
-      action: 'register_user',
-      status: insertedUserRow.status,
-      data
-    }
-
-    await userLogRepository.insert(trx, insertableUserLogRow)
-
-    return insertedUserRow
-  })
+export async function selectRowByIdForShare(
+  trx: Transaction<Database>,
+  user_id: number
+): Promise<UserRow | undefined> {
+  return await trx
+    .selectFrom('user')
+    .selectAll()
+    .where('id', '=', user_id)
+    .forShare()
+    .executeTakeFirst()
 }
 
 export async function selectRowByTgFromIdForShare(
   trx: Transaction<Database>,
   tg_from_id: string
 ): Promise<UserRow | undefined> {
-  const selectedUserRow = await trx
+  return await trx
     .selectFrom('user')
     .selectAll()
     .where('tg_from_id', '=', tg_from_id)
     .forShare()
     .executeTakeFirst()
+}
 
-  return selectedUserRow
+export const buildModel = (row: UserRow): User => {
+  return {
+    id: row.id,
+    tgFromId: row.tg_from_id,
+    status: row.status,
+    subscriptions: row.subscriptions,
+    createTime: row.create_time,
+    updateTime: row.update_time,
+    processTime: row.process_time
+  }
+}
+
+export const buildCollection = (rows: UserRow[]): User[] => {
+  return rows.map((row) => buildModel(row))
 }

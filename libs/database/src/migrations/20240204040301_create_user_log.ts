@@ -8,9 +8,10 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.primaryKey().defaultTo(sql`gen_random_uuid()`)
     )
     .addColumn('user_id', 'integer', (col) => col.notNull().references('user.id'))
-    .addColumn('time', 'timestamptz', (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn('time', 'timestamptz', (col) => col.notNull())
     .addColumn('action', 'varchar', (col) => col.notNull())
     .addColumn('status', sql`user_status`, (col) => col.notNull())
+    .addColumn('subscriptions', 'integer', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
     .execute()
 

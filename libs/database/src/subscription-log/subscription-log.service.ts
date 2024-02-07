@@ -1,17 +1,17 @@
 import { Kysely } from 'kysely'
-// User
-import { UserNotFoundError } from '../user/user.errors.js'
-import * as userRepository from '../user/user.repository.js'
-// UserLog
-import { ListUserLogsRequest, ListUserLogsResponse } from './user-log.js'
-import * as userLogRepository from './user-log.repository.js'
+// SubscriptionLog
+import {
+  SubscriptionLog,
+  ListSubscriptionLogsRequest
+} from './subscription-log.js'
+import * as subscriptionLogRepository from './subscription-log.repository.js'
 // Common
 import { Database } from '../database.js'
 
-export async function listUserLogs(
+export async function listSubscriptionLogs(
   db: Kysely<Database>,
-  request: ListUserLogsRequest
-): Promise<ListUserLogsResponse> {
+  request: ListSubscriptionLogsRequest
+): Promise<ListSubscriptionLogsResponse> {
   return await db.transaction().execute(async (trx) => {
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
@@ -34,4 +34,14 @@ export async function listUserLogs(
       limit
     }
   })
+
+
+
+  const subscriptionLogRows = await subscriptionLogRepository.selectBySubscriptionId(
+    db,
+    request.subscriptionId
+  )
+
+  return makeSubscriptionLogsFromRows(subscriptionLogRows)
 }
+

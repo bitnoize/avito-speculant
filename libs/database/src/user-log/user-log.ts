@@ -1,4 +1,4 @@
-import { UserStatus } from '../user/user.js'
+import { User, UserStatus, UserData } from '../user/user.js'
 
 export interface UserLog {
   id: string
@@ -6,9 +6,19 @@ export interface UserLog {
   time: Date
   action: string
   status: UserStatus
-  data: unknown
+  subscriptions: number
+  data: UserData
 }
 
 export interface ListUserLogsRequest {
   userId: number
+  limit: number
+}
+
+export interface ListUserLogsResponse {
+  message: string
+  statusCode: number
+  user: User
+  userLogs: UserLog[]
+  limit: number
 }

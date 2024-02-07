@@ -1,23 +1,23 @@
 import { Kysely, sql } from 'kysely'
-import { UserStatuses, UserDefaultStatus } from '../user/user.js'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
-  await db.schema.createType('user_status').asEnum(UserStatuses).execute()
+  await db.schema
+    .createType('user_status')
+    .asEnum(['blank', 'paid', 'hold'])
+    .execute()
 
   await db.schema
     .createTable('user')
     .addColumn('id', 'serial', (col) => col.primaryKey())
     .addColumn('tg_from_id', 'bigint', (col) => col.notNull())
-    .addColumn('status', sql`user_status`, (col) =>
-      col.notNull().defaultTo(UserDefaultStatus)
+    .addColumn('status', sql`user_status`, (col) => col.notNull())
+    .addColumn('subscriptions', 'integer', (col) =>
+      col.notNull().defaultTo(0)
     )
-    .addColumn('created_at', 'timestamptz', (col) =>
-      col.notNull().defaultTo(sql`NOW()`)
-    )
-    .addColumn('updated_at', 'timestamptz', (col) =>
-      col.notNull().defaultTo(sql`NOW()`)
-    )
+    .addColumn('create_time', 'timestamptz', (col) => col.notNull())
+    .addColumn('update_time', 'timestamptz', (col) => col.notNull())
+    .addColumn('process_time', 'timestamptz', (col) => col.notNull())
     .execute()
 
   await db.schema
@@ -34,15 +34,21 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema
-    .createIndex('user_created_at_key')
+    .createIndex('user_create_time_key')
     .on('user')
-    .column('created_at')
+    .column('create_time')
     .execute()
 
   await db.schema
-    .createIndex('user_updated_at_key')
+    .createIndex('user_update_time_key')
     .on('user')
-    .column('updated_at')
+    .column('update_time')
+    .execute()
+
+  await db.schema
+    .createIndex('user_process_time_key')
+    .on('user')
+    .column('process_time')
     .execute()
 }
 

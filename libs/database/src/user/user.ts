@@ -1,16 +1,23 @@
-export const UserStatuses = ['free', 'paid', 'hold']
-export const UserDefaultStatus = UserStatuses[0]
-export type UserStatus = (typeof UserStatuses)[number]
+export const USER_STATUSES = ['blank', 'paid', 'block']
+export type UserStatus = (typeof USER_STATUSES)[number]
+
+export type UserData = Record<string, unknown>
 
 export interface User {
   id: number
   tgFromId: string
   status: UserStatus
-  createdAt: Date
-  updatedAt: Date
+  subscriptions: number
+  createTime: Date
+  updateTime: Date
+  processTime: Date
 }
 
 export interface AuthorizeUserRequest {
   tgFromId: string
-  data: unknown
+  data: UserData
+}
+
+export interface AuthorizeUserResponse {
+  user: User
 }
