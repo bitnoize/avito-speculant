@@ -9,7 +9,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     )
     .addColumn('subscription_id', 'integer', (col) =>
       col.notNull().references('subscription.id'))
-    .addColumn('time', 'timestamptz', (col) => col.notNull())
     .addColumn('action', 'varchar', (col) => col.notNull())
     .addColumn('categories_max', 'integer', (col) => col.notNull())
     .addColumn('price_rub', 'integer', (col) => col.notNull())
@@ -18,6 +17,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('analytics_on', 'boolean', (col) => col.notNull())
     .addColumn('status', sql`subscription_status`, (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
+    .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
   await db.schema
@@ -27,15 +27,15 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema
-    .createIndex('subscription_log_time_key')
-    .on('subscription_log')
-    .column('time')
-    .execute()
-
-  await db.schema
     .createIndex('subscription_log_action_key')
     .on('subscription_log')
     .column('action')
+    .execute()
+
+  await db.schema
+    .createIndex('subscription_log_created_at_key')
+    .on('subscription_log')
+    .column('created_at')
     .execute()
 }
 

@@ -1,18 +1,20 @@
 import { Transaction, sql } from 'kysely'
 import { PgPubSub } from '@imqueue/pg-pubsub'
-import { UserLogRow, InsertableUserLogRow } from './user-log.table.js'
-import { UserLog } from './user-log.js'
+// PlanLog
+import { PlanLog } from './plan-log.js'
+import { PlanLogRow, InsertablePlanLogRow } from './plan-log.table.js'
+// Database
 import { Database } from '../database.js'
 
-export async function selectRowsByUserId(
+export async function selectRowsByPlanId(
   trx: Transaction<Database>,
-  user_id: number,
+  plan_id: number,
   limit: number
-): Promise<UserLogRow[]> {
+): Promise<PlanLogRow[]> {
   return await trx
-    .selectFrom('user_log')
+    .selectFrom('plan_log')
     .selectAll()
-    .where('user_id', '=', user_id)
+    .where('plan_id', '=', plan_id)
     .orderBy('time', 'desc')
     .limit(limit)
     .execute()
@@ -20,13 +22,13 @@ export async function selectRowsByUserId(
 
 export async function insertRow(
   trx: Transaction<Database>,
-  row: InsertableUserLogRow
+  row: InsertablePlanLogRow
 ): Promise<void> {
   await trx
-    .insertInto('user_log')
+    .insertInto('plan_log')
     .values(() => ({
       ...row,
-      time: sql`NOW()`
+      created_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -34,23 +36,23 @@ export async function insertRow(
 
 export async function notify(
   pubSub: PgPubSub,
-  userLogRow: UserLogRow
+  planLogRow: PlanLogRow
 ): Promise<void> {
-  await pubSub.notify('user', userLogRow)
+  await pubSub.notify('plan', planLogRow)
 }
 
-export const buildModel = (row: UserLogRow): UserLog => {
+export const buildModel = (row: PlanLogRow): PlanLog => {
   return {
     id: row.id,
-    userId: row.user_id,
-    time: row.time,
+    planId: row.plan_id,
     action: row.action,
     status: row.status,
     subscriptions: row.subscriptions,
-    data: row.data
+    data: row.data,
+    createdAt: row.created_at
   }
 }
 
-export const buildCollection = (rows: UserLogRow[]): UserLog[] => {
+export const buildCollection = (rows: PlanLogRow[]): PlanLog[] => {
   return rows.map((row) => buildModel(row))
 }

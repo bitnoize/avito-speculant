@@ -1,4 +1,5 @@
 import { Kysely, Transaction } from 'kysely'
+import { PgPubSub } from '@imqueue/pg-pubsub'
 import {
   SubscriptionLogRow,
   InsertableSubscriptionLogRow
@@ -21,7 +22,7 @@ export async function selectBySubscriptionId(
   return subscriptionLogRows
 }
 
-export async function insert(
+export async function insertRow(
   trx: Transaction<Database>,
   insertableSubscriptionLogRow: InsertableSubscriptionLogRow
 ): Promise<void> {
@@ -30,4 +31,11 @@ export async function insert(
     .values(insertableSubscriptionLogRow)
     .returningAll()
     .executeTakeFirstOrThrow()
+}
+
+export async function notify(
+  pubSub: PgPubSub,
+  subscriptionLogRow: SubscriptionLogRow
+): Promise<void> {
+  await pubSub.notify('subscription', subscriptionLogRow)
 }

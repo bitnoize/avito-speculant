@@ -1,24 +1,9 @@
 import { Transaction, sql } from 'kysely'
+// User
 import { UserRow, InsertableUserRow, UpdateableUserRow } from './user.table.js'
 import { User } from './user.js'
+// Database
 import { Database } from '../database.js'
-
-export async function insertRow(
-  trx: Transaction<Database>,
-  row: InsertableUserRow
-): Promise<UserRow> {
-  return await trx
-    .insertInto('user')
-    .values(() => ({
-      ...row,
-      status: 'blank',
-      create_time: sql`NOW()`,
-      update_time: sql`NOW()`,
-      process_time: sql`NOW()`
-    }))
-    .returningAll()
-    .executeTakeFirstOrThrow()
-}
 
 export async function selectRowByIdForShare(
   trx: Transaction<Database>,
@@ -44,15 +29,32 @@ export async function selectRowByTgFromIdForShare(
     .executeTakeFirst()
 }
 
+export async function insertRow(
+  trx: Transaction<Database>,
+  row: InsertableUserRow
+): Promise<UserRow> {
+  return await trx
+    .insertInto('user')
+    .values(() => ({
+      ...row,
+      status: 'blank',
+      created_at: sql`NOW()`,
+      updated_at: sql`NOW()`,
+      scheduled_at: sql`NOW()`
+    }))
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
 export const buildModel = (row: UserRow): User => {
   return {
     id: row.id,
     tgFromId: row.tg_from_id,
     status: row.status,
     subscriptions: row.subscriptions,
-    createTime: row.create_time,
-    updateTime: row.update_time,
-    processTime: row.process_time
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    scheduledAt: row.scheduled_at
   }
 }
 

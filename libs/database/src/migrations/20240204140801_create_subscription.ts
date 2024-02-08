@@ -18,9 +18,9 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('interval_sec', 'integer', (col) => col.notNull())
     .addColumn('analytics_on', 'boolean', (col) => col.notNull())
     .addColumn('status', sql`subscription_status`, (col) => col.notNull())
-    .addColumn('create_time', 'timestamptz', (col) => col.notNull())
-    .addColumn('update_time', 'timestamptz', (col) => col.notNull())
-    .addColumn('process_time', 'timestamptz', (col) => col.notNull())
+    .addColumn('created_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('updated_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('scheduled_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
   await db.schema
@@ -58,21 +58,21 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema
-    .createIndex('subscription_create_time_key')
+    .createIndex('subscription_created_at_key')
     .on('subscription')
-    .column('create_time')
+    .column('created_at')
     .execute()
 
   await db.schema
-    .createIndex('subscription_update_time_key')
+    .createIndex('subscription_updated_at_key')
     .on('subscription')
-    .column('update_time')
+    .column('updated_at')
     .execute()
 
   await db.schema
-    .createIndex('subscription_process_time_key')
+    .createIndex('subscription_scheduled_at_key')
     .on('subscription')
-    .column('process_time')
+    .column('scheduled_at')
     .execute()
 }
 

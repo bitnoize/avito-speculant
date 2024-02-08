@@ -1,9 +1,11 @@
-export { DatabaseError as PostgresDatabaseError } from 'pg-protocol'
-
-export { PostgresDatabaseError }
-
-export abstract class DatabaseError<T> extends PostgresDatabaseError {
-  constructor(message: string, readonly request: T, readonly statusCode: number) {
+export abstract class DatabaseError<T> extends Error {
+  constructor(readonly request: T, message: string, readonly statusCode: number) {
     super(message)
+  }
+}
+
+export class DatabaseInternalError<T> extends DatabaseError<T> {
+  constructor(request: T, message = `Database internal error`, statusCode = 500) {
+    super(request, message, statusCode)
   }
 }

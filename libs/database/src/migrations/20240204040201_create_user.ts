@@ -4,7 +4,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createType('user_status')
-    .asEnum(['blank', 'paid', 'hold'])
+    .asEnum(['trial', 'paid', 'block'])
     .execute()
 
   await db.schema
@@ -15,9 +15,9 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('subscriptions', 'integer', (col) =>
       col.notNull().defaultTo(0)
     )
-    .addColumn('create_time', 'timestamptz', (col) => col.notNull())
-    .addColumn('update_time', 'timestamptz', (col) => col.notNull())
-    .addColumn('process_time', 'timestamptz', (col) => col.notNull())
+    .addColumn('created_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('updated_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('scheduled_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
   await db.schema
@@ -34,21 +34,21 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema
-    .createIndex('user_create_time_key')
+    .createIndex('user_created_at_key')
     .on('user')
-    .column('create_time')
+    .column('created_at')
     .execute()
 
   await db.schema
-    .createIndex('user_update_time_key')
+    .createIndex('user_updated_at_key')
     .on('user')
-    .column('update_time')
+    .column('updated_at')
     .execute()
 
   await db.schema
-    .createIndex('user_process_time_key')
+    .createIndex('user_scheduled_at_key')
     .on('user')
-    .column('process_time')
+    .column('scheduled_at')
     .execute()
 }
 

@@ -6,9 +6,9 @@ export interface UserTable {
   tg_from_id: ColumnType<string, string, never>
   status: ColumnType<UserStatus, never, never>
   subscriptions: ColumnType<number, never, never>
-  create_time: ColumnType<Date, never, never>
-  update_time: ColumnType<Date, never, never>
-  process_time: ColumnType<Date, never, never>
+  created_at: ColumnType<Date, never, never>
+  updated_at: ColumnType<Date, never, never>
+  scheduled_at: ColumnType<Date, never, never>
 }
 
 export type UserRow = Selectable<UserTable>

@@ -7,7 +7,6 @@ import {
 export interface SubscriptionLog {
   id: string
   subscriptionId: number
-  time: Date
   action: string
   categoriesMax: number
   priceRub: number
@@ -16,6 +15,7 @@ export interface SubscriptionLog {
   analyticsOn: boolean
   status: SubscriptionStatus
   data: SubscriptionData
+  createdAt: Date
 }
 
 export interface ListSubscriptionLogsRequest {

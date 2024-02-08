@@ -1,10 +1,9 @@
 import * as path from 'path'
 import { promises as fs } from 'fs'
 import pg from 'pg'
+import { PgPubSubOptions, PgPubSub } from '@imqueue/pg-pubsub'
 import {
-  PostgresDialectConfig,
   PostgresDialect,
-  KyselyConfig,
   Logger as KyselyLogger,
   Kysely,
   Migrator,
@@ -13,21 +12,34 @@ import {
 import { Logger } from '@avito-speculant/logger'
 import { DatabaseConfig, Database } from './database.js'
 
+pg.types.setTypeParser(
+  pg.types.builtins.INT8,
+  (value: string): number => parseInt(value)
+)
+
+pg.types.setTypeParser(
+  pg.types.builtins.TIMESTAMP,
+  (value: Date): number => value.getTime()
+)
+
+pg.types.setTypeParser(
+  pg.types.builtins.TIMESTAMPTZ,
+  (value: Date): number => value.getTime()
+)
+
 /**
  * Get DatabaseConfig from config
  */
 export function getDatabaseConfig<T extends DatabaseConfig>(
   config: T
-): pg.PoolConfig {
-  const databaseConfig: pg.PoolConfig = {
+): pg.ClientConfig {
+  return {
     host: config.POSTGRES_HOST,
     port: config.POSTGRES_PORT,
     database: config.POSTGRES_DATABASE,
     user: config.POSTGRES_USERNAME,
     password: config.POSTGRES_PASSWORD
   }
-
-  return databaseConfig
 }
 
 /**
@@ -37,20 +49,16 @@ export function initDatabase(
   config: pg.PoolConfig,
   logger: Logger
 ): Kysely<Database> {
-  const pool = new pg.Pool(config)
+  const pool = new pg.Pool({
+    ...config
+  })
 
-  pg.types.setTypeParser(pg.types.builtins.INT8, (value: string): number =>
-    parseInt(value)
-  )
-
-  const dialectOptions: PostgresDialectConfig = {
+  const dialect = new PostgresDialect({
     pool,
     onCreateConnection: async () => {
-      logger.debug(`Database connection estabilished`)
+      logger.debug(`Database successfully connected`)
     }
-  }
-
-  const dialect = new PostgresDialect(dialectOptions)
+  })
 
   const log: KyselyLogger = async (event) => {
     const { sql, parameters } = event.query
@@ -83,12 +91,10 @@ export function initDatabase(
     }
   }
 
-  const kyselyConfig: KyselyConfig = {
+  const db = new Kysely<Database>({
     dialect,
     log
-  }
-
-  const db = new Kysely<Database>(kyselyConfig)
+  })
 
   logger.debug(`Database successfully initialized`)
 
@@ -105,6 +111,70 @@ export async function closeDatabase(
   await db.destroy()
 
   logger.debug(`Database successfully closed`)
+}
+
+/**
+ * Initialize PubSub instance
+ */
+export function initPubSub(
+  config: pg.ClientConfig,
+  logger: Logger
+): PgPubSub {
+  const pubSub = new PgPubSub({
+    ...config,
+    singleListener: false
+  })
+
+  pubsub.on('connect', async () => {
+    logger.debug(`PubSub successfully connected`)
+  })
+
+  logger.debug(`PubSub successfully initialized`)
+
+  return pubSub
+}
+
+/**
+ * Initialize PubSubLock instance
+ */
+export function initPubSubLock(
+  config: pg.ClientConfig,
+  logger: Logger
+): PgPubSub {
+  const pubSub = new PgPubSub({
+    ...config,
+    singleListener: true,
+    executionLock: true
+  })
+
+  pubsub.on('connect', async () => {
+    logger.debug(`PubSub successfully connected`)
+
+    await Promise.all(
+      [
+        'user',
+        'plan',
+        'subscription',
+        'category'
+      ].map((channel) => pubSub.listen(channel))
+    )
+  })
+
+  logger.debug(`PubSub successfully initialized`)
+
+  return pubSub
+}
+
+/*
+ * Close PubSub instance
+ */
+export async function closePubSub(
+  pubSub: PgPubSub,
+  logger: Logger
+): Promise<void> {
+  await pubSub.close()
+
+  logger.debug(`PubSub successfully closed`)
 }
 
 /*

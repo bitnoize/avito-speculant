@@ -8,11 +8,11 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.primaryKey().defaultTo(sql`gen_random_uuid()`)
     )
     .addColumn('user_id', 'integer', (col) => col.notNull().references('user.id'))
-    .addColumn('time', 'timestamptz', (col) => col.notNull())
     .addColumn('action', 'varchar', (col) => col.notNull())
     .addColumn('status', sql`user_status`, (col) => col.notNull())
     .addColumn('subscriptions', 'integer', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
+    .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
   await db.schema
@@ -22,15 +22,15 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema
-    .createIndex('user_log_time_key')
-    .on('user_log')
-    .column('time')
-    .execute()
-
-  await db.schema
     .createIndex('user_log_action_key')
     .on('user_log')
     .column('action')
+    .execute()
+
+  await db.schema
+    .createIndex('user_log_created_at_key')
+    .on('user_log')
+    .column('created_at')
     .execute()
 }
 

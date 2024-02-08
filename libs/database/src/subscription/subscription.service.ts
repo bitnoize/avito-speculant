@@ -1,6 +1,7 @@
 import { Kysely } from 'kysely'
+import { PgPubSub } from '@imqueue/pg-pubsub'
 // User
-import { UserNotFoundError, UserBlockError } from '../user/user.errors.js'
+import { UserNotFoundError, UserBlockedError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
 // Plan
 import { PlanNotFoundError, PlanDisabledError } from '../plan/plan.errors.js'
@@ -12,13 +13,15 @@ import {
   CreateSubscriptionResponse
 } from './subscription.js'
 import * as subscriptionRepository from './subscription.repository.js'
+// SubscriptionLog
 import * as subscriptionLogRepository
   from '../subscription-log/subscription-log.repository.js'
-// Common
+// Database
 import { Database } from '../database.js'
 
 export async function createSubscription(
   db: Kysely<Database>,
+  pubSub: PgPubSub,
   request: CreateSubscriptionRequest
 ): Promise<CreateSubscriptionResponse> {
   return await db.transaction().execute(async (trx) => {
@@ -28,11 +31,11 @@ export async function createSubscription(
     )
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, `createSubscription: user not found`, 400)
+      throw new UserNotFoundError(request, 400)
     }
 
     if (userRow.status === 'block') {
-      throw new UserBlockError(request, `createSubscription: user blocked`, 403)
+      throw new UserBlockedError(request)
     }
 
     const planRow = await planRepository.selectRowByIdForShare(
@@ -41,11 +44,11 @@ export async function createSubscription(
     )
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError(request, `createSubscription: plan not found`, 400)
+      throw new PlanNotFoundError(request, 400)
     }
 
     if (!planRow.is_enabled) {
-      throw new PlanDisabledError(request, `createSubscription: plan disabled`, 403)
+      throw new PlanDisabledError(request)
     }
 
     const selectedSubscriptionRow = await subscriptionRepository
@@ -56,15 +59,13 @@ export async function createSubscription(
 
     if (selectedSubscriptionRow !== undefined) {
       return {
-        message: `createSubscription: subscription allready exists`,
-        statusCode: 301,
-        user: userRepository.buildModel(userRow),
-        plan: planRepository.buildModel(planRow),
+        message: `Subscription allready exists`,
+        statusCode: 200,
         subscription: subscriptionRepository.buildModel(selectedSubscriptionRow)
       }
     }
 
-    // TODO modify plan
+    // TODO modify plan if needed
 
     const insertedSubscriptionRow = await subscriptionRepository.insertRow(
       trx,
@@ -79,11 +80,11 @@ export async function createSubscription(
       }
     )
 
-    await subscriptionLogRepository.insertRow(
+    const subscriptionLogRow = await subscriptionLogRepository.insertRow(
       trx,
       {
         subscription_id: insertedSubscriptionRow.id,
-        action: 'create_subscription_success',
+        action: 'create_subscription',
         categories_max: insertedSubscriptionRow.categories_max,
         price_rub: insertedSubscriptionRow.price_rub,
         duration_days: insertedSubscriptionRow.duration_days,
@@ -94,11 +95,11 @@ export async function createSubscription(
       }
     )
 
+    await subscriptionLogRepository.notify(pubSub, subscriptionLogRow)
+
     return {
-      message: `createSubscription: subscription successfully created`,
+      message: `Subscription successfully created`,
       statusCode: 201,
-      user: userRepository.buildModel(userRow),
-      plan: planRepository.buildModel(planRow),
       subscription: subscriptionRepository.buildModel(insertedSubscriptionRow)
     }
   })

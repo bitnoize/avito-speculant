@@ -1,4 +1,4 @@
-export const USER_STATUSES = ['blank', 'paid', 'block']
+export const USER_STATUSES = ['trial', 'paid', 'block']
 export type UserStatus = (typeof USER_STATUSES)[number]
 
 export type UserData = Record<string, unknown>
@@ -8,9 +8,9 @@ export interface User {
   tgFromId: string
   status: UserStatus
   subscriptions: number
-  createTime: Date
-  updateTime: Date
-  processTime: Date
+  createdAt: Date
+  updatedAt: Date
+  scheduledAt: Date
 }
 
 export interface AuthorizeUserRequest {
@@ -19,5 +19,7 @@ export interface AuthorizeUserRequest {
 }
 
 export interface AuthorizeUserResponse {
+  message: string
+  statusCode: number
   user: User
 }

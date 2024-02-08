@@ -27,11 +27,11 @@ export async function listUserLogs(
 
 
     return {
-      message: `listUserLogs: successfully listed`,
+      message: `UserLogs listed successfully`,
       statusCode: 200,
       user: userRepository.buildModel(userRow),
       userLogs: userLogRepository.buildCollection(userLogRows),
-      limit
+      limit: request.limit
     }
   })
 }

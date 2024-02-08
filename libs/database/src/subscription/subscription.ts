@@ -1,5 +1,3 @@
-import { DatabaseError } from '../database.js'
-
 export const SUBSCRIPTION_STATUSES = ['wait', 'cancel', 'active', 'finish']
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number]
 
@@ -15,9 +13,9 @@ export interface Subscription {
   intervalSec: number
   analyticsOn: boolean
   status: SubscriptionStatus
-  createTime: Date
-  updateTime: Date
-  processTime: Date
+  createdAt: Date
+  updatedAt: Date
+  scheduledAt: Date
 }
 
 export interface CreateSubscriptionRequest {
@@ -29,7 +27,5 @@ export interface CreateSubscriptionRequest {
 export interface CreateSubscriptionResponse {
   message: string
   statusCode: number
-  user: User
-  plan: Plan
   subscription: Subscription
 }

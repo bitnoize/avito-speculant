@@ -3,11 +3,11 @@ import { User, UserStatus, UserData } from '../user/user.js'
 export interface UserLog {
   id: string
   userId: number
-  time: Date
   action: string
   status: UserStatus
   subscriptions: number
   data: UserData
+  createdAt: number
 }
 
 export interface ListUserLogsRequest {

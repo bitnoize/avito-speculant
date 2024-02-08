@@ -1,11 +1,19 @@
 import { Kysely } from 'kysely'
-import { AuthorizeUserRequest, AuthorizeUserResponse } from './user.js'
+import { PgPubSub } from '@imqueue/pg-pubsub'
+// User
+import {
+  AuthorizeUserRequest,
+  AuthorizeUserResponse
+} from './user.js'
 import * as userRepository from './user.repository.js'
+// UserLog
 import * as userLogRepository from '../user-log/user-log.repository.js'
+// Database
 import { Database } from '../database.js'
 
 export async function authorizeUser(
   db: Kysely<Database>,
+  pubSub: PgPubSub,
   request: AuthorizeUserRequest
 ): Promise<AuthorizeUserResponse> {
   return await db.transaction().execute(async (trx) => {
@@ -16,6 +24,8 @@ export async function authorizeUser(
 
     if (selectedUserRow !== undefined) {
       return {
+        message: `User allready exists`,
+        statusCode: 200,
         user: userRepository.buildModel(selectedUserRow)
       }
     }
@@ -27,18 +37,22 @@ export async function authorizeUser(
       }
     )
 
-    await userLogRepository.insertRow(
+    const userLogRow = await userLogRepository.insertRow(
       trx,
       {
         user_id: insertedUserRow.id,
-        action: 'authorize_create_user',
+        action: 'authorize_user',
         status: insertedUserRow.status,
         subscriptions: insertedUserRow.subscriptions,
         data: request.data
       }
     )
 
+    await userLogRepository.notify(pubSub, userLogRow)
+
     return {
+      message: `Authorize user successfully created`,
+      statusCode: 201,
       user: userRepository.buildModel(insertedUserRow)
     }
   })
