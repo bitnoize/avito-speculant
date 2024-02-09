@@ -6,6 +6,12 @@ export class UserNotFoundError<T> extends DatabaseError<T> {
   }
 }
 
+export class UserNotPaidError<T> extends DatabaseError<T> {
+  constructor(request: T, statusCode = 403, message = `User not paid`) {
+    super(request, statusCode, message)
+  }
+}
+
 export class UserBlockedError<T> extends DatabaseError<T> {
   constructor(request: T, statusCode = 403, message = `User blocked`) {
     super(request, statusCode, message)

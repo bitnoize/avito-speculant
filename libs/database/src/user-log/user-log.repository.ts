@@ -1,5 +1,5 @@
 import { Transaction, sql } from 'kysely'
-import { PgPubSub } from '@imqueue/pg-pubsub'
+import { PgPubSub, AnyJson } from '@imqueue/pg-pubsub'
 import { UserLogRow, InsertableUserLogRow } from './user-log.table.js'
 import { UserLog } from './user-log.js'
 import { Database } from '../database.js'
@@ -13,7 +13,7 @@ export async function selectRowsByUserId(
     .selectFrom('user_log')
     .selectAll()
     .where('user_id', '=', user_id)
-    .orderBy('time', 'desc')
+    .orderBy('created_at', 'desc')
     .limit(limit)
     .execute()
 }
@@ -21,33 +21,30 @@ export async function selectRowsByUserId(
 export async function insertRow(
   trx: Transaction<Database>,
   row: InsertableUserLogRow
-): Promise<void> {
-  await trx
+): Promise<UserLogRow> {
+  return await trx
     .insertInto('user_log')
     .values(() => ({
       ...row,
-      time: sql`NOW()`
+      created_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
 }
 
-export async function notify(
-  pubSub: PgPubSub,
-  userLogRow: UserLogRow
-): Promise<void> {
-  await pubSub.notify('user', userLogRow)
+export async function notify(pubSub: PgPubSub, row: UserLogRow): Promise<void> {
+  await pubSub.notify('user', row as AnyJson)
 }
 
 export const buildModel = (row: UserLogRow): UserLog => {
   return {
     id: row.id,
     userId: row.user_id,
-    time: row.time,
     action: row.action,
     status: row.status,
     subscriptions: row.subscriptions,
-    data: row.data
+    data: row.data,
+    createdAt: row.created_at
   }
 }
 

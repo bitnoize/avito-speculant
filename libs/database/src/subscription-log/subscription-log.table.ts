@@ -1,5 +1,8 @@
 import { Generated, ColumnType, Selectable, Insertable } from 'kysely'
-import { SubscriptionStatus, SubscriptionData } from '../subscription/subscription.js'
+import {
+  SubscriptionStatus,
+  SubscriptionData
+} from '../subscription/subscription.js'
 
 export interface SubscriptionLogTable {
   id: Generated<string>
@@ -12,7 +15,7 @@ export interface SubscriptionLogTable {
   analytics_on: ColumnType<boolean, boolean, never>
   status: ColumnType<SubscriptionStatus, SubscriptionStatus, never>
   data: ColumnType<SubscriptionData, SubscriptionData, never>
-  created_at: ColumnType<Date, never, never>
+  created_at: ColumnType<number, undefined, never>
 }
 
 export type SubscriptionLogRow = Selectable<SubscriptionLogTable>

@@ -25,11 +25,9 @@ export async function listPlanLogs(
       request.limit
     )
 
-
     return {
       message: `PlanLogs listed successfully`,
       statusCode: 200,
-      plan: planRepository.buildModel(planRow),
       planLogs: planLogRepository.buildCollection(planLogRows),
       limit: request.limit
     }

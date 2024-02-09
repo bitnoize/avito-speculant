@@ -13,9 +13,9 @@ export interface Subscription {
   intervalSec: number
   analyticsOn: boolean
   status: SubscriptionStatus
-  createdAt: Date
-  updatedAt: Date
-  scheduledAt: Date
+  createdAt: number
+  updatedAt: number
+  scheduledAt: number
 }
 
 export interface CreateSubscriptionRequest {

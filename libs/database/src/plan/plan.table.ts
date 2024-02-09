@@ -2,17 +2,16 @@ import { Generated, ColumnType, Selectable, Insertable, Updateable } from 'kysel
 
 export interface PlanTable {
   id: Generated<number>
-  sort_order: number
-  categories_max: number
-  price_rub: number
-  duration_days: number
-  interval_sec: number
-  analytics_on: boolean
-  is_enabled: boolean
-  subscriptions: ColumnType<number, never, never>
-  created_at: ColumnType<number, never, never>
-  updated_at: ColumnType<number, never, never>
-  scheduled_at: ColumnType<number, never, never>
+  categories_max: ColumnType<number, number, number | undefined>
+  price_rub: ColumnType<number, number, number | undefined>
+  duration_days: ColumnType<number, number, number | undefined>
+  interval_sec: ColumnType<number, number, number | undefined>
+  analytics_on: ColumnType<boolean, boolean, boolean | undefined>
+  is_enabled: ColumnType<boolean, boolean | undefined, undefined>
+  subscriptions: ColumnType<number, number | undefined, undefined>
+  created_at: ColumnType<number, undefined, never>
+  updated_at: ColumnType<number, undefined, undefined>
+  scheduled_at: ColumnType<number, undefined, undefined>
 }
 
 export type PlanRow = Selectable<PlanTable>

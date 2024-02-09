@@ -1,10 +1,7 @@
 import { Kysely } from 'kysely'
 import { PgPubSub } from '@imqueue/pg-pubsub'
 // User
-import {
-  AuthorizeUserRequest,
-  AuthorizeUserResponse
-} from './user.js'
+import { AuthorizeUserRequest, AuthorizeUserResponse } from './user.js'
 import * as userRepository from './user.repository.js'
 // UserLog
 import * as userLogRepository from '../user-log/user-log.repository.js'
@@ -30,25 +27,19 @@ export async function authorizeUser(
       }
     }
 
-    const insertedUserRow = await userRepository.insertRow(
-      trx,
-      {
-        tg_from_id: request.tgFromId
-      }
-    )
+    const insertedUserRow = await userRepository.insertRow(trx, {
+      tg_from_id: request.tgFromId
+    })
 
-    const userLogRow = await userLogRepository.insertRow(
-      trx,
-      {
-        user_id: insertedUserRow.id,
-        action: 'authorize_user',
-        status: insertedUserRow.status,
-        subscriptions: insertedUserRow.subscriptions,
-        data: request.data
-      }
-    )
+    const userLogRow = await userLogRepository.insertRow(trx, {
+      user_id: insertedUserRow.id,
+      action: 'authorize_user',
+      status: insertedUserRow.status,
+      subscriptions: insertedUserRow.subscriptions,
+      data: request.data
+    })
 
-    await userLogRepository.notify(pubSub, userLogRow)
+    //await userLogRepository.notify(pubSub, userLogRow)
 
     return {
       message: `Authorize user successfully created`,

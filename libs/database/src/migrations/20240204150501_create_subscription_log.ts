@@ -8,7 +8,8 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.primaryKey().defaultTo(sql`gen_random_uuid()`)
     )
     .addColumn('subscription_id', 'integer', (col) =>
-      col.notNull().references('subscription.id'))
+      col.notNull().references('subscription.id')
+    )
     .addColumn('action', 'varchar', (col) => col.notNull())
     .addColumn('categories_max', 'integer', (col) => col.notNull())
     .addColumn('price_rub', 'integer', (col) => col.notNull())

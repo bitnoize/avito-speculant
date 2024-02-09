@@ -1,7 +1,7 @@
 import { DatabaseError } from '../database.errors.js'
 
 export class SubscriptionNotFoundError<T> extends DatabaseError<T> {
-  constructor(request: T, message = `Subscription not found`, statusCode = 404) {
-    super(request, message, statusCode)
+  constructor(request: T, statusCode = 404, message = `Subscription not found`) {
+    super(request, statusCode, message)
   }
 }

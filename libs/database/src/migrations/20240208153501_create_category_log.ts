@@ -3,43 +3,40 @@ import { Kysely, sql } from 'kysely'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
-    .createTable('plan_log')
+    .createTable('category_log')
     .addColumn('id', 'uuid', (col) =>
       col.primaryKey().defaultTo(sql`gen_random_uuid()`)
     )
-    .addColumn('plan_id', 'integer', (col) => col.notNull().references('plan.id'))
+    .addColumn('category_id', 'integer', (col) =>
+      col.notNull().references('category.id')
+    )
     .addColumn('action', 'varchar', (col) => col.notNull())
-    .addColumn('categories_max', 'integer', (col) => col.notNull())
-    .addColumn('price_rub', 'integer', (col) => col.notNull())
-    .addColumn('duration_days', 'integer', (col) => col.notNull())
-    .addColumn('interval_sec', 'integer', (col) => col.notNull())
-    .addColumn('analytics_on', 'boolean', (col) => col.notNull())
+    .addColumn('avito_url', 'varchar', (col) => col.notNull())
     .addColumn('is_enabled', 'boolean', (col) => col.notNull())
-    .addColumn('subscriptions', 'integer', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
   await db.schema
-    .createIndex('plan_log_plan_id_key')
-    .on('plan_log')
-    .column('plan_id')
+    .createIndex('category_log_category_id_key')
+    .on('category_log')
+    .column('category_id')
     .execute()
 
   await db.schema
-    .createIndex('plan_log_action_key')
-    .on('plan_log')
+    .createIndex('category_log_action_key')
+    .on('category_log')
     .column('action')
     .execute()
 
   await db.schema
-    .createIndex('plan_log_created_at_key')
-    .on('plan_log')
+    .createIndex('category_log_created_at_key')
+    .on('category_log')
     .column('created_at')
     .execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function down(db: Kysely<any>): Promise<void> {
-  await db.schema.dropTable('plan_log').execute()
+  await db.schema.dropTable('category_log').execute()
 }

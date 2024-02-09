@@ -1,5 +1,4 @@
 import {
-  Subscription,
   SubscriptionStatus,
   SubscriptionData
 } from '../subscription/subscription.js'
@@ -15,7 +14,7 @@ export interface SubscriptionLog {
   analyticsOn: boolean
   status: SubscriptionStatus
   data: SubscriptionData
-  createdAt: Date
+  createdAt: number
 }
 
 export interface ListSubscriptionLogsRequest {
@@ -24,7 +23,8 @@ export interface ListSubscriptionLogsRequest {
 }
 
 export interface ListSubscriptionLogsResponse {
-  subscription: Subscription
+  message: string
+  statusCode: number
   subscriptionLogs: SubscriptionLog[]
   limit: number
 }

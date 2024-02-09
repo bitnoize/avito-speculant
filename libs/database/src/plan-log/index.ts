@@ -1,2 +1,2 @@
-export * from './user-log.js'
-export * as userLogService from './user-log.service.js'
+export * from './plan-log.js'
+export * as planLogService from './plan-log.service.js'

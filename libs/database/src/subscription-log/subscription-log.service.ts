@@ -1,8 +1,11 @@
 import { Kysely } from 'kysely'
+// Subscription
+import { SubscriptionNotFoundError } from '../subscription/subscription.errors.js'
+import * as subscriptionRepository from '../subscription/subscription.repository.js'
 // SubscriptionLog
 import {
-  SubscriptionLog,
-  ListSubscriptionLogsRequest
+  ListSubscriptionLogsRequest,
+  ListSubscriptionLogsResponse
 } from './subscription-log.js'
 import * as subscriptionLogRepository from './subscription-log.repository.js'
 // Common
@@ -13,35 +16,28 @@ export async function listSubscriptionLogs(
   request: ListSubscriptionLogsRequest
 ): Promise<ListSubscriptionLogsResponse> {
   return await db.transaction().execute(async (trx) => {
-    const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
-
-    if (userRow === undefined) {
-      throw new UserNotFoundError(request, `listUserLogs: user not found`)
-    }
-
-    const userLogRows = await userLogRepository.selectRowsByUserId(
+    const subscriptionRow = await subscriptionRepository.selectRowByIdForShare(
       trx,
-      userRow.id,
-      request.limit
+      request.subscriptionId
     )
 
+    if (subscriptionRow === undefined) {
+      throw new SubscriptionNotFoundError(request, 400)
+    }
+
+    const subscriptionLogRows =
+      await subscriptionLogRepository.selectRowsBySubscriptionId(
+        trx,
+        subscriptionRow.id,
+        request.limit
+      )
 
     return {
-      message: `listUserLogs: successfully listed`,
+      message: `SubscriptionLogs listed successfully`,
       statusCode: 200,
-      user: userRepository.buildModel(userRow),
-      userLogs: userLogRepository.buildCollection(userLogRows),
-      limit
+      subscriptionLogs:
+        subscriptionLogRepository.buildCollection(subscriptionLogRows),
+      limit: request.limit
     }
   })
-
-
-
-  const subscriptionLogRows = await subscriptionLogRepository.selectBySubscriptionId(
-    db,
-    request.subscriptionId
-  )
-
-  return makeSubscriptionLogsFromRows(subscriptionLogRows)
 }
-

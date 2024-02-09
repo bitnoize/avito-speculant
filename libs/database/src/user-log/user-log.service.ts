@@ -16,7 +16,7 @@ export async function listUserLogs(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, `listUserLogs: user not found`)
+      throw new UserNotFoundError(request, 400)
     }
 
     const userLogRows = await userLogRepository.selectRowsByUserId(
@@ -25,11 +25,9 @@ export async function listUserLogs(
       request.limit
     )
 
-
     return {
       message: `UserLogs listed successfully`,
       statusCode: 200,
-      user: userRepository.buildModel(userRow),
       userLogs: userLogRepository.buildCollection(userLogRows),
       limit: request.limit
     }

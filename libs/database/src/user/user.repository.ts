@@ -35,13 +35,29 @@ export async function insertRow(
 ): Promise<UserRow> {
   return await trx
     .insertInto('user')
-    .values(() => ({
+    .values((eb) => ({
       ...row,
-      status: 'blank',
+      status: 'trial',
+      subscriptions: 0,
       created_at: sql`NOW()`,
       updated_at: sql`NOW()`,
       scheduled_at: sql`NOW()`
     }))
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateBlockStatusRow(
+  trx: Transaction<Database>,
+  user_id: number
+): Promise<UserRow> {
+  return await trx
+    .updateTable('user')
+    .set((eb) => ({
+      status: 'block',
+      updated_at: sql`NOW()`
+    }))
+    .where('id', '=', user_id)
     .returningAll()
     .executeTakeFirstOrThrow()
 }

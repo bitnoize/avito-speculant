@@ -1,10 +1,11 @@
-import { Transaction } from 'kysely'
 import { UserTable } from './user/user.table.js'
-//import { PlanTable } from './plan/plan.table.js'
-//import { PlanLogTable } from './plan-log/plan-log.table.js'
 import { UserLogTable } from './user-log/user-log.table.js'
+import { PlanTable } from './plan/plan.table.js'
+import { PlanLogTable } from './plan-log/plan-log.table.js'
 import { SubscriptionTable } from './subscription/subscription.table.js'
 import { SubscriptionLogTable } from './subscription-log/subscription-log.table.js'
+import { CategoryTable } from './category/category.table.js'
+import { CategoryLogTable } from './category-log/category-log.table.js'
 
 export type DatabaseConfig = {
   POSTGRES_HOST: string
@@ -15,10 +16,12 @@ export type DatabaseConfig = {
 }
 
 export interface Database {
-  //plan: PlanTable
-  //plan_log: PlanLogTable
   user: UserTable
   user_log: UserLogTable
+  plan: PlanTable
+  plan_log: PlanLogTable
   subscription: SubscriptionTable
   subscription_log: SubscriptionLogTable
+  category: CategoryTable
+  category_log: CategoryLogTable
 }

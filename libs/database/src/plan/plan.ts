@@ -2,7 +2,6 @@ export type PlanData = Record<string, unknown>
 
 export interface Plan {
   id: number
-  sortOrder: number
   categoriesMax: number
   priceRub: number
   durationDays: number
@@ -10,13 +9,17 @@ export interface Plan {
   analyticsOn: boolean
   isEnabled: boolean
   subscriptions: number
-  createdAt: Date
-  updatedAt: Date
-  scheduledAt: Date
+  createdAt: number
+  updatedAt: number
+  scheduledAt: number
 }
 
 export interface CreatePlanRequest {
-  tgFromId: string
+  categoriesMax: number
+  priceRub: number
+  durationDays: number
+  intervalSec: number
+  analyticsOn: boolean
   data: PlanData
 }
 

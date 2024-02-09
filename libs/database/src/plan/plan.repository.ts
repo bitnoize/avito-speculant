@@ -23,8 +23,10 @@ export async function insertRow(
 ): Promise<PlanRow> {
   return await trx
     .insertInto('plan')
-    .values(() => ({
+    .values((eb) => ({
       ...row,
+      is_enabled: false,
+      subscriptions: 0,
       created_at: sql`NOW()`,
       updated_at: sql`NOW()`,
       scheduled_at: sql`NOW()`
@@ -33,14 +35,43 @@ export async function insertRow(
     .executeTakeFirstOrThrow()
 }
 
+export async function EnableRow(
+  trx: Transaction<Database>,
+  plan_id: number
+): Promise<PlanRow> {
+  return await trx
+    .updateTable('plan')
+    .set((eb) => ({
+      is_enabled: sql`FALSE`,
+      updated_at: sql`NOW()`
+    }))
+    .where('id', '=', plan_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function DisableRow(
+  trx: Transaction<Database>,
+  plan_id: number
+): Promise<PlanRow> {
+  return await trx
+    .updateTable('plan')
+    .set((eb) => ({
+      is_enabled: sql`FALSE`,
+      updated_at: sql`NOW()`
+    }))
+    .where('id', '=', plan_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
 export const buildModel = (row: PlanRow): Plan => {
   return {
     id: row.id,
-    sortOrder: row.sort_order,
     categoriesMax: row.categories_max,
     priceRub: row.price_rub,
     durationDays: row.duration_days,
-    intervalSec: row.interval_dec,
+    intervalSec: row.interval_sec,
     analyticsOn: row.analytics_on,
     isEnabled: row.is_enabled,
     subscriptions: row.subscriptions,

@@ -12,19 +12,16 @@ import {
 import { Logger } from '@avito-speculant/logger'
 import { DatabaseConfig, Database } from './database.js'
 
-pg.types.setTypeParser(
-  pg.types.builtins.INT8,
-  (value: string): number => parseInt(value)
+pg.types.setTypeParser(pg.types.builtins.INT8, (value: string): number =>
+  parseInt(value, 10)
 )
 
-pg.types.setTypeParser(
-  pg.types.builtins.TIMESTAMP,
-  (value: Date): number => value.getTime()
+pg.types.setTypeParser(pg.types.builtins.TIMESTAMP, (value: string): number =>
+  Date.parse(value)
 )
 
-pg.types.setTypeParser(
-  pg.types.builtins.TIMESTAMPTZ,
-  (value: Date): number => value.getTime()
+pg.types.setTypeParser(pg.types.builtins.TIMESTAMPTZ, (value: string): number =>
+  Date.parse(value)
 )
 
 /**
@@ -116,16 +113,14 @@ export async function closeDatabase(
 /**
  * Initialize PubSub instance
  */
-export function initPubSub(
-  config: pg.ClientConfig,
-  logger: Logger
-): PgPubSub {
+export function initPubSub(config: pg.ClientConfig, logger: Logger): PgPubSub {
   const pubSub = new PgPubSub({
-    ...config,
-    singleListener: false
+    connectionString:
+      'postgres://avito_speculant:aiS3aez6iep1ae@connect-postgres:5432/avito_speculant'
+    //singleListener: false
   })
 
-  pubsub.on('connect', async () => {
+  pubSub.on('connect', async () => {
     logger.debug(`PubSub successfully connected`)
   })
 
@@ -137,26 +132,20 @@ export function initPubSub(
 /**
  * Initialize PubSubLock instance
  */
-export function initPubSubLock(
-  config: pg.ClientConfig,
-  logger: Logger
-): PgPubSub {
+export function initPubSubLock(config: pg.ClientConfig, logger: Logger): PgPubSub {
   const pubSub = new PgPubSub({
     ...config,
-    singleListener: true,
-    executionLock: true
+    singleListener: true
+    //executionLock: true
   })
 
-  pubsub.on('connect', async () => {
+  pubSub.on('connect', async () => {
     logger.debug(`PubSub successfully connected`)
 
     await Promise.all(
-      [
-        'user',
-        'plan',
-        'subscription',
-        'category'
-      ].map((channel) => pubSub.listen(channel))
+      ['user', 'plan', 'subscription', 'category'].map((channel) =>
+        pubSub.listen(channel)
+      )
     )
   })
 
@@ -168,10 +157,7 @@ export function initPubSubLock(
 /*
  * Close PubSub instance
  */
-export async function closePubSub(
-  pubSub: PgPubSub,
-  logger: Logger
-): Promise<void> {
+export async function closePubSub(pubSub: PgPubSub, logger: Logger): Promise<void> {
   await pubSub.close()
 
   logger.debug(`PubSub successfully closed`)

@@ -36,16 +36,15 @@ export async function selectRowByIdForShare(
     .executeTakeFirst()
 }
 
-export async function selectRowByUserIdStatusForShare(
+export async function selectRowByUserIdStatusWaitForShare(
   trx: Transaction<Database>,
-  user_id: number,
-  status: SubscriptionStatus
+  user_id: number
 ): Promise<SubscriptionRow | undefined> {
   return await trx
     .selectFrom('subscription')
     .selectAll()
     .where('user_id', '=', user_id)
-    .where('status', '=', status)
+    .where('status', '=', 'wait')
     .forShare()
     .executeTakeFirst()
 }
@@ -61,9 +60,9 @@ export const buildModel = (row: SubscriptionRow): Subscription => {
     intervalSec: row.interval_sec,
     analyticsOn: row.analytics_on,
     status: row.status,
-    createTime: row.create_time,
-    updateTime: row.update_time,
-    processTime: row.process_time
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    scheduledAt: row.scheduled_at
   }
 }
 

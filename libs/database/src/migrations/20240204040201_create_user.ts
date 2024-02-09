@@ -10,11 +10,9 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('user')
     .addColumn('id', 'serial', (col) => col.primaryKey())
-    .addColumn('tg_from_id', 'bigint', (col) => col.notNull())
+    .addColumn('tg_from_id', 'varchar', (col) => col.notNull())
     .addColumn('status', sql`user_status`, (col) => col.notNull())
-    .addColumn('subscriptions', 'integer', (col) =>
-      col.notNull().defaultTo(0)
-    )
+    .addColumn('subscriptions', 'integer', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .addColumn('updated_at', 'timestamptz', (col) => col.notNull())
     .addColumn('scheduled_at', 'timestamptz', (col) => col.notNull())

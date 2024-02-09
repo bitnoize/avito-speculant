@@ -1,9 +1,16 @@
-import { Plan, PlanData } from '../plan/plan.js'
+import { PlanData } from '../plan/plan.js'
 
 export interface PlanLog {
   id: string
   planId: number
   action: string
+  categoriesMax: number
+  priceRub: number
+  durationDays: number
+  intervalSec: number
+  analyticsOn: boolean
+  isEnabled: boolean
+  subscriptions: number
   data: PlanData
   createdAt: number
 }
@@ -16,7 +23,6 @@ export interface ListPlanLogsRequest {
 export interface ListPlanLogsResponse {
   message: string
   statusCode: number
-  plan: Plan
   planLogs: PlanLog[]
   limit: number
 }

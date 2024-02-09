@@ -17,6 +17,7 @@ async function bootstrap(): Promise<void> {
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
   const db = databaseService.initDatabase(databaseConfig, logger)
+  const pubSub = databaseService.initPubSub(databaseConfig, logger)
 
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
@@ -33,12 +34,18 @@ async function bootstrap(): Promise<void> {
 
   bot.use(async (ctx, next) => {
     if (ctx.from) {
-      const authorizeUserRequest: AuthorizeUserRequest = {
-        tgFromId: ctx.from.id.toString(),
-        data: ctx.from
-      }
+      const authorizeUserResponse = await userService.authorizeUser(
+        db,
+        pubSub,
+        {
+          tgFromId: ctx.from.id.toString(),
+          data: {
+            from: ctx.from
+          }
+        }
+      )
 
-      ctx.user = await userService.authorizeUser(db, authorizeUserRequest)
+      ctx.user = authorizeUserResponse.user
 
       await next()
     }
@@ -49,6 +56,10 @@ async function bootstrap(): Promise<void> {
 
     await ctx.reply(`blablabla: ${ctx.user.status}`)
   })
+
+  //pubSub.channels.on('user', (payload) => {
+  //  logger.info(payload, `Lisen on user channel!!!!!!!!!!!!`)
+  //})
 
   bot.catch(async (botError) => {
     const { error, ctx } = botError

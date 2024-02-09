@@ -8,9 +8,9 @@ export interface User {
   tgFromId: string
   status: UserStatus
   subscriptions: number
-  createdAt: Date
-  updatedAt: Date
-  scheduledAt: Date
+  createdAt: number
+  updatedAt: number
+  scheduledAt: number
 }
 
 export interface AuthorizeUserRequest {
