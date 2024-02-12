@@ -1,10 +1,7 @@
 import { Transaction, sql } from 'kysely'
 import { SubscriptionLog, SubscriptionLogData } from '@avito-speculant/domain'
 import { SubscriptionRow } from '../subscription/subscription.table.js'
-import {
-  SubscriptionLogRow,
-  InsertableSubscriptionLogRow
-} from './subscription-log.table.js'
+import { SubscriptionLogRow } from './subscription-log.table.js'
 import { Database } from '../database.js'
 
 export async function selectRowsBySubscriptionId(
@@ -30,8 +27,16 @@ export async function insertRow(
   return await trx
     .insertInto('subscription_log')
     .values(() => ({
-      ...normalizeLogRow(action, subscriptionRow, data),
-      created_at: sql.val('NOW()')
+      subscription_id: subscriptionRow.id,
+      action,
+      categories_max: subscriptionRow.categories_max,
+      price_rub: subscriptionRow.price_rub,
+      duration_days: subscriptionRow.duration_days,
+      interval_sec: subscriptionRow.interval_sec,
+      analytics_on: subscriptionRow.analytics_on,
+      status: subscriptionRow.status,
+      data,
+      created_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -59,22 +64,4 @@ export const buildCollection = (rows: SubscriptionLogRow[]): SubscriptionLog[] =
 
 export const buildNotify = (row: SubscriptionLogRow): string => {
   return JSON.stringify(buildModel(row))
-}
-
-const normalizeLogRow = (
-  action: string,
-  subscriptionRow: SubscriptionRow,
-  data: SubscriptionLogData
-): InsertableSubscriptionLogRow => {
-  return {
-    subscription_id: subscriptionRow.id,
-    action,
-    categories_max: subscriptionRow.categories_max,
-    price_rub: subscriptionRow.price_rub,
-    duration_days: subscriptionRow.duration_days,
-    interval_sec: subscriptionRow.interval_sec,
-    analytics_on: subscriptionRow.analytics_on,
-    status: subscriptionRow.status,
-    data
-  }
 }

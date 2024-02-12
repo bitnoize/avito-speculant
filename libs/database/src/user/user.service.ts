@@ -57,3 +57,16 @@ export async function authorizeUser(
     }
   })
 }
+
+/**
+ * Schedule Users
+ */
+export async function scheduleUsers(
+  db: Kysely<Database>,
+  request: AuthorizeUserRequest
+): Promise<AuthorizeUserResponse> {
+  return await db.transaction().execute(async (trx) => {
+    const userRows = userRepository.selectRowsSkipLockedForUpdate()
+
+  })
+}

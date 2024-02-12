@@ -1,7 +1,7 @@
 import { Transaction, sql } from 'kysely'
 import { PlanLog, PlanLogData } from '@avito-speculant/domain'
 import { PlanRow } from '../plan/plan.table.js'
-import { PlanLogRow, InsertablePlanLogRow } from './plan-log.table.js'
+import { PlanLogRow } from './plan-log.table.js'
 import { Database } from '../database.js'
 
 export async function selectRowsByPlanId(
@@ -27,8 +27,17 @@ export async function insertRow(
   return await trx
     .insertInto('plan_log')
     .values(() => ({
-      ...normalizeLogRow(action, planRow, data),
-      created_at: sql.val('NOW()')
+      plan_id: planRow.id,
+      action,
+      categories_max: planRow.categories_max,
+      price_rub: planRow.price_rub,
+      duration_days: planRow.duration_days,
+      interval_sec: planRow.interval_sec,
+      analytics_on: planRow.analytics_on,
+      is_enabled: planRow.is_enabled,
+      subscriptions: planRow.subscriptions,
+      data,
+      created_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -57,23 +66,4 @@ export const buildCollection = (rows: PlanLogRow[]): PlanLog[] => {
 
 export const buildNotify = (row: PlanLogRow): string => {
   return JSON.stringify(buildModel(row))
-}
-
-const normalizeLogRow = (
-  action: string,
-  planRow: PlanRow,
-  data: PlanLogData,
-): InsertablePlanLogRow => {
-  return {
-    plan_id: planRow.id,
-    action,
-    categories_max: planRow.categories_max,
-    price_rub: planRow.price_rub,
-    duration_days: planRow.duration_days,
-    interval_sec: planRow.interval_sec,
-    analytics_on: planRow.analytics_on,
-    is_enabled: planRow.is_enabled,
-    subscriptions: planRow.subscriptions,
-    data
-  }
 }

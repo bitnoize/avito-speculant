@@ -2,7 +2,6 @@ import { Bot, GrammyError, HttpError, session } from 'grammy'
 import { RedisAdapter } from '@grammyjs/storage-redis'
 import { loggerService } from '@avito-speculant/logger'
 import {
-  DatabaseError,
   databaseService,
   AuthorizeUserRequest,
   userService
@@ -17,10 +16,10 @@ async function bootstrap(): Promise<void> {
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
   const db = databaseService.initDatabase(databaseConfig, logger)
-  const pubSub = databaseService.initPubSub(databaseConfig, logger)
 
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
+  const pubSub = redisService.initPubSub(redisOptions, logger)
 
   const storage = new RedisAdapter({ instance: redis, ttl: 10 })
 
@@ -36,7 +35,6 @@ async function bootstrap(): Promise<void> {
     if (ctx.from) {
       const authorizeUserResponse = await userService.authorizeUser(
         db,
-        pubSub,
         {
           tgFromId: ctx.from.id.toString(),
           data: {
@@ -46,6 +44,10 @@ async function bootstrap(): Promise<void> {
       )
 
       ctx.user = authorizeUserResponse.user
+
+      for (const notify of authorizeUserResponse.backLog) {
+        await pubSub.publish(...notify)
+      }
 
       await next()
     }
@@ -57,10 +59,6 @@ async function bootstrap(): Promise<void> {
     await ctx.reply(`blablabla: ${ctx.user.status}`)
   })
 
-  //pubSub.channels.on('user', (payload) => {
-  //  logger.info(payload, `Lisen on user channel!!!!!!!!!!!!`)
-  //})
-
   bot.catch(async (botError) => {
     const { error, ctx } = botError
 
@@ -68,8 +66,6 @@ async function bootstrap(): Promise<void> {
       logger.error(error, `Grammy error`)
     } else if (error instanceof HttpError) {
       logger.error(error, `HTTP error`)
-    } else if (error instanceof DatabaseError) {
-      logger.error(error, `Database error`)
     } else if (error instanceof Error) {
       logger.error(error, `Internal error`)
     } else {

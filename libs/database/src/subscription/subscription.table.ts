@@ -10,10 +10,10 @@ export interface SubscriptionTable {
   duration_days: ColumnType<number, number, never>
   interval_sec: ColumnType<number, number, never>
   analytics_on: ColumnType<boolean, boolean, never>
-  status: ColumnType<SubscriptionStatus, never, never>
-  created_at: ColumnType<number, never, never>
-  updated_at: ColumnType<number, never, never>
-  scheduled_at: ColumnType<number, never, never>
+  status: ColumnType<SubscriptionStatus, SubscriptionStatus, SubscriptionStatus | undefined>
+  created_at: ColumnType<number, string, never>
+  updated_at: ColumnType<number, string, string | undefined>
+  scheduled_at: ColumnType<number, string, string | undefined>
 }
 
 export type SubscriptionRow = Selectable<SubscriptionTable>

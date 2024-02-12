@@ -1,6 +1,6 @@
 import { Transaction, sql } from 'kysely'
 import { User } from '@avito-speculant/domain'
-import { UserRow, InsertableUserRow, UpdateableUserRow } from './user.table.js'
+import { UserRow } from './user.table.js'
 import { Database } from '../database.js'
 
 export async function selectRowByIdForShare(
@@ -27,6 +27,20 @@ export async function selectRowByTgFromIdForShare(
     .executeTakeFirst()
 }
 
+export async function selectRowsSkipLockedForUpdate(
+  trx: Transaction<Database>,
+  limit: number
+): Promise<UserRow | undefined> {
+  return await trx
+    .selectFrom('user')
+    .selectAll()
+    .skipLocked()
+    .forUpdate()
+    .orderBy('scheduled_at', 'desc')
+    .limit(limit)
+    .execute()
+}
+
 export async function insertRow(
   trx: Transaction<Database>,
   tg_from_id: string
@@ -34,12 +48,12 @@ export async function insertRow(
   return await trx
     .insertInto('user')
     .values((eb) => ({
-      ...normalizeUserRow(tg_from_id),
-      status: sql.lit('trial'),
-      subscriptions: sql.val(0),
-      created_at: sql.val('NOW()'),
-      updated_at: sql.val('NOW()'),
-      scheduled_at: sql.val('NOW()')
+      tg_from_id,
+      status: 'trial',
+      subscriptions: 0,
+      created_at: sql`NOW()`,
+      updated_at: sql`NOW()`,
+      scheduled_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -52,8 +66,8 @@ export async function updateRowBlockStatus(
   return await trx
     .updateTable('user')
     .set((eb) => ({
-      status: sql.lit('block'),
-      updated_at: sql.val('NOW()')
+      status: 'block',
+      updated_at: sql`NOW()`
     }))
     .where('id', '=', user_id)
     .returningAll()
@@ -74,12 +88,4 @@ export const buildModel = (row: UserRow): User => {
 
 export const buildCollection = (rows: UserRow[]): User[] => {
   return rows.map((row) => buildModel(row))
-}
-
-const normalizeUserRow = (
-  tg_from_id: string,
-): InsertableUserRow => {
-  return {
-    tg_from_id
-  }
 }

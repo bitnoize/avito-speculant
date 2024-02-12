@@ -23,6 +23,10 @@ export function getRedisOptions<T extends RedisConfig>(config: T): RedisOptions 
 export function initRedis(options: RedisOptions, logger: Logger): Redis {
   const redis = new Redis(options)
 
+  redis.on('connect', () => {
+    logger.debug(`Redis successfully connected`)
+  })
+
   logger.debug(`Redis successfully initialized`)
 
   return redis
@@ -35,4 +39,28 @@ export async function closeRedis(redis: Redis, logger: Logger): Promise<void> {
   await redis.disconnect()
 
   logger.debug(`Redis successfully closed`)
+}
+
+/**
+ * Initialize PubSub instance
+ */
+export function initPubSub(options: RedisOptions, logger: Logger): Redis {
+  const pubSub = new Redis(options)
+
+  pubSub.on('connect', () => {
+    logger.debug(`PubSub successfully connected`)
+  })
+
+  logger.debug(`PubSub successfully initialized`)
+
+  return pubSub
+}
+
+/*
+ * Close PubSub instance
+ */
+export async function closePubSub(pubSub: Redis, logger: Logger): Promise<void> {
+  await pubSub.disconnect()
+
+  logger.debug(`PubSub successfully closed`)
 }

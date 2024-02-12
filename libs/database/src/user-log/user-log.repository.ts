@@ -1,7 +1,7 @@
 import { Transaction, sql } from 'kysely'
 import { UserLog, UserLogData } from '@avito-speculant/domain'
 import { UserRow } from '../user/user.table.js'
-import { UserLogRow, InsertableUserLogRow } from './user-log.table.js'
+import { UserLogRow } from './user-log.table.js'
 import { Database } from '../database.js'
 
 export async function selectRowsByUserId(
@@ -27,8 +27,12 @@ export async function insertRow(
   return await trx
     .insertInto('user_log')
     .values(() => ({
-      ...normalizeLogRow(action, userRow, data),
-      created_at: sql.val('NOW()')
+      user_id: userRow.id,
+      action,
+      status: userRow.status,
+      subscriptions: userRow.subscriptions,
+      data,
+      created_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -52,18 +56,4 @@ export const buildCollection = (rows: UserLogRow[]): UserLog[] => {
 
 export const buildNotify = (row: UserLogRow): string => {
   return JSON.stringify(buildModel(row))
-}
-
-const normalizeLogRow = (
-  action: string,
-  userRow: UserRow,
-  data: UserLogData,
-): InsertableUserLogRow => {
-  return {
-    user_id: userRow.id,
-    action,
-    status: userRow.status,
-    subscriptions: userRow.subscriptions,
-    data
-  }
 }

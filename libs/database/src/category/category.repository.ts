@@ -1,11 +1,7 @@
 import { Transaction, sql } from 'kysely'
 import { Category } from '@avito-speculant/domain'
 import { UserRow } from '../user/user.table.js'
-import {
-  CategoryRow,
-  InsertableCategoryRow,
-  UpdateableCategoryRow
-} from './category.table.js'
+import { CategoryRow } from './category.table.js'
 import { Database } from '../database.js'
 
 export async function selectRowByIdForShare(
@@ -28,11 +24,12 @@ export async function insertRow(
   return await trx
     .insertInto('category')
     .values(() => ({
-      ...normalizeCategoryRow(userRow, avito_url),
-      is_enabled: sql.val(false),
-      create_time: sql.val('NOW()'),
-      update_time: sql.val('NOW()'),
-      process_time: sql.val('NOW()')
+      user_id: userRow.id,
+      avito_url,
+      is_enabled: false,
+      created_at: sql`NOW()`,
+      updated_at: sql`NOW()`,
+      scheduled_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -52,14 +49,4 @@ export const buildModel = (row: CategoryRow): Category => {
 
 export const buildCollection = (rows: CategoryRow[]): Category[] => {
   return rows.map((row) => buildModel(row))
-}
-
-const normalizeCategoryRow = (
-  userRow: UserRow,
-  avito_url: string,
-): InsertableCategoryRow => {
-  return {
-    user_id: userRow.id,
-    avito_url,
-  }
 }

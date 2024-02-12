@@ -1,7 +1,7 @@
 import { Transaction, sql } from 'kysely'
 import { CategoryLog, CategoryLogData } from '@avito-speculant/domain'
 import { CategoryRow } from '../category/category.table.js'
-import { CategoryLogRow, InsertableCategoryLogRow } from './category-log.table.js'
+import { CategoryLogRow } from './category-log.table.js'
 import { Database } from '../database.js'
 
 export async function selectRowsByCategoryId(
@@ -27,7 +27,11 @@ export async function insertRow(
   return await trx
     .insertInto('category_log')
     .values(() => ({
-      ...normalizeLogRow(action, categoryRow, data),
+      category_id: categoryRow.id,
+      action,
+      avito_url: categoryRow.avito_url,
+      is_enabled: categoryRow.is_enabled,
+      data,
       created_at: sql`NOW()`
     }))
     .returningAll()
@@ -52,18 +56,4 @@ export const buildCollection = (rows: CategoryLogRow[]): CategoryLog[] => {
 
 export const buildNotify = (row: CategoryLogRow): string => {
   return JSON.stringify(buildModel(row))
-}
-
-const normalizeLogRow = (
-  action: string,
-  categoryRow: CategoryRow,
-  data: CategoryLogData
-): InsertableCategoryLogRow => {
-  return {
-    category_id: categoryRow.id,
-    action,
-    avito_url: categoryRow.avito_url,
-    is_enabled: categoryRow.is_enabled,
-    data
-  }
 }

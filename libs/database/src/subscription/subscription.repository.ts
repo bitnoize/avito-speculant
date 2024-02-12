@@ -2,11 +2,7 @@ import { Transaction, sql } from 'kysely'
 import { Subscription } from '@avito-speculant/domain'
 import { UserRow } from '../user/user.table.js'
 import { PlanRow } from '../plan/plan.table.js'
-import {
-  SubscriptionRow,
-  InsertableSubscriptionRow,
-  UpdateableSubscriptionRow
-} from './subscription.table.js'
+import { SubscriptionRow } from './subscription.table.js'
 import { Database } from '../database.js'
 
 export async function selectRowByIdForShare(
@@ -42,11 +38,17 @@ export async function insertRow(
   return await trx
     .insertInto('subscription')
     .values(() => ({
-      ...normalizeSubscriptionRow(userRow, planRow),
-      status: sql.lit('wait'),
-      create_time: sql.val('NOW()'),
-      update_time: sql.val('NOW()'),
-      process_time: sql.val('NOW()')
+      user_id: userRow.id,
+      plan_id: planRow.id,
+      categories_max: planRow.categories_max,
+      price_rub: planRow.price_rub,
+      duration_days: planRow.duration_days,
+      interval_sec: planRow.interval_sec,
+      analytics_on: planRow.analytics_on,
+      status: 'wait',
+      created_at: sql`NOW()`,
+      updated_at: sql`NOW()`,
+      scheduled_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -59,8 +61,8 @@ export async function updateRowCancelStatus(
   return await trx
     .updateTable('subscription')
     .set((eb) => ({
-      status: sql.lit('cancel'),
-      updated_at: sql.val('NOW()')
+      status: 'cancel',
+      updated_at: sql`NOW()`
     }))
     .where('id', '=', subscription_id)
     .returningAll()
@@ -86,19 +88,4 @@ export const buildModel = (row: SubscriptionRow): Subscription => {
 
 export const buildCollection = (rows: SubscriptionRow[]): Subscription[] => {
   return rows.map((row) => buildModel(row))
-}
-
-const normalizeSubscriptionRow = (
-  userRow: UserRow,
-  planRow: PlanRow,
-): InsertableSubscriptionRow => {
-  return {
-    user_id: userRow.id,
-    plan_id: planRow.id,
-    categories_max: planRow.categories_max,
-    price_rub: planRow.price_rub,
-    duration_days: planRow.duration_days,
-    interval_sec: planRow.interval_sec,
-    analytics_on: planRow.analytics_on
-  }
 }

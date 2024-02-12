@@ -15,7 +15,7 @@ export interface SubscriptionLogTable {
   analytics_on: ColumnType<boolean, boolean, never>
   status: ColumnType<SubscriptionStatus, SubscriptionStatus, never>
   data: ColumnType<SubscriptionLogData, SubscriptionLogData, never>
-  created_at: ColumnType<number, never, never>
+  created_at: ColumnType<number, string, never>
 }
 
 export type SubscriptionLogRow = Selectable<SubscriptionLogTable>
