@@ -1,5 +1,5 @@
 import { Generated, ColumnType, Selectable, Insertable, Updateable } from 'kysely'
-import { SubscriptionStatus } from './subscription.js'
+import { SubscriptionStatus } from '@avito-speculant/domain'
 
 export interface SubscriptionTable {
   id: Generated<number>
@@ -10,10 +10,10 @@ export interface SubscriptionTable {
   duration_days: ColumnType<number, number, never>
   interval_sec: ColumnType<number, number, never>
   analytics_on: ColumnType<boolean, boolean, never>
-  status: ColumnType<SubscriptionStatus, SubscriptionStatus | undefined, undefined>
-  created_at: ColumnType<number, undefined, never>
-  updated_at: ColumnType<number, undefined, undefined>
-  scheduled_at: ColumnType<number, undefined, undefined>
+  status: ColumnType<SubscriptionStatus, never, never>
+  created_at: ColumnType<number, never, never>
+  updated_at: ColumnType<number, never, never>
+  scheduled_at: ColumnType<number, never, never>
 }
 
 export type SubscriptionRow = Selectable<SubscriptionTable>

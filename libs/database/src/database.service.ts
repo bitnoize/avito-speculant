@@ -1,7 +1,6 @@
 import * as path from 'path'
 import { promises as fs } from 'fs'
 import pg from 'pg'
-import { PgPubSubOptions, PgPubSub } from '@imqueue/pg-pubsub'
 import {
   PostgresDialect,
   Logger as KyselyLogger,
@@ -108,59 +107,6 @@ export async function closeDatabase(
   await db.destroy()
 
   logger.debug(`Database successfully closed`)
-}
-
-/**
- * Initialize PubSub instance
- */
-export function initPubSub(config: pg.ClientConfig, logger: Logger): PgPubSub {
-  const pubSub = new PgPubSub({
-    connectionString:
-      'postgres://avito_speculant:aiS3aez6iep1ae@connect-postgres:5432/avito_speculant'
-    //singleListener: false
-  })
-
-  pubSub.on('connect', async () => {
-    logger.debug(`PubSub successfully connected`)
-  })
-
-  logger.debug(`PubSub successfully initialized`)
-
-  return pubSub
-}
-
-/**
- * Initialize PubSubLock instance
- */
-export function initPubSubLock(config: pg.ClientConfig, logger: Logger): PgPubSub {
-  const pubSub = new PgPubSub({
-    ...config,
-    singleListener: true
-    //executionLock: true
-  })
-
-  pubSub.on('connect', async () => {
-    logger.debug(`PubSub successfully connected`)
-
-    await Promise.all(
-      ['user', 'plan', 'subscription', 'category'].map((channel) =>
-        pubSub.listen(channel)
-      )
-    )
-  })
-
-  logger.debug(`PubSub successfully initialized`)
-
-  return pubSub
-}
-
-/*
- * Close PubSub instance
- */
-export async function closePubSub(pubSub: PgPubSub, logger: Logger): Promise<void> {
-  await pubSub.close()
-
-  logger.debug(`PubSub successfully closed`)
 }
 
 /*

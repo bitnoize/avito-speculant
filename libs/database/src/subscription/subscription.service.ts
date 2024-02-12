@@ -1,28 +1,31 @@
 import { Kysely } from 'kysely'
-import { PgPubSub } from '@imqueue/pg-pubsub'
-// User
-import { UserNotFoundError, UserBlockedError } from '../user/user.errors.js'
-import * as userRepository from '../user/user.repository.js'
-// Plan
-import { PlanNotFoundError, PlanDisabledError } from '../plan/plan.errors.js'
-import * as planRepository from '../plan/plan.repository.js'
-// Subscription
+import {
+  Notify,
+  UserNotFoundError,
+  UserBlockedError,
+  PlanNotFoundError,
+  PlanDisabledError
+} from '@avito-speculant/domain'
 import {
   CreateSubscriptionRequest,
   CreateSubscriptionResponse
-} from './subscription.js'
+} from './dto/create-subscription.js'
+import * as userRepository from '../user/user.repository.js'
+import * as planRepository from '../plan/plan.repository.js'
 import * as subscriptionRepository from './subscription.repository.js'
-// SubscriptionLog
 import * as subscriptionLogRepository from '../subscription-log/subscription-log.repository.js'
-// Database
 import { Database } from '../database.js'
 
+/**
+ * Create Subscription
+ */
 export async function createSubscription(
   db: Kysely<Database>,
-  pubSub: PgPubSub,
   request: CreateSubscriptionRequest
 ): Promise<CreateSubscriptionResponse> {
   return await db.transaction().execute(async (trx) => {
+    const backLog: Notify[] = []
+
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
@@ -43,50 +46,54 @@ export async function createSubscription(
       throw new PlanDisabledError(request)
     }
 
-    const selectedSubscriptionRow =
-      await subscriptionRepository.selectRowByUserIdStatusWaitForShare(
+    const existsSubscriptionRow =
+      await subscriptionRepository.selectRowByUserIdWaitStatusForShare(
         trx,
         userRow.id
       )
 
-    if (selectedSubscriptionRow !== undefined) {
-      return {
-        message: `Subscription allready exists`,
-        statusCode: 200,
-        subscription: subscriptionRepository.buildModel(selectedSubscriptionRow)
-      }
+    if (existsSubscriptionRow !== undefined) {
+      const cancelSubscriptionRow = await subscriptionRepository.updateRowCancelStatus(
+        trx,
+        existsSubscriptionRow.id
+      )
+
+      const subscriptionLogRow = await subscriptionLogRepository.insertRow(
+        trx,
+        'cancel_plan',
+        cancelSubscriptionRow,
+        request.data
+      )
+
+      backLog.push([
+        'subscription',
+        subscriptionLogRepository.buildNotify(subscriptionLogRow)
+      ])
     }
 
-    // TODO modify plan if needed
+    const subscriptionRow = await subscriptionRepository.insertRow(
+      trx,
+      userRow,
+      planRow,
+    )
 
-    const insertedSubscriptionRow = await subscriptionRepository.insertRow(trx, {
-      user_id: userRow.id,
-      plan_id: planRow.id,
-      categories_max: planRow.categories_max,
-      price_rub: planRow.price_rub,
-      duration_days: planRow.duration_days,
-      interval_sec: planRow.interval_sec,
-      analytics_on: planRow.analytics_on
-    })
+    const subscriptionLogRow = await subscriptionLogRepository.insertRow(
+      trx,
+      'create_plan',
+      subscriptionRow,
+      request.data
+    )
 
-    const subscriptionLogRow = await subscriptionLogRepository.insertRow(trx, {
-      subscription_id: insertedSubscriptionRow.id,
-      action: 'create_subscription',
-      categories_max: insertedSubscriptionRow.categories_max,
-      price_rub: insertedSubscriptionRow.price_rub,
-      duration_days: insertedSubscriptionRow.duration_days,
-      interval_sec: insertedSubscriptionRow.interval_sec,
-      analytics_on: insertedSubscriptionRow.analytics_on,
-      status: insertedSubscriptionRow.status,
-      data: request.data
-    })
-
-    //await subscriptionLogRepository.notify(pubSub, subscriptionLogRow)
+    backLog.push([
+      'subscription',
+      subscriptionLogRepository.buildNotify(subscriptionLogRow)
+    ])
 
     return {
       message: `Subscription successfully created`,
       statusCode: 201,
-      subscription: subscriptionRepository.buildModel(insertedSubscriptionRow)
+      subscription: subscriptionRepository.buildModel(subscriptionRow),
+      backLog
     }
   })
 }

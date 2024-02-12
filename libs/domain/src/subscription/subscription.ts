@@ -1,8 +1,6 @@
 export const SUBSCRIPTION_STATUSES = ['wait', 'cancel', 'active', 'finish']
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number]
 
-export type SubscriptionData = Record<string, unknown>
-
 export interface Subscription {
   id: number
   userId: number
@@ -16,16 +14,4 @@ export interface Subscription {
   createdAt: number
   updatedAt: number
   scheduledAt: number
-}
-
-export interface CreateSubscriptionRequest {
-  userId: number
-  planId: number
-  data: SubscriptionData
-}
-
-export interface CreateSubscriptionResponse {
-  message: string
-  statusCode: number
-  subscription: Subscription
 }

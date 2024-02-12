@@ -1,16 +1,16 @@
 import { Kysely } from 'kysely'
-// Subscription
-import { SubscriptionNotFoundError } from '../subscription/subscription.errors.js'
-import * as subscriptionRepository from '../subscription/subscription.repository.js'
-// SubscriptionLog
+import { SubscriptionNotFoundError } from '@avito-speculant/domain'
 import {
   ListSubscriptionLogsRequest,
   ListSubscriptionLogsResponse
-} from './subscription-log.js'
+} from './dto/list-subscription-logs.js'
+import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as subscriptionLogRepository from './subscription-log.repository.js'
-// Common
 import { Database } from '../database.js'
 
+/*
+ * List SubscriptionLogs
+ */
 export async function listSubscriptionLogs(
   db: Kysely<Database>,
   request: ListSubscriptionLogsRequest

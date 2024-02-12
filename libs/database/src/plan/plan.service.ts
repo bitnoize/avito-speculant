@@ -1,46 +1,46 @@
 import { Kysely } from 'kysely'
-import { PgPubSub } from '@imqueue/pg-pubsub'
-// Plan
-import { CreatePlanRequest, CreatePlanResponse } from './plan.js'
+import { Notify } from '@avito-speculant/domain'
+import { CreatePlanRequest, CreatePlanResponse } from './dto/create-plan.js'
 import * as planRepository from './plan.repository.js'
-// PlanLog
 import * as planLogRepository from '../plan-log/plan-log.repository.js'
-// Database
 import { Database } from '../database.js'
 
+/**
+ * Create Plan
+ */
 export async function createPlan(
   db: Kysely<Database>,
-  pubSub: PgPubSub,
   request: CreatePlanRequest
 ): Promise<CreatePlanResponse> {
   return await db.transaction().execute(async (trx) => {
-    const planRow = await planRepository.insertRow(trx, {
-      categories_max: request.categoriesMax,
-      price_rub: request.priceRub,
-      duration_days: request.durationDays,
-      interval_sec: request.intervalSec,
-      analytics_on: request.analyticsOn
-    })
+    const backLog: Notify[] = []
 
-    const planLogRow = await planLogRepository.insertRow(trx, {
-      plan_id: planRow.id,
-      action: 'create_plan',
-      categories_max: planRow.categories_max,
-      price_rub: planRow.price_rub,
-      duration_days: planRow.duration_days,
-      interval_sec: planRow.interval_sec,
-      analytics_on: planRow.analytics_on,
-      is_enabled: planRow.is_enabled,
-      subscriptions: planRow.subscriptions,
-      data: request.data
-    })
+    const planRow = await planRepository.insertRow(
+      trx,
+      request.categoriesMax,
+      request.priceRub,
+      request.durationDays,
+      request.intervalSec,
+      request.analyticsOn
+    )
 
-    //await planLogRepository.notify(pubSub, planLogRow)
+    const planLogRow = await planLogRepository.insertRow(
+      trx,
+      'create_plan',
+      planRow,
+      request.data
+    )
+
+    backLog.push([
+      'plan',
+      planLogRepository.buildNotify(planLogRow)
+    ])
 
     return {
       message: `Plan successfully created`,
       statusCode: 201,
-      plan: planRepository.buildModel(planRow)
+      plan: planRepository.buildModel(planRow),
+      backLog
     }
   })
 }

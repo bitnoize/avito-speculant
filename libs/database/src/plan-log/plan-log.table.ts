@@ -1,5 +1,5 @@
 import { Generated, ColumnType, Selectable, Insertable } from 'kysely'
-import { PlanData } from '../plan/plan.js'
+import { PlanLogData } from '@avito-speculant/domain'
 
 export interface PlanLogTable {
   id: Generated<string>
@@ -12,8 +12,8 @@ export interface PlanLogTable {
   analytics_on: ColumnType<boolean, boolean, never>
   is_enabled: ColumnType<boolean, boolean, never>
   subscriptions: ColumnType<number, number, never>
-  data: ColumnType<PlanData, PlanData, never>
-  created_at: ColumnType<number, undefined, never>
+  data: ColumnType<PlanLogData, PlanLogData, never>
+  created_at: ColumnType<number, never, never>
 }
 
 export type PlanLogRow = Selectable<PlanLogTable>

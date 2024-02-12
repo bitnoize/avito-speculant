@@ -1,8 +1,6 @@
 import { Transaction, sql } from 'kysely'
-// Plan
+import { Plan } from '@avito-speculant/domain'
 import { PlanRow, InsertablePlanRow, UpdateablePlanRow } from './plan.table.js'
-import { Plan } from './plan.js'
-// Database
 import { Database } from '../database.js'
 
 export async function selectRowByIdForShare(
@@ -19,12 +17,20 @@ export async function selectRowByIdForShare(
 
 export async function insertRow(
   trx: Transaction<Database>,
-  row: InsertablePlanRow
+  categories_max: number,
+  price_rub: number,
+  duration_days: number,
+  interval_sec: number,
+  analytics_on: boolean
 ): Promise<PlanRow> {
   return await trx
     .insertInto('plan')
     .values((eb) => ({
-      ...row,
+      categories_max,
+      price_rub,
+      duration_days,
+      interval_sec,
+      analytics_on,
       is_enabled: false,
       subscriptions: 0,
       created_at: sql`NOW()`,
@@ -35,32 +41,32 @@ export async function insertRow(
     .executeTakeFirstOrThrow()
 }
 
-export async function EnableRow(
+export async function updateRowEnabled(
   trx: Transaction<Database>,
-  plan_id: number
+  id: number
 ): Promise<PlanRow> {
   return await trx
     .updateTable('plan')
     .set((eb) => ({
-      is_enabled: sql`FALSE`,
+      is_enabled: true,
       updated_at: sql`NOW()`
     }))
-    .where('id', '=', plan_id)
+    .where('id', '=', id)
     .returningAll()
     .executeTakeFirstOrThrow()
 }
 
-export async function DisableRow(
+export async function updateRowDisabled(
   trx: Transaction<Database>,
-  plan_id: number
+  id: number
 ): Promise<PlanRow> {
   return await trx
     .updateTable('plan')
     .set((eb) => ({
-      is_enabled: sql`FALSE`,
+      is_enabled: false,
       updated_at: sql`NOW()`
     }))
-    .where('id', '=', plan_id)
+    .where('id', '=', id)
     .returningAll()
     .executeTakeFirstOrThrow()
 }

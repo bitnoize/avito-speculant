@@ -1,11 +1,8 @@
 import { Kysely } from 'kysely'
-// Plan
-import { PlanNotFoundError } from '../plan/plan.errors.js'
+import { PlanNotFoundError } from '@avito-speculant/domain'
+import { ListPlanLogsRequest, ListPlanLogsResponse } from './dto/list-plan-logs.js'
 import * as planRepository from '../plan/plan.repository.js'
-// PlanLog
-import { ListPlanLogsRequest, ListPlanLogsResponse } from './plan-log.js'
 import * as planLogRepository from './plan-log.repository.js'
-// Common
 import { Database } from '../database.js'
 
 export async function listPlanLogs(

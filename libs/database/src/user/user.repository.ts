@@ -1,8 +1,6 @@
 import { Transaction, sql } from 'kysely'
-// User
+import { User } from '@avito-speculant/domain'
 import { UserRow, InsertableUserRow, UpdateableUserRow } from './user.table.js'
-import { User } from './user.js'
-// Database
 import { Database } from '../database.js'
 
 export async function selectRowByIdForShare(
@@ -31,31 +29,31 @@ export async function selectRowByTgFromIdForShare(
 
 export async function insertRow(
   trx: Transaction<Database>,
-  row: InsertableUserRow
+  tg_from_id: string
 ): Promise<UserRow> {
   return await trx
     .insertInto('user')
     .values((eb) => ({
-      ...row,
-      status: 'trial',
-      subscriptions: 0,
-      created_at: sql`NOW()`,
-      updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
+      ...normalizeUserRow(tg_from_id),
+      status: sql.lit('trial'),
+      subscriptions: sql.val(0),
+      created_at: sql.val('NOW()'),
+      updated_at: sql.val('NOW()'),
+      scheduled_at: sql.val('NOW()')
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
 }
 
-export async function updateBlockStatusRow(
+export async function updateRowBlockStatus(
   trx: Transaction<Database>,
   user_id: number
 ): Promise<UserRow> {
   return await trx
     .updateTable('user')
     .set((eb) => ({
-      status: 'block',
-      updated_at: sql`NOW()`
+      status: sql.lit('block'),
+      updated_at: sql.val('NOW()')
     }))
     .where('id', '=', user_id)
     .returningAll()
@@ -76,4 +74,12 @@ export const buildModel = (row: UserRow): User => {
 
 export const buildCollection = (rows: UserRow[]): User[] => {
   return rows.map((row) => buildModel(row))
+}
+
+const normalizeUserRow = (
+  tg_from_id: string,
+): InsertableUserRow => {
+  return {
+    tg_from_id
+  }
 }

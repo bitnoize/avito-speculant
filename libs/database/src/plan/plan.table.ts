@@ -7,11 +7,11 @@ export interface PlanTable {
   duration_days: ColumnType<number, number, number | undefined>
   interval_sec: ColumnType<number, number, number | undefined>
   analytics_on: ColumnType<boolean, boolean, boolean | undefined>
-  is_enabled: ColumnType<boolean, boolean | undefined, undefined>
-  subscriptions: ColumnType<number, number | undefined, undefined>
-  created_at: ColumnType<number, undefined, never>
-  updated_at: ColumnType<number, undefined, undefined>
-  scheduled_at: ColumnType<number, undefined, undefined>
+  is_enabled: ColumnType<boolean, boolean, boolean | undefined>
+  subscriptions: ColumnType<number, number, number | undefined>
+  created_at: ColumnType<number, string, never>
+  updated_at: ColumnType<number, string, string | undefined>
+  scheduled_at: ColumnType<number, string, string | undefined>
 }
 
 export type PlanRow = Selectable<PlanTable>

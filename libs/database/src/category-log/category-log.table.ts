@@ -1,5 +1,5 @@
 import { Generated, ColumnType, Selectable, Insertable } from 'kysely'
-import { CategoryData } from '../category/category.js'
+import { CategoryLogData } from '@avito-speculant/domain'
 
 export interface CategoryLogTable {
   id: Generated<string>
@@ -7,8 +7,8 @@ export interface CategoryLogTable {
   action: ColumnType<string, string, never>
   avito_url: ColumnType<string, string, never>
   is_enabled: ColumnType<boolean, boolean, never>
-  data: ColumnType<CategoryData, CategoryData, never>
-  created_at: ColumnType<number, undefined, never>
+  data: ColumnType<CategoryLogData, CategoryLogData, never>
+  created_at: ColumnType<number, never, never>
 }
 
 export type CategoryLogRow = Selectable<CategoryLogTable>

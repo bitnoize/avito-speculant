@@ -1,16 +1,16 @@
 import { Kysely } from 'kysely'
-// Category
-import { CategoryNotFoundError } from '../category/category.errors.js'
-import * as categoryRepository from '../category/category.repository.js'
-// CategoryLog
+import { CategoryNotFoundError } from '@avito-speculant/domain'
 import {
   ListCategoryLogsRequest,
   ListCategoryLogsResponse
-} from './category-log.js'
+} from './dto/list-category-logs.js'
+import * as categoryRepository from '../category/category.repository.js'
 import * as categoryLogRepository from './category-log.repository.js'
-// Common
 import { Database } from '../database.js'
 
+/*
+ * List CategoryLogs
+ */
 export async function listCategoryLogs(
   db: Kysely<Database>,
   request: ListCategoryLogsRequest

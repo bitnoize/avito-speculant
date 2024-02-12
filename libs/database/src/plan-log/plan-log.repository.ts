@@ -1,9 +1,7 @@
 import { Transaction, sql } from 'kysely'
-import { PgPubSub, AnyJson } from '@imqueue/pg-pubsub'
-// PlanLog
-import { PlanLog } from './plan-log.js'
+import { PlanLog, PlanLogData } from '@avito-speculant/domain'
+import { PlanRow } from '../plan/plan.table.js'
 import { PlanLogRow, InsertablePlanLogRow } from './plan-log.table.js'
-// Database
 import { Database } from '../database.js'
 
 export async function selectRowsByPlanId(
@@ -22,23 +20,18 @@ export async function selectRowsByPlanId(
 
 export async function insertRow(
   trx: Transaction<Database>,
-  row: InsertablePlanLogRow
+  action: string,
+  planRow: PlanRow,
+  data: PlanLogData,
 ): Promise<PlanLogRow> {
   return await trx
     .insertInto('plan_log')
     .values(() => ({
-      ...row,
-      created_at: sql`NOW()`
+      ...normalizeLogRow(action, planRow, data),
+      created_at: sql.val('NOW()')
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
-}
-
-export async function notify(
-  pubSub: PgPubSub,
-  planLogRow: PlanLogRow
-): Promise<void> {
-  await pubSub.notify('plan', planLogRow as AnyJson)
 }
 
 export const buildModel = (row: PlanLogRow): PlanLog => {
@@ -60,4 +53,27 @@ export const buildModel = (row: PlanLogRow): PlanLog => {
 
 export const buildCollection = (rows: PlanLogRow[]): PlanLog[] => {
   return rows.map((row) => buildModel(row))
+}
+
+export const buildNotify = (row: PlanLogRow): string => {
+  return JSON.stringify(buildModel(row))
+}
+
+const normalizeLogRow = (
+  action: string,
+  planRow: PlanRow,
+  data: PlanLogData,
+): InsertablePlanLogRow => {
+  return {
+    plan_id: planRow.id,
+    action,
+    categories_max: planRow.categories_max,
+    price_rub: planRow.price_rub,
+    duration_days: planRow.duration_days,
+    interval_sec: planRow.interval_sec,
+    analytics_on: planRow.analytics_on,
+    is_enabled: planRow.is_enabled,
+    subscriptions: planRow.subscriptions,
+    data
+  }
 }

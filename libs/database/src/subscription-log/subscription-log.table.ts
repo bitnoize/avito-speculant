@@ -1,8 +1,8 @@
 import { Generated, ColumnType, Selectable, Insertable } from 'kysely'
 import {
   SubscriptionStatus,
-  SubscriptionData
-} from '../subscription/subscription.js'
+  SubscriptionLogData
+} from '@avito-speculant/domain'
 
 export interface SubscriptionLogTable {
   id: Generated<string>
@@ -14,8 +14,8 @@ export interface SubscriptionLogTable {
   interval_sec: ColumnType<number, number, never>
   analytics_on: ColumnType<boolean, boolean, never>
   status: ColumnType<SubscriptionStatus, SubscriptionStatus, never>
-  data: ColumnType<SubscriptionData, SubscriptionData, never>
-  created_at: ColumnType<number, undefined, never>
+  data: ColumnType<SubscriptionLogData, SubscriptionLogData, never>
+  created_at: ColumnType<number, never, never>
 }
 
 export type SubscriptionLogRow = Selectable<SubscriptionLogTable>

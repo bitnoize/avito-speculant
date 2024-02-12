@@ -1,5 +1,5 @@
 import { Generated, ColumnType, Selectable, Insertable } from 'kysely'
-import { UserStatus, UserData } from '../user/user.js'
+import { UserStatus, UserLogData } from '@avito-speculant/domain'
 
 export interface UserLogTable {
   id: Generated<string>
@@ -7,8 +7,8 @@ export interface UserLogTable {
   action: ColumnType<string, string, never>
   status: ColumnType<UserStatus, UserStatus, never>
   subscriptions: ColumnType<number, number, never>
-  data: ColumnType<UserData, UserData, never>
-  created_at: ColumnType<number, undefined, never>
+  data: ColumnType<UserLogData, UserLogData, never>
+  created_at: ColumnType<number, never, never>
 }
 
 export type UserLogRow = Selectable<UserLogTable>

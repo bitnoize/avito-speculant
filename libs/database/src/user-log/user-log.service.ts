@@ -1,11 +1,8 @@
 import { Kysely } from 'kysely'
-// User
-import { UserNotFoundError } from '../user/user.errors.js'
+import { UserNotFoundError } from '@avito-speculant/domain'
+import { ListUserLogsRequest, ListUserLogsResponse } from './dto/list-user-logs.js'
 import * as userRepository from '../user/user.repository.js'
-// UserLog
-import { ListUserLogsRequest, ListUserLogsResponse } from './user-log.js'
 import * as userLogRepository from './user-log.repository.js'
-// Common
 import { Database } from '../database.js'
 
 export async function listUserLogs(

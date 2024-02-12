@@ -1,9 +1,7 @@
 import { Transaction, sql } from 'kysely'
-import { PgPubSub, AnyJson } from '@imqueue/pg-pubsub'
-// CategoryLog
-import { CategoryLog } from './category-log.js'
+import { CategoryLog, CategoryLogData } from '@avito-speculant/domain'
+import { CategoryRow } from '../category/category.table.js'
 import { CategoryLogRow, InsertableCategoryLogRow } from './category-log.table.js'
-// Database
 import { Database } from '../database.js'
 
 export async function selectRowsByCategoryId(
@@ -22,23 +20,18 @@ export async function selectRowsByCategoryId(
 
 export async function insertRow(
   trx: Transaction<Database>,
-  row: InsertableCategoryLogRow
+  action: string,
+  categoryRow: CategoryRow,
+  data: CategoryLogData
 ): Promise<CategoryLogRow> {
   return await trx
     .insertInto('category_log')
     .values(() => ({
-      ...row,
+      ...normalizeLogRow(action, categoryRow, data),
       created_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
-}
-
-export async function notify(
-  pubSub: PgPubSub,
-  categoryLogRow: CategoryLogRow
-): Promise<void> {
-  await pubSub.notify('Category', categoryLogRow as AnyJson)
 }
 
 export const buildModel = (row: CategoryLogRow): CategoryLog => {
@@ -55,4 +48,22 @@ export const buildModel = (row: CategoryLogRow): CategoryLog => {
 
 export const buildCollection = (rows: CategoryLogRow[]): CategoryLog[] => {
   return rows.map((row) => buildModel(row))
+}
+
+export const buildNotify = (row: CategoryLogRow): string => {
+  return JSON.stringify(buildModel(row))
+}
+
+const normalizeLogRow = (
+  action: string,
+  categoryRow: CategoryRow,
+  data: CategoryLogData
+): InsertableCategoryLogRow => {
+  return {
+    category_id: categoryRow.id,
+    action,
+    avito_url: categoryRow.avito_url,
+    is_enabled: categoryRow.is_enabled,
+    data
+  }
 }

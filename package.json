@@ -6,6 +6,7 @@
   "private": true,
   "workspaces": [
     "libs/logger",
+    "libs/domain",
     "libs/database",
     "libs/redis",
     "libs/queue",

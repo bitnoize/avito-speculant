@@ -1,5 +1,4 @@
 export * from './database.js'
-export * from './database.errors.js'
 export * as databaseService from './database.service.js'
 export * from './user/index.js'
 export * from './user-log/index.js'

@@ -7,6 +7,7 @@
     "tsBuildInfoFile": ".cache/tsbuildinfo"
   },
   "references": [
+    { "path": "../domain" },
     { "path": "../logger" }
   ]
 }
