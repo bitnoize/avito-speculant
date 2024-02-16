@@ -1,11 +1,11 @@
-import { Transaction, sql } from 'kysely'
+import { sql } from 'kysely'
 import { UserLog, UserLogData } from '@avito-speculant/domain'
 import { UserRow } from '../user/user.table.js'
 import { UserLogRow } from './user-log.table.js'
-import { Database } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function selectRowsByUserId(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   user_id: number,
   limit: number
 ): Promise<UserLogRow[]> {
@@ -19,10 +19,10 @@ export async function selectRowsByUserId(
 }
 
 export async function insertRow(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   action: string,
   userRow: UserRow,
-  data: UserLogData,
+  data: UserLogData
 ): Promise<UserLogRow> {
   return await trx
     .insertInto('user_log')

@@ -1,4 +1,3 @@
-import { Kysely } from 'kysely'
 import {
   Notify,
   UserNotFoundError,
@@ -14,13 +13,13 @@ import * as userRepository from '../user/user.repository.js'
 import * as planRepository from '../plan/plan.repository.js'
 import * as subscriptionRepository from './subscription.repository.js'
 import * as subscriptionLogRepository from '../subscription-log/subscription-log.repository.js'
-import { Database } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Subscription
  */
 export async function createSubscription(
-  db: Kysely<Database>,
+  db: KyselyDatabase,
   request: CreateSubscriptionRequest
 ): Promise<CreateSubscriptionResponse> {
   return await db.transaction().execute(async (trx) => {
@@ -53,10 +52,11 @@ export async function createSubscription(
       )
 
     if (existsSubscriptionRow !== undefined) {
-      const cancelSubscriptionRow = await subscriptionRepository.updateRowCancelStatus(
-        trx,
-        existsSubscriptionRow.id
-      )
+      const cancelSubscriptionRow =
+        await subscriptionRepository.updateRowCancelStatus(
+          trx,
+          existsSubscriptionRow.id
+        )
 
       const subscriptionLogRow = await subscriptionLogRepository.insertRow(
         trx,
@@ -74,7 +74,7 @@ export async function createSubscription(
     const subscriptionRow = await subscriptionRepository.insertRow(
       trx,
       userRow,
-      planRow,
+      planRow
     )
 
     const subscriptionLogRow = await subscriptionLogRepository.insertRow(

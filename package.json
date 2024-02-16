@@ -5,14 +5,16 @@
   "description": "Avito-Speculant Monorepo",
   "private": true,
   "workspaces": [
+    "libs/config",
+    "libs/logger",
     "libs/domain",
     "libs/database",
     "libs/redis",
     "libs/queue",
-    "libs/logger",
     "apps/manager",
     "apps/bot",
-    "apps/scheduler"
+    "apps/worker-scheduler",
+    "apps/worker-scraper"
   ],
   "engines": {
     "npm": ">=9.8.0",

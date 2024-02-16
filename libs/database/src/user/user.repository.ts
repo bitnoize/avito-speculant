@@ -1,10 +1,10 @@
-import { Transaction, sql } from 'kysely'
-import { User } from '@avito-speculant/domain'
+import { sql } from 'kysely'
+import { User, UserStatus } from '@avito-speculant/domain'
 import { UserRow } from './user.table.js'
-import { Database } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function selectRowByIdForShare(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   user_id: number
 ): Promise<UserRow | undefined> {
   return await trx
@@ -16,7 +16,7 @@ export async function selectRowByIdForShare(
 }
 
 export async function selectRowByTgFromIdForShare(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   tg_from_id: string
 ): Promise<UserRow | undefined> {
   return await trx
@@ -28,9 +28,9 @@ export async function selectRowByTgFromIdForShare(
 }
 
 export async function selectRowsSkipLockedForUpdate(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   limit: number
-): Promise<UserRow | undefined> {
+): Promise<UserRow[]> {
   return await trx
     .selectFrom('user')
     .selectAll()
@@ -42,7 +42,7 @@ export async function selectRowsSkipLockedForUpdate(
 }
 
 export async function insertRow(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   tg_from_id: string
 ): Promise<UserRow> {
   return await trx
@@ -60,7 +60,7 @@ export async function insertRow(
 }
 
 export async function updateRowBlockStatus(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   user_id: number
 ): Promise<UserRow> {
   return await trx
@@ -68,6 +68,24 @@ export async function updateRowBlockStatus(
     .set((eb) => ({
       status: 'block',
       updated_at: sql`NOW()`
+    }))
+    .where('id', '=', user_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowScheduledAt(
+  trx: TransactionDatabase,
+  user_id: number,
+  status: UserStatus,
+  subscriptions: number
+): Promise<UserRow> {
+  return await trx
+    .updateTable('user')
+    .set((eb) => ({
+      status,
+      subscriptions,
+      scheduled_at: sql`NOW()`
     }))
     .where('id', '=', user_id)
     .returningAll()

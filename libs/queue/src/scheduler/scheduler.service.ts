@@ -7,15 +7,15 @@ import {
   MetricsTime
 } from 'bullmq'
 import {
-  SCRAPER_QUEUE_NAME,
-  ScraperConfig,
-  ScraperData,
-  ScraperResult,
-  ScraperQueue,
-  ScraperJob,
-  ScraperWorker,
-  ScraperProcessor
-} from './scraper.js'
+  SCHEDULER_QUEUE_NAME,
+  SchedulerConfig,
+  SchedulerData,
+  SchedulerResult,
+  SchedulerQueue,
+  SchedulerJob,
+  SchedulerWorker,
+  SchedulerProcessor
+} from './scheduler.js'
 
 /**
  * Initialize Queue instance
@@ -23,16 +23,16 @@ import {
 export function initQueue(
   connection: ConnectionOptions,
   logger: Logger
-): ScraperQueue {
-  const queue = new Queue<ScraperData, ScraperResult>(SCRAPER_QUEUE_NAME, {
+): SchedulerQueue {
+  const queue = new Queue<SchedulerData, SchedulerResult>(SCHEDULER_QUEUE_NAME, {
     connection
   })
 
   queue.on('error', (error) => {
-    logger.error(error, `There was an error in the ScraperQueue`)
+    logger.error(error, `There was an error in the SchedulerQueue`)
   })
 
-  logger.debug(`ScraperQueue successfully initialized`)
+  logger.debug(`SchedulerQueue successfully initialized`)
 
   return queue
 }
@@ -41,10 +41,10 @@ export function initQueue(
  * Add Job
  */
 export async function addRepeatableJob(
-  scraper: ScraperQueue
-): Promise<ScraperJob> {
-  return await scraper.add(
-    `scraper-bla-bla-job`,
+  scheduler: SchedulerQueue
+): Promise<SchedulerJob> {
+  return await scheduler.add(
+    `schedule`,
     undefined,
     {
       repeat: {
@@ -58,30 +58,30 @@ export async function addRepeatableJob(
  * Close Queue instance
  */
 export async function closeQueue(
-  queue: ScraperQueue,
+  queue: SchedulerQueue,
   logger: Logger
 ): Promise<void> {
   await queue.close()
 
-  logger.debug(`ScraperQueue successfully closed`)
+  logger.debug(`SchedulerQueue successfully closed`)
 }
 
 /**
  * Get Worker concurrency from config
  */
-export function getWorkerConcurrency<T extends ScraperConfig>(config: T): number {
-  return config.SCRAPER_CONCURRENCY
+export function getWorkerConcurrency<T extends SchedulerConfig>(config: T): number {
+  return config.SCHEDULER_CONCURRENCY
 }
 
 /**
  * Get Worker limiter from config
  */
-export function getWorkerLimiter<T extends ScraperConfig>(
+export function getWorkerLimiter<T extends SchedulerConfig>(
   config: T
 ): RateLimiterOptions {
   return {
-    max: config.SCRAPER_LIMITER_MAX,
-    duration: config.SCRAPER_LIMITER_DURATION
+    max: config.SCHEDULER_LIMITER_MAX,
+    duration: config.SCHEDULER_LIMITER_DURATION
   }
 }
 
@@ -89,19 +89,20 @@ export function getWorkerLimiter<T extends ScraperConfig>(
  * Initialize Worker instance
  */
 export function initWorker(
-  processor: ScraperProcessor,
+  processor: SchedulerProcessor,
   connection: ConnectionOptions,
   concurrency: number,
   limiter: RateLimiterOptions,
   logger: Logger
-): ScraperWorker {
-  const worker = new Worker<ScraperData, ScraperResult>(
-    SCRAPER_QUEUE_NAME,
+): SchedulerWorker {
+  const worker = new Worker<SchedulerData, SchedulerResult>(
+    SCHEDULER_QUEUE_NAME,
     processor,
     {
       connection,
       concurrency,
       limiter,
+      autorun: false,
       removeOnComplete: {
         count: 10
       },
@@ -115,14 +116,14 @@ export function initWorker(
   )
 
   worker.on('error', (error) => {
-    logger.error(error, `There was an error in the ScraperWorker`)
+    logger.error(error, `There was an error in the SchedulerWorker`)
   })
 
-  worker.on('completed', (job: ScraperJob, result: ScraperResult) => {
-    logger.info(result, `ScraperJob complete result`)
+  worker.on('completed', (job: SchedulerJob, result: SchedulerResult) => {
+    logger.info(result, `SchedulerJob complete result`)
   })
 
-  logger.debug(`ScraperWorker successfully initialized`)
+  logger.debug(`SchedulerWorker successfully initialized`)
 
   return worker
 }
@@ -131,22 +132,22 @@ export function initWorker(
  * Start Worker
  */
 export async function startWorker(
-  worker: ScraperWorker,
+  worker: SchedulerWorker,
   logger: Logger
 ): Promise<void> {
   await worker.run()
 
-  logger.debug(`ScraperWorker successfully started`)
+  logger.debug(`SchedulerWorker successfully started`)
 }
 
 /**
  * Close Worker instance
  */
 export async function closeWorker(
-  worker: ScraperWorker,
+  worker: SchedulerWorker,
   logger: Logger
 ): Promise<void> {
   await worker.close()
 
-  logger.debug(`ScraperWorker successfully closed`)
+  logger.debug(`SchedulerWorker successfully closed`)
 }

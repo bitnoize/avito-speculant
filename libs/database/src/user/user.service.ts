@@ -1,18 +1,16 @@
-import { Kysely } from 'kysely'
-import { Notify } from '@avito-speculant/domain'
-import {
-  AuthorizeUserRequest,
-  AuthorizeUserResponse
-} from './dto/authorize-user.js'
+import { Notify, User } from '@avito-speculant/domain'
+import { AuthorizeUserRequest, AuthorizeUserResponse } from './dto/authorize-user.js'
+import { ScheduleUsersRequest, ScheduleUsersResponse } from './dto/schedule-users.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
-import { Database } from '../database.js'
+import * as subscriptionRepository from '../subscription/subscription.repository.js'
+import { KyselyDatabase, TransactionDatabase } from '../database.js'
 
 /**
  * Authorize User
  */
 export async function authorizeUser(
-  db: Kysely<Database>,
+  db: KyselyDatabase,
   request: AuthorizeUserRequest
 ): Promise<AuthorizeUserResponse> {
   return await db.transaction().execute(async (trx) => {
@@ -32,10 +30,7 @@ export async function authorizeUser(
       }
     }
 
-    const userRow = await userRepository.insertRow(
-      trx,
-      request.tgFromId
-    )
+    const userRow = await userRepository.insertRow(trx, request.tgFromId)
 
     const userLogRow = await userLogRepository.insertRow(
       trx,
@@ -44,10 +39,7 @@ export async function authorizeUser(
       request.data
     )
 
-    backLog.push([
-      'user',
-      userLogRepository.buildNotify(userLogRow)
-    ])
+    backLog.push(['user', userLogRepository.buildNotify(userLogRow)])
 
     return {
       message: `User successfully created`,
@@ -62,11 +54,65 @@ export async function authorizeUser(
  * Schedule Users
  */
 export async function scheduleUsers(
-  db: Kysely<Database>,
-  request: AuthorizeUserRequest
-): Promise<AuthorizeUserResponse> {
-  return await db.transaction().execute(async (trx) => {
-    const userRows = userRepository.selectRowsSkipLockedForUpdate()
+  trx: TransactionDatabase,
+  request: ScheduleUsersRequest
+): Promise<ScheduleUsersResponse> {
+  const selectedUserRows = await userRepository.selectRowsSkipLockedForUpdate(
+    trx,
+    request.limit
+  )
 
-  })
+  if (selectedUserRows.length === 0) {
+    return {
+      message: `No users pending to schedule`,
+      statusCode: 200,
+      users: [],
+      backLog: []
+    }
+  }
+
+  const users: User[] = []
+  const backLog: Notify[] = []
+
+  for (const userRow of selectedUserRows) {
+    let isModified = false
+
+    const { subscriptions } = await subscriptionRepository.selectCountByUserId(
+      trx,
+      userRow.id
+    )
+
+    if (userRow.subscriptions !== subscriptions) {
+      isModified = true
+
+      userRow.subscriptions = subscriptions
+    }
+
+    const updatedUserRow = await userRepository.updateRowScheduledAt(
+      trx,
+      userRow.id,
+      userRow.status,
+      userRow.subscriptions
+    )
+
+    users.push(userRepository.buildModel(userRow))
+
+    if (isModified) {
+      const userLogRow = await userLogRepository.insertRow(
+        trx,
+        'schedule_user',
+        updatedUserRow,
+        request.data
+      )
+    
+      backLog.push(['user', userLogRepository.buildNotify(userLogRow)])
+    }
+  }
+
+  return {
+    message: `Users ready to schedule`,
+    statusCode: 201,
+    users,
+    backLog
+  }
 }

@@ -1,11 +1,11 @@
-import { Transaction, sql } from 'kysely'
+import { sql } from 'kysely'
 import { SubscriptionLog, SubscriptionLogData } from '@avito-speculant/domain'
 import { SubscriptionRow } from '../subscription/subscription.table.js'
 import { SubscriptionLogRow } from './subscription-log.table.js'
-import { Database } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function selectRowsBySubscriptionId(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   subscription_id: number,
   limit: number
 ): Promise<SubscriptionLogRow[]> {
@@ -19,7 +19,7 @@ export async function selectRowsBySubscriptionId(
 }
 
 export async function insertRow(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   action: string,
   subscriptionRow: SubscriptionRow,
   data: SubscriptionLogData

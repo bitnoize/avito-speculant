@@ -1,8 +1,8 @@
 {
-  "name": "@avito-speculant/database",
+  "name": "@avito-speculant/worker-scheduler",
   "type": "module",
-  "version": "0.0.5",
-  "description": "Avito-Speculant Database shared library",
+  "version": "0.0.3",
+  "description": "Avito-Speculant WorkerScheduler application",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,15 +12,15 @@
     "clean": "rimraf .cache dist",
     "prebuild": "npm run clean",
     "build": "tsc -b",
-    "build:watch": "tsc -b -w"
+    "build:watch": "tsc -b -w",
+    "start": "node dist/index.js"
   },
   "dependencies": {
+    "@avito-speculant/config": "*",
     "@avito-speculant/logger": "*",
     "@avito-speculant/domain": "*",
-    "kysely": "^0.27.2",
-    "pg": "^8.11.3"
-  },
-  "devDependencies": {
-    "@types/pg": "^8.10.9"
+    "@avito-speculant/database": "*",
+    "@avito-speculant/redis": "*",
+    "@avito-speculant/queue": "*"
   }
 }

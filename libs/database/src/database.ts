@@ -1,3 +1,4 @@
+import { Kysely, Transaction } from 'kysely'
 import { UserTable } from './user/user.table.js'
 import { UserLogTable } from './user-log/user-log.table.js'
 import { PlanTable } from './plan/plan.table.js'
@@ -25,3 +26,6 @@ export interface Database {
   category: CategoryTable
   category_log: CategoryLogTable
 }
+
+export type KyselyDatabase = Kysely<Database>
+export type TransactionDatabase = Transaction<Database>

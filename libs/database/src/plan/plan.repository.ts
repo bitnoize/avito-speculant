@@ -1,10 +1,10 @@
-import { Transaction, sql } from 'kysely'
+import { sql } from 'kysely'
 import { Plan } from '@avito-speculant/domain'
 import { PlanRow, InsertablePlanRow, UpdateablePlanRow } from './plan.table.js'
-import { Database } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function selectRowByIdForShare(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   plan_id: number
 ): Promise<PlanRow | undefined> {
   return await trx
@@ -15,8 +15,33 @@ export async function selectRowByIdForShare(
     .executeTakeFirst()
 }
 
+export async function selectRowsForShare(
+  trx: TransactionDatabase
+): Promise<PlanRow[]> {
+  return await trx
+    .selectFrom('plan')
+    .selectAll()
+    .forShare()
+    .orderBy('created_at', 'asc')
+    .execute()
+}
+
+export async function selectRowsSkipLockedForUpdate(
+  trx: TransactionDatabase,
+  limit: number
+): Promise<PlanRow[]> {
+  return await trx
+    .selectFrom('plan')
+    .selectAll()
+    .skipLocked()
+    .forUpdate()
+    .orderBy('scheduled_at', 'desc')
+    .limit(limit)
+    .execute()
+}
+
 export async function insertRow(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   categories_max: number,
   price_rub: number,
   duration_days: number,
@@ -42,7 +67,7 @@ export async function insertRow(
 }
 
 export async function updateRowEnabled(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   id: number
 ): Promise<PlanRow> {
   return await trx
@@ -57,7 +82,7 @@ export async function updateRowEnabled(
 }
 
 export async function updateRowDisabled(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   id: number
 ): Promise<PlanRow> {
   return await trx
@@ -67,6 +92,22 @@ export async function updateRowDisabled(
       updated_at: sql`NOW()`
     }))
     .where('id', '=', id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowScheduledAt(
+  trx: TransactionDatabase,
+  plan_id: number,
+  subscriptions: number
+): Promise<PlanRow> {
+  return await trx
+    .updateTable('plan')
+    .set((eb) => ({
+      subscriptions,
+      scheduled_at: sql`NOW()`
+    }))
+    .where('id', '=', plan_id)
     .returningAll()
     .executeTakeFirstOrThrow()
 }

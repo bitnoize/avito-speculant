@@ -1,8 +1,5 @@
 import { Generated, ColumnType, Selectable, Insertable } from 'kysely'
-import {
-  SubscriptionStatus,
-  SubscriptionLogData
-} from '@avito-speculant/domain'
+import { SubscriptionStatus, SubscriptionLogData } from '@avito-speculant/domain'
 
 export interface SubscriptionLogTable {
   id: Generated<string>

@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/manager",
   "type": "module",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Avito-Speculant Manager application",
   "private": true,
   "main": "dist/index.js",
@@ -16,11 +16,12 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@avito-speculant/config": "*",
     "@avito-speculant/logger": "*",
+    "@avito-speculant/domain": "*",
     "@avito-speculant/database": "*",
     "@avito-speculant/redis": "*",
-    "@sinclair/typebox": "^0.32.12",
-    "env-schema": "^5.2.1",
+    "@avito-speculant/queue": "*",
     "cmd-ts": "^0.13.0"
   }
 }

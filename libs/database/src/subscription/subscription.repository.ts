@@ -1,12 +1,12 @@
-import { Transaction, sql } from 'kysely'
+import { sql } from 'kysely'
 import { Subscription } from '@avito-speculant/domain'
 import { UserRow } from '../user/user.table.js'
 import { PlanRow } from '../plan/plan.table.js'
 import { SubscriptionRow } from './subscription.table.js'
-import { Database } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function selectRowByIdForShare(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   subscription_id: number
 ): Promise<SubscriptionRow | undefined> {
   return await trx
@@ -18,7 +18,7 @@ export async function selectRowByIdForShare(
 }
 
 export async function selectRowByUserIdWaitStatusForShare(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   user_id: number
 ): Promise<SubscriptionRow | undefined> {
   return await trx
@@ -31,9 +31,9 @@ export async function selectRowByUserIdWaitStatusForShare(
 }
 
 export async function insertRow(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   userRow: UserRow,
-  planRow: PlanRow,
+  planRow: PlanRow
 ): Promise<SubscriptionRow> {
   return await trx
     .insertInto('subscription')
@@ -55,7 +55,7 @@ export async function insertRow(
 }
 
 export async function updateRowCancelStatus(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   subscription_id: number
 ): Promise<SubscriptionRow> {
   return await trx
@@ -66,6 +66,30 @@ export async function updateRowCancelStatus(
     }))
     .where('id', '=', subscription_id)
     .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function selectCountByUserId(
+  trx: TransactionDatabase,
+  user_id: number
+): Promise<{ subscriptions: number }> {
+  return await trx
+    .selectFrom('subscription')
+    .select((eb) => eb.fn.countAll<number>().as('subscriptions'))
+    .where('user_id', '=', user_id)
+    .where('status', 'not in', ['wait', 'cancel'])
+    .executeTakeFirstOrThrow()
+}
+
+export async function selectCountByPlanId(
+  trx: TransactionDatabase,
+  plan_id: number
+): Promise<{ subscriptions: number }> {
+  return await trx
+    .selectFrom('subscription')
+    .select((eb) => eb.fn.countAll<number>().as('subscriptions'))
+    .where('plan_id', '=', plan_id)
+    .where('status', 'not in', ['wait', 'cancel'])
     .executeTakeFirstOrThrow()
 }
 

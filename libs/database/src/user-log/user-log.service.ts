@@ -1,12 +1,11 @@
-import { Kysely } from 'kysely'
 import { UserNotFoundError } from '@avito-speculant/domain'
 import { ListUserLogsRequest, ListUserLogsResponse } from './dto/list-user-logs.js'
 import * as userRepository from '../user/user.repository.js'
 import * as userLogRepository from './user-log.repository.js'
-import { Database } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 export async function listUserLogs(
-  db: Kysely<Database>,
+  db: KyselyDatabase,
   request: ListUserLogsRequest
 ): Promise<ListUserLogsResponse> {
   return await db.transaction().execute(async (trx) => {

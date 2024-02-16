@@ -1,11 +1,11 @@
-import { Transaction, sql } from 'kysely'
+import { sql } from 'kysely'
 import { PlanLog, PlanLogData } from '@avito-speculant/domain'
 import { PlanRow } from '../plan/plan.table.js'
 import { PlanLogRow } from './plan-log.table.js'
-import { Database } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function selectRowsByPlanId(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   plan_id: number,
   limit: number
 ): Promise<PlanLogRow[]> {
@@ -19,10 +19,10 @@ export async function selectRowsByPlanId(
 }
 
 export async function insertRow(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   action: string,
   planRow: PlanRow,
-  data: PlanLogData,
+  data: PlanLogData
 ): Promise<PlanLogRow> {
   return await trx
     .insertInto('plan_log')

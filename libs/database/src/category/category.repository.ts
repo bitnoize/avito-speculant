@@ -1,11 +1,11 @@
-import { Transaction, sql } from 'kysely'
+import { sql } from 'kysely'
 import { Category } from '@avito-speculant/domain'
 import { UserRow } from '../user/user.table.js'
 import { CategoryRow } from './category.table.js'
-import { Database } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function selectRowByIdForShare(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   category_id: number
 ): Promise<CategoryRow | undefined> {
   return await trx
@@ -17,7 +17,7 @@ export async function selectRowByIdForShare(
 }
 
 export async function insertRow(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   userRow: UserRow,
   avito_url: string
 ): Promise<CategoryRow> {

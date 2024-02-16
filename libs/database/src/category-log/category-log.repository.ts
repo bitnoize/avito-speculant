@@ -1,11 +1,11 @@
-import { Transaction, sql } from 'kysely'
+import { sql } from 'kysely'
 import { CategoryLog, CategoryLogData } from '@avito-speculant/domain'
 import { CategoryRow } from '../category/category.table.js'
 import { CategoryLogRow } from './category-log.table.js'
-import { Database } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function selectRowsByCategoryId(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   category_id: number,
   limit: number
 ): Promise<CategoryLogRow[]> {
@@ -19,7 +19,7 @@ export async function selectRowsByCategoryId(
 }
 
 export async function insertRow(
-  trx: Transaction<Database>,
+  trx: TransactionDatabase,
   action: string,
   categoryRow: CategoryRow,
   data: CategoryLogData

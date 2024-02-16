@@ -1,4 +1,3 @@
-import { Kysely } from 'kysely'
 import { CategoryNotFoundError } from '@avito-speculant/domain'
 import {
   ListCategoryLogsRequest,
@@ -6,13 +5,13 @@ import {
 } from './dto/list-category-logs.js'
 import * as categoryRepository from '../category/category.repository.js'
 import * as categoryLogRepository from './category-log.repository.js'
-import { Database } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /*
  * List CategoryLogs
  */
 export async function listCategoryLogs(
-  db: Kysely<Database>,
+  db: KyselyDatabase,
   request: ListCategoryLogsRequest
 ): Promise<ListCategoryLogsResponse> {
   return await db.transaction().execute(async (trx) => {

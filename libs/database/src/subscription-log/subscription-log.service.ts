@@ -1,4 +1,3 @@
-import { Kysely } from 'kysely'
 import { SubscriptionNotFoundError } from '@avito-speculant/domain'
 import {
   ListSubscriptionLogsRequest,
@@ -6,13 +5,13 @@ import {
 } from './dto/list-subscription-logs.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as subscriptionLogRepository from './subscription-log.repository.js'
-import { Database } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /*
  * List SubscriptionLogs
  */
 export async function listSubscriptionLogs(
-  db: Kysely<Database>,
+  db: KyselyDatabase,
   request: ListSubscriptionLogsRequest
 ): Promise<ListSubscriptionLogsResponse> {
   return await db.transaction().execute(async (trx) => {

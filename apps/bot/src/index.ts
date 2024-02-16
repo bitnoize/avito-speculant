@@ -33,15 +33,12 @@ async function bootstrap(): Promise<void> {
 
   bot.use(async (ctx, next) => {
     if (ctx.from) {
-      const authorizeUserResponse = await userService.authorizeUser(
-        db,
-        {
-          tgFromId: ctx.from.id.toString(),
-          data: {
-            from: ctx.from
-          }
+      const authorizeUserResponse = await userService.authorizeUser(db, {
+        tgFromId: ctx.from.id.toString(),
+        data: {
+          from: ctx.from
         }
-      )
+      })
 
       ctx.user = authorizeUserResponse.user
 

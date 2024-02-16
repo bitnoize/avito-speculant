@@ -1,12 +1,11 @@
-import { Kysely } from 'kysely'
 import { PlanNotFoundError } from '@avito-speculant/domain'
 import { ListPlanLogsRequest, ListPlanLogsResponse } from './dto/list-plan-logs.js'
 import * as planRepository from '../plan/plan.repository.js'
 import * as planLogRepository from './plan-log.repository.js'
-import { Database } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 export async function listPlanLogs(
-  db: Kysely<Database>,
+  db: KyselyDatabase,
   request: ListPlanLogsRequest
 ): Promise<ListPlanLogsResponse> {
   return await db.transaction().execute(async (trx) => {

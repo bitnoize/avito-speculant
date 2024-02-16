@@ -1,8 +1,8 @@
 {
-  "name": "@avito-speculant/scheduler",
+  "name": "@avito-speculant/config",
   "type": "module",
   "version": "0.0.2",
-  "description": "Avito-Speculant Scheduler application",
+  "description": "Avito-Speculant Config shared library",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,15 +12,9 @@
     "clean": "rimraf .cache dist",
     "prebuild": "npm run clean",
     "build": "tsc -b",
-    "build:watch": "tsc -b -w",
-    "start": "node dist/index.js"
+    "build:watch": "tsc -b -w"
   },
   "dependencies": {
-    "@avito-speculant/logger": "*",
-    "@avito-speculant/database": "*",
-    "@avito-speculant/redis": "*",
-    "@avito-speculant/queue": "*",
-    "@sinclair/typebox": "^0.32.12",
     "env-schema": "^5.2.1"
   }
 }

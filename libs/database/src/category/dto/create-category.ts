@@ -2,7 +2,7 @@ import {
   Notify,
   Category,
   CategoryLog,
-  CategoryLogData,
+  CategoryLogData
 } from '@avito-speculant/domain'
 
 export interface CreateCategoryRequest {

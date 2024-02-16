@@ -1,5 +1,6 @@
 import { RedisOptions, Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
+import { Notify } from '@avito-speculant/domain'
 import { RedisConfig } from './redis.js'
 
 /**
@@ -54,6 +55,21 @@ export function initPubSub(options: RedisOptions, logger: Logger): Redis {
   logger.debug(`PubSub successfully initialized`)
 
   return pubSub
+}
+
+/*
+ * Publish PubSub BackLog
+ */
+export async function publishBackLog(
+  pubSub: Redis,
+  logger: Logger,
+  backLog: Notify[]
+): Promise<void> {
+  for (const notify of backLog) {
+    await pubSub.publish(...notify)
+  
+    logger.debug(notify, `PubSub BackLog published`)
+  }
 }
 
 /*

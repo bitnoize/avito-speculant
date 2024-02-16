@@ -5,8 +5,5 @@
     "rootDir": "src",
     "outDir": "dist",
     "tsBuildInfoFile": ".cache/tsbuildinfo"
-  },
-  "references": [
-    { "path": "../domain" }
-  ]
+  }
 }

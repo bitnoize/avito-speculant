@@ -1,5 +1,3 @@
-import { Kysely } from 'kysely'
-// User
 import {
   Notify,
   UserNotFoundError,
@@ -12,13 +10,13 @@ import {
 import * as userRepository from '../user/user.repository.js'
 import * as categoryRepository from './category.repository.js'
 import * as categoryLogRepository from '../category-log/category-log.repository.js'
-import { Database } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Category
  */
 export async function createCategory(
-  db: Kysely<Database>,
+  db: KyselyDatabase,
   request: CreateCategoryRequest
 ): Promise<CreateCategoryResponse> {
   return await db.transaction().execute(async (trx) => {
@@ -47,10 +45,7 @@ export async function createCategory(
       request.data
     )
 
-    backLog.push([
-      'category',
-      categoryLogRepository.buildNotify(categoryLogRow)
-    ])
+    backLog.push(['category', categoryLogRepository.buildNotify(categoryLogRow)])
 
     return {
       message: `Category successfully created`,

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@avito-speculant/logger": "*",
+    "@avito-speculant/domain": "*",
     "ioredis": "^5.3.2"
   }
 }
