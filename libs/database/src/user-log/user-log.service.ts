@@ -4,6 +4,9 @@ import * as userRepository from '../user/user.repository.js'
 import * as userLogRepository from './user-log.repository.js'
 import { KyselyDatabase } from '../database.js'
 
+/*
+ * List UserLogs
+ */
 export async function listUserLogs(
   db: KyselyDatabase,
   request: ListUserLogsRequest
@@ -12,7 +15,7 @@ export async function listUserLogs(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, 400)
+      throw new UserNotFoundError<ListUserLogsRequest>(request)
     }
 
     const userLogRows = await userLogRepository.selectRowsByUserId(
@@ -22,7 +25,7 @@ export async function listUserLogs(
     )
 
     return {
-      message: `UserLogs listed successfully`,
+      message: `UserLogs successfully listed`,
       statusCode: 200,
       userLogs: userLogRepository.buildCollection(userLogRows),
       limit: request.limit

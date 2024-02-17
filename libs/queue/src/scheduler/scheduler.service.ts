@@ -43,15 +43,11 @@ export function initQueue(
 export async function addRepeatableJob(
   scheduler: SchedulerQueue
 ): Promise<SchedulerJob> {
-  return await scheduler.add(
-    `schedule`,
-    undefined,
-    {
-      repeat: {
-        every: 10_000
-      }
+  return await scheduler.add(`schedule`, undefined, {
+    repeat: {
+      every: 10_000
     }
-  )
+  })
 }
 
 /**

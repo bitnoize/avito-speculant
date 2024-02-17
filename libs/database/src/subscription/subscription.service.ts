@@ -1,19 +1,24 @@
 import {
   Notify,
+  Subscription,
   UserNotFoundError,
   UserBlockedError,
   PlanNotFoundError,
-  PlanDisabledError
+  PlanIsDisabledError
 } from '@avito-speculant/domain'
 import {
   CreateSubscriptionRequest,
   CreateSubscriptionResponse
 } from './dto/create-subscription.js'
+import {
+  ScheduleSubscriptionsRequest,
+  ScheduleSubscriptionsResponse
+} from './dto/schedule-subscriptions.js'
 import * as userRepository from '../user/user.repository.js'
 import * as planRepository from '../plan/plan.repository.js'
 import * as subscriptionRepository from './subscription.repository.js'
 import * as subscriptionLogRepository from '../subscription-log/subscription-log.repository.js'
-import { KyselyDatabase } from '../database.js'
+import { KyselyDatabase, TransactionDatabase } from '../database.js'
 
 /**
  * Create Subscription
@@ -28,21 +33,21 @@ export async function createSubscription(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, 400)
+      throw new UserNotFoundError<CreateSubscriptionRequest>(request)
     }
 
     if (userRow.status === 'block') {
-      throw new UserBlockedError(request)
+      throw new UserBlockedError<CreateSubscriptionRequest>(request)
     }
 
     const planRow = await planRepository.selectRowByIdForShare(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError(request, 400)
+      throw new PlanNotFoundError<CreateSubscriptionRequest>(request)
     }
 
     if (!planRow.is_enabled) {
-      throw new PlanDisabledError(request)
+      throw new PlanIsDisabledError<CreateSubscriptionRequest>(request)
     }
 
     const existsSubscriptionRow =
@@ -71,7 +76,7 @@ export async function createSubscription(
       ])
     }
 
-    const subscriptionRow = await subscriptionRepository.insertRow(
+    const insertedSubscriptionRow = await subscriptionRepository.insertRow(
       trx,
       userRow,
       planRow
@@ -80,7 +85,7 @@ export async function createSubscription(
     const subscriptionLogRow = await subscriptionLogRepository.insertRow(
       trx,
       'create_plan',
-      subscriptionRow,
+      insertedSubscriptionRow,
       request.data
     )
 
@@ -92,8 +97,84 @@ export async function createSubscription(
     return {
       message: `Subscription successfully created`,
       statusCode: 201,
-      subscription: subscriptionRepository.buildModel(subscriptionRow),
+      subscription: subscriptionRepository.buildModel(insertedSubscriptionRow),
       backLog
     }
   })
+}
+
+/**
+ * Schedule Subscriptions
+ */
+export async function scheduleSubscriptions(
+  trx: TransactionDatabase,
+  request: ScheduleSubscriptionsRequest
+): Promise<ScheduleSubscriptionsResponse> {
+  const selectedSubscriptionRows =
+    await subscriptionRepository.selectRowsSkipLockedForUpdate(
+      trx,
+      request.limit
+    )
+
+  if (selectedSubscriptionRows.length === 0) {
+    return {
+      message: `No subscriptions pending to schedule`,
+      statusCode: 200,
+      subscriptions: [],
+      backLog: []
+    }
+  }
+
+  const subscriptions: Subscription[] = []
+  const backLog: Notify[] = []
+
+  for (const subscriptionRow of selectedSubscriptionRows) {
+    let isModified = false
+
+    if (subscriptionRow.status === 'wait') {
+      if (subscriptionRow.created_at < Date.now() - 900 * 1000) {
+        isModified = true
+
+        subscriptionRow.status = 'cancel'
+      }
+    } else if (subscriptionRow.status === 'active') {
+      if (
+        subscriptionRow.created_at <
+          Date.now() - subscriptionRow.duration_days * 86400 * 1000
+      ) {
+        isModified = true
+
+        subscriptionRow.status = 'finish'
+      }
+    }
+
+    const updatedSubscriptionRow = await subscriptionRepository.updateRowSchedule(
+      trx,
+      subscriptionRow.id,
+      subscriptionRow.status
+    )
+
+    subscriptions.push(subscriptionRepository.buildModel(subscriptionRow))
+
+    if (isModified) {
+      const subscriptionLogRow = await subscriptionLogRepository.insertRow(
+        trx,
+        'schedule_subscription',
+        updatedSubscriptionRow,
+        request.data
+      )
+
+      backLog.push([
+        'subscription',
+        subscriptionLogRepository.buildNotify(subscriptionLogRow)
+      ])
+    }
+  }
+
+  return {
+    message: `Subscriptions ready to schedule`,
+    statusCode: 201,
+    subscriptions,
+    backLog
+  }
 }

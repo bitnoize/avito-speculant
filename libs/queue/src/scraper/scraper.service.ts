@@ -40,18 +40,12 @@ export function initQueue(
 /**
  * Add Job
  */
-export async function addRepeatableJob(
-  scraper: ScraperQueue
-): Promise<ScraperJob> {
-  return await scraper.add(
-    `scraper-bla-bla-job`,
-    undefined,
-    {
-      repeat: {
-        every: 10_000
-      }
+export async function addRepeatableJob(scraper: ScraperQueue): Promise<ScraperJob> {
+  return await scraper.add(`scraper-bla-bla-job`, undefined, {
+    repeat: {
+      every: 10_000
     }
-  )
+  })
 }
 
 /**

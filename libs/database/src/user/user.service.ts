@@ -1,6 +1,12 @@
 import { Notify, User } from '@avito-speculant/domain'
-import { AuthorizeUserRequest, AuthorizeUserResponse } from './dto/authorize-user.js'
-import { ScheduleUsersRequest, ScheduleUsersResponse } from './dto/schedule-users.js'
+import {
+  AuthorizeUserRequest,
+  AuthorizeUserResponse
+} from './dto/authorize-user.js'
+import {
+  ScheduleUsersRequest,
+  ScheduleUsersResponse
+} from './dto/schedule-users.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
@@ -88,7 +94,7 @@ export async function scheduleUsers(
       userRow.subscriptions = subscriptions
     }
 
-    const updatedUserRow = await userRepository.updateRowScheduledAt(
+    const updatedUserRow = await userRepository.updateRowSchedule(
       trx,
       userRow.id,
       userRow.status,
@@ -104,7 +110,7 @@ export async function scheduleUsers(
         updatedUserRow,
         request.data
       )
-    
+
       backLog.push(['user', userLogRepository.buildNotify(userLogRow)])
     }
   }

@@ -15,29 +15,16 @@ export async function selectRowByIdForShare(
     .executeTakeFirst()
 }
 
-export async function selectRowsForShare(
-  trx: TransactionDatabase
-): Promise<PlanRow[]> {
-  return await trx
-    .selectFrom('plan')
-    .selectAll()
-    .forShare()
-    .orderBy('created_at', 'asc')
-    .execute()
-}
-
-export async function selectRowsSkipLockedForUpdate(
+export async function selectRowByIdForUpdate(
   trx: TransactionDatabase,
-  limit: number
-): Promise<PlanRow[]> {
+  plan_id: number
+): Promise<PlanRow | undefined> {
   return await trx
     .selectFrom('plan')
     .selectAll()
-    .skipLocked()
+    .where('id', '=', plan_id)
     .forUpdate()
-    .orderBy('scheduled_at', 'desc')
-    .limit(limit)
-    .execute()
+    .executeTakeFirst()
 }
 
 export async function insertRow(
@@ -66,37 +53,76 @@ export async function insertRow(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowEnabled(
+export async function updateRow(
   trx: TransactionDatabase,
-  id: number
+  plan_id: number,
+  categories_max?: number,
+  price_rub?: number,
+  duration_days?: number,
+  interval_sec?: number,
+  analytics_on?: boolean
 ): Promise<PlanRow> {
   return await trx
     .updateTable('plan')
     .set((eb) => ({
-      is_enabled: true,
+      categories_max,
+      price_rub,
+      duration_days,
+      interval_sec,
+      analytics_on,
       updated_at: sql`NOW()`
     }))
-    .where('id', '=', id)
+    .where('id', '=', plan_id)
     .returningAll()
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowDisabled(
+export async function updateRowIsEnabled(
   trx: TransactionDatabase,
-  id: number
+  plan_id: number,
+  is_enabled: boolean
 ): Promise<PlanRow> {
   return await trx
     .updateTable('plan')
     .set((eb) => ({
-      is_enabled: false,
+      is_enabled,
       updated_at: sql`NOW()`
     }))
-    .where('id', '=', id)
+    .where('id', '=', plan_id)
     .returningAll()
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowScheduledAt(
+export async function selectRowsList(
+  trx: TransactionDatabase,
+  all: boolean
+): Promise<PlanRow[]> {
+  const foo = all ? [] : []
+  return await trx
+    .selectFrom('plan')
+    .selectAll()
+    .where('is_enabled', 'in', all ? [true, false] : [true])
+    .forShare()
+    .orderBy('created_at', 'asc')
+    .execute()
+}
+
+// FIXME
+export async function selectRowsSkipLockedForUpdate(
+  trx: TransactionDatabase,
+  limit: number
+): Promise<PlanRow[]> {
+  return await trx
+    .selectFrom('plan')
+    .selectAll()
+    .skipLocked()
+    .forUpdate()
+    .orderBy('scheduled_at', 'desc')
+    .limit(limit)
+    .execute()
+}
+
+export async function updateRowSchedule(
   trx: TransactionDatabase,
   plan_id: number,
   subscriptions: number

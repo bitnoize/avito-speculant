@@ -25,11 +25,11 @@ export async function createCategory(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, 400)
+      throw new UserNotFoundError<CreateCategoryRequest>(request, 400)
     }
 
     if (userRow.status === 'block') {
-      throw new UserBlockedError(request)
+      throw new UserBlockedError<CreateCategoryRequest>(request)
     }
 
     const categoryRow = await categoryRepository.insertRow(

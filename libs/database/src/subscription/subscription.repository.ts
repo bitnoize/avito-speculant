@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { Subscription } from '@avito-speculant/domain'
+import { Subscription, SubscriptionStatus } from '@avito-speculant/domain'
 import { UserRow } from '../user/user.table.js'
 import { PlanRow } from '../plan/plan.table.js'
 import { SubscriptionRow } from './subscription.table.js'
@@ -90,6 +90,37 @@ export async function selectCountByPlanId(
     .select((eb) => eb.fn.countAll<number>().as('subscriptions'))
     .where('plan_id', '=', plan_id)
     .where('status', 'not in', ['wait', 'cancel'])
+    .executeTakeFirstOrThrow()
+}
+
+// FIXME
+export async function selectRowsSkipLockedForUpdate(
+  trx: TransactionDatabase,
+  limit: number
+): Promise<SubscriptionRow[]> {
+  return await trx
+    .selectFrom('subscription')
+    .selectAll()
+    .skipLocked()
+    .forUpdate()
+    .orderBy('scheduled_at', 'desc')
+    .limit(limit)
+    .execute()
+}
+
+export async function updateRowSchedule(
+  trx: TransactionDatabase,
+  subscription_id: number,
+  status: SubscriptionStatus
+): Promise<SubscriptionRow> {
+  return await trx
+    .updateTable('subscription')
+    .set((eb) => ({
+      status,
+      scheduled_at: sql`NOW()`
+    }))
+    .where('id', '=', subscription_id)
+    .returningAll()
     .executeTakeFirstOrThrow()
 }
 

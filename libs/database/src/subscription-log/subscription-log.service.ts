@@ -21,7 +21,7 @@ export async function listSubscriptionLogs(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError(request, 400)
+      throw new SubscriptionNotFoundError<ListSubscriptionLogsRequest>(request)
     }
 
     const subscriptionLogRows =
@@ -32,7 +32,7 @@ export async function listSubscriptionLogs(
       )
 
     return {
-      message: `SubscriptionLogs listed successfully`,
+      message: `SubscriptionLogs successfully listed`,
       statusCode: 200,
       subscriptionLogs:
         subscriptionLogRepository.buildCollection(subscriptionLogRows),

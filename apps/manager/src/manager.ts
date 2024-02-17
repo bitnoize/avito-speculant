@@ -1,3 +1,5 @@
+export const DEFAULT_LIMIT = 25
+
 export interface Config {
   LOG_LEVEL: string
   REDIS_HOST: string

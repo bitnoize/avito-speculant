@@ -67,7 +67,7 @@ export async function publishBackLog(
 ): Promise<void> {
   for (const notify of backLog) {
     await pubSub.publish(...notify)
-  
+
     logger.debug(notify, `PubSub BackLog published`)
   }
 }

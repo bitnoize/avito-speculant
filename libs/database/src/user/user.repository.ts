@@ -74,7 +74,7 @@ export async function updateRowBlockStatus(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowScheduledAt(
+export async function updateRowSchedule(
   trx: TransactionDatabase,
   user_id: number,
   status: UserStatus,

@@ -21,7 +21,7 @@ export async function listCategoryLogs(
     )
 
     if (categoryRow === undefined) {
-      throw new CategoryNotFoundError(request, 400)
+      throw new CategoryNotFoundError<ListCategoryLogsRequest>(request)
     }
 
     const categoryLogRows = await categoryLogRepository.selectRowsByCategoryId(

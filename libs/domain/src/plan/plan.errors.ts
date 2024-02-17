@@ -6,8 +6,14 @@ export class PlanNotFoundError<T> extends DomainError<T> {
   }
 }
 
-export class PlanDisabledError<T> extends DomainError<T> {
-  constructor(request: T, statusCode = 403, message = `Plan disabled`) {
+export class PlanIsEnabledError<T> extends DomainError<T> {
+  constructor(request: T, statusCode = 403, message = `Plan is enabled`) {
+    super(request, statusCode, message)
+  }
+}
+
+export class PlanIsDisabledError<T> extends DomainError<T> {
+  constructor(request: T, statusCode = 403, message = `Plan is disabled`) {
     super(request, statusCode, message)
   }
 }

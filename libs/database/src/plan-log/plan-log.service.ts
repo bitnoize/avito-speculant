@@ -4,6 +4,9 @@ import * as planRepository from '../plan/plan.repository.js'
 import * as planLogRepository from './plan-log.repository.js'
 import { KyselyDatabase } from '../database.js'
 
+/*
+ * List PlanLogs
+ */
 export async function listPlanLogs(
   db: KyselyDatabase,
   request: ListPlanLogsRequest
@@ -12,7 +15,7 @@ export async function listPlanLogs(
     const planRow = await planRepository.selectRowByIdForShare(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError(request, 400)
+      throw new PlanNotFoundError<ListPlanLogsRequest>(request, 400)
     }
 
     const planLogRows = await planLogRepository.selectRowsByPlanId(
@@ -22,7 +25,7 @@ export async function listPlanLogs(
     )
 
     return {
-      message: `PlanLogs listed successfully`,
+      message: `PlanLogs successfully listed`,
       statusCode: 200,
       planLogs: planLogRepository.buildCollection(planLogRows),
       limit: request.limit
