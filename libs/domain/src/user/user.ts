@@ -6,6 +6,7 @@ export interface User {
   tgFromId: string
   status: UserStatus
   subscriptions: number
+  categories: number
   createdAt: number
   updatedAt: number
   scheduledAt: number

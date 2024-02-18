@@ -1,10 +1,31 @@
 import { sql } from 'kysely'
-import { CategoryLog, CategoryLogData } from '@avito-speculant/domain'
-import { CategoryRow } from '../category/category.table.js'
+import { Notify, CategoryLog, CategoryLogData } from '@avito-speculant/domain'
 import { CategoryLogRow } from './category-log.table.js'
 import { TransactionDatabase } from '../database.js'
 
-export async function selectRowsByCategoryId(
+export async function insertRow(
+  trx: TransactionDatabase,
+  category_id: number,
+  action: string,
+  avito_url: string,
+  is_enabled: boolean,
+  data: CategoryLogData
+): Promise<CategoryLogRow> {
+  return await trx
+    .insertInto('category_log')
+    .values(() => ({
+      category_id,
+      action,
+      avito_url,
+      is_enabled,
+      data,
+      created_at: sql`NOW()`
+    }))
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function selectRowsList(
   trx: TransactionDatabase,
   category_id: number,
   limit: number
@@ -16,26 +37,6 @@ export async function selectRowsByCategoryId(
     .orderBy('created_at', 'desc')
     .limit(limit)
     .execute()
-}
-
-export async function insertRow(
-  trx: TransactionDatabase,
-  action: string,
-  categoryRow: CategoryRow,
-  data: CategoryLogData
-): Promise<CategoryLogRow> {
-  return await trx
-    .insertInto('category_log')
-    .values(() => ({
-      category_id: categoryRow.id,
-      action,
-      avito_url: categoryRow.avito_url,
-      is_enabled: categoryRow.is_enabled,
-      data,
-      created_at: sql`NOW()`
-    }))
-    .returningAll()
-    .executeTakeFirstOrThrow()
 }
 
 export const buildModel = (row: CategoryLogRow): CategoryLog => {
@@ -54,6 +55,6 @@ export const buildCollection = (rows: CategoryLogRow[]): CategoryLog[] => {
   return rows.map((row) => buildModel(row))
 }
 
-export const buildNotify = (row: CategoryLogRow): string => {
-  return JSON.stringify(buildModel(row))
+export const buildNotify = (row: CategoryLogRow): Notify => {
+  return ['category', row.id, row.category_id, row.action]
 }

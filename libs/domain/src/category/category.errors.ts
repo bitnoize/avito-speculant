@@ -5,3 +5,15 @@ export class CategoryNotFoundError<T> extends DomainError<T> {
     super(request, statusCode, message)
   }
 }
+
+export class CategoryIsEnabledError<T> extends DomainError<T> {
+  constructor(request: T, statusCode = 403, message = `Category is enabled`) {
+    super(request, statusCode, message)
+  }
+}
+
+export class CategoriesLimitExceedError<T> extends DomainError<T> {
+  constructor(request: T, statusCode = 403, message = `Category limit exceed`) {
+    super(request, statusCode, message)
+  }
+}

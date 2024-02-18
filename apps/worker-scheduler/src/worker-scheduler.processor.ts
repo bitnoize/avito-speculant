@@ -42,10 +42,13 @@ export const schedulerProcessor: SchedulerProcessor = async (job: SchedulerJob) 
 
     await job.updateProgress(30)
 
-    const scheduleSubscriptions = await subscriptionService.scheduleSubscriptions(trx, {
-      limit: 100,
-      data: {}
-    })
+    const scheduleSubscriptions = await subscriptionService.scheduleSubscriptions(
+      trx,
+      {
+        limit: 100,
+        data: {}
+      }
+    )
 
     await job.updateProgress(40)
 

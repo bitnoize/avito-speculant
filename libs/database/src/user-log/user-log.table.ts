@@ -7,6 +7,7 @@ export interface UserLogTable {
   action: ColumnType<string, string, never>
   status: ColumnType<UserStatus, UserStatus, never>
   subscriptions: ColumnType<number, number, never>
+  categories: ColumnType<number, number, never>
   data: ColumnType<UserLogData, UserLogData, never>
   created_at: ColumnType<number, string, never>
 }

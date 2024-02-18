@@ -13,6 +13,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('tg_from_id', 'varchar', (col) => col.notNull())
     .addColumn('status', sql`user_status`, (col) => col.notNull())
     .addColumn('subscriptions', 'integer', (col) => col.notNull())
+    .addColumn('categories', 'integer', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .addColumn('updated_at', 'timestamptz', (col) => col.notNull())
     .addColumn('scheduled_at', 'timestamptz', (col) => col.notNull())

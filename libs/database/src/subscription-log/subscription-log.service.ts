@@ -24,12 +24,11 @@ export async function listSubscriptionLogs(
       throw new SubscriptionNotFoundError<ListSubscriptionLogsRequest>(request)
     }
 
-    const subscriptionLogRows =
-      await subscriptionLogRepository.selectRowsBySubscriptionId(
-        trx,
-        subscriptionRow.id,
-        request.limit
-      )
+    const subscriptionLogRows = await subscriptionLogRepository.selectRowsList(
+      trx,
+      subscriptionRow.id,
+      request.limit
+    )
 
     return {
       message: `SubscriptionLogs successfully listed`,

@@ -58,7 +58,7 @@ export function initPubSub(options: RedisOptions, logger: Logger): Redis {
 }
 
 /*
- * Publish PubSub BackLog
+ * Publish BackLog
  */
 export async function publishBackLog(
   pubSub: Redis,
@@ -66,9 +66,10 @@ export async function publishBackLog(
   backLog: Notify[]
 ): Promise<void> {
   for (const notify of backLog) {
-    await pubSub.publish(...notify)
+    const [ channel, logId, modelId, action ] = notify
+    await pubSub.publish(channel, `${logId}\t${modelId}\t${action}`)
 
-    logger.debug(notify, `PubSub BackLog published`)
+    logger.debug({ channel, logId, modelId, action }, `Publish BackLog Notify`)
   }
 }
 

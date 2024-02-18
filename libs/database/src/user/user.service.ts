@@ -10,6 +10,7 @@ import {
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
+import * as categoryRepository from '../category/category.repository.js'
 import { KyselyDatabase, TransactionDatabase } from '../database.js'
 
 /**
@@ -22,35 +23,38 @@ export async function authorizeUser(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const existsUserRow = await userRepository.selectRowByTgFromIdForShare(
+    const selectedUserRow = await userRepository.selectRowByTgFromIdForShare(
       trx,
       request.tgFromId
     )
 
-    if (existsUserRow !== undefined) {
+    if (selectedUserRow !== undefined) {
       return {
         message: `User allready exists`,
         statusCode: 200,
-        user: userRepository.buildModel(existsUserRow),
+        user: userRepository.buildModel(selectedUserRow),
         backLog
       }
     }
 
-    const userRow = await userRepository.insertRow(trx, request.tgFromId)
+    const instertedUserRow = await userRepository.insertRow(trx, request.tgFromId)
 
     const userLogRow = await userLogRepository.insertRow(
       trx,
+      instertedUserRow.id,
       'authorize_user',
-      userRow,
+      instertedUserRow.status,
+      instertedUserRow.subscriptions,
+      instertedUserRow.categories,
       request.data
     )
 
-    backLog.push(['user', userLogRepository.buildNotify(userLogRow)])
+    backLog.push(userLogRepository.buildNotify(userLogRow))
 
     return {
       message: `User successfully created`,
       statusCode: 201,
-      user: userRepository.buildModel(userRow),
+      user: userRepository.buildModel(instertedUserRow),
       backLog
     }
   })
@@ -63,6 +67,9 @@ export async function scheduleUsers(
   trx: TransactionDatabase,
   request: ScheduleUsersRequest
 ): Promise<ScheduleUsersResponse> {
+  const users: User[] = []
+  const backLog: Notify[] = []
+
   const selectedUserRows = await userRepository.selectRowsSkipLockedForUpdate(
     trx,
     request.limit
@@ -72,16 +79,13 @@ export async function scheduleUsers(
     return {
       message: `No users pending to schedule`,
       statusCode: 200,
-      users: [],
-      backLog: []
+      users,
+      backLog
     }
   }
 
-  const users: User[] = []
-  const backLog: Notify[] = []
-
   for (const userRow of selectedUserRows) {
-    let isModified = false
+    let isChanged = false
 
     const { subscriptions } = await subscriptionRepository.selectCountByUserId(
       trx,
@@ -89,29 +93,48 @@ export async function scheduleUsers(
     )
 
     if (userRow.subscriptions !== subscriptions) {
-      isModified = true
+      isChanged = true
 
       userRow.subscriptions = subscriptions
     }
 
-    const updatedUserRow = await userRepository.updateRowSchedule(
+    const { categories } = await categoryRepository.selectCountByUserId(
       trx,
-      userRow.id,
-      userRow.status,
-      userRow.subscriptions
+      userRow.id
     )
 
-    users.push(userRepository.buildModel(userRow))
+    if (userRow.categories !== categories) {
+      isChanged = true
 
-    if (isModified) {
+      userRow.categories = categories
+    }
+
+    if (isChanged) {
+      const updatedUserRow = await userRepository.updateRowScheduleChange(
+        trx,
+        userRow.id,
+        userRow.status,
+        userRow.subscriptions,
+        userRow.categories
+      )
+
+      users.push(userRepository.buildModel(updatedUserRow))
+
       const userLogRow = await userLogRepository.insertRow(
         trx,
+        updatedUserRow.id,
         'schedule_user',
-        updatedUserRow,
+        updatedUserRow.status,
+        updatedUserRow.subscriptions,
+        updatedUserRow.categories,
         request.data
       )
 
-      backLog.push(['user', userLogRepository.buildNotify(userLogRow)])
+      backLog.push(userLogRepository.buildNotify(userLogRow))
+    } else {
+      const updatedUserRow = await userRepository.updateRowSchedule(trx, userRow.id)
+
+      users.push(userRepository.buildModel(updatedUserRow))
     }
   }
 

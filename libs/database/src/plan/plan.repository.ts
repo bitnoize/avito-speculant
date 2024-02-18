@@ -1,6 +1,6 @@
 import { sql } from 'kysely'
 import { Plan } from '@avito-speculant/domain'
-import { PlanRow, InsertablePlanRow, UpdateablePlanRow } from './plan.table.js'
+import { PlanRow } from './plan.table.js'
 import { TransactionDatabase } from '../database.js'
 
 export async function selectRowByIdForShare(
@@ -37,7 +37,7 @@ export async function insertRow(
 ): Promise<PlanRow> {
   return await trx
     .insertInto('plan')
-    .values((eb) => ({
+    .values(() => ({
       categories_max,
       price_rub,
       duration_days,
@@ -64,7 +64,7 @@ export async function updateRow(
 ): Promise<PlanRow> {
   return await trx
     .updateTable('plan')
-    .set((eb) => ({
+    .set(() => ({
       categories_max,
       price_rub,
       duration_days,
@@ -84,7 +84,7 @@ export async function updateRowIsEnabled(
 ): Promise<PlanRow> {
   return await trx
     .updateTable('plan')
-    .set((eb) => ({
+    .set(() => ({
       is_enabled,
       updated_at: sql`NOW()`
     }))
@@ -97,13 +97,12 @@ export async function selectRowsList(
   trx: TransactionDatabase,
   all: boolean
 ): Promise<PlanRow[]> {
-  const foo = all ? [] : []
   return await trx
     .selectFrom('plan')
     .selectAll()
     .where('is_enabled', 'in', all ? [true, false] : [true])
     .forShare()
-    .orderBy('created_at', 'asc')
+    .orderBy('id', 'asc')
     .execute()
 }
 
@@ -122,15 +121,30 @@ export async function selectRowsSkipLockedForUpdate(
     .execute()
 }
 
-export async function updateRowSchedule(
+export async function updateRowScheduleChange(
   trx: TransactionDatabase,
   plan_id: number,
   subscriptions: number
 ): Promise<PlanRow> {
   return await trx
     .updateTable('plan')
-    .set((eb) => ({
+    .set(() => ({
       subscriptions,
+      updated_at: sql`NOW()`,
+      scheduled_at: sql`NOW()`
+    }))
+    .where('id', '=', plan_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowSchedule(
+  trx: TransactionDatabase,
+  plan_id: number
+): Promise<PlanRow> {
+  return await trx
+    .updateTable('plan')
+    .set(() => ({
       scheduled_at: sql`NOW()`
     }))
     .where('id', '=', plan_id)

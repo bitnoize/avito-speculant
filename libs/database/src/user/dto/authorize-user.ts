@@ -1,4 +1,4 @@
-import { Notify, User, UserLog, UserLogData } from '@avito-speculant/domain'
+import { Notify, User, UserLogData } from '@avito-speculant/domain'
 
 export interface AuthorizeUserRequest {
   tgFromId: string

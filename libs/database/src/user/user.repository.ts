@@ -27,6 +27,26 @@ export async function selectRowByTgFromIdForShare(
     .executeTakeFirst()
 }
 
+export async function insertRow(
+  trx: TransactionDatabase,
+  tg_from_id: string
+): Promise<UserRow> {
+  return await trx
+    .insertInto('user')
+    .values(() => ({
+      tg_from_id,
+      status: 'trial',
+      subscriptions: 0,
+      categories: 0,
+      created_at: sql`NOW()`,
+      updated_at: sql`NOW()`,
+      scheduled_at: sql`NOW()`
+    }))
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+// FIXME
 export async function selectRowsSkipLockedForUpdate(
   trx: TransactionDatabase,
   limit: number
@@ -41,33 +61,21 @@ export async function selectRowsSkipLockedForUpdate(
     .execute()
 }
 
-export async function insertRow(
+export async function updateRowScheduleChange(
   trx: TransactionDatabase,
-  tg_from_id: string
-): Promise<UserRow> {
-  return await trx
-    .insertInto('user')
-    .values((eb) => ({
-      tg_from_id,
-      status: 'trial',
-      subscriptions: 0,
-      created_at: sql`NOW()`,
-      updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
-    }))
-    .returningAll()
-    .executeTakeFirstOrThrow()
-}
-
-export async function updateRowBlockStatus(
-  trx: TransactionDatabase,
-  user_id: number
+  user_id: number,
+  status: UserStatus,
+  subscriptions: number,
+  categories: number
 ): Promise<UserRow> {
   return await trx
     .updateTable('user')
-    .set((eb) => ({
-      status: 'block',
-      updated_at: sql`NOW()`
+    .set(() => ({
+      status,
+      subscriptions,
+      categories,
+      updated_at: sql`NOW()`,
+      scheduled_at: sql`NOW()`
     }))
     .where('id', '=', user_id)
     .returningAll()
@@ -76,15 +84,11 @@ export async function updateRowBlockStatus(
 
 export async function updateRowSchedule(
   trx: TransactionDatabase,
-  user_id: number,
-  status: UserStatus,
-  subscriptions: number
+  user_id: number
 ): Promise<UserRow> {
   return await trx
     .updateTable('user')
-    .set((eb) => ({
-      status,
-      subscriptions,
+    .set(() => ({
       scheduled_at: sql`NOW()`
     }))
     .where('id', '=', user_id)
@@ -98,6 +102,7 @@ export const buildModel = (row: UserRow): User => {
     tgFromId: row.tg_from_id,
     status: row.status,
     subscriptions: row.subscriptions,
+    categories: row.categories,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     scheduledAt: row.scheduled_at

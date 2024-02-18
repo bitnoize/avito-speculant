@@ -6,6 +6,7 @@ export interface UserTable {
   tg_from_id: ColumnType<string, string, never>
   status: ColumnType<UserStatus, UserStatus, UserStatus | undefined>
   subscriptions: ColumnType<number, number, number | undefined>
+  categories: ColumnType<number, number, number | undefined>
   created_at: ColumnType<number, string, never>
   updated_at: ColumnType<number, string, string | undefined>
   scheduled_at: ColumnType<number, string, string | undefined>

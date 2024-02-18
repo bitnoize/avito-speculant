@@ -1,10 +1,44 @@
 import { sql } from 'kysely'
-import { SubscriptionLog, SubscriptionLogData } from '@avito-speculant/domain'
-import { SubscriptionRow } from '../subscription/subscription.table.js'
+import {
+  Notify,
+  SubscriptionStatus,
+  SubscriptionLog,
+  SubscriptionLogData
+} from '@avito-speculant/domain'
 import { SubscriptionLogRow } from './subscription-log.table.js'
 import { TransactionDatabase } from '../database.js'
 
-export async function selectRowsBySubscriptionId(
+export async function insertRow(
+  trx: TransactionDatabase,
+  subscription_id: number,
+  action: string,
+  categories_max: number,
+  price_rub: number,
+  duration_days: number,
+  interval_sec: number,
+  analytics_on: boolean,
+  status: SubscriptionStatus,
+  data: SubscriptionLogData
+): Promise<SubscriptionLogRow> {
+  return await trx
+    .insertInto('subscription_log')
+    .values(() => ({
+      subscription_id,
+      action,
+      categories_max,
+      price_rub,
+      duration_days,
+      interval_sec,
+      analytics_on,
+      status,
+      data,
+      created_at: sql`NOW()`
+    }))
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function selectRowsList(
   trx: TransactionDatabase,
   subscription_id: number,
   limit: number
@@ -16,30 +50,6 @@ export async function selectRowsBySubscriptionId(
     .orderBy('created_at', 'desc')
     .limit(limit)
     .execute()
-}
-
-export async function insertRow(
-  trx: TransactionDatabase,
-  action: string,
-  subscriptionRow: SubscriptionRow,
-  data: SubscriptionLogData
-): Promise<SubscriptionLogRow> {
-  return await trx
-    .insertInto('subscription_log')
-    .values(() => ({
-      subscription_id: subscriptionRow.id,
-      action,
-      categories_max: subscriptionRow.categories_max,
-      price_rub: subscriptionRow.price_rub,
-      duration_days: subscriptionRow.duration_days,
-      interval_sec: subscriptionRow.interval_sec,
-      analytics_on: subscriptionRow.analytics_on,
-      status: subscriptionRow.status,
-      data,
-      created_at: sql`NOW()`
-    }))
-    .returningAll()
-    .executeTakeFirstOrThrow()
 }
 
 export const buildModel = (row: SubscriptionLogRow): SubscriptionLog => {
@@ -62,6 +72,6 @@ export const buildCollection = (rows: SubscriptionLogRow[]): SubscriptionLog[] =
   return rows.map((row) => buildModel(row))
 }
 
-export const buildNotify = (row: SubscriptionLogRow): string => {
-  return JSON.stringify(buildModel(row))
+export const buildNotify = (row: SubscriptionLogRow): Notify => {
+  return ['subscription', row.id, row.subscription_id, row.action]
 }

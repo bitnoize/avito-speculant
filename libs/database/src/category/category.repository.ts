@@ -1,6 +1,5 @@
 import { sql } from 'kysely'
 import { Category } from '@avito-speculant/domain'
-import { UserRow } from '../user/user.table.js'
 import { CategoryRow } from './category.table.js'
 import { TransactionDatabase } from '../database.js'
 
@@ -16,21 +15,142 @@ export async function selectRowByIdForShare(
     .executeTakeFirst()
 }
 
+export async function selectRowByIdUserIdForUpdate(
+  trx: TransactionDatabase,
+  category_id: number,
+  user_id: number
+): Promise<CategoryRow | undefined> {
+  return await trx
+    .selectFrom('category')
+    .selectAll()
+    .where('id', '=', category_id)
+    .where('user_id', '=', user_id)
+    .forUpdate()
+    .executeTakeFirst()
+}
+
 export async function insertRow(
   trx: TransactionDatabase,
-  userRow: UserRow,
+  user_id: number,
   avito_url: string
 ): Promise<CategoryRow> {
   return await trx
     .insertInto('category')
     .values(() => ({
-      user_id: userRow.id,
+      user_id,
       avito_url,
       is_enabled: false,
       created_at: sql`NOW()`,
       updated_at: sql`NOW()`,
       scheduled_at: sql`NOW()`
     }))
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRow(
+  trx: TransactionDatabase,
+  category_id: number,
+  avito_url?: string
+): Promise<CategoryRow> {
+  return await trx
+    .updateTable('category')
+    .set(() => ({
+      avito_url,
+      updated_at: sql`NOW()`
+    }))
+    .where('id', '=', category_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowIsEnabled(
+  trx: TransactionDatabase,
+  category_id: number,
+  is_enabled: boolean
+): Promise<CategoryRow> {
+  return await trx
+    .updateTable('category')
+    .set(() => ({
+      is_enabled,
+      updated_at: sql`NOW()`
+    }))
+    .where('id', '=', category_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function selectRowsList(
+  trx: TransactionDatabase,
+  user_id: number,
+  all: boolean
+): Promise<CategoryRow[]> {
+  const filter = all ? [true, false] : [true]
+
+  return await trx
+    .selectFrom('category')
+    .selectAll()
+    .where('user_id', '=', user_id)
+    .where('is_enabled', 'in', filter)
+    .forShare()
+    .orderBy('id', 'asc')
+    .execute()
+}
+
+export async function selectCountByUserId(
+  trx: TransactionDatabase,
+  user_id: number
+): Promise<{ categories: number }> {
+  return await trx
+    .selectFrom('category')
+    .select((eb) => eb.fn.countAll<number>().as('categories'))
+    .where('user_id', '=', user_id)
+    .where('is_enabled', 'is', true)
+    .executeTakeFirstOrThrow()
+}
+
+// FIXME
+export async function selectRowsSkipLockedForUpdate(
+  trx: TransactionDatabase,
+  limit: number
+): Promise<CategoryRow[]> {
+  return await trx
+    .selectFrom('category')
+    .selectAll()
+    .skipLocked()
+    .forUpdate()
+    .orderBy('scheduled_at', 'desc')
+    .limit(limit)
+    .execute()
+}
+
+export async function updateRowScheduleChange(
+  trx: TransactionDatabase,
+  category_id: number,
+  is_enabled: boolean
+): Promise<CategoryRow> {
+  return await trx
+    .updateTable('category')
+    .set(() => ({
+      is_enabled,
+      updated_at: sql`NOW()`,
+      scheduled_at: sql`NOW()`
+    }))
+    .where('id', '=', category_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowSchedule(
+  trx: TransactionDatabase,
+  category_id: number
+): Promise<CategoryRow> {
+  return await trx
+    .updateTable('category')
+    .set(() => ({
+      scheduled_at: sql`NOW()`
+    }))
+    .where('id', '=', category_id)
     .returningAll()
     .executeTakeFirstOrThrow()
 }

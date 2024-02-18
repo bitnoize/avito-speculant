@@ -1,12 +1,13 @@
 import { Notify, Category, CategoryLogData } from '@avito-speculant/domain'
 
-export interface CreateCategoryRequest {
+export interface UpdateCategoryRequest {
+  id: number
   userId: number
-  avitoUrl: string
+  avitoUrl?: string
   data: CategoryLogData
 }
 
-export interface CreateCategoryResponse {
+export interface UpdateCategoryResponse {
   message: string
   statusCode: number
   category: Category

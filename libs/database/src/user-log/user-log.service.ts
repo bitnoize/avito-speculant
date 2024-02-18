@@ -18,7 +18,7 @@ export async function listUserLogs(
       throw new UserNotFoundError<ListUserLogsRequest>(request)
     }
 
-    const userLogRows = await userLogRepository.selectRowsByUserId(
+    const userLogRows = await userLogRepository.selectRowsList(
       trx,
       userRow.id,
       request.limit

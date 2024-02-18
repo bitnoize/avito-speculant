@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/database",
   "type": "module",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "Avito-Speculant Database shared library",
   "private": true,
   "main": "dist/index.js",

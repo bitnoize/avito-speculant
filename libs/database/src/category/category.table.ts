@@ -3,7 +3,7 @@ import { Generated, ColumnType, Selectable, Insertable, Updateable } from 'kysel
 export interface CategoryTable {
   id: Generated<number>
   user_id: ColumnType<number, number, never>
-  avito_url: ColumnType<string, string, never>
+  avito_url: ColumnType<string, string, string | undefined>
   is_enabled: ColumnType<boolean, boolean, boolean | undefined>
   created_at: ColumnType<number, string, never>
   updated_at: ColumnType<number, string, string | undefined>

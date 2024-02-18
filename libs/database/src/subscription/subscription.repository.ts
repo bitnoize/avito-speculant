@@ -1,7 +1,5 @@
 import { sql } from 'kysely'
 import { Subscription, SubscriptionStatus } from '@avito-speculant/domain'
-import { UserRow } from '../user/user.table.js'
-import { PlanRow } from '../plan/plan.table.js'
 import { SubscriptionRow } from './subscription.table.js'
 import { TransactionDatabase } from '../database.js'
 
@@ -17,34 +15,54 @@ export async function selectRowByIdForShare(
     .executeTakeFirst()
 }
 
-export async function selectRowByUserIdWaitStatusForShare(
+export async function selectRowByIdUserIdForUpdate(
   trx: TransactionDatabase,
+  subscription_id: number,
   user_id: number
 ): Promise<SubscriptionRow | undefined> {
   return await trx
     .selectFrom('subscription')
     .selectAll()
+    .where('id', '=', subscription_id)
     .where('user_id', '=', user_id)
-    .where('status', '=', 'wait')
+    .forUpdate()
+    .executeTakeFirst()
+}
+
+export async function selectRowByUserIdStatusForShare(
+  trx: TransactionDatabase,
+  user_id: number,
+  status: 'wait' | 'active'
+): Promise<SubscriptionRow | undefined> {
+  return await trx
+    .selectFrom('subscription')
+    .selectAll()
+    .where('user_id', '=', user_id)
+    .where('status', '=', status)
     .forShare()
     .executeTakeFirst()
 }
 
 export async function insertRow(
   trx: TransactionDatabase,
-  userRow: UserRow,
-  planRow: PlanRow
+  user_id: number,
+  plan_id: number,
+  categories_max: number,
+  price_rub: number,
+  duration_days: number,
+  interval_sec: number,
+  analytics_on: boolean
 ): Promise<SubscriptionRow> {
   return await trx
     .insertInto('subscription')
     .values(() => ({
-      user_id: userRow.id,
-      plan_id: planRow.id,
-      categories_max: planRow.categories_max,
-      price_rub: planRow.price_rub,
-      duration_days: planRow.duration_days,
-      interval_sec: planRow.interval_sec,
-      analytics_on: planRow.analytics_on,
+      user_id,
+      plan_id,
+      categories_max,
+      price_rub,
+      duration_days,
+      interval_sec,
+      analytics_on,
       status: 'wait',
       created_at: sql`NOW()`,
       updated_at: sql`NOW()`,
@@ -54,19 +72,39 @@ export async function insertRow(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowCancelStatus(
+export async function updateRowStatus(
   trx: TransactionDatabase,
-  subscription_id: number
+  subscription_id: number,
+  status: SubscriptionStatus
 ): Promise<SubscriptionRow> {
   return await trx
     .updateTable('subscription')
-    .set((eb) => ({
-      status: 'cancel',
+    .set(() => ({
+      status,
       updated_at: sql`NOW()`
     }))
     .where('id', '=', subscription_id)
     .returningAll()
     .executeTakeFirstOrThrow()
+}
+
+export async function selectRowsList(
+  trx: TransactionDatabase,
+  user_id: number,
+  all: boolean
+): Promise<SubscriptionRow[]> {
+  const filter = all
+    ? ['wait', 'cancel', 'active', 'finish']
+    : ['wait', 'active', 'finish']
+
+  return await trx
+    .selectFrom('subscription')
+    .selectAll()
+    .where('user_id', '=', user_id)
+    .where('status', 'in', filter)
+    .forShare()
+    .orderBy('id', 'asc')
+    .execute()
 }
 
 export async function selectCountByUserId(
@@ -108,15 +146,30 @@ export async function selectRowsSkipLockedForUpdate(
     .execute()
 }
 
-export async function updateRowSchedule(
+export async function updateRowScheduleChange(
   trx: TransactionDatabase,
   subscription_id: number,
   status: SubscriptionStatus
 ): Promise<SubscriptionRow> {
   return await trx
     .updateTable('subscription')
-    .set((eb) => ({
+    .set(() => ({
       status,
+      updated_at: sql`NOW()`,
+      scheduled_at: sql`NOW()`
+    }))
+    .where('id', '=', subscription_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowSchedule(
+  trx: TransactionDatabase,
+  subscription_id: number
+): Promise<SubscriptionRow> {
+  return await trx
+    .updateTable('subscription')
+    .set(() => ({
       scheduled_at: sql`NOW()`
     }))
     .where('id', '=', subscription_id)

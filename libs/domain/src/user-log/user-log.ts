@@ -8,6 +8,7 @@ export interface UserLog {
   action: string
   status: UserStatus
   subscriptions: number
+  categories: number
   data: UserLogData
   createdAt: number
 }

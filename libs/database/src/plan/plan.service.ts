@@ -15,7 +15,6 @@ import {
   SchedulePlansRequest,
   SchedulePlansResponse
 } from './dto/schedule-plans.js'
-import * as userRepository from '../user/user.repository.js'
 import * as planRepository from './plan.repository.js'
 import * as planLogRepository from '../plan-log/plan-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
@@ -31,7 +30,7 @@ export async function createPlan(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const planRow = await planRepository.insertRow(
+    const insertedPlanRow = await planRepository.insertRow(
       trx,
       request.categoriesMax,
       request.priceRub,
@@ -42,17 +41,24 @@ export async function createPlan(
 
     const planLogRow = await planLogRepository.insertRow(
       trx,
+      insertedPlanRow.id,
       'create_plan',
-      planRow,
+      insertedPlanRow.categories_max,
+      insertedPlanRow.price_rub,
+      insertedPlanRow.duration_days,
+      insertedPlanRow.interval_sec,
+      insertedPlanRow.analytics_on,
+      insertedPlanRow.is_enabled,
+      insertedPlanRow.subscriptions,
       request.data
     )
 
-    backLog.push(['plan', planLogRepository.buildNotify(planLogRow)])
+    backLog.push(planLogRepository.buildNotify(planLogRow))
 
     return {
       message: `Plan successfully created`,
       statusCode: 201,
-      plan: planRepository.buildModel(planRow),
+      plan: planRepository.buildModel(insertedPlanRow),
       backLog
     }
   })
@@ -74,11 +80,11 @@ export async function updatePlan(
     )
 
     if (selectedPlanRow === undefined) {
-      throw new PlanNotFoundError<UpdatePlanRequest>(request, 400)
+      throw new PlanNotFoundError<UpdatePlanRequest>(request)
     }
 
     if (selectedPlanRow.is_enabled) {
-      throw new PlanIsEnabledError<UpdatePlanRequest>(request, 403)
+      throw new PlanIsEnabledError<UpdatePlanRequest>(request)
     }
 
     if (
@@ -110,12 +116,19 @@ export async function updatePlan(
 
     const planLogRow = await planLogRepository.insertRow(
       trx,
+      updatedPlanRow.id,
       'update_plan',
-      updatedPlanRow,
+      updatedPlanRow.categories_max,
+      updatedPlanRow.price_rub,
+      updatedPlanRow.duration_days,
+      updatedPlanRow.interval_sec,
+      updatedPlanRow.analytics_on,
+      updatedPlanRow.is_enabled,
+      updatedPlanRow.subscriptions,
       request.data
     )
 
-    backLog.push(['plan', planLogRepository.buildNotify(planLogRow)])
+    backLog.push(planLogRepository.buildNotify(planLogRow))
 
     return {
       message: `Plan successfully updated`,
@@ -142,7 +155,7 @@ export async function enablePlan(
     )
 
     if (selectedPlanRow === undefined) {
-      throw new PlanNotFoundError<EnableDisablePlanRequest>(request, 400)
+      throw new PlanNotFoundError<EnableDisablePlanRequest>(request)
     }
 
     if (selectedPlanRow.is_enabled) {
@@ -162,12 +175,19 @@ export async function enablePlan(
 
     const planLogRow = await planLogRepository.insertRow(
       trx,
+      updatedPlanRow.id,
       'enable_plan',
-      updatedPlanRow,
+      updatedPlanRow.categories_max,
+      updatedPlanRow.price_rub,
+      updatedPlanRow.duration_days,
+      updatedPlanRow.interval_sec,
+      updatedPlanRow.analytics_on,
+      updatedPlanRow.is_enabled,
+      updatedPlanRow.subscriptions,
       request.data
     )
 
-    backLog.push(['plan', planLogRepository.buildNotify(planLogRow)])
+    backLog.push(planLogRepository.buildNotify(planLogRow))
 
     return {
       message: `Plan successfully enabled`,
@@ -194,7 +214,7 @@ export async function disablePlan(
     )
 
     if (selectedPlanRow === undefined) {
-      throw new PlanNotFoundError<EnableDisablePlanRequest>(request, 400)
+      throw new PlanNotFoundError<EnableDisablePlanRequest>(request)
     }
 
     if (!selectedPlanRow.is_enabled) {
@@ -214,15 +234,22 @@ export async function disablePlan(
 
     const planLogRow = await planLogRepository.insertRow(
       trx,
+      updatedPlanRow.id,
       'disable_plan',
-      updatedPlanRow,
+      updatedPlanRow.categories_max,
+      updatedPlanRow.price_rub,
+      updatedPlanRow.duration_days,
+      updatedPlanRow.interval_sec,
+      updatedPlanRow.analytics_on,
+      updatedPlanRow.is_enabled,
+      updatedPlanRow.subscriptions,
       request.data
     )
 
-    backLog.push(['plan', planLogRepository.buildNotify(planLogRow)])
+    backLog.push(planLogRepository.buildNotify(planLogRow))
 
     return {
-      message: `Plan successfully enabled`,
+      message: `Plan successfully disabled`,
       statusCode: 201,
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
@@ -256,6 +283,9 @@ export async function schedulePlans(
   trx: TransactionDatabase,
   request: SchedulePlansRequest
 ): Promise<SchedulePlansResponse> {
+  const plans: Plan[] = []
+  const backLog: Notify[] = []
+
   const selectedPlanRows = await planRepository.selectRowsSkipLockedForUpdate(
     trx,
     request.limit
@@ -265,16 +295,13 @@ export async function schedulePlans(
     return {
       message: `No plans pending to schedule`,
       statusCode: 200,
-      plans: [],
-      backLog: []
+      plans,
+      backLog
     }
   }
 
-  const plans: Plan[] = []
-  const backLog: Notify[] = []
-
   for (const planRow of selectedPlanRows) {
-    let isModified = false
+    let isChanged = false
 
     const { subscriptions } = await subscriptionRepository.selectCountByPlanId(
       trx,
@@ -282,28 +309,39 @@ export async function schedulePlans(
     )
 
     if (planRow.subscriptions !== subscriptions) {
-      isModified = true
+      isChanged = true
 
       planRow.subscriptions = subscriptions
     }
 
-    const updatedPlanRow = await planRepository.updateRowSchedule(
-      trx,
-      planRow.id,
-      planRow.subscriptions
-    )
+    if (isChanged) {
+      const updatedPlanRow = await planRepository.updateRowScheduleChange(
+        trx,
+        planRow.id,
+        planRow.subscriptions
+      )
 
-    plans.push(planRepository.buildModel(planRow))
+      plans.push(planRepository.buildModel(updatedPlanRow))
 
-    if (isModified) {
       const planLogRow = await planLogRepository.insertRow(
         trx,
+        updatedPlanRow.id,
         'schedule_plan',
-        updatedPlanRow,
+        updatedPlanRow.categories_max,
+        updatedPlanRow.price_rub,
+        updatedPlanRow.duration_days,
+        updatedPlanRow.interval_sec,
+        updatedPlanRow.analytics_on,
+        updatedPlanRow.is_enabled,
+        updatedPlanRow.subscriptions,
         request.data
       )
 
-      backLog.push(['plan', planLogRepository.buildNotify(planLogRow)])
+      backLog.push(planLogRepository.buildNotify(planLogRow))
+    } else {
+      const updatedPlanRow = await planRepository.updateRowSchedule(trx, planRow.id)
+
+      plans.push(planRepository.buildModel(updatedPlanRow))
     }
   }
 

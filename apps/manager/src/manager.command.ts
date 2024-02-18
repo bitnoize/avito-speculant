@@ -5,9 +5,11 @@ import {
   run,
   positional,
   optional,
-  string,
+  boolean,
   number,
-  option
+  string,
+  option,
+  flag
 } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/domain'
@@ -46,7 +48,7 @@ export async function startApp(
     name: 'system-start',
     description: 'Jump up to running state',
     args: {},
-    handler: async (args) => {
+    handler: async () => {
       const job = await schedulerService.addRepeatableJob(scheduler)
 
       logger.info(job, `Scheduler repeatable job added`)
@@ -57,7 +59,7 @@ export async function startApp(
     name: 'system-stop',
     description: 'Stop running state',
     args: {},
-    handler: async (args) => {
+    handler: async () => {
       const jobs = await scheduler.getRepeatableJobs()
 
       for (const job of jobs) {
@@ -72,7 +74,7 @@ export async function startApp(
     name: 'system-status',
     description: 'Display system status',
     args: {},
-    handler: async (args) => {
+    handler: async () => {
       const jobs = await scheduler.getRepeatableJobs()
 
       for (const job of jobs) {
@@ -98,7 +100,7 @@ export async function startApp(
     name: 'database-migrations',
     description: 'Apply last migrations to database',
     args: {},
-    handler: async (args) => {
+    handler: async () => {
       await databaseService.migrateToLatest(db, logger)
     }
   })
@@ -116,11 +118,10 @@ export async function startApp(
         displayName: 'userId'
       }),
       limit: option({
-        type: {
-          ...number,
-          defaultValue: () => DEFAULT_LIMIT
-        },
-        long: 'limit'
+        type: number,
+        long: 'limit',
+        defaultValue: () => DEFAULT_LIMIT,
+        defaultValueIsSerializable: true
       })
     },
     handler: async (args) => {
@@ -270,10 +271,17 @@ export async function startApp(
   const databaseListPlans = command({
     name: 'database-list-plans',
     description: 'Database list plans',
-    args: {},
+    args: {
+      all: flag({
+        type: boolean,
+        long: 'all',
+        defaultValue: () => false
+        //defaultValueIsSerializable: true
+      })
+    },
     handler: async (args) => {
       const response = await planService.listPlans(db, {
-        all: true
+        all: args.all
       })
 
       logger.info(response)
@@ -289,11 +297,10 @@ export async function startApp(
         displayName: 'planId'
       }),
       limit: option({
-        type: {
-          ...number,
-          defaultValue: () => DEFAULT_LIMIT
-        },
-        long: 'limit'
+        type: number,
+        long: 'limit',
+        defaultValue: () => DEFAULT_LIMIT,
+        defaultValueIsSerializable: true
       })
     },
     handler: async (args) => {
@@ -319,11 +326,10 @@ export async function startApp(
         displayName: 'subscriptionId'
       }),
       limit: option({
-        type: {
-          ...number,
-          defaultValue: () => DEFAULT_LIMIT
-        },
-        long: 'limit'
+        type: number,
+        long: 'limit',
+        defaultValue: () => DEFAULT_LIMIT,
+        defaultValueIsSerializable: true
       })
     },
     handler: async (args) => {
@@ -349,11 +355,10 @@ export async function startApp(
         displayName: 'categoryId'
       }),
       limit: option({
-        type: {
-          ...number,
-          defaultValue: () => DEFAULT_LIMIT
-        },
-        long: 'limit'
+        type: number,
+        long: 'limit',
+        defaultValue: () => DEFAULT_LIMIT,
+        defaultValueIsSerializable: true
       })
     },
     handler: async (args) => {
@@ -373,7 +378,7 @@ export async function startApp(
   const database = subcommands({
     name: 'database',
     cmds: {
-      migrations: databaseMigrations,
+      'migrations': databaseMigrations,
       'list-user-logs': databaseListUserLogs,
       'create-plan': databaseCreatePlan,
       'update-plan': databaseUpdatePlan,
