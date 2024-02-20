@@ -1,8 +1,8 @@
 {
-  "name": "@avito-speculant/manager",
+  "name": "@avito-speculant/worker-parser",
   "type": "module",
-  "version": "0.0.6",
-  "description": "Avito-Speculant Manager application",
+  "version": "0.0.1",
+  "description": "Avito-Speculant WorkerParser application",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,7 +21,6 @@
     "@avito-speculant/domain": "*",
     "@avito-speculant/database": "*",
     "@avito-speculant/redis": "*",
-    "@avito-speculant/queue": "*",
-    "cmd-ts": "^0.13.0"
+    "@avito-speculant/queue": "*"
   }
 }

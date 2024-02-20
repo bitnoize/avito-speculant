@@ -1,11 +1,24 @@
+import { binary, subcommands, run } from 'cmd-ts'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { databaseService } from '@avito-speculant/database'
-import { redisService } from '@avito-speculant/redis'
-import { queueService, schedulerService } from '@avito-speculant/queue'
+import { DomainError } from '@avito-speculant/domain'
+import systemStartCommand from './system/system-start.command.js'
+import systemStopCommand from './system/system-stop.command.js'
+import systemStatusCommand from './system/system-status.command.js'
+import databaseMigrationsCommand from './database/database-migrations.command.js'
+import databaseListUsersCommand from './database/database-list-users.command.js'
+import databaseListUserLogsCommand from './database/database-list-user-logs.command.js'
+import databaseCreatePlanCommand from './database/database-create-plan.command.js'
+import databaseUpdatePlanCommand from './database/database-update-plan.command.js'
+import databaseEnablePlanCommand from './database/database-enable-plan.command.js'
+import databaseDisablePlanCommand from './database/database-disable-plan.command.js'
+import databaseListPlansCommand from './database/database-list-plans.command.js'
+import databaseListPlanLogsCommand from './database/database-list-plan-logs.command.js'
+import databaseListSubscriptionLogsCommand from './database/database-list-subscription-logs.command.js'
+import databaseListCategoryLogsCommand from './database/database-list-category-logs.command.js'
+import queueListenSchedulerCommand from './queue/queue-listen-scheduler.command.js'
 import { Config } from './manager.js'
 import { configSchema } from './config.schema.js'
-import { startApp } from './manager.command.js'
 
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
@@ -13,25 +26,65 @@ async function bootstrap(): Promise<void> {
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
   const logger = loggerService.initLogger(loggerOptions)
 
-  const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
-  const db = databaseService.initDatabase(databaseConfig, logger)
+  const systemCommand = subcommands({
+    name: 'system',
+    cmds: {
+      start: systemStartCommand(config, logger),
+      stop: systemStopCommand(config, logger),
+      status: systemStatusCommand(config, logger)
+    }
+  })
 
-  const redisOptions = redisService.getRedisOptions<Config>(config)
-  const redis = redisService.initRedis(redisOptions, logger)
-  const pubSub = redisService.initPubSub(redisOptions, logger)
+  const databaseCommand = subcommands({
+    name: 'database',
+    cmds: {
+      'migrations': databaseMigrationsCommand(config, logger),
+      'list-users': databaseListUsersCommand(config, logger),
+      'list-user-logs': databaseListUserLogsCommand(config, logger),
+      'create-plan': databaseCreatePlanCommand(config, logger),
+      'update-plan': databaseUpdatePlanCommand(config, logger),
+      'enable-plan': databaseEnablePlanCommand(config, logger),
+      'disable-plan': databaseDisablePlanCommand(config, logger),
+      'list-plans': databaseListPlansCommand(config, logger),
+      'list-plan-logs': databaseListPlanLogsCommand(config, logger),
+      'list-subscription-logs': databaseListSubscriptionLogsCommand(config, logger),
+      'list-category-logs': databaseListCategoryLogsCommand(config, logger)
+    }
+  })
 
-  const queueConnection = queueService.getQueueConnection<Config>(config)
+  const queueCommand = subcommands({
+    name: 'queue',
+    cmds: {
+      'listen-scheduler': queueListenSchedulerCommand(config, logger),
+    }
+  })
 
-  const scheduler = schedulerService.initQueue(queueConnection, logger)
+  const app = subcommands({
+    name: 'avito-speculant-manager',
+    cmds: {
+      system: systemCommand,
+      database: databaseCommand,
+      queue: queueCommand,
+    }
+  })
 
-  await startApp(config, logger, db, redis, pubSub, scheduler)
+  try {
+    const binaryApp = binary(app)
 
-  await schedulerService.closeQueue(scheduler, logger)
-  await redisService.closePubSub(pubSub, logger)
-  await redisService.closeRedis(redis, logger)
-  await databaseService.closeDatabase(db, logger)
-
-  process.exit(0)
+    await run(binaryApp, process.argv)
+  } catch (error) {
+    if (error instanceof DomainError) {
+      logger.error(
+        {
+          request: error.request,
+          statusCode: error.statusCode
+        },
+        error.message
+      )
+    } else {
+      logger.fatal(error.stack ?? error.message)
+    }
+  }
 }
 
 bootstrap().catch((error) => {

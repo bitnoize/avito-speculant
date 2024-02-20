@@ -1,7 +1,7 @@
 import { Notify, Plan, PlanLogData } from '@avito-speculant/domain'
 
 export interface UpdatePlanRequest {
-  id: number
+  planId: number
   categoriesMax?: number
   priceRub?: number
   durationDays?: number

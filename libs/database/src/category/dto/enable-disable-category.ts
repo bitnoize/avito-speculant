@@ -1,7 +1,7 @@
 import { Notify, Category, CategoryLogData } from '@avito-speculant/domain'
 
 export interface EnableDisableCategoryRequest {
-  id: number
+  categoryId: number
   userId: number
   data: CategoryLogData
 }

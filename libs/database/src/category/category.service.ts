@@ -104,7 +104,7 @@ export async function updateCategory(
     const selectedCategoryRow =
       await categoryRepository.selectRowByIdUserIdForUpdate(
         trx,
-        request.id,
+        request.categoryId,
         request.userId
       )
 
@@ -194,7 +194,7 @@ export async function enableCategory(
     const selectedCategoryRow =
       await categoryRepository.selectRowByIdUserIdForUpdate(
         trx,
-        request.id,
+        request.categoryId,
         request.userId
       )
 
@@ -260,7 +260,7 @@ export async function disableCategory(
     const selectedCategoryRow =
       await categoryRepository.selectRowByIdUserIdForUpdate(
         trx,
-        request.id,
+        request.categoryId,
         request.userId
       )
 

@@ -4,6 +4,10 @@ import {
   AuthorizeUserResponse
 } from './dto/authorize-user.js'
 import {
+  ListUsersRequest,
+  ListUsersResponse
+} from './dto/list-users.js'
+import {
   ScheduleUsersRequest,
   ScheduleUsersResponse
 } from './dto/schedule-users.js'
@@ -42,7 +46,7 @@ export async function authorizeUser(
     const userLogRow = await userLogRepository.insertRow(
       trx,
       instertedUserRow.id,
-      'authorize_user',
+      'create_user',
       instertedUserRow.status,
       instertedUserRow.subscriptions,
       instertedUserRow.categories,
@@ -56,6 +60,25 @@ export async function authorizeUser(
       statusCode: 201,
       user: userRepository.buildModel(instertedUserRow),
       backLog
+    }
+  })
+}
+
+/**
+ * List Users
+ */
+export async function listUsers(
+  db: KyselyDatabase,
+  request: ListUsersRequest
+): Promise<ListUsersResponse> {
+  return await db.transaction().execute(async (trx) => {
+    const userRows = await userRepository.selectRowsList(trx, request.all)
+
+    return {
+      message: `Users successfully listed`,
+      statusCode: 200,
+      users: userRepository.buildCollection(userRows),
+      all: request.all
     }
   })
 }

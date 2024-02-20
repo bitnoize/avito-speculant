@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src"],
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": ".cache/tsbuildinfo"
+  },
+  "references": [
+    { "path": "../../libs/config" },
+    { "path": "../../libs/logger" },
+    { "path": "../../libs/domain" },
+    { "path": "../../libs/database" },
+    { "path": "../../libs/redis" },
+    { "path": "../../libs/queue" }
+  ]
+}

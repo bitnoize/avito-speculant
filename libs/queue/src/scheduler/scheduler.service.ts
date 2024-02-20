@@ -3,6 +3,7 @@ import {
   ConnectionOptions,
   RateLimiterOptions,
   Queue,
+  QueueEvents,
   Worker,
   MetricsTime
 } from 'bullmq'
@@ -38,14 +39,60 @@ export function initQueue(
 }
 
 /**
+ * Initialize QueueEvents instance
+ */
+export function initQueueEvents(
+  connection: ConnectionOptions,
+  logger: Logger
+): QueueEvents {
+  const queueEvents = new QueueEvents(SCHEDULER_QUEUE_NAME, {
+    connection,
+    autorun: false
+  })
+
+  queueEvents.on('error', (error) => {
+    logger.error(error, `There was an error in the SchedulerQueue`)
+  })
+
+  logger.debug(`SchedulerQueueEvents successfully initialized`)
+
+  return queueEvents
+}
+
+/**
+ * Start QueueEvents
+ */
+export async function startQueueEvents(
+  queueEvents: QueueEvents,
+  logger: Logger
+): Promise<void> {
+  await queueEvents.run()
+
+  logger.debug(`SchedulerQueueEvents successfully started`)
+}
+
+/**
+ * Close QueueEvents
+ */
+export async function closeQueueEvents(
+  queueEvents: QueueEvents,
+  logger: Logger
+): Promise<void> {
+  await queueEvents.close()
+
+  logger.debug(`SchedulerQueueEvents successfully closed`)
+}
+
+/**
  * Add Job
  */
 export async function addRepeatableJob(
-  scheduler: SchedulerQueue
+  scheduler: SchedulerQueue,
+  every: number
 ): Promise<SchedulerJob> {
   return await scheduler.add(`schedule`, undefined, {
     repeat: {
-      every: 10_000
+      every
     }
   })
 }
@@ -100,10 +147,10 @@ export function initWorker(
       limiter,
       autorun: false,
       removeOnComplete: {
-        count: 10
+        count: 0
       },
       removeOnFail: {
-        count: 10
+        count: 0
       },
       metrics: {
         maxDataPoints: MetricsTime.ONE_WEEK

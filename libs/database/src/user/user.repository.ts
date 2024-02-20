@@ -46,6 +46,23 @@ export async function insertRow(
     .executeTakeFirstOrThrow()
 }
 
+export async function selectRowsList(
+  trx: TransactionDatabase,
+  all: boolean
+): Promise<UserRow[]> {
+  const filter = all
+    ? ['trial', 'paid', 'block']
+    : ['trial', 'paid']
+
+  return await trx
+    .selectFrom('user')
+    .selectAll()
+    .where('status', 'in', filter)
+    .forShare()
+    .orderBy('id', 'asc')
+    .execute()
+}
+
 // FIXME
 export async function selectRowsSkipLockedForUpdate(
   trx: TransactionDatabase,

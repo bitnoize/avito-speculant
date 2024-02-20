@@ -1,7 +1,7 @@
 import { Notify, Category, CategoryLogData } from '@avito-speculant/domain'
 
 export interface UpdateCategoryRequest {
-  id: number
+  categoryId: number
   userId: number
   avitoUrl?: string
   data: CategoryLogData

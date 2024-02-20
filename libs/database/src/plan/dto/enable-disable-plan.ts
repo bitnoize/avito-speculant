@@ -1,7 +1,7 @@
 import { Notify, Plan, PlanLogData } from '@avito-speculant/domain'
 
 export interface EnableDisablePlanRequest {
-  id: number
+  planId: number
   data: PlanLogData
 }
 

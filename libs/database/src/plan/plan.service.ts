@@ -76,7 +76,7 @@ export async function updatePlan(
 
     const selectedPlanRow = await planRepository.selectRowByIdForUpdate(
       trx,
-      request.id
+      request.planId
     )
 
     if (selectedPlanRow === undefined) {
@@ -151,7 +151,7 @@ export async function enablePlan(
 
     const selectedPlanRow = await planRepository.selectRowByIdForUpdate(
       trx,
-      request.id
+      request.planId
     )
 
     if (selectedPlanRow === undefined) {
@@ -210,7 +210,7 @@ export async function disablePlan(
 
     const selectedPlanRow = await planRepository.selectRowByIdForUpdate(
       trx,
-      request.id
+      request.planId
     )
 
     if (selectedPlanRow === undefined) {
