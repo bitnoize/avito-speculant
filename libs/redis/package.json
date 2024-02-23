@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/redis",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "Avito-Speculant Redis shared library",
   "private": true,
   "main": "dist/index.js",

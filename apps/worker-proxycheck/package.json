@@ -1,0 +1,26 @@
+{
+  "name": "@avito-speculant/worker-proxycheck",
+  "type": "module",
+  "version": "0.0.2",
+  "description": "Avito-Speculant WorkerProxycheck application",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "format": "prettier -w \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "clean": "rimraf .cache dist",
+    "prebuild": "npm run clean",
+    "build": "tsc -b",
+    "build:watch": "tsc -b -w",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@avito-speculant/config": "*",
+    "@avito-speculant/logger": "*",
+    "@avito-speculant/domain": "*",
+    "@avito-speculant/database": "*",
+    "@avito-speculant/redis": "*",
+    "@avito-speculant/queue": "*"
+  }
+}

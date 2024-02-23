@@ -9,5 +9,5 @@ export interface Plan {
   subscriptions: number
   createdAt: number
   updatedAt: number
-  scheduledAt: number
+  queuedAt: number
 }

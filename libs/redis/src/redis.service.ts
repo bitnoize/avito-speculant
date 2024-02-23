@@ -1,6 +1,7 @@
 import { RedisOptions, Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
 import { Notify } from '@avito-speculant/domain'
+import * as systemLua from './system/system.lua.js'
 import { RedisConfig } from './redis.js'
 
 /**
@@ -26,6 +27,16 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
 
   redis.on('connect', () => {
     logger.debug(`Redis successfully connected`)
+  })
+
+  redis.defineCommand('acquireHeartbeatLock', {
+    numberOfKeys: 1,
+    lua: systemLua.acquireHeartbeatLock
+  })
+
+  redis.defineCommand('renewalHeartbeatLock', {
+    numberOfKeys: 1,
+    lua: systemLua.renewalHeartbeatLock
   })
 
   logger.debug(`Redis successfully initialized`)
@@ -66,7 +77,7 @@ export async function publishBackLog(
   backLog: Notify[]
 ): Promise<void> {
   for (const notify of backLog) {
-    const [ channel, logId, modelId, action ] = notify
+    const [channel, logId, modelId, action] = notify
     await pubSub.publish(channel, `${logId}\t${modelId}\t${action}`)
 
     logger.debug({ channel, logId, modelId, action }, `Publish BackLog Notify`)

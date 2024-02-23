@@ -20,7 +20,7 @@ export function getQueueConnection<T extends QueueConfig>(
 }
 
 /**
- * Initialize FlowProducer instance
+ * Initialize FlowProducer
  */
 export function initFlowProducer(
   connection: ConnectionOptions,
@@ -39,4 +39,16 @@ export function initFlowProducer(
   logger.debug(`FlowProducer successfully initialized`)
 
   return flowProducer
+}
+
+/**
+ * Close FlowProducer
+ */
+export async function closeFlowProducer(
+  flowProducer: FlowProducer,
+  logger: Logger
+): Promise<void> {
+  await flowProducer.close()
+
+  logger.debug(`FlowProducer successfully closed`)
 }

@@ -5,5 +5,5 @@ export interface Category {
   isEnabled: boolean
   createdAt: number
   updatedAt: number
-  scheduledAt: number
+  queuedAt: number
 }

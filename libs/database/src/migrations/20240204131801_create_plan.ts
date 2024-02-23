@@ -14,7 +14,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('subscriptions', 'integer', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .addColumn('updated_at', 'timestamptz', (col) => col.notNull())
-    .addColumn('scheduled_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('queued_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
   await db.schema
@@ -36,9 +36,9 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema
-    .createIndex('plan_scheduled_at_key')
+    .createIndex('plan_queued_at_key')
     .on('plan')
-    .column('scheduled_at')
+    .column('queued_at')
     .execute()
 }
 

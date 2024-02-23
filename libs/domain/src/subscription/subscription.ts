@@ -13,5 +13,5 @@ export interface Subscription {
   status: SubscriptionStatus
   createdAt: number
   updatedAt: number
-  scheduledAt: number
+  queuedAt: number
 }

@@ -26,9 +26,9 @@ import {
   ListCategoriesResponse
 } from './dto/list-categories.js'
 import {
-  ScheduleCategoriesRequest,
-  ScheduleCategoriesResponse
-} from './dto/schedule-categories.js'
+  QueueCategoriesRequest,
+  QueueCategoriesResponse
+} from './dto/queue-categories.js'
 import * as userRepository from '../user/user.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as categoryRepository from './category.repository.js'
@@ -337,67 +337,29 @@ export async function listCategories(
 }
 
 /**
- * Schedule Categories
+ * Queue Categories
  */
-export async function scheduleCategories(
+export async function queueCategories(
   trx: TransactionDatabase,
-  request: ScheduleCategoriesRequest
-): Promise<ScheduleCategoriesResponse> {
+  request: QueueCategoriesRequest
+): Promise<QueueCategoriesResponse> {
   const categories: Category[] = []
-  const backLog: Notify[] = []
 
   const selectedCategoryRows =
     await categoryRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
 
-  if (selectedCategoryRows.length === 0) {
-    return {
-      message: `No categories pending to schedule`,
-      statusCode: 200,
-      categories,
-      backLog
-    }
-  }
-
   for (const categoryRow of selectedCategoryRows) {
-    let isChanged = false
+    const updatedCategoryRow = await categoryRepository.updateRowQueuedAt(
+      trx,
+      categoryRow.id
+    )
 
-    if (categoryRow.is_enabled) {
-      // FIXME
-    }
-
-    if (isChanged) {
-      const updatedCategoryRow = await categoryRepository.updateRowScheduleChange(
-        trx,
-        categoryRow.id,
-        categoryRow.is_enabled
-      )
-
-      categories.push(categoryRepository.buildModel(updatedCategoryRow))
-
-      const categoryLogRow = await categoryLogRepository.insertRow(
-        trx,
-        updatedCategoryRow.id,
-        'schedule_category',
-        updatedCategoryRow.avito_url,
-        updatedCategoryRow.is_enabled,
-        request.data
-      )
-
-      backLog.push(categoryLogRepository.buildNotify(categoryLogRow))
-    } else {
-      const updatedCategoryRow = await categoryRepository.updateRowSchedule(
-        trx,
-        categoryRow.id
-      )
-
-      categories.push(categoryRepository.buildModel(updatedCategoryRow))
-    }
+    categories.push(categoryRepository.buildModel(updatedCategoryRow))
   }
 
   return {
-    message: `Categories ready to schedule`,
-    statusCode: 201,
-    categories,
-    backLog
+    message: `Categories successfully queued`,
+    statusCode: 200,
+    categories
   }
 }

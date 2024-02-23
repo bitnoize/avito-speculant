@@ -7,7 +7,7 @@ export interface CategoryTable {
   is_enabled: ColumnType<boolean, boolean, boolean | undefined>
   created_at: ColumnType<number, string, never>
   updated_at: ColumnType<number, string, string | undefined>
-  scheduled_at: ColumnType<number, string, string | undefined>
+  queued_at: ColumnType<number, string, string | undefined>
 }
 
 export type CategoryRow = Selectable<CategoryTable>

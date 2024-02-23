@@ -40,7 +40,7 @@ export async function insertRow(
       categories: 0,
       created_at: sql`NOW()`,
       updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
+      queued_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -50,9 +50,7 @@ export async function selectRowsList(
   trx: TransactionDatabase,
   all: boolean
 ): Promise<UserRow[]> {
-  const filter = all
-    ? ['trial', 'paid', 'block']
-    : ['trial', 'paid']
+  const filter = all ? ['trial', 'paid', 'block'] : ['trial', 'paid']
 
   return await trx
     .selectFrom('user')
@@ -73,12 +71,26 @@ export async function selectRowsSkipLockedForUpdate(
     .selectAll()
     .skipLocked()
     .forUpdate()
-    .orderBy('scheduled_at', 'desc')
+    .orderBy('queued_at', 'desc')
     .limit(limit)
     .execute()
 }
 
-export async function updateRowScheduleChange(
+export async function updateRowQueuedAt(
+  trx: TransactionDatabase,
+  user_id: number
+): Promise<UserRow> {
+  return await trx
+    .updateTable('user')
+    .set(() => ({
+      queued_at: sql`NOW()`
+    }))
+    .where('id', '=', user_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowProcess(
   trx: TransactionDatabase,
   user_id: number,
   status: UserStatus,
@@ -92,21 +104,7 @@ export async function updateRowScheduleChange(
       subscriptions,
       categories,
       updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
-    }))
-    .where('id', '=', user_id)
-    .returningAll()
-    .executeTakeFirstOrThrow()
-}
-
-export async function updateRowSchedule(
-  trx: TransactionDatabase,
-  user_id: number
-): Promise<UserRow> {
-  return await trx
-    .updateTable('user')
-    .set(() => ({
-      scheduled_at: sql`NOW()`
+      queued_at: sql`NOW()`
     }))
     .where('id', '=', user_id)
     .returningAll()
@@ -122,7 +120,7 @@ export const buildModel = (row: UserRow): User => {
     categories: row.categories,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    scheduledAt: row.scheduled_at
+    queuedAt: row.queued_at
   }
 }
 

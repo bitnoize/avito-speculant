@@ -47,7 +47,7 @@ export async function insertRow(
       subscriptions: 0,
       created_at: sql`NOW()`,
       updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
+      queued_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -116,12 +116,26 @@ export async function selectRowsSkipLockedForUpdate(
     .selectAll()
     .skipLocked()
     .forUpdate()
-    .orderBy('scheduled_at', 'desc')
+    .orderBy('queued_at', 'desc')
     .limit(limit)
     .execute()
 }
 
-export async function updateRowScheduleChange(
+export async function updateRowQueuedAt(
+  trx: TransactionDatabase,
+  plan_id: number
+): Promise<PlanRow> {
+  return await trx
+    .updateTable('plan')
+    .set(() => ({
+      queued_at: sql`NOW()`
+    }))
+    .where('id', '=', plan_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowProcess(
   trx: TransactionDatabase,
   plan_id: number,
   subscriptions: number
@@ -131,21 +145,7 @@ export async function updateRowScheduleChange(
     .set(() => ({
       subscriptions,
       updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
-    }))
-    .where('id', '=', plan_id)
-    .returningAll()
-    .executeTakeFirstOrThrow()
-}
-
-export async function updateRowSchedule(
-  trx: TransactionDatabase,
-  plan_id: number
-): Promise<PlanRow> {
-  return await trx
-    .updateTable('plan')
-    .set(() => ({
-      scheduled_at: sql`NOW()`
+      queued_at: sql`NOW()`
     }))
     .where('id', '=', plan_id)
     .returningAll()
@@ -164,7 +164,7 @@ export const buildModel = (row: PlanRow): Plan => {
     subscriptions: row.subscriptions,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    scheduledAt: row.scheduled_at
+    queuedAt: row.queued_at
   }
 }
 

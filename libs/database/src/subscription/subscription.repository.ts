@@ -66,7 +66,7 @@ export async function insertRow(
       status: 'wait',
       created_at: sql`NOW()`,
       updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
+      queued_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -141,12 +141,26 @@ export async function selectRowsSkipLockedForUpdate(
     .selectAll()
     .skipLocked()
     .forUpdate()
-    .orderBy('scheduled_at', 'desc')
+    .orderBy('queued_at', 'desc')
     .limit(limit)
     .execute()
 }
 
-export async function updateRowScheduleChange(
+export async function updateRowQueuedAt(
+  trx: TransactionDatabase,
+  subscription_id: number
+): Promise<SubscriptionRow> {
+  return await trx
+    .updateTable('subscription')
+    .set(() => ({
+      queued_at: sql`NOW()`
+    }))
+    .where('id', '=', subscription_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowProcess(
   trx: TransactionDatabase,
   subscription_id: number,
   status: SubscriptionStatus
@@ -156,21 +170,7 @@ export async function updateRowScheduleChange(
     .set(() => ({
       status,
       updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
-    }))
-    .where('id', '=', subscription_id)
-    .returningAll()
-    .executeTakeFirstOrThrow()
-}
-
-export async function updateRowSchedule(
-  trx: TransactionDatabase,
-  subscription_id: number
-): Promise<SubscriptionRow> {
-  return await trx
-    .updateTable('subscription')
-    .set(() => ({
-      scheduled_at: sql`NOW()`
+      queued_at: sql`NOW()`
     }))
     .where('id', '=', subscription_id)
     .returningAll()
@@ -190,7 +190,7 @@ export const buildModel = (row: SubscriptionRow): Subscription => {
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    scheduledAt: row.scheduled_at
+    queuedAt: row.queued_at
   }
 }
 

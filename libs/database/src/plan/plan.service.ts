@@ -11,13 +11,9 @@ import {
   EnableDisablePlanResponse
 } from './dto/enable-disable-plan.js'
 import { ListPlansRequest, ListPlansResponse } from './dto/list-plans.js'
-import {
-  SchedulePlansRequest,
-  SchedulePlansResponse
-} from './dto/schedule-plans.js'
+import { QueuePlansRequest, QueuePlansResponse } from './dto/queue-plans.js'
 import * as planRepository from './plan.repository.js'
 import * as planLogRepository from '../plan-log/plan-log.repository.js'
-import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import { KyselyDatabase, TransactionDatabase } from '../database.js'
 
 /**
@@ -277,78 +273,28 @@ export async function listPlans(
 }
 
 /**
- * Schedule Plans
+ * Queue Plans
  */
-export async function schedulePlans(
+export async function queuePlans(
   trx: TransactionDatabase,
-  request: SchedulePlansRequest
-): Promise<SchedulePlansResponse> {
+  request: QueuePlansRequest
+): Promise<QueuePlansResponse> {
   const plans: Plan[] = []
-  const backLog: Notify[] = []
 
   const selectedPlanRows = await planRepository.selectRowsSkipLockedForUpdate(
     trx,
     request.limit
   )
 
-  if (selectedPlanRows.length === 0) {
-    return {
-      message: `No plans pending to schedule`,
-      statusCode: 200,
-      plans,
-      backLog
-    }
-  }
-
   for (const planRow of selectedPlanRows) {
-    let isChanged = false
+    const updatedPlanRow = await planRepository.updateRowQueuedAt(trx, planRow.id)
 
-    const { subscriptions } = await subscriptionRepository.selectCountByPlanId(
-      trx,
-      planRow.id
-    )
-
-    if (planRow.subscriptions !== subscriptions) {
-      isChanged = true
-
-      planRow.subscriptions = subscriptions
-    }
-
-    if (isChanged) {
-      const updatedPlanRow = await planRepository.updateRowScheduleChange(
-        trx,
-        planRow.id,
-        planRow.subscriptions
-      )
-
-      plans.push(planRepository.buildModel(updatedPlanRow))
-
-      const planLogRow = await planLogRepository.insertRow(
-        trx,
-        updatedPlanRow.id,
-        'schedule_plan',
-        updatedPlanRow.categories_max,
-        updatedPlanRow.price_rub,
-        updatedPlanRow.duration_days,
-        updatedPlanRow.interval_sec,
-        updatedPlanRow.analytics_on,
-        updatedPlanRow.is_enabled,
-        updatedPlanRow.subscriptions,
-        request.data
-      )
-
-      backLog.push(planLogRepository.buildNotify(planLogRow))
-    } else {
-      const updatedPlanRow = await planRepository.updateRowSchedule(trx, planRow.id)
-
-      plans.push(planRepository.buildModel(updatedPlanRow))
-    }
+    plans.push(planRepository.buildModel(updatedPlanRow))
   }
 
   return {
-    message: `Plans ready to schedule`,
-    statusCode: 201,
-    plans,
-    backLog
+    message: `Plans successfully queued`,
+    statusCode: 200,
+    plans
   }
 }

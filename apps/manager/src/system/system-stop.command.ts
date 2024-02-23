@@ -1,7 +1,7 @@
 import { command } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
-import { redisService } from '@avito-speculant/redis'
-import { queueService, schedulerService } from '@avito-speculant/queue'
+import { redisService, systemService } from '@avito-speculant/redis'
+import { queueService, heartbeatService } from '@avito-speculant/queue'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
@@ -14,17 +14,17 @@ export default (config: Config, logger: Logger) => {
       const redis = redisService.initRedis(redisOptions, logger)
 
       const queueConnection = queueService.getQueueConnection<Config>(config)
-      const scheduler = schedulerService.initQueue(queueConnection, logger)
+      const heartbeatQueue = heartbeatService.initQueue(queueConnection, logger)
 
-      const jobs = await scheduler.getRepeatableJobs()
+      const jobs = await heartbeatQueue.getRepeatableJobs()
 
       for (const job of jobs) {
         logger.info(job, `Repeatable job now destroed`)
 
-        scheduler.removeRepeatableByKey(job.key)
+        heartbeatQueue.removeRepeatableByKey(job.key)
       }
 
-      await schedulerService.closeQueue(scheduler, logger)
+      await heartbeatService.closeQueue(heartbeatQueue, logger)
       await redisService.closeRedis(redis, logger)
     }
   })

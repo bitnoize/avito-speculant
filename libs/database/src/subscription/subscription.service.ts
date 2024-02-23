@@ -22,9 +22,9 @@ import {
   ListSubscriptionsResponse
 } from './dto/list-subscriptions.js'
 import {
-  ScheduleSubscriptionsRequest,
-  ScheduleSubscriptionsResponse
-} from './dto/schedule-subscriptions.js'
+  QueueSubscriptionsRequest,
+  QueueSubscriptionsResponse
+} from './dto/queue-subscriptions.js'
 import * as userRepository from '../user/user.repository.js'
 import * as planRepository from '../plan/plan.repository.js'
 import * as subscriptionRepository from './subscription.repository.js'
@@ -215,85 +215,29 @@ export async function listSubscriptions(
 }
 
 /**
- * Schedule Subscriptions
+ * Queue Subscriptions
  */
-export async function scheduleSubscriptions(
+export async function queueSubscriptions(
   trx: TransactionDatabase,
-  request: ScheduleSubscriptionsRequest
-): Promise<ScheduleSubscriptionsResponse> {
+  request: QueueSubscriptionsRequest
+): Promise<QueueSubscriptionsResponse> {
   const subscriptions: Subscription[] = []
-  const backLog: Notify[] = []
 
   const selectedSubscriptionRows =
     await subscriptionRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
 
-  if (selectedSubscriptionRows.length === 0) {
-    return {
-      message: `No subscriptions pending to schedule`,
-      statusCode: 200,
-      subscriptions,
-      backLog
-    }
-  }
-
   for (const subscriptionRow of selectedSubscriptionRows) {
-    let isChanged = false
+    const updatedSubscriptionRow = await subscriptionRepository.updateRowQueuedAt(
+      trx,
+      subscriptionRow.id
+    )
 
-    if (subscriptionRow.status === 'wait') {
-      if (subscriptionRow.created_at < Date.now() - 900 * 1000) {
-        isChanged = true
-
-        subscriptionRow.status = 'cancel'
-      }
-    } else if (subscriptionRow.status === 'active') {
-      if (
-        subscriptionRow.created_at <
-        Date.now() - subscriptionRow.duration_days * 86400 * 1000
-      ) {
-        isChanged = true
-
-        subscriptionRow.status = 'finish'
-      }
-    }
-
-    if (isChanged) {
-      const updatedSubscriptionRow =
-        await subscriptionRepository.updateRowScheduleChange(
-          trx,
-          subscriptionRow.id,
-          subscriptionRow.status
-        )
-
-      subscriptions.push(subscriptionRepository.buildModel(updatedSubscriptionRow))
-
-      const subscriptionLogRow = await subscriptionLogRepository.insertRow(
-        trx,
-        updatedSubscriptionRow.id,
-        'schedule_subscription',
-        updatedSubscriptionRow.categories_max,
-        updatedSubscriptionRow.price_rub,
-        updatedSubscriptionRow.duration_days,
-        updatedSubscriptionRow.interval_sec,
-        updatedSubscriptionRow.analytics_on,
-        updatedSubscriptionRow.status,
-        request.data
-      )
-
-      backLog.push(subscriptionLogRepository.buildNotify(subscriptionLogRow))
-    } else {
-      const updatedSubscriptionRow = await subscriptionRepository.updateRowSchedule(
-        trx,
-        subscriptionRow.id
-      )
-
-      subscriptions.push(subscriptionRepository.buildModel(updatedSubscriptionRow))
-    }
+    subscriptions.push(subscriptionRepository.buildModel(updatedSubscriptionRow))
   }
 
   return {
-    message: `Subscriptions ready to schedule`,
-    statusCode: 201,
-    subscriptions,
-    backLog
+    message: `Subscriptions successfully queued`,
+    statusCode: 200,
+    subscriptions
   }
 }

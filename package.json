@@ -13,8 +13,10 @@
     "libs/queue",
     "apps/manager",
     "apps/bot",
-    "apps/worker-scheduler",
-    "apps/worker-scraper"
+    "apps/worker-heartbeat",
+    "apps/worker-business",
+    "apps/worker-scraper",
+    "apps/worker-proxycheck"
   ],
   "engines": {
     "npm": ">=9.8.0",

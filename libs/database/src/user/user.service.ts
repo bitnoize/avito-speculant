@@ -3,18 +3,10 @@ import {
   AuthorizeUserRequest,
   AuthorizeUserResponse
 } from './dto/authorize-user.js'
-import {
-  ListUsersRequest,
-  ListUsersResponse
-} from './dto/list-users.js'
-import {
-  ScheduleUsersRequest,
-  ScheduleUsersResponse
-} from './dto/schedule-users.js'
+import { ListUsersRequest, ListUsersResponse } from './dto/list-users.js'
+import { QueueUsersRequest, QueueUsersResponse } from './dto/queue-users.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
-import * as subscriptionRepository from '../subscription/subscription.repository.js'
-import * as categoryRepository from '../category/category.repository.js'
 import { KyselyDatabase, TransactionDatabase } from '../database.js'
 
 /**
@@ -84,87 +76,28 @@ export async function listUsers(
 }
 
 /**
- * Schedule Users
+ * Queue Users
  */
-export async function scheduleUsers(
+export async function queueUsers(
   trx: TransactionDatabase,
-  request: ScheduleUsersRequest
-): Promise<ScheduleUsersResponse> {
+  request: QueueUsersRequest
+): Promise<QueueUsersResponse> {
   const users: User[] = []
-  const backLog: Notify[] = []
 
   const selectedUserRows = await userRepository.selectRowsSkipLockedForUpdate(
     trx,
     request.limit
   )
 
-  if (selectedUserRows.length === 0) {
-    return {
-      message: `No users pending to schedule`,
-      statusCode: 200,
-      users,
-      backLog
-    }
-  }
-
   for (const userRow of selectedUserRows) {
-    let isChanged = false
+    const updatedUserRow = await userRepository.updateRowQueuedAt(trx, userRow.id)
 
-    const { subscriptions } = await subscriptionRepository.selectCountByUserId(
-      trx,
-      userRow.id
-    )
-
-    if (userRow.subscriptions !== subscriptions) {
-      isChanged = true
-
-      userRow.subscriptions = subscriptions
-    }
-
-    const { categories } = await categoryRepository.selectCountByUserId(
-      trx,
-      userRow.id
-    )
-
-    if (userRow.categories !== categories) {
-      isChanged = true
-
-      userRow.categories = categories
-    }
-
-    if (isChanged) {
-      const updatedUserRow = await userRepository.updateRowScheduleChange(
-        trx,
-        userRow.id,
-        userRow.status,
-        userRow.subscriptions,
-        userRow.categories
-      )
-
-      users.push(userRepository.buildModel(updatedUserRow))
-
-      const userLogRow = await userLogRepository.insertRow(
-        trx,
-        updatedUserRow.id,
-        'schedule_user',
-        updatedUserRow.status,
-        updatedUserRow.subscriptions,
-        updatedUserRow.categories,
-        request.data
-      )
-
-      backLog.push(userLogRepository.buildNotify(userLogRow))
-    } else {
-      const updatedUserRow = await userRepository.updateRowSchedule(trx, userRow.id)
-
-      users.push(userRepository.buildModel(updatedUserRow))
-    }
+    users.push(userRepository.buildModel(updatedUserRow))
   }
 
   return {
-    message: `Users ready to schedule`,
-    statusCode: 201,
-    users,
-    backLog
+    message: `Users successfully queued`,
+    statusCode: 200,
+    users
   }
 }

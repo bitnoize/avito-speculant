@@ -16,9 +16,12 @@ import databaseListPlansCommand from './database/database-list-plans.command.js'
 import databaseListPlanLogsCommand from './database/database-list-plan-logs.command.js'
 import databaseListSubscriptionLogsCommand from './database/database-list-subscription-logs.command.js'
 import databaseListCategoryLogsCommand from './database/database-list-category-logs.command.js'
-import queueListenSchedulerCommand from './queue/queue-listen-scheduler.command.js'
+import queueListenHeartbeatCommand from './queue/queue-listen-heartbeat.command.js'
+import queueListenBusinessCommand from './queue/queue-listen-business.command.js'
+import queueListenScraperCommand from './queue/queue-listen-scraper.command.js'
+import queueListenProxycheckCommand from './queue/queue-listen-proxycheck.command.js'
 import { Config } from './manager.js'
-import { configSchema } from './config.schema.js'
+import { configSchema } from './manager.schema.js'
 
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
@@ -55,7 +58,10 @@ async function bootstrap(): Promise<void> {
   const queueCommand = subcommands({
     name: 'queue',
     cmds: {
-      'listen-scheduler': queueListenSchedulerCommand(config, logger),
+      'listen-heartbeat': queueListenHeartbeatCommand(config, logger),
+      'listen-business': queueListenBusinessCommand(config, logger),
+      'listen-scraper': queueListenScraperCommand(config, logger),
+      'listen-proxycheck': queueListenProxycheckCommand(config, logger),
     }
   })
 

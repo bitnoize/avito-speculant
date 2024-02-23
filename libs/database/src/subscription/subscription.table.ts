@@ -17,7 +17,7 @@ export interface SubscriptionTable {
   >
   created_at: ColumnType<number, string, never>
   updated_at: ColumnType<number, string, string | undefined>
-  scheduled_at: ColumnType<number, string, string | undefined>
+  queued_at: ColumnType<number, string, string | undefined>
 }
 
 export type SubscriptionRow = Selectable<SubscriptionTable>

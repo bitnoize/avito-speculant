@@ -42,7 +42,7 @@ export async function insertRow(
       is_enabled: false,
       created_at: sql`NOW()`,
       updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
+      queued_at: sql`NOW()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -119,12 +119,26 @@ export async function selectRowsSkipLockedForUpdate(
     .selectAll()
     .skipLocked()
     .forUpdate()
-    .orderBy('scheduled_at', 'desc')
+    .orderBy('queued_at', 'desc')
     .limit(limit)
     .execute()
 }
 
-export async function updateRowScheduleChange(
+export async function updateRowQueuedAt(
+  trx: TransactionDatabase,
+  category_id: number
+): Promise<CategoryRow> {
+  return await trx
+    .updateTable('category')
+    .set(() => ({
+      queued_at: sql`NOW()`
+    }))
+    .where('id', '=', category_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function updateRowProcess(
   trx: TransactionDatabase,
   category_id: number,
   is_enabled: boolean
@@ -134,21 +148,7 @@ export async function updateRowScheduleChange(
     .set(() => ({
       is_enabled,
       updated_at: sql`NOW()`,
-      scheduled_at: sql`NOW()`
-    }))
-    .where('id', '=', category_id)
-    .returningAll()
-    .executeTakeFirstOrThrow()
-}
-
-export async function updateRowSchedule(
-  trx: TransactionDatabase,
-  category_id: number
-): Promise<CategoryRow> {
-  return await trx
-    .updateTable('category')
-    .set(() => ({
-      scheduled_at: sql`NOW()`
+      queued_at: sql`NOW()`
     }))
     .where('id', '=', category_id)
     .returningAll()
@@ -163,7 +163,7 @@ export const buildModel = (row: CategoryRow): Category => {
     isEnabled: row.is_enabled,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    scheduledAt: row.scheduled_at
+    queuedAt: row.queued_at
   }
 }
 

@@ -9,5 +9,5 @@ export interface User {
   categories: number
   createdAt: number
   updatedAt: number
-  scheduledAt: number
+  queuedAt: number
 }
