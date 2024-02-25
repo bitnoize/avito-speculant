@@ -14,7 +14,7 @@ export default (config: Config, logger: Logger) => {
 
       await databaseService.migrateToLatest(db, logger)
 
-      await databaseService.closeDatabase(db, logger)
+      await db.destroy()
     }
   })
 }

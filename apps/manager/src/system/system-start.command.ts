@@ -16,12 +16,16 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const heartbeatQueue = heartbeatService.initQueue(queueConnection, logger)
 
-      const heartbeatJob = await heartbeatService.addRepeatableJob(heartbeatQueue, 10_000)
+      const heartbeatJob = await heartbeatService.addJob(
+        heartbeatQueue,
+        10_000,
+        logger
+      )
 
       logger.info(`Heartbeat repeatable job added`)
 
-      await heartbeatService.closeQueue(heartbeatQueue, logger)
-      await redisService.closeRedis(redis, logger)
+      await heartbeatQueue.close()
+      await redis.disconnect()
     }
   })
 }

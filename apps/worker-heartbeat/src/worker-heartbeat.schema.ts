@@ -22,7 +22,11 @@ export const configSchema: JSONSchemaType<Config> = {
     'POSTGRES_DATABASE',
     'HEARTBEAT_CONCURRENCY',
     'HEARTBEAT_LIMITER_MAX',
-    'HEARTBEAT_LIMITER_DURATION'
+    'HEARTBEAT_LIMITER_DURATION',
+    'HEARTBEAT_QUEUE_USERS_LIMIT',
+    'HEARTBEAT_QUEUE_PLANS_LIMIT',
+    'HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT',
+    'HEARTBEAT_QUEUE_CATEGORIES_LIMIT'
   ],
   properties: {
     LOG_LEVEL: {
@@ -80,6 +84,22 @@ export const configSchema: JSONSchemaType<Config> = {
     HEARTBEAT_LIMITER_DURATION: {
       type: 'number',
       default: 60_000
+    },
+    HEARTBEAT_QUEUE_USERS_LIMIT: {
+      type: 'number',
+      default: 10
+    },
+    HEARTBEAT_QUEUE_PLANS_LIMIT: {
+      type: 'number',
+      default: 2
+    },
+    HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT: {
+      type: 'number',
+      default: 10
+    },
+    HEARTBEAT_QUEUE_CATEGORIES_LIMIT: {
+      type: 'number',
+      default: 10
     }
   }
 }

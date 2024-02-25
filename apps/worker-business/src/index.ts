@@ -1,9 +1,14 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { BusinessJob, BusinessResult, queueService, businessService } from '@avito-speculant/queue'
+import {
+  BusinessJob,
+  BusinessResult,
+  queueService,
+  businessService
+} from '@avito-speculant/queue'
 import { Config } from './worker-business.js'
 import { configSchema } from './worker-business.schema.js'
-import { businessProcessor } from './worker-business.processor.js'
+import businessProcessor from './worker-business.processor.js'
 
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
@@ -23,15 +28,7 @@ async function bootstrap(): Promise<void> {
     logger
   )
 
-  businessWorker.on('completed', (job: BusinessJob, result: BusinessResult) => {
-    logger.info(result, `BusinessJob completed`)
-  })
-
-  businessWorker.on('failed', (job: BusinessJob, error: Error) => {
-    logger.info(error, `BusinessJob failed`)
-  })
-
-  await businessService.startWorker(businessWorker, logger)
+  await businessWorker.run()
 }
 
 bootstrap().catch((error) => {

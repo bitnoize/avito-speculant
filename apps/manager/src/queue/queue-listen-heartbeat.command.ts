@@ -10,7 +10,10 @@ export default (config: Config, logger: Logger) => {
     args: {},
     handler: async () => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
-      const heartbeatQueueEvents = heartbeatService.initQueueEvents(queueConnection, logger)
+      const heartbeatQueueEvents = heartbeatService.initQueueEvents(
+        queueConnection,
+        logger
+      )
 
       heartbeatQueueEvents.on('added', (args, id) => {
         logger.info({ args, id }, `HeartbeatJob added`)
@@ -60,7 +63,7 @@ export default (config: Config, logger: Logger) => {
         logger.warn({ id }, `HeartbeatJob drained`)
       })
 
-      await heartbeatService.startQueueEvents(heartbeatQueueEvents, logger)
+      await heartbeatQueueEvents.run()
     }
   })
 }

@@ -33,21 +33,7 @@ export function initQueue(
     logger.error(error, `There was an error in the ScraperQueue`)
   })
 
-  logger.debug(`ScraperQueue successfully initialized`)
-
   return queue
-}
-
-/**
- * Close Queue
- */
-export async function closeQueue(
-  queue: ScraperQueue,
-  logger: Logger
-): Promise<void> {
-  await queue.close()
-
-  logger.debug(`ScraperQueue successfully closed`)
 }
 
 /**
@@ -66,33 +52,7 @@ export function initQueueEvents(
     logger.error(error, `There was an error in the ScraperQueue`)
   })
 
-  logger.debug(`ScraperQueueEvents successfully initialized`)
-
   return queueEvents
-}
-
-/**
- * Start QueueEvents
- */
-export async function startQueueEvents(
-  queueEvents: QueueEvents,
-  logger: Logger
-): Promise<void> {
-  await queueEvents.run()
-
-  logger.debug(`ScraperQueueEvents successfully started`)
-}
-
-/**
- * Close QueueEvents
- */
-export async function closeQueueEvents(
-  queueEvents: QueueEvents,
-  logger: Logger
-): Promise<void> {
-  await queueEvents.close()
-
-  logger.debug(`ScraperQueueEvents successfully closed`)
 }
 
 /**
@@ -147,31 +107,5 @@ export function initWorker(
     logger.error(error, `There was an error in the ScraperWorker`)
   })
 
-  logger.debug(`ScraperWorker successfully initialized`)
-
   return worker
-}
-
-/**
- * Start Worker
- */
-export async function startWorker(
-  worker: ScraperWorker,
-  logger: Logger
-): Promise<void> {
-  await worker.run()
-
-  logger.debug(`ScraperWorker successfully started`)
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(
-  worker: ScraperWorker,
-  logger: Logger
-): Promise<void> {
-  await worker.close()
-
-  logger.debug(`ScraperWorker successfully closed`)
 }

@@ -10,7 +10,10 @@ export default (config: Config, logger: Logger) => {
     args: {},
     handler: async () => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
-      const businessQueueEvents = businessService.initQueueEvents(queueConnection, logger)
+      const businessQueueEvents = businessService.initQueueEvents(
+        queueConnection,
+        logger
+      )
 
       businessQueueEvents.on('added', (args, id) => {
         logger.info({ args, id }, `BusinessJob added`)
@@ -60,7 +63,7 @@ export default (config: Config, logger: Logger) => {
         logger.warn({ id }, `BusinessJob drained`)
       })
 
-      await businessService.startQueueEvents(businessQueueEvents, logger)
+      await businessQueueEvents.run()
     }
   })
 }

@@ -8,7 +8,7 @@ import {
 } from '@avito-speculant/queue'
 import { Config } from './worker-heartbeat.js'
 import { configSchema } from './worker-heartbeat.schema.js'
-import { heartbeatProcessor } from './worker-heartbeat.processor.js'
+import heartbeatProcessor from './worker-heartbeat.processor.js'
 
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
@@ -28,15 +28,7 @@ async function bootstrap(): Promise<void> {
     logger
   )
 
-  heartbeatWorker.on('completed', (job: HeartbeatJob, result: HeartbeatResult) => {
-    logger.info(result, `HeartbeatJob completed`)
-  })
-
-  heartbeatWorker.on('failed', (job: HeartbeatJob | undefined, error: Error) => {
-    logger.info(error, `HeartbeatJob failed`)
-  })
-
-  await heartbeatService.startWorker(heartbeatWorker, logger)
+  await heartbeatWorker.run()
 }
 
 bootstrap().catch((error) => {

@@ -41,7 +41,7 @@ async function bootstrap(): Promise<void> {
   const databaseCommand = subcommands({
     name: 'database',
     cmds: {
-      'migrations': databaseMigrationsCommand(config, logger),
+      migrations: databaseMigrationsCommand(config, logger),
       'list-users': databaseListUsersCommand(config, logger),
       'list-user-logs': databaseListUserLogsCommand(config, logger),
       'create-plan': databaseCreatePlanCommand(config, logger),
@@ -61,7 +61,7 @@ async function bootstrap(): Promise<void> {
       'listen-heartbeat': queueListenHeartbeatCommand(config, logger),
       'listen-business': queueListenBusinessCommand(config, logger),
       'listen-scraper': queueListenScraperCommand(config, logger),
-      'listen-proxycheck': queueListenProxycheckCommand(config, logger),
+      'listen-proxycheck': queueListenProxycheckCommand(config, logger)
     }
   })
 
@@ -70,7 +70,7 @@ async function bootstrap(): Promise<void> {
     cmds: {
       system: systemCommand,
       database: databaseCommand,
-      queue: queueCommand,
+      queue: queueCommand
     }
   })
 

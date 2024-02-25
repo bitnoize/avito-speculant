@@ -10,7 +10,10 @@ export default (config: Config, logger: Logger) => {
     args: {},
     handler: async () => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
-      const proxycheckQueueEvents = proxycheckService.initQueueEvents(queueConnection, logger)
+      const proxycheckQueueEvents = proxycheckService.initQueueEvents(
+        queueConnection,
+        logger
+      )
 
       proxycheckQueueEvents.on('added', (args, id) => {
         logger.info({ args, id }, `ProxycheckJob added`)
@@ -60,7 +63,7 @@ export default (config: Config, logger: Logger) => {
         logger.warn({ id }, `ProxycheckJob drained`)
       })
 
-      await proxycheckService.startQueueEvents(proxycheckQueueEvents, logger)
+      await proxycheckQueueEvents.run()
     }
   })
 }

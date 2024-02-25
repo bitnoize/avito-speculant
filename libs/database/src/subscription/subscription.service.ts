@@ -25,11 +25,15 @@ import {
   QueueSubscriptionsRequest,
   QueueSubscriptionsResponse
 } from './dto/queue-subscriptions.js'
+import {
+  BusinessSubscriptionRequest,
+  BusinessSubscriptionResponse
+} from './dto/business-subscription.js'
 import * as userRepository from '../user/user.repository.js'
 import * as planRepository from '../plan/plan.repository.js'
 import * as subscriptionRepository from './subscription.repository.js'
 import * as subscriptionLogRepository from '../subscription-log/subscription-log.repository.js'
-import { KyselyDatabase, TransactionDatabase } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Subscription
@@ -218,26 +222,105 @@ export async function listSubscriptions(
  * Queue Subscriptions
  */
 export async function queueSubscriptions(
-  trx: TransactionDatabase,
+  db: KyselyDatabase,
   request: QueueSubscriptionsRequest
 ): Promise<QueueSubscriptionsResponse> {
-  const subscriptions: Subscription[] = []
+  return await db.transaction().execute(async (trx) => {
+    const subscriptions: Subscription[] = []
 
-  const selectedSubscriptionRows =
-    await subscriptionRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
+    const selectedSubscriptionRows =
+      await subscriptionRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
 
-  for (const subscriptionRow of selectedSubscriptionRows) {
-    const updatedSubscriptionRow = await subscriptionRepository.updateRowQueuedAt(
+    for (const subscriptionRow of selectedSubscriptionRows) {
+      const updatedSubscriptionRow = await subscriptionRepository.updateRowQueuedAt(
+        trx,
+        subscriptionRow.id
+      )
+
+      subscriptions.push(subscriptionRepository.buildModel(updatedSubscriptionRow))
+    }
+
+    return {
+      message: `Subscriptions successfully queued`,
+      statusCode: 200,
+      subscriptions
+    }
+  })
+}
+
+/**
+ * Business Subscription
+ */
+export async function businessSubscription(
+  db: KyselyDatabase,
+  request: BusinessSubscriptionRequest
+): Promise<BusinessSubscriptionResponse> {
+  return await db.transaction().execute(async (trx) => {
+    const backLog: Notify[] = []
+    let isChanged = false
+
+    const selectedSubscriptionRow = await subscriptionRepository.selectRowByIdForUpdate(
       trx,
-      subscriptionRow.id
+      request.subscriptionId
     )
 
-    subscriptions.push(subscriptionRepository.buildModel(updatedSubscriptionRow))
-  }
+    if (selectedSubscriptionRow === undefined) {
+      throw new SubscriptionNotFoundError<BusinessSubscriptionRequest>(request)
+    }
 
-  return {
-    message: `Subscriptions successfully queued`,
-    statusCode: 200,
-    subscriptions
-  }
+    if (selectedSubscriptionRow.status === 'wait') {
+      if (selectedSubscriptionRow.created_at < Date.now() - 900 * 1000) {
+        isChanged = true
+
+        selectedSubscriptionRow.status = 'cancel'
+      }
+    } else if (selectedSubscriptionRow.status === 'active') {
+      if (
+        selectedSubscriptionRow.created_at <
+        Date.now() - selectedSubscriptionRow.duration_days * 86400 * 1000
+      ) {
+        isChanged = true
+
+        selectedSubscriptionRow.status = 'finish'
+      }
+    }
+
+    if (isChanged) {
+      const updatedSubscriptionRow =
+        await subscriptionRepository.updateRowBusiness(
+          trx,
+          selectedSubscriptionRow.id,
+          selectedSubscriptionRow.status
+        )
+
+      const subscriptionLogRow = await subscriptionLogRepository.insertRow(
+        trx,
+        updatedSubscriptionRow.id,
+        'business_subscription',
+        updatedSubscriptionRow.categories_max,
+        updatedSubscriptionRow.price_rub,
+        updatedSubscriptionRow.duration_days,
+        updatedSubscriptionRow.interval_sec,
+        updatedSubscriptionRow.analytics_on,
+        updatedSubscriptionRow.status,
+        request.data
+      )
+
+      backLog.push(subscriptionLogRepository.buildNotify(subscriptionLogRow))
+
+      return {
+        message: `Subscription successfully processed`,
+        statusCode: 201,
+        subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
+        backLog
+      }
+    }
+
+    return {
+      message: `Subscription successfully processed`,
+      statusCode: 200,
+      subscription: subscriptionRepository.buildModel(selectedSubscriptionRow),
+      backLog
+    }
+  })
 }

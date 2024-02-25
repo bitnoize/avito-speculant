@@ -24,8 +24,8 @@ export default (config: Config, logger: Logger) => {
         heartbeatQueue.removeRepeatableByKey(job.key)
       }
 
-      await heartbeatService.closeQueue(heartbeatQueue, logger)
-      await redisService.closeRedis(redis, logger)
+      await heartbeatQueue.close()
+      await redis.disconnect()
     }
   })
 }

@@ -15,6 +15,18 @@ export async function selectRowByIdForShare(
     .executeTakeFirst()
 }
 
+export async function selectRowByIdForUpdate(
+  trx: TransactionDatabase,
+  user_id: number
+): Promise<UserRow | undefined> {
+  return await trx
+    .selectFrom('user')
+    .selectAll()
+    .where('id', '=', user_id)
+    .forUpdate()
+    .executeTakeFirst()
+}
+
 export async function selectRowByTgFromIdForShare(
   trx: TransactionDatabase,
   tg_from_id: string
@@ -38,9 +50,9 @@ export async function insertRow(
       status: 'trial',
       subscriptions: 0,
       categories: 0,
-      created_at: sql`NOW()`,
-      updated_at: sql`NOW()`,
-      queued_at: sql`NOW()`
+      created_at: sql`now()`,
+      updated_at: sql`now()`,
+      queued_at: sql`now()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -61,7 +73,6 @@ export async function selectRowsList(
     .execute()
 }
 
-// FIXME
 export async function selectRowsSkipLockedForUpdate(
   trx: TransactionDatabase,
   limit: number
@@ -69,28 +80,29 @@ export async function selectRowsSkipLockedForUpdate(
   return await trx
     .selectFrom('user')
     .selectAll()
-    .skipLocked()
-    .forUpdate()
+    .where('queued_at', '<', sql<number>`now() - interval '1 MINUTE'`)
     .orderBy('queued_at', 'desc')
+    .forUpdate()
+    .skipLocked()
     .limit(limit)
     .execute()
 }
 
-export async function updateRowQueuedAt(
+export async function updateRowQueuedId(
   trx: TransactionDatabase,
   user_id: number
 ): Promise<UserRow> {
   return await trx
     .updateTable('user')
     .set(() => ({
-      queued_at: sql`NOW()`
+      queued_at: sql`now()`
     }))
     .where('id', '=', user_id)
     .returningAll()
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowProcess(
+export async function updateRowBusiness(
   trx: TransactionDatabase,
   user_id: number,
   status: UserStatus,
@@ -103,8 +115,7 @@ export async function updateRowProcess(
       status,
       subscriptions,
       categories,
-      updated_at: sql`NOW()`,
-      queued_at: sql`NOW()`
+      updated_at: sql`now()`
     }))
     .where('id', '=', user_id)
     .returningAll()

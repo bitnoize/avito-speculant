@@ -92,21 +92,7 @@ export function initDatabase(
     log
   })
 
-  logger.debug(`Database successfully initialized`)
-
   return db
-}
-
-/*
- * Close Database instance
- */
-export async function closeDatabase(
-  db: Kysely<Database>,
-  logger: Logger
-): Promise<void> {
-  await db.destroy()
-
-  logger.debug(`Database successfully closed`)
 }
 
 /*

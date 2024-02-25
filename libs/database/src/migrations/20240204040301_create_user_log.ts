@@ -11,6 +11,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('action', 'varchar', (col) => col.notNull())
     .addColumn('status', sql`user_status`, (col) => col.notNull())
     .addColumn('subscriptions', 'integer', (col) => col.notNull())
+    .addColumn('categories', 'integer', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .execute()

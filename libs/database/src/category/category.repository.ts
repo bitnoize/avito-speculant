@@ -15,6 +15,18 @@ export async function selectRowByIdForShare(
     .executeTakeFirst()
 }
 
+export async function selectRowByIdForUpdate(
+  trx: TransactionDatabase,
+  category_id: number
+): Promise<CategoryRow | undefined> {
+  return await trx
+    .selectFrom('category')
+    .selectAll()
+    .where('id', '=', category_id)
+    .forUpdate()
+    .executeTakeFirst()
+}
+
 export async function selectRowByIdUserIdForUpdate(
   trx: TransactionDatabase,
   category_id: number,
@@ -138,7 +150,7 @@ export async function updateRowQueuedAt(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowProcess(
+export async function updateRowBusiness(
   trx: TransactionDatabase,
   category_id: number,
   is_enabled: boolean
@@ -147,8 +159,7 @@ export async function updateRowProcess(
     .updateTable('category')
     .set(() => ({
       is_enabled,
-      updated_at: sql`NOW()`,
-      queued_at: sql`NOW()`
+      updated_at: sql`NOW()`
     }))
     .where('id', '=', category_id)
     .returningAll()

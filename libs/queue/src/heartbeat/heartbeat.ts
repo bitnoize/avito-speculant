@@ -9,11 +9,12 @@ export type HeartbeatConfig = {
 }
 
 export const HEARTBEAT_STEPS = [
-  'users',
-  'plans',
-  'subscriptions',
-  'categories',
-  'commit'
+  'queue-users',
+  'queue-plans',
+  'queue-subscriptions',
+  'queue-categories',
+  'wait-results',
+  'complete'
 ]
 export type HeartbeatStep = (typeof HEARTBEAT_STEPS)[number]
 

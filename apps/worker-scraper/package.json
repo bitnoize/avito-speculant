@@ -17,10 +17,11 @@
   },
   "dependencies": {
     "@avito-speculant/config": "*",
-    "@avito-speculant/logger": "*",
-    "@avito-speculant/domain": "*",
     "@avito-speculant/database": "*",
+    "@avito-speculant/domain": "*",
+    "@avito-speculant/logger": "*",
+    "@avito-speculant/queue": "*",
     "@avito-speculant/redis": "*",
-    "@avito-speculant/queue": "*"
+    "got": "^14.2.0"
   }
 }

@@ -42,9 +42,7 @@ async function bootstrap(): Promise<void> {
 
       ctx.user = authorizeUserResponse.user
 
-      for (const notify of authorizeUserResponse.backLog) {
-        await pubSub.publish(...notify)
-      }
+      await redisService.publishBackLog(pubSub, authorizeUserResponse.backLog, logger)
 
       await next()
     }

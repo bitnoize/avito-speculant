@@ -46,12 +46,12 @@ export default (config: Config, logger: Logger) => {
         data: {}
       })
 
-      await redisService.publishBackLog(pubSub, logger, response.backLog)
+      await redisService.publishBackLog(pubSub, response.backLog, logger)
 
       logger.info(response)
 
-      await redisService.closePubSub(pubSub, logger)
-      await databaseService.closeDatabase(db, logger)
+      await pubSub.disconnect()
+      await db.destroy()
     }
   })
 }

@@ -9,16 +9,16 @@ import {
 } from '@avito-speculant/database'
 import { redisService, systemService } from '@avito-speculant/redis'
 import {
-  HeartbeatResult,
-  HeartbeatJob,
-  HeartbeatProcessor
+  WaitingChildrenError,
+  HeartbeatProcessor,
+  BusinessJob,
+  queueService,
+  businessService
 } from '@avito-speculant/queue'
 import { Config } from './worker-heartbeat.js'
 import { configSchema } from './worker-heartbeat.schema.js'
 
-export const heartbeatProcessor: HeartbeatProcessor = async (
-  heartbeatJob: HeartbeatJob
-) => {
+const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
@@ -31,77 +31,136 @@ export const heartbeatProcessor: HeartbeatProcessor = async (
   const redis = redisService.initRedis(redisOptions, logger)
   const pubSub = redisService.initPubSub(redisOptions, logger)
 
-  await db.transaction().execute(async (trx) => {
-    let step = heartbeatJob.data.step
+  const queueConnection = queueService.getQueueConnection<Config>(config)
+  const businessQueue = businessService.initQueue(queueConnection, logger)
 
-    while (step !== 'commit') {
-      switch (step) {
-        case 'users': {
-          console.log(`USERS`)
-          const queueUsers = await userService.queueUsers(trx, {
-            limit: 10
-          })
+  let step = heartbeatJob.data.step
 
-          await heartbeatJob.updateData({
-            step: 'plans'
-          })
-          step = 'plans'
+  const businessJobs: BusinessJob[] = []
 
-          break
+  while (step !== 'complete') {
+    switch (step) {
+      case 'queue-users': {
+        const queueUsers = await userService.queueUsers(db, {
+          limit: config.HEARTBEAT_QUEUE_USERS_LIMIT
+        })
+
+        const userJobs = await businessService.addJobs(
+          businessQueue,
+          'user',
+          queueUsers.users.map((user) => user.id),
+          heartbeatJob,
+          logger
+        )
+
+        step = 'queue-plans'
+        await heartbeatJob.updateData({
+          step
+        })
+
+        businessJobs.concat(userJobs)
+
+        break
+      }
+
+      case 'queue-plans': {
+        const { plans } = await planService.queuePlans(db, {
+          limit: config.HEARTBEAT_QUEUE_PLANS_LIMIT
+        })
+
+        const planJobs = await businessService.addJobs(
+          businessQueue,
+          'plan',
+          plans.map((plan) => plan.id),
+          heartbeatJob,
+          logger
+        )
+
+        step = 'queue-subscriptions'
+        await heartbeatJob.updateData({
+          step
+        })
+
+        businessJobs.concat(planJobs)
+
+        break
+      }
+
+      case 'queue-subscriptions': {
+        const { subscriptions } = await subscriptionService.queueSubscriptions(db, {
+          limit: config.HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT
+        })
+
+        const subscriptionJobs = await businessService.addJobs(
+          businessQueue,
+          'subscription',
+          subscriptions.map((subscription) => subscription.id),
+          heartbeatJob,
+          logger
+        )
+
+        step = 'queue-categories'
+        await heartbeatJob.updateData({
+          step
+        })
+
+        businessJobs.concat(subscriptionJobs)
+
+        break
+      }
+
+      case 'queue-categories': {
+        const { categories } = await categoryService.queueCategories(db, {
+          limit: config.HEARTBEAT_QUEUE_CATEGORIES_LIMIT
+        })
+
+        const categoryJobs = await businessService.addJobs(
+          businessQueue,
+          'category',
+          categories.map((category) => category.id),
+          heartbeatJob,
+          logger
+        )
+
+        step = 'wait-results'
+        await heartbeatJob.updateData({
+          step
+        })
+
+        businessJobs.concat(categoryJobs)
+
+        break
+      }
+
+      case 'wait-results': {
+        if (token === undefined) {
+          throw new Error(`HeartbeatProcessor lost token`)
         }
 
-        case 'plans': {
-          console.log(`PLANS`)
-          const queuePlans = await planService.queuePlans(trx, {
-            limit: 2
-          })
+        const shouldWait = await heartbeatJob.moveToWaitingChildren(token)
 
-          await heartbeatJob.updateData({
-            step: 'subscriptions'
-          })
-          step = 'subscriptions'
-
-          break
+        if (shouldWait) {
+          throw new WaitingChildrenError()
         }
 
-        case 'subscriptions': {
-          console.log(`SUBSCRIPTIONS`)
-          const queueSubscriptions = await subscriptionService.queueSubscriptions(
-            trx,
-            {
-              limit: 10
-            }
-          )
+        step = 'complete'
+        await heartbeatJob.updateData({
+          step
+        })
 
-          await heartbeatJob.updateData({
-            step: 'categories'
-          })
-          step = 'categories'
+        break
+      }
 
-          break
-        }
-
-        case 'categories': {
-          console.log(`CATEGORIES`)
-          const queueCategories = await categoryService.queueCategories(trx, {
-            limit: 10
-          })
-
-          await heartbeatJob.updateData({
-            step: 'commit'
-          })
-          step = 'commit'
-
-          break
-        }
-
-        default: {
-          throw new Error(`Unknown heartbeat step`)
-        }
+      default: {
+        throw new Error(`Unknown heartbeat step`)
       }
     }
-  })
+  }
 
-  await databaseService.closeDatabase(db, logger)
-  await redisService.closeRedis(redis, logger)
+  await businessQueue.close()
+  await pubSub.disconnect()
+  await redis.disconnect()
+  await db.destroy()
 }
+
+export default heartbeatProcessor

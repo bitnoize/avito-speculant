@@ -36,19 +36,5 @@ export function initFlowProducer(
     logger.error(error, `There was an error in the FlowProducer`)
   })
 
-  logger.debug(`FlowProducer successfully initialized`)
-
   return flowProducer
-}
-
-/**
- * Close FlowProducer
- */
-export async function closeFlowProducer(
-  flowProducer: FlowProducer,
-  logger: Logger
-): Promise<void> {
-  await flowProducer.close()
-
-  logger.debug(`FlowProducer successfully closed`)
 }

@@ -39,18 +39,7 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: systemLua.renewalHeartbeatLock
   })
 
-  logger.debug(`Redis successfully initialized`)
-
   return redis
-}
-
-/*
- * Close Redis instance
- */
-export async function closeRedis(redis: Redis, logger: Logger): Promise<void> {
-  await redis.disconnect()
-
-  logger.debug(`Redis successfully closed`)
 }
 
 /**
@@ -63,8 +52,6 @@ export function initPubSub(options: RedisOptions, logger: Logger): Redis {
     logger.debug(`PubSub successfully connected`)
   })
 
-  logger.debug(`PubSub successfully initialized`)
-
   return pubSub
 }
 
@@ -73,8 +60,8 @@ export function initPubSub(options: RedisOptions, logger: Logger): Redis {
  */
 export async function publishBackLog(
   pubSub: Redis,
+  backLog: Notify[],
   logger: Logger,
-  backLog: Notify[]
 ): Promise<void> {
   for (const notify of backLog) {
     const [channel, logId, modelId, action] = notify
@@ -82,13 +69,4 @@ export async function publishBackLog(
 
     logger.debug({ channel, logId, modelId, action }, `Publish BackLog Notify`)
   }
-}
-
-/*
- * Close PubSub instance
- */
-export async function closePubSub(pubSub: Redis, logger: Logger): Promise<void> {
-  await pubSub.disconnect()
-
-  logger.debug(`PubSub successfully closed`)
 }

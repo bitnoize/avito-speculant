@@ -8,7 +8,9 @@ export type BusinessConfig = {
   BUSINESS_LIMITER_DURATION: number
 }
 
-export type BusinessData = void
+export type BusinessData = {
+  id: number
+}
 
 export type BusinessResult = void
 

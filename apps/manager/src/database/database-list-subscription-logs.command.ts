@@ -30,7 +30,7 @@ export default (config: Config, logger: Logger) => {
 
       logger.info(response)
 
-      await databaseService.closeDatabase(db, logger)
+      await db.destroy()
     }
   })
 }

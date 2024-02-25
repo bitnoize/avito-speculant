@@ -33,41 +33,7 @@ export function initQueue(
     logger.error(error, `There was an error in the HeartbeatQueue`)
   })
 
-  logger.debug(`HeartbeatQueue successfully initialized`)
-
   return queue
-}
-
-/**
- * Add repeatable Job
- */
-export async function addRepeatableJob(
-  queue: HeartbeatQueue,
-  every: number
-): Promise<HeartbeatJob> {
-  return await queue.add(
-    `blablabla`,
-    {
-      step: 'users'
-    },
-    {
-      repeat: {
-        every
-      }
-    }
-  )
-}
-
-/**
- * Close Queue
- */
-export async function closeQueue(
-  queue: HeartbeatQueue,
-  logger: Logger
-): Promise<void> {
-  await queue.close()
-
-  logger.debug(`HeartbeatQueue successfully closed`)
 }
 
 /**
@@ -86,33 +52,33 @@ export function initQueueEvents(
     logger.error(error, `There was an error in the HeartbeatQueue`)
   })
 
-  logger.debug(`HeartbeatQueueEvents successfully initialized`)
-
   return queueEvents
 }
 
 /**
- * Start QueueEvents
+ * Add Job
  */
-export async function startQueueEvents(
-  queueEvents: QueueEvents,
+export async function addJob(
+  queue: HeartbeatQueue,
+  every: number,
   logger: Logger
-): Promise<void> {
-  await queueEvents.run()
+): Promise<HeartbeatJob> {
+  const job = await queue.add(
+    `queue_business`,
+    {
+      step: 'queue-users'
+    },
+    {
+      repeat: {
+        every
+      }
+    }
+  )
 
-  logger.debug(`HeartbeatQueueEvents successfully started`)
-}
+  // FIXME
+  logger.debug(`HeartbeatJob added`)
 
-/**
- * Close QueueEvents
- */
-export async function closeQueueEvents(
-  queueEvents: QueueEvents,
-  logger: Logger
-): Promise<void> {
-  await queueEvents.close()
-
-  logger.debug(`HeartbeatQueueEvents successfully closed`)
+  return job
 }
 
 /**
@@ -168,31 +134,5 @@ export function initWorker(
     logger.error(error, `There was an error in the HeartbeatWorker`)
   })
 
-  logger.debug(`HeartbeatWorker successfully initialized`)
-
   return worker
-}
-
-/**
- * Start Worker
- */
-export async function startWorker(
-  worker: HeartbeatWorker,
-  logger: Logger
-): Promise<void> {
-  await worker.run()
-
-  logger.debug(`HeartbeatWorker successfully started`)
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(
-  worker: HeartbeatWorker,
-  logger: Logger
-): Promise<void> {
-  await worker.close()
-
-  logger.debug(`HeartbeatWorker successfully closed`)
 }

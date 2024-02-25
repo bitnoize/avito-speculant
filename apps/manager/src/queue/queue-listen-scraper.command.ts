@@ -10,7 +10,10 @@ export default (config: Config, logger: Logger) => {
     args: {},
     handler: async () => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
-      const scraperQueueEvents = scraperService.initQueueEvents(queueConnection, logger)
+      const scraperQueueEvents = scraperService.initQueueEvents(
+        queueConnection,
+        logger
+      )
 
       scraperQueueEvents.on('added', (args, id) => {
         logger.info({ args, id }, `ScraperJob added`)
@@ -60,7 +63,7 @@ export default (config: Config, logger: Logger) => {
         logger.warn({ id }, `ScraperJob drained`)
       })
 
-      await scraperService.startQueueEvents(scraperQueueEvents, logger)
+      await scraperQueueEvents.run()
     }
   })
 }

@@ -4,9 +4,11 @@ import {
   RateLimiterOptions,
   Queue,
   QueueEvents,
+  BulkJobOptions,
   Worker,
   MetricsTime
 } from 'bullmq'
+import { HeartbeatJob } from '../heartbeat/heartbeat.js'
 import {
   BUSINESS_QUEUE_NAME,
   BusinessConfig,
@@ -33,21 +35,7 @@ export function initQueue(
     logger.error(error, `There was an error in the BusinessQueue`)
   })
 
-  logger.debug(`BusinessQueue successfully initialized`)
-
   return queue
-}
-
-/**
- * Close Queue
- */
-export async function closeQueue(
-  queue: BusinessQueue,
-  logger: Logger
-): Promise<void> {
-  await queue.close()
-
-  logger.debug(`BusinessQueue successfully closed`)
 }
 
 /**
@@ -66,33 +54,44 @@ export function initQueueEvents(
     logger.error(error, `There was an error in the BusinessQueue`)
   })
 
-  logger.debug(`BusinessQueueEvents successfully initialized`)
-
   return queueEvents
 }
 
 /**
- * Start QueueEvents
+ * Add Jobs
  */
-export async function startQueueEvents(
-  queueEvents: QueueEvents,
-  logger: Logger
-): Promise<void> {
-  await queueEvents.run()
+export async function addJobs(
+  queue: BusinessQueue,
+  name: string,
+  ids: number[],
+  heartbeatJob: HeartbeatJob,
+  logger: Logger,
+): Promise<BusinessJob[]> {
+  if (heartbeatJob.id === undefined) {
+    throw new Error(`HeartbeatJob lost id`)
+  }
 
-  logger.debug(`BusinessQueueEvents successfully started`)
-}
+  const opts: BulkJobOptions = {
+    parent: {
+      id: heartbeatJob.id,
+      queue: heartbeatJob.queueQualifiedName
+    }
+  }
 
-/**
- * Close QueueEvents
- */
-export async function closeQueueEvents(
-  queueEvents: QueueEvents,
-  logger: Logger
-): Promise<void> {
-  await queueEvents.close()
+  const jobs = await queue.addBulk(
+    ids.map((id) => ({
+      name,
+      data: { id },
+      opts
+    }))
+  )
 
-  logger.debug(`BusinessQueueEvents successfully closed`)
+  jobs.forEach((job) => {
+    // FIXME
+    logger.debug(`BusinessJob added`)
+  })
+
+  return jobs
 }
 
 /**
@@ -148,31 +147,5 @@ export function initWorker(
     logger.error(error, `There was an error in the BusinessWorker`)
   })
 
-  logger.debug(`BusinessWorker successfully initialized`)
-
   return worker
-}
-
-/**
- * Start Worker
- */
-export async function startWorker(
-  worker: BusinessWorker,
-  logger: Logger
-): Promise<void> {
-  await worker.run()
-
-  logger.debug(`BusinessWorker successfully started`)
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(
-  worker: BusinessWorker,
-  logger: Logger
-): Promise<void> {
-  await worker.close()
-
-  logger.debug(`BusinessWorker successfully closed`)
 }

@@ -33,21 +33,7 @@ export function initQueue(
     logger.error(error, `There was an error in the ProxycheckQueue`)
   })
 
-  logger.debug(`ProxycheckQueue successfully initialized`)
-
   return queue
-}
-
-/**
- * Close Queue
- */
-export async function closeQueue(
-  queue: ProxycheckQueue,
-  logger: Logger
-): Promise<void> {
-  await queue.close()
-
-  logger.debug(`ProxycheckQueue successfully closed`)
 }
 
 /**
@@ -66,33 +52,7 @@ export function initQueueEvents(
     logger.error(error, `There was an error in the ProxycheckQueue`)
   })
 
-  logger.debug(`ProxycheckQueueEvents successfully initialized`)
-
   return queueEvents
-}
-
-/**
- * Start QueueEvents
- */
-export async function startQueueEvents(
-  queueEvents: QueueEvents,
-  logger: Logger
-): Promise<void> {
-  await queueEvents.run()
-
-  logger.debug(`ProxycheckQueueEvents successfully started`)
-}
-
-/**
- * Close QueueEvents
- */
-export async function closeQueueEvents(
-  queueEvents: QueueEvents,
-  logger: Logger
-): Promise<void> {
-  await queueEvents.close()
-
-  logger.debug(`ProxycheckQueueEvents successfully closed`)
 }
 
 /**
@@ -150,31 +110,5 @@ export function initWorker(
     logger.error(error, `There was an error in the ProxycheckWorker`)
   })
 
-  logger.debug(`ProxycheckWorker successfully initialized`)
-
   return worker
-}
-
-/**
- * Start Worker
- */
-export async function startWorker(
-  worker: ProxycheckWorker,
-  logger: Logger
-): Promise<void> {
-  await worker.run()
-
-  logger.debug(`ProxycheckWorker successfully started`)
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(
-  worker: ProxycheckWorker,
-  logger: Logger
-): Promise<void> {
-  await worker.close()
-
-  logger.debug(`ProxycheckWorker successfully closed`)
 }

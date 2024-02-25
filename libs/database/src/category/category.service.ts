@@ -29,11 +29,15 @@ import {
   QueueCategoriesRequest,
   QueueCategoriesResponse
 } from './dto/queue-categories.js'
+import {
+  BusinessCategoryRequest,
+  BusinessCategoryResponse
+} from './dto/business-category.js'
 import * as userRepository from '../user/user.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as categoryRepository from './category.repository.js'
 import * as categoryLogRepository from '../category-log/category-log.repository.js'
-import { KyselyDatabase, TransactionDatabase } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Category
@@ -340,26 +344,87 @@ export async function listCategories(
  * Queue Categories
  */
 export async function queueCategories(
-  trx: TransactionDatabase,
+  db: KyselyDatabase,
   request: QueueCategoriesRequest
 ): Promise<QueueCategoriesResponse> {
-  const categories: Category[] = []
+  return await db.transaction().execute(async (trx) => {
+    const categories: Category[] = []
 
-  const selectedCategoryRows =
-    await categoryRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
+    const selectedCategoryRows =
+      await categoryRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
 
-  for (const categoryRow of selectedCategoryRows) {
-    const updatedCategoryRow = await categoryRepository.updateRowQueuedAt(
+    for (const categoryRow of selectedCategoryRows) {
+      const updatedCategoryRow = await categoryRepository.updateRowQueuedAt(
+        trx,
+        categoryRow.id
+      )
+
+      categories.push(categoryRepository.buildModel(updatedCategoryRow))
+    }
+
+    return {
+      message: `Categories successfully queued`,
+      statusCode: 200,
+      categories
+    }
+  })
+}
+
+/**
+ * Business Category
+ */
+export async function businessCategory(
+  db: KyselyDatabase,
+  request: BusinessCategoryRequest
+): Promise<BusinessCategoryResponse> {
+  return await db.transaction().execute(async (trx) => {
+    const backLog: Notify[] = []
+    let isChanged = false
+
+    const selectedCategoryRow = await categoryRepository.selectRowByIdForUpdate(
       trx,
-      categoryRow.id
+      request.categoryId
     )
 
-    categories.push(categoryRepository.buildModel(updatedCategoryRow))
-  }
+    if (selectedCategoryRow === undefined) {
+      throw new CategoryNotFoundError<BusinessCategoryRequest>(request)
+    }
 
-  return {
-    message: `Categories successfully queued`,
-    statusCode: 200,
-    categories
-  }
+    if (selectedCategoryRow.is_enabled) {
+      // TODO
+    }
+
+    if (isChanged) {
+      const updatedCategoryRow = await categoryRepository.updateRowBusiness(
+        trx,
+        selectedCategoryRow.id,
+        selectedCategoryRow.is_enabled,
+      )
+
+      const categoryLogRow = await categoryLogRepository.insertRow(
+        trx,
+        updatedCategoryRow.id,
+        'business_category',
+        updatedCategoryRow.avito_url,
+        updatedCategoryRow.is_enabled,
+        request.data
+      )
+
+      backLog.push(categoryLogRepository.buildNotify(categoryLogRow))
+
+      return {
+        message: `Category successfully processed`,
+        statusCode: 201,
+        category: categoryRepository.buildModel(updatedCategoryRow),
+        backLog
+      }
+    }
+
+    return {
+      message: `Category successfully processed`,
+      statusCode: 200,
+      category: categoryRepository.buildModel(selectedCategoryRow),
+      backLog
+    }
+  })
 }

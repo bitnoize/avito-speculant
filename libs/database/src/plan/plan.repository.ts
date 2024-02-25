@@ -135,17 +135,18 @@ export async function updateRowQueuedAt(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowProcess(
+export async function updateRowBusiness(
   trx: TransactionDatabase,
   plan_id: number,
+  is_enabled: boolean,
   subscriptions: number
 ): Promise<PlanRow> {
   return await trx
     .updateTable('plan')
     .set(() => ({
+      is_enabled,
       subscriptions,
-      updated_at: sql`NOW()`,
-      queued_at: sql`NOW()`
+      updated_at: sql`NOW()`
     }))
     .where('id', '=', plan_id)
     .returningAll()

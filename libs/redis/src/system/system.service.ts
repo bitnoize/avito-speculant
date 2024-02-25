@@ -3,9 +3,9 @@ import { Logger } from '@avito-speculant/logger'
 
 export async function acquireHeartbeatLock(
   redis: Redis,
-  logger: Logger,
   lockSecret: string,
-  lockTimeout: number
+  lockTimeout: number,
+  logger: Logger,
 ): Promise<boolean> {
   const lock = await redis.acquireHeartbeatLock(
     heartbeatLockKey(),
