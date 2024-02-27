@@ -22,7 +22,7 @@ export const configSchema: JSONSchemaType<Config> = {
     'POSTGRES_DATABASE',
     'BUSINESS_CONCURRENCY',
     'BUSINESS_LIMITER_MAX',
-    'BUSINESS_LIMITER_DURATION'
+    'BUSINESS_LIMITER_DURATION',
   ],
   properties: {
     LOG_LEVEL: {

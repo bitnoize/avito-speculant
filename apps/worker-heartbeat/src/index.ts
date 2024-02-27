@@ -14,7 +14,7 @@ async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
-  const logger = loggerService.initLogger(loggerOptions)
+  const logger = loggerService.initLogger(loggerOptions, 'worker-heartbeat')
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
   const concurrency = heartbeatService.getWorkerConcurrency<Config>(config)

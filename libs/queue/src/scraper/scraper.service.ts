@@ -56,6 +56,31 @@ export function initQueueEvents(
 }
 
 /**
+ * Add Job
+ */
+export async function addJob(
+  queue: ScraperQueue,
+  avitoUrl: string
+  every: number,
+  jobId: string,
+): Promise<ScraperJob> {
+  const job = await queue.add(
+    `blablabla`,
+    {
+      avitoUrl
+    },
+    {
+      jobId,
+      repeat: {
+        every
+      }
+    }
+  )
+
+  return job
+}
+
+/**
  * Get Worker concurrency from config
  */
 export function getWorkerConcurrency<T extends ScraperConfig>(config: T): number {

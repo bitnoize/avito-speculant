@@ -1,7 +1,8 @@
 import { RedisOptions, Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
 import { Notify } from '@avito-speculant/domain'
-import * as systemLua from './system/system.lua.js'
+import * as systemRepository from './system/system.repository.js'
+import * as cacheRepository from './cache/cache.repository.js'
 import { RedisConfig } from './redis.js'
 
 /**
@@ -31,12 +32,22 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
 
   redis.defineCommand('acquireHeartbeatLock', {
     numberOfKeys: 1,
-    lua: systemLua.acquireHeartbeatLock
+    lua: systemRepository.acquireHeartbeatLockLua
   })
 
   redis.defineCommand('renewalHeartbeatLock', {
     numberOfKeys: 1,
-    lua: systemLua.renewalHeartbeatLock
+    lua: systemRepository.renewalHeartbeatLockLua
+  })
+
+  redis.defineCommand('cacheStoreUserModel', {
+    numberOfKeys: 1,
+    lua: cacheRepository.storeModelLua
+  })
+
+  redis.defineCommand('cacheFetchUserModel', {
+    numberOfKeys: 1,
+    lua: cacheRepository.fetchModelLua
   })
 
   return redis

@@ -8,7 +8,9 @@ export type ScraperConfig = {
   SCRAPER_LIMITER_DURATION: number
 }
 
-export type ScraperData = void
+export type ScraperData = {
+  avitoUrl: string
+}
 
 export type ScraperResult = void
 

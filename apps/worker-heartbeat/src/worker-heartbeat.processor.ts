@@ -13,7 +13,8 @@ import {
   HeartbeatProcessor,
   BusinessJob,
   queueService,
-  businessService
+  businessService,
+  scraperService
 } from '@avito-speculant/queue'
 import { Config } from './worker-heartbeat.js'
 import { configSchema } from './worker-heartbeat.schema.js'
@@ -33,6 +34,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
   const businessQueue = businessService.initQueue(queueConnection, logger)
+  const scraperQueue = scraperService.initQueue(queueConnection, logger)
 
   let step = heartbeatJob.data.step
 
@@ -143,6 +145,66 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
           throw new WaitingChildrenError()
         }
 
+        step = 'check-scraper-jobs'
+        await heartbeatJob.updateData({
+          step
+        })
+
+        break
+      }
+
+      case 'check-scraper-jobs': {
+        const repeatableJobs = await scraperQueue.getRepeatableJobs()
+
+        const listedScrapers = await cacheService.listScrapers(redis, {
+          //
+        })
+
+        const orphanScraperJobs = repeatableJobs
+          .filter((repeatableJob) => !listedScrapers.jobIds.includes(repeatableJob.id))
+
+        for (const orphanScraperJob of orphanScraperJobs) {
+          await scraperQueue.removeRepeatableByKey(orphanScraperJob.key)
+
+          logger.info(`Scraper removed orphan job`)
+        }
+
+        for (const scraperJobId of listedScrapers.jobIds) {
+          const existsScrapperJob = repeatableJobs
+            .find((repeatableJob) =>
+              repeatableJob.id !== undefined && repeatableJob.id === scraperJobId
+            )
+
+          if (existsScrapperJob !== undefined) {
+            const { repeat } = existsScrapperJob.opts
+
+            if (listedScrapers.minIntervalSec === undefined) {
+              await scraperQueue.removeRepeatableByKey(scraperJob.key)
+            
+              const deletedScraper = await cacheService.deleteScraper(redis, {
+                scrapperJobId
+              })
+
+              logger.info(`Scraper removed job`)
+            } else {
+              if (intervalSec < repeat.every) {
+                await scraperQueue.removeRepeatableByKey(scraperJob.key)
+
+                await scraperQueue.addJob()
+
+                logger.info(`Scraper replace job`)
+              } else {
+
+                logger.info(`Scraper check job`)
+              }
+            }
+          } else {
+            await scraperQueue.addJob()
+
+            logger.info(`Scraper added job`)
+          }
+        }
+
         step = 'complete'
         await heartbeatJob.updateData({
           step
@@ -157,6 +219,11 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
     }
   }
 
+  if (businessJobs.length > 0) {
+    logger.info(`HeartbeatQueue completed business jobs`)
+  }
+
+  await scraperQueue.close()
   await businessQueue.close()
   await pubSub.disconnect()
   await redis.disconnect()

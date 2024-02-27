@@ -7,13 +7,19 @@ import {
   subscriptionService,
   categoryService
 } from '@avito-speculant/database'
-import { redisService, systemService } from '@avito-speculant/redis'
+import {
+  redisService,
+  systemService,
+  cacheService
+} from '@avito-speculant/redis'
 import {
   BusinessResult,
   BusinessJob,
-  BusinessProcessor
+  BusinessProcessor,
+  queueService,
+  scraperService
 } from '@avito-speculant/queue'
-import { Config } from './worker-business.js'
+import { CACHE_BUSINESS_TIMEOUT, Config } from './worker-business.js'
 import { configSchema } from './worker-business.schema.js'
 
 const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) => {
@@ -29,9 +35,12 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
   const redis = redisService.initRedis(redisOptions, logger)
   const pubSub = redisService.initPubSub(redisOptions, logger)
 
+  const queueConnection = queueService.getQueueConnection<Config>(config)
+  const scraperQueue = scraperService.initQueue(queueConnection, logger)
+
   switch (businessJob.name) {
     case 'user': {
-      const businessUser = await userService.businessUser(db, {
+      const user = await userService.businessUser(db, {
         userId: businessJob.data.id,
         data: {}
       })
@@ -40,7 +49,7 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
     }
 
     case 'plan': {
-      const businessPlan = await planService.businessPlan(db, {
+      const plan = await planService.businessPlan(db, {
         planId: businessJob.data.id,
         data: {}
       })
@@ -49,7 +58,7 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
     }
 
     case 'subscription': {
-      const businessSubscription = await subscriptionService.businessSubscription(
+      const subscription = await subscriptionService.businessSubscription(
         db,
         {
           subscriptionId: businessJob.data.id,
@@ -61,10 +70,39 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
     }
 
     case 'category': {
-      const businessCategory = await categoryService.businessCategory(db, {
+      const category = await categoryService.businessCategory(db, {
         categoryId: businessJob.data.id,
         data: {}
       })
+
+      const fetchedScraper = await cacheService.fetchScraper(redis, {
+        avitoUrl: category.avitoUrl
+      })
+
+      if (fetchedScraper.jobId !== undefined) {
+        if (category.isEnabled) {
+          const appendedCategory = await cacheService.appendCategory(redis, {
+            categoryId: category.id,
+            scraperJobId: fetchedScraper.jobId
+          })
+        } else {
+          const removedCategory = await cacheService.removeCategory(redis, {
+            categoryId: category.id,
+            scraperJobId
+          })
+        }
+      } else {
+        if (category.isEnabled) {
+          const storedScraper = await cacheService.storeScraper(redis, {
+            avitoUrl: category.avitoUrl
+          })
+
+          const appendedCategory = await cacheService.appendCategory(redis, {
+            categoryId: category.id,
+            scraperJobId: storedScraper.jobId
+          })
+        }
+      }
 
       break
     }

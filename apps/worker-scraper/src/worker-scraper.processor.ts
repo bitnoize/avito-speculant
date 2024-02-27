@@ -1,6 +1,11 @@
+import got, { Got, Method, Agents, RequestError } from 'got'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { redisService } from '@avito-speculant/redis'
+import {
+  redisService,
+  systemService,
+  cacheService
+} from '@avito-speculant/redis'
 import {
   ScraperResult,
   ScraperJob,
@@ -9,7 +14,7 @@ import {
 import { Config } from './worker-scraper.js'
 import { configSchema } from './worker-scraper.schema.js'
 
-export const scraperProcessor: SchedulerProcessor = async (scraperJob: SchedulerJob) => {
+const scraperProcessor: SchedulerProcessor = async (scraperJob: SchedulerJob) => {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
@@ -19,7 +24,19 @@ export const scraperProcessor: SchedulerProcessor = async (scraperJob: Scheduler
   const redis = redisService.initRedis(redisOptions, logger)
   const pubSub = redisService.initPubSub(redisOptions, logger)
 
-  // TODO
+  switch (scraperJob.name) {
+    case 'data-static': {
 
-  await redisService.closeRedis(redis, logger)
+      break
+    }
+
+    default: {
+      throw new Error(`ScraperJob unknown name`)
+    }
+  }
+
+  await pubSub.disconnect()
+  await redis.disconnect()
 }
+
+export default businessProcessor

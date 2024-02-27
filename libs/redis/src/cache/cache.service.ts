@@ -1,63 +1,89 @@
 import { Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
-import { User } from '@avito-speculant/domain'
+import {
+  StoreUserModelRequest,
+  StoreUserModelResponse
+} from './dto/store-user-model.js'
+import {
+  FetchUserModelRequest,
+  FetchUserModelResponse
+} from './dto/fetch-user-model.js'
+import * as cacheRepository from './cache.repository.js'
 
-export async function storeUser(
+export async function fetchScraper(
   redis: Redis,
-  user: User,
-  logger: Logger,
-): Promise<void> {
-  await redis.cacheStoreUser(
-    cacheUserKey(user.id),
-    user.id,
-    user.tgFromId,
-    user.status,
-    user.subscriptions,
-    user.categories,
-    user.createdAt,
-    user.updatedAt,
-    user.queuedAt
-  )
-}
+  request: FetchScraperRequest
+): Promise<FetchScraperResponse> {
+  const resultScraperJob = await redis.fetchScraperJobByAvitoUrlLua(redis, {
+    cacheRepository.scraperJobAvitoUrlKey(request.avitoUrl) // KEYS[1]
+  })
 
-export async function fetchUser(
-  redis: Redis,
-  userId: number,
-  force: boolean,
-  logger: Logger,
-): Promise<User> {
-  const result = await this.redis.cacheFetchUser(
-    cacheUserKey(user.id) // KEYS[1]
-  )
-
-  if (!(Array.isArray(result) && result.length === 9)) {
-    throw new TypeError(`Redis cacheFetchUser malformed result`)
+  if (resultScraperJob == null) {
+    message: `ScraperCache miss`,
+    statusCode: 404
   }
 
-  const id = parseNumber(result[0])
-  const tgFromId = parseString(result[1])
-  const status = parseUserStatus(result[2])
-  const subscriptions = parseNumber(result[3])
-  const categories = parseNumber(result[4])
-  const createdAt = parseNumber(result[5])
-  const updatedAt = parseNumber(result[6])
-  const queuedAt = parseNumber(result[7])
-  const isDirty = parseBoolean(result[8])
+  const scraperJobId = parseString(resultScraperJob)
 
-  if (isDirty && !force) {
-    return undefined
-  }
+  const result
 
   return {
-    id,
-    tgFromId,
-    status,
-    subscriptions,
-    categories,
-    createdAt,
-    updatedAt,
-    queuedAt
+    message: `ScraperCache hit`,
+    statusCode: 200,
+    scraperJobId,
   }
 }
 
-const cacheUserKey = (userId: number) => ['cache', 'user', userId].join(':')
+
+
+
+
+
+
+export async function storeModel(
+  redis: Redis,
+  request: StoreUserModelRequest
+): Promise<StoreUserModelResponse> {
+  await redis.cacheStoreUserModel(
+    cacheRepository.modelKey(request.user.id), // KEYS[1]
+    request.user.id, // ARGV[1]
+    request.user.tgFromId, // ARGV[2]
+    request.user.status, // ARGV[3]
+    request.user.subscriptions, // ARGV[4]
+    request.user.categories, // ARGV[5]
+    request.user.createdAt, // ARGV[6]
+    request.user.updatedAt, // ARGV[7]
+    request.user.queuedAt, // ARGV[8]
+    request.timeout // ARGV[9]
+  )
+
+  return {
+    message: `UserModel cache updated`,
+    statusCode: 200,
+  }
+}
+
+export async function fetchModel(
+  redis: Redis,
+  request: FetchUserModelRequest
+): Promise<FetchUserModelResponse> {
+  const result = await redis.cacheFetchUserModel(
+    cacheRepository.modelKey(request.userId) // KEYS[1]
+  )
+
+  if (result == null) {
+    return {
+      message: `UserModel cache miss`,
+      statusCode: 410,
+      user: undefined
+    }
+  }
+
+  const user = cacheRepository.buildModel(result, request.force)
+
+  return {
+    message: `UserModel cache hit`,
+    statusCode: user === undefined ? 409 : 200,
+    user
+  }
+}

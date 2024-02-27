@@ -1,3 +1,5 @@
+export const CACHE_BUSINESS_TIMEOUT = 24 * 3600 * 1000
+
 export interface Config {
   LOG_LEVEL: string
   REDIS_HOST: string

@@ -61,7 +61,6 @@ export function initQueueEvents(
 export async function addJob(
   queue: HeartbeatQueue,
   every: number,
-  logger: Logger
 ): Promise<HeartbeatJob> {
   const job = await queue.add(
     `queue_business`,
@@ -74,9 +73,6 @@ export async function addJob(
       }
     }
   )
-
-  // FIXME
-  logger.debug(`HeartbeatJob added`)
 
   return job
 }
