@@ -44,7 +44,7 @@ export async function selectRowByIdUserIdForUpdate(
 export async function selectRowByUserIdStatusForShare(
   trx: TransactionDatabase,
   user_id: number,
-  status: 'wait' | 'active'
+  status: 'wait' | 'active' // FIXME
 ): Promise<SubscriptionRow | undefined> {
   return await trx
     .selectFrom('subscription')
@@ -143,7 +143,6 @@ export async function selectCountByPlanId(
     .executeTakeFirstOrThrow()
 }
 
-// FIXME
 export async function selectRowsSkipLockedForUpdate(
   trx: TransactionDatabase,
   limit: number
@@ -151,9 +150,10 @@ export async function selectRowsSkipLockedForUpdate(
   return await trx
     .selectFrom('subscription')
     .selectAll()
-    .skipLocked()
-    .forUpdate()
+    .where('queued_at', '<', sql<number>`now() - interval '1 MINUTE'`)
     .orderBy('queued_at', 'desc')
+    .forUpdate()
+    .skipLocked()
     .limit(limit)
     .execute()
 }

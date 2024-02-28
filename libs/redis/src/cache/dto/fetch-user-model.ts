@@ -1,12 +1,12 @@
 import { User } from '@avito-speculant/domain'
 
-export interface FetchUserModelRequest {
-  userId: number
-  force: boolean
+export interface FetchScraperRequest {
+  avitoUrl: string
 }
 
-export interface FetchUserModelResponse {
+export interface FetchScraperResponse {
   message: string
   statusCode: number
-  user: User | undefined
+  scraperJobId?: number
+  minIntervalSec?: number
 }

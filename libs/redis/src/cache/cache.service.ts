@@ -9,6 +9,48 @@ import {
   FetchUserModelResponse
 } from './dto/fetch-user-model.js'
 import * as cacheRepository from './cache.repository.js'
+import { parseNumber, parseString } from '../redis.utils.js'
+
+export async function listScraperJobs(
+  redis: Redis,
+  request: ListScraperJobsRequest
+): Promise<ListScraperJobsResponse> {
+  const scraperJobsCache: ScraperJobCache = []
+
+  const scraperJobsRaw = await redis.getScraperJobsLua(redis, {
+    cacheRepository.scraperJobsKey() // KEYS[1]
+  })
+
+  if (!Array.isArray(scraperJobsRaw)) {
+    throw new TypeError(`getScraperJobsLua malformed result`)
+  }
+
+  for (const scraperJobRaw of scraperJobsRaw) {
+    const scraperJobId = parseNumber(scraperJobRaw)
+
+    const scraperJobRaw = await redis.getScraperJobByIdLua(redis, {
+      cacheRepository.scraperJobKey(scraperJobId) // KEYS[1]
+    })
+
+    if (!(Array.isArray(scraperJobRaw) && scraperJobRaw.length === 3)) {
+      throw new TypeError(`getScraperJobByIdLua malformed result`)
+    }
+
+    const scraperJobCache: ScraperJobCache = {
+      id: parseNumber(scraperJobRaw),
+      scraperJobId: 
+    }
+
+    scrapers.push()
+  }
+
+  return {
+    message: `Cache scraper jobs listed`,
+    statusCode: 200,
+    scraperJobId,
+  }
+
+}
 
 export async function fetchScraper(
   redis: Redis,

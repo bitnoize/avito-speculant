@@ -1,5 +1,5 @@
 import { User } from '@avito-speculant/domain'
-import { parseNumber, parseString, parseUserStatus } from '../redis.utils.js'
+import { parseNumber, parseString } from '../redis.utils.js'
 
 /*
 cache:scraper_jobs => ['1708878860597-0', '1708877958473-0']
@@ -7,6 +7,7 @@ cache:scraper_jobs => ['1708878860597-0', '1708877958473-0']
 cache:avito_url-scraper_job:www.avito.com/blablabla => 1708878860597-0
 
 cache:scraper_job:1708878860597-0 =>
+  id: 1708878860597-0
   avito_url: www.avito.com/blablabla
   interval_sec: 10
 
@@ -46,3 +47,18 @@ redis.call('SET', KEYS[3])
 return redis.status_reply('OK')
 `
 
+export const fetchScraperJobLua = `
+if redis.call('EXISTS', KEYS[1]) == 0 then
+  return nil
+end
+
+local user = redis.call(
+  'HMGET', KEYS[1],
+  'id',
+  'tg_from_id',
+)
+
+return {
+  unpack(user)
+}
+`

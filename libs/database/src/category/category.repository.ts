@@ -121,7 +121,6 @@ export async function selectCountByUserId(
     .executeTakeFirstOrThrow()
 }
 
-// FIXME
 export async function selectRowsSkipLockedForUpdate(
   trx: TransactionDatabase,
   limit: number
@@ -129,9 +128,10 @@ export async function selectRowsSkipLockedForUpdate(
   return await trx
     .selectFrom('category')
     .selectAll()
-    .skipLocked()
-    .forUpdate()
+    .where('queued_at', '<', sql<number>`now() - interval '1 MINUTE'`)
     .orderBy('queued_at', 'desc')
+    .forUpdate()
+    .skipLocked()
     .limit(limit)
     .execute()
 }

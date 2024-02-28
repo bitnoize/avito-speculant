@@ -28,6 +28,8 @@ export async function createPlan(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
+    // ...
+
     const insertedPlanRow = await planRepository.insertRow(
       trx,
       request.categoriesMax,
@@ -84,6 +86,8 @@ export async function updatePlan(
     if (selectedPlanRow.is_enabled) {
       throw new PlanIsEnabledError<UpdatePlanRequest>(request)
     }
+
+    // ...
 
     if (
       !(
@@ -165,6 +169,8 @@ export async function enablePlan(
       }
     }
 
+    // ...
+
     const updatedPlanRow = await planRepository.updateRowIsEnabled(
       trx,
       selectedPlanRow.id,
@@ -223,6 +229,8 @@ export async function disablePlan(
         backLog
       }
     }
+
+    // ...
 
     const updatedPlanRow = await planRepository.updateRowIsEnabled(
       trx,

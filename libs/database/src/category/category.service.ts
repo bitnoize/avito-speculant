@@ -6,17 +6,19 @@ import {
   UserNotPaidError,
   SubscriptionNotActiveError,
   CategoryNotFoundError,
-  CategoryIsEnabledError,
+  //CategoryIsEnabledError,
   CategoriesLimitExceedError
 } from '@avito-speculant/domain'
 import {
   CreateCategoryRequest,
   CreateCategoryResponse
 } from './dto/create-category.js'
+/*
 import {
   UpdateCategoryRequest,
   UpdateCategoryResponse
 } from './dto/update-category.js'
+*/
 import {
   EnableDisableCategoryRequest,
   EnableDisableCategoryResponse
@@ -59,6 +61,15 @@ export async function createCategory(
       throw new UserBlockedError<CreateCategoryRequest>(request)
     }
 
+    const subscriptionRow =
+      await subscriptionRepository.selectRowByUserIdStatusForShare(
+        trx,
+        userRow.id,
+        'active'
+      )
+
+    // ...
+
     const insertedCategoryRow = await categoryRepository.insertRow(
       trx,
       userRow.id,
@@ -79,6 +90,11 @@ export async function createCategory(
     return {
       message: `Category successfully created`,
       statusCode: 201,
+      user: userRepository.buildModel(userRow),
+      subscription:
+        subscriptionRow !== undefined
+          ? subscriptionRepository.buildModel(subscriptionRow)
+          : undefined,
       category: categoryRepository.buildModel(insertedCategoryRow),
       backLog
     }
@@ -88,6 +104,7 @@ export async function createCategory(
 /**
  * Update Category
  */
+/*
 export async function updateCategory(
   db: KyselyDatabase,
   request: UpdateCategoryRequest
@@ -120,14 +137,27 @@ export async function updateCategory(
       throw new CategoryIsEnabledError<UpdateCategoryRequest>(request)
     }
 
+    const subscriptionRow =
+      await subscriptionRepository.selectRowByUserIdStatusForShare(
+        trx,
+        userRow.id,
+        'active'
+      )
+
     if (!(request.avitoUrl != null)) {
       return {
         message: `Category no updates specified`,
         statusCode: 200,
+        user: userRepository.buildModel(userRow),
+        subscription: subscriptionRow !== undefined
+          ? subscriptionRepository.buildModel(subscriptionRow)
+          : undefined,
         category: categoryRepository.buildModel(selectedCategoryRow),
         backLog
       }
     }
+
+    // ...
 
     const updatedCategoryRow = await categoryRepository.updateRow(
       trx,
@@ -149,11 +179,16 @@ export async function updateCategory(
     return {
       message: `Category successfully updated`,
       statusCode: 201,
+      user: userRepository.buildModel(userRow),
+      subscription: subscriptionRow !== undefined
+        ? subscriptionRepository.buildModel(subscriptionRow)
+        : undefined,
       category: categoryRepository.buildModel(updatedCategoryRow),
       backLog
     }
   })
 }
+*/
 
 /**
  * Enable Category
@@ -175,26 +210,6 @@ export async function enableCategory(
       throw new UserNotPaidError<EnableDisableCategoryRequest>(request)
     }
 
-    const subscriptionRow =
-      await subscriptionRepository.selectRowByUserIdStatusForShare(
-        trx,
-        userRow.id,
-        'active'
-      )
-
-    if (subscriptionRow === undefined) {
-      throw new SubscriptionNotActiveError<EnableDisableCategoryRequest>(request)
-    }
-
-    const { categories } = await categoryRepository.selectCountByUserId(
-      trx,
-      userRow.id
-    )
-
-    if (categories >= subscriptionRow.categories_max) {
-      throw new CategoriesLimitExceedError<EnableDisableCategoryRequest>(request)
-    }
-
     const selectedCategoryRow =
       await categoryRepository.selectRowByIdUserIdForUpdate(
         trx,
@@ -206,14 +221,38 @@ export async function enableCategory(
       throw new CategoryNotFoundError<EnableDisableCategoryRequest>(request)
     }
 
+    const subscriptionRow =
+      await subscriptionRepository.selectRowByUserIdStatusForShare(
+        trx,
+        userRow.id,
+        'active'
+      )
+
+    if (subscriptionRow === undefined) {
+      throw new SubscriptionNotActiveError<EnableDisableCategoryRequest>(request)
+    }
+
     if (selectedCategoryRow.is_enabled) {
       return {
         message: `Category allready enabled`,
         statusCode: 200,
+        user: userRepository.buildModel(userRow),
+        subscription: subscriptionRepository.buildModel(subscriptionRow),
         category: categoryRepository.buildModel(selectedCategoryRow),
         backLog
       }
     }
+
+    const { categories } = await categoryRepository.selectCountByUserId(
+      trx,
+      selectedCategoryRow.user_id
+    )
+
+    if (categories >= subscriptionRow.categories_max) {
+      throw new CategoriesLimitExceedError<EnableDisableCategoryRequest>(request)
+    }
+
+    // ...
 
     const updatedCategoryRow = await categoryRepository.updateRowIsEnabled(
       trx,
@@ -235,6 +274,8 @@ export async function enableCategory(
     return {
       message: `Category successfully enabled`,
       statusCode: 201,
+      user: userRepository.buildModel(userRow),
+      subscription: subscriptionRepository.buildModel(subscriptionRow),
       category: categoryRepository.buildModel(updatedCategoryRow),
       backLog
     }
@@ -272,14 +313,28 @@ export async function disableCategory(
       throw new CategoryNotFoundError<EnableDisableCategoryRequest>(request)
     }
 
+    const subscriptionRow =
+      await subscriptionRepository.selectRowByUserIdStatusForShare(
+        trx,
+        userRow.id,
+        'active'
+      )
+
     if (!selectedCategoryRow.is_enabled) {
       return {
         message: `Category allready disabled`,
         statusCode: 200,
+        user: userRepository.buildModel(userRow),
+        subscription:
+          subscriptionRow !== undefined
+            ? subscriptionRepository.buildModel(subscriptionRow)
+            : undefined,
         category: categoryRepository.buildModel(selectedCategoryRow),
         backLog
       }
     }
+
+    // ...
 
     const updatedCategoryRow = await categoryRepository.updateRowIsEnabled(
       trx,
@@ -301,6 +356,11 @@ export async function disableCategory(
     return {
       message: `Category successfully enabled`,
       statusCode: 201,
+      user: userRepository.buildModel(userRow),
+      subscription:
+        subscriptionRow !== undefined
+          ? subscriptionRepository.buildModel(subscriptionRow)
+          : undefined,
       category: categoryRepository.buildModel(updatedCategoryRow),
       backLog
     }
@@ -325,6 +385,15 @@ export async function listCategories(
       throw new UserBlockedError<ListCategoriesRequest>(request)
     }
 
+    const subscriptionRow =
+      await subscriptionRepository.selectRowByUserIdStatusForShare(
+        trx,
+        userRow.id,
+        'active'
+      )
+
+    // ...
+
     const categoryRows = await categoryRepository.selectRowsList(
       trx,
       request.userId,
@@ -334,6 +403,11 @@ export async function listCategories(
     return {
       message: `Categories successfully listed`,
       statusCode: 200,
+      user: userRepository.buildModel(userRow),
+      subscription:
+        subscriptionRow !== undefined
+          ? subscriptionRepository.buildModel(subscriptionRow)
+          : undefined,
       categories: categoryRepository.buildCollection(categoryRows),
       all: request.all
     }
@@ -390,15 +464,37 @@ export async function businessCategory(
       throw new CategoryNotFoundError<BusinessCategoryRequest>(request)
     }
 
+    const userRow = await userRepository.selectRowByIdForShare(
+      trx,
+      selectedCategoryRow.user_id
+    )
+
+    if (userRow === undefined) {
+      throw new UserNotFoundError<BusinessCategoryRequest>(request, 500)
+    }
+
+    const subscriptionRow =
+      await subscriptionRepository.selectRowByUserIdStatusForShare(
+        trx,
+        userRow.id,
+        'active'
+      )
+
     if (selectedCategoryRow.is_enabled) {
-      // TODO
+      if (subscriptionRow === undefined) {
+        isChanged = true
+
+        selectedCategoryRow.is_enabled = false
+      }
+
+      // ...
     }
 
     if (isChanged) {
       const updatedCategoryRow = await categoryRepository.updateRowBusiness(
         trx,
         selectedCategoryRow.id,
-        selectedCategoryRow.is_enabled,
+        selectedCategoryRow.is_enabled
       )
 
       const categoryLogRow = await categoryLogRepository.insertRow(
@@ -415,6 +511,11 @@ export async function businessCategory(
       return {
         message: `Category successfully processed`,
         statusCode: 201,
+        user: userRepository.buildModel(userRow),
+        subscription:
+          subscriptionRow !== undefined
+            ? subscriptionRepository.buildModel(subscriptionRow)
+            : undefined,
         category: categoryRepository.buildModel(updatedCategoryRow),
         backLog
       }
@@ -423,6 +524,11 @@ export async function businessCategory(
     return {
       message: `Category successfully processed`,
       statusCode: 200,
+      user: userRepository.buildModel(userRow),
+      subscription:
+        subscriptionRow !== undefined
+          ? subscriptionRepository.buildModel(subscriptionRow)
+          : undefined,
       category: categoryRepository.buildModel(selectedCategoryRow),
       backLog
     }

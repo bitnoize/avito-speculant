@@ -28,13 +28,26 @@ export async function authorizeUser(
     )
 
     if (selectedUserRow !== undefined) {
+      const subscriptionRow =
+        await subscriptionRepository.selectRowByUserIdStatusForShare(
+          trx,
+          selectedUserRow.id,
+          'active' // FIXME
+        )
+
       return {
         message: `User allready exists`,
         statusCode: 200,
         user: userRepository.buildModel(selectedUserRow),
+        subscription:
+          subscriptionRow !== undefined
+            ? subscriptionRepository.buildModel(subscriptionRow)
+            : undefined,
         backLog
       }
     }
+
+    // ...
 
     const instertedUserRow = await userRepository.insertRow(trx, request.tgFromId)
 
@@ -67,6 +80,8 @@ export async function listUsers(
   request: ListUsersRequest
 ): Promise<ListUsersResponse> {
   return await db.transaction().execute(async (trx) => {
+    // ...
+
     const userRows = await userRepository.selectRowsList(trx, request.all)
 
     return {

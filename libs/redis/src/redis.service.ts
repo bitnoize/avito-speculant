@@ -30,24 +30,14 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     logger.debug(`Redis successfully connected`)
   })
 
-  redis.defineCommand('acquireHeartbeatLock', {
+  redis.defineCommand('getScraperJobs', {
     numberOfKeys: 1,
-    lua: systemRepository.acquireHeartbeatLockLua
+    lua: cacheRepository.getScraperJobsLua
   })
 
-  redis.defineCommand('renewalHeartbeatLock', {
+  redis.defineCommand('getScraperJobById', {
     numberOfKeys: 1,
-    lua: systemRepository.renewalHeartbeatLockLua
-  })
-
-  redis.defineCommand('cacheStoreUserModel', {
-    numberOfKeys: 1,
-    lua: cacheRepository.storeModelLua
-  })
-
-  redis.defineCommand('cacheFetchUserModel', {
-    numberOfKeys: 1,
-    lua: cacheRepository.fetchModelLua
+    lua: cacheRepository.getScraperJobByIdLua
   })
 
   return redis

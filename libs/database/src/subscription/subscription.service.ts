@@ -105,6 +105,8 @@ export async function createSubscription(
     return {
       message: `Subscription successfully created`,
       statusCode: 201,
+      user: userRepository.buildModel(userRow),
+      plan: planRepository.buildModel(planRow),
       subscription: subscriptionRepository.buildModel(insertedSubscriptionRow),
       backLog
     }
@@ -142,10 +144,21 @@ export async function cancelSubscription(
       throw new SubscriptionNotFoundError<CancelSubscriptionRequest>(request)
     }
 
+    const planRow = await planRepository.selectRowByIdForShare(
+      trx,
+      selectedSubscriptionRow.plan_id
+    )
+
+    if (planRow === undefined) {
+      throw new PlanNotFoundError<CancelSubscriptionRequest>(request, 500)
+    }
+
     if (selectedSubscriptionRow.status === 'cancel') {
       return {
         message: `Subscription allready canceled`,
         statusCode: 200,
+        user: userRepository.buildModel(userRow),
+        plan: planRepository.buildModel(planRow),
         subscription: subscriptionRepository.buildModel(selectedSubscriptionRow),
         backLog
       }
@@ -179,6 +192,8 @@ export async function cancelSubscription(
     return {
       message: `Subscription successfully canceled`,
       statusCode: 201,
+      user: userRepository.buildModel(userRow),
+      plan: planRepository.buildModel(planRow),
       subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
       backLog
     }
@@ -203,6 +218,8 @@ export async function listSubscriptions(
       throw new UserBlockedError<ListSubscriptionsRequest>(request)
     }
 
+    const planRows = await planRepository.selectRowsList(trx, true)
+
     const subscriptionRows = await subscriptionRepository.selectRowsList(
       trx,
       request.userId,
@@ -212,6 +229,8 @@ export async function listSubscriptions(
     return {
       message: `Subscriptions successfully listed`,
       statusCode: 200,
+      user: userRepository.buildModel(userRow),
+      plans: planRepository.buildCollection(planRows),
       subscriptions: subscriptionRepository.buildCollection(subscriptionRows),
       all: request.all
     }
@@ -259,13 +278,32 @@ export async function businessSubscription(
     const backLog: Notify[] = []
     let isChanged = false
 
-    const selectedSubscriptionRow = await subscriptionRepository.selectRowByIdForUpdate(
-      trx,
-      request.subscriptionId
-    )
+    const selectedSubscriptionRow =
+      await subscriptionRepository.selectRowByIdForUpdate(
+        trx,
+        request.subscriptionId
+      )
 
     if (selectedSubscriptionRow === undefined) {
       throw new SubscriptionNotFoundError<BusinessSubscriptionRequest>(request)
+    }
+
+    const userRow = await userRepository.selectRowByIdForShare(
+      trx,
+      selectedSubscriptionRow.user_id
+    )
+
+    if (userRow === undefined) {
+      throw new UserNotFoundError<BusinessSubscriptionRequest>(request, 500)
+    }
+
+    const planRow = await planRepository.selectRowByIdForShare(
+      trx,
+      selectedSubscriptionRow.plan_id
+    )
+
+    if (planRow === undefined) {
+      throw new PlanNotFoundError<BusinessSubscriptionRequest>(request, 500)
     }
 
     if (selectedSubscriptionRow.status === 'wait') {
@@ -286,12 +324,11 @@ export async function businessSubscription(
     }
 
     if (isChanged) {
-      const updatedSubscriptionRow =
-        await subscriptionRepository.updateRowBusiness(
-          trx,
-          selectedSubscriptionRow.id,
-          selectedSubscriptionRow.status
-        )
+      const updatedSubscriptionRow = await subscriptionRepository.updateRowBusiness(
+        trx,
+        selectedSubscriptionRow.id,
+        selectedSubscriptionRow.status
+      )
 
       const subscriptionLogRow = await subscriptionLogRepository.insertRow(
         trx,
@@ -311,6 +348,8 @@ export async function businessSubscription(
       return {
         message: `Subscription successfully processed`,
         statusCode: 201,
+        user: userRepository.buildModel(userRow),
+        plan: planRepository.buildModel(planRow),
         subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
         backLog
       }
@@ -319,6 +358,8 @@ export async function businessSubscription(
     return {
       message: `Subscription successfully processed`,
       statusCode: 200,
+      user: userRepository.buildModel(userRow),
+      plan: planRepository.buildModel(planRow),
       subscription: subscriptionRepository.buildModel(selectedSubscriptionRow),
       backLog
     }
