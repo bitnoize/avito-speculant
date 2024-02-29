@@ -7,7 +7,15 @@ import {
   subscriptionService,
   categoryService
 } from '@avito-speculant/database'
-import { redisService, systemService } from '@avito-speculant/redis'
+import {
+  redisService,
+  systemService,
+  userCacheService,
+  planCacheService,
+  subscriptionCacheService,
+  categoryCacheService,
+  scraperCacheService,
+} from '@avito-speculant/redis'
 import {
   WaitingChildrenError,
   HeartbeatProcessor,
@@ -145,7 +153,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
           throw new WaitingChildrenError()
         }
 
-        step = 'check-scraper-jobs'
+        step = 'check-scrapers'
         await heartbeatJob.updateData({
           step
         })
@@ -153,49 +161,62 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
         break
       }
 
-      case 'check-scraper-jobs': {
+      case 'check-scrapers': {
         const repeatableJobs = await scraperQueue.getRepeatableJobs()
 
-        const listedScrapers = await cacheService.listScrapers(redis, {
-          //
-        })
+        const listedScrapersCache = await scraperCacheService.list(redis, {})
+
+        const { scrapersCache } = listedScrapersCache
 
         const orphanScraperJobs = repeatableJobs
-          .filter((repeatableJob) => !listedScrapers.jobIds.includes(repeatableJob.id))
+          .filter((repeatableJob) => !scrapersCache.includes(repeatableJob.id))
 
         for (const orphanScraperJob of orphanScraperJobs) {
           await scraperQueue.removeRepeatableByKey(orphanScraperJob.key)
 
-          logger.info(`Scraper removed orphan job`)
+          logger.warn(`Scraper removed orphan job`)
         }
 
-        for (const scraperJobId of listedScrapers.jobIds) {
-          const existsScrapperJob = repeatableJobs
-            .find((repeatableJob) =>
-              repeatableJob.id !== undefined && repeatableJob.id === scraperJobId
-            )
+        for (const scraperCache of scrapersCache) {
+          const scraperJob = scraperQueue.getJob(scraperCache.id)
 
-          if (existsScrapperJob !== undefined) {
-            const { repeat } = existsScrapperJob.opts
+          if (scrapperJob !== undefined) {
+            const listedCategoriesCache = await categoryCacheService.list(redis, {
+              scraperCacheId: scraperCache.id
+            })
 
-            if (listedScrapers.minIntervalSec === undefined) {
+            const { categoriesCache } = listedCategoriesCache
+
+            if (categoriesCache.length === 0) {
               await scraperQueue.removeRepeatableByKey(scraperJob.key)
             
-              const deletedScraper = await cacheService.deleteScraper(redis, {
-                scrapperJobId
+              const deletedScraperCache = await scraperCacheService.delete(redis, {
+                scraperCacheId: scraperCache.id
               })
 
               logger.info(`Scraper removed job`)
             } else {
-              if (intervalSec < repeat.every) {
-                await scraperQueue.removeRepeatableByKey(scraperJob.key)
+              for (const categoryCache of categoriesCache) {
+                if (categoryCache.intervalSec < scraperCache.intervalSec) {
+                  await scraperQueue.removeRepeatableByKey(scraperJob.key)
 
-                await scraperQueue.addJob()
+                  await scraperQueue.addJob()
 
-                logger.info(`Scraper replace job`)
-              } else {
+                  const updatedScraperCache = await scraperCacheService.update(redis, {
+                    scraperCacheId: scraperCache.id,
+                    intervalSec: categoryCache.intervalSec
+                  })
 
-                logger.info(`Scraper check job`)
+                  logger.info(`Scraper replace job`)
+                } else if (categoryCache.avitoUrl !== scraperCache.avitoUrl) {
+                  const disabledScraperCache = await scraperCacheService.disable(redis, {
+                    scraperCacheId: scraperCache.id
+                  })
+
+                  logger.warn(`Category disabled`)
+                } else {
+                  logger.debug(`Scraper check job`)
+                }
               }
             }
           } else {
