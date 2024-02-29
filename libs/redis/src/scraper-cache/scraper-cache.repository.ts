@@ -1,20 +1,20 @@
 import { Redis } from 'ioredis'
 import { parseNumber, parseString } from '../redis.utils.js'
 
-const scraperListKey = () =>
+const scraperSetKey = () =>
   ['cache', 'scrapers'].join(':')
 
-const scraperItemKey = (jobId: number) =>
+const scraperHashKey = (jobId: number) =>
   ['cache', 'scraper', jobId].join(':')
 
-export const getScraperListLua = `
+export const getScraperIndexLua = `
 return redis.call('SMEMBERS', KEYS[1])
 `
 
-export async function getScraperJobIds(
+export async function getIndex(
   redis: Redis
 ): Promise<number[]> {
-  const scraperJobsRaw = await redis.getScraperJobsLua(
+  const indexRaw = await redis.getScraperJobsLua(
     scraperJobsKey() // KEYS[1]
   )
 

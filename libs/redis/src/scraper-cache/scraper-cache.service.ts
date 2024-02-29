@@ -1,29 +1,28 @@
 import { Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
 import {
-  ListCacheScrapersRequest,
-  ListCacheScrapersResponse
-} from './dto/list-cache-scrapers.js'
-import * as cacheRepository from './cache.repository.js'
+  ListScrapersCacheRequest,
+  ListScrapersCacheResponse
+} from './dto/list-scrapers-cache.js'
+import * as scraperCacheRepository from './scraper-cache.repository.js'
 import { parseNumber, parseString } from '../redis.utils.js'
 
-export async function listCacheScrapers(
+export async function listScrapersCache(
   redis: Redis,
-  request: ListCacheScrapersRequest
-): Promise<ListCacheScrapersResponse> {
-  const scraperIndex = await cacheRepository.getScraperIndex(redis)
+  request: ListScrapersCacheRequest
+): Promise<ListScrapersCacheResponse> {
+  const scrapersCacheIds = await cacheRepository.getIndex(redis)
 
-  const scrapers = await cacheRepository.getScrapers(redis, scraperJobs)
+  const scrapersCache = await cacheRepository.getList(redis, scrapersCacheIndex)
 
   return {
     message: `Cache scrapers listed`,
     statusCode: 200,
-    scrapers,
+    scrapersCache,
   }
-
 }
 
-export async function fetchScraper(
+export async function readScraperCache(
   redis: Redis,
   request: FetchScraperRequest
 ): Promise<FetchScraperResponse> {

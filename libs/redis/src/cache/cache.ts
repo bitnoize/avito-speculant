@@ -1,4 +1,4 @@
-export interface ScraperJobCache {
+export interface CacheScraper {
   id: number
   avitoUrl: string
   intervalSec: number
