@@ -23,10 +23,10 @@ import databaseEnableCategoryCommand from './database/database-enable-category.c
 import databaseDisableCategoryCommand from './database/database-disable-category.command.js'
 import databaseListCategoriesCommand from './database/database-list-categories.command.js'
 import databaseListCategoryLogsCommand from './database/database-list-category-logs.command.js'
-import queueListenHeartbeatCommand from './queue/queue-listen-heartbeat.command.js'
-import queueListenBusinessCommand from './queue/queue-listen-business.command.js'
-import queueListenScraperCommand from './queue/queue-listen-scraper.command.js'
-import queueListenProxycheckCommand from './queue/queue-listen-proxycheck.command.js'
+import queueMonitorHeartbeatCommand from './queue/queue-monitor-heartbeat.command.js'
+import queueMonitorBusinessCommand from './queue/queue-monitor-business.command.js'
+import queueMonitorScraperCommand from './queue/queue-monitor-scraper.command.js'
+import queueMonitorProxycheckCommand from './queue/queue-monitor-proxycheck.command.js'
 import { Config } from './manager.js'
 import { configSchema } from './manager.schema.js'
 
@@ -72,10 +72,10 @@ async function bootstrap(): Promise<void> {
   const queueCommand = subcommands({
     name: 'queue',
     cmds: {
-      'listen-heartbeat': queueListenHeartbeatCommand(config, logger),
-      'listen-business': queueListenBusinessCommand(config, logger),
-      'listen-scraper': queueListenScraperCommand(config, logger),
-      'listen-proxycheck': queueListenProxycheckCommand(config, logger)
+      'monitor-heartbeat': queueMonitorHeartbeatCommand(config, logger),
+      'monitor-business': queueMonitorBusinessCommand(config, logger),
+      'monitor-scraper': queueMonitorScraperCommand(config, logger),
+      'monitor-proxycheck': queueMonitorProxycheckCommand(config, logger)
     }
   })
 

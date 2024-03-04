@@ -5,8 +5,8 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'queue-listen-business',
-    description: 'Queue listen business',
+    name: 'queue-monitor-business',
+    description: 'Queue monitor business',
     args: {},
     handler: async () => {
       const queueConnection = queueService.getQueueConnection<Config>(config)

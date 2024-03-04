@@ -1,18 +1,18 @@
 import { command } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
-import { HEARTBEAT_QUEUE_NAME, queueService } from '@avito-speculant/queue'
+import { PROXYCHECK_QUEUE_NAME, queueService } from '@avito-speculant/queue'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'queue-listen-heartbeat',
-    description: 'Queue listen heartbeat',
+    name: 'queue-monitor-proxycheck',
+    description: 'Queue monitor proxycheck',
     args: {},
     handler: async () => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const queueEvents = queueService.initQueueEvents(
         queueConnection,
-        HEARTBEAT_QUEUE_NAME,
+        PROXYCHECK_QUEUE_NAME,
         logger
       )
 

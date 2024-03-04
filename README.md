@@ -1,33 +1,33 @@
 Avito-Speculant
 ===============
 
-Bot
----
+Библиотеки:
 
-Телеграм бот + вебсервер
+* [@avito-speculant/config](https://github.com/bitnoize/avito-speculant/tree/main/libs/config)
+* [@avito-speculant/logger](https://github.com/bitnoize/avito-speculant/tree/main/libs/logger)
+* [@avito-speculant/database](https://github.com/bitnoize/avito-speculant/tree/main/libs/database)
+* [@avito-speculant/redis](https://github.com/bitnoize/avito-speculant/tree/main/libs/redis)
+* [@avito-speculant/queue](https://github.com/bitnoize/avito-speculant/tree/main/libs/queue)
 
-* Менеджмент пользователей и подписок.
-* Api для Webapps.
-* Оплата подписок.
-* Реферальная программа.
+Приложения:
+* [@avito-speculant/bot](https://github.com/bitnoize/avito-speculant/tree/main/apps/bot) - Телеграм бот
+* [@avito-speculant/manager](https://github.com/bitnoize/avito-speculant/tree/main/apps/manager) - Консольное приложения для управления кластером
+* [@avito-speculant/worker-heartbeat](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-heartbeat) - Воркер для очереди **heartbeat**
+* [@avito-speculant/worker-business](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-business) - Воркер для очереди **business**
+* [@avito-speculant/worker-proxycheck](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-proxycheck) - Воркер для очереди **proxycheck**
+* [@avito-speculant/worker-scraper](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-scraper) - Воркер для очереди **scraper**
 
-Scheduler
----------
+```
+# Собрать все модули
+npm --ws run build
 
-Состаляет расписание для очередей. В бесконечном цикле, на основе подписок, формирует
-таблицу переодических заданий для очереди scraper и схораняет ее в Redis.
+# Отформатировать код для всех модулей
+npm --ws run format
 
-* Защита от повторного запуска с помощью блокировки в Redis.
-* Сжатие списка уникальных категорий из подписок.
-* Обработка категорий для разных интервалов уведомлений.
+# Статический анализ кода всех модулей
+npm --ws run lint
 
-Worker-Scraper
---------------
-
-Воркер для очереди scraper.
-
-Worker-Notify
--------------
-
-Воркер для очереди notify.
+# Удалить временные файлы всех модулей
+npm --ws run clean
+```
 
