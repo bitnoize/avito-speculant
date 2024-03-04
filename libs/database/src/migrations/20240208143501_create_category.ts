@@ -13,11 +13,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('queued_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
-  await db.schema
-    .createIndex('category_user_id_key')
-    .on('category')
-    .column('user_id')
-    .execute()
+  await db.schema.createIndex('category_user_id_key').on('category').column('user_id').execute()
 
   await db.schema
     .createIndex('category_is_enabled_key')
@@ -37,11 +33,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .column('updated_at')
     .execute()
 
-  await db.schema
-    .createIndex('category_queued_at_key')
-    .on('category')
-    .column('queued_at')
-    .execute()
+  await db.schema.createIndex('category_queued_at_key').on('category').column('queued_at').execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

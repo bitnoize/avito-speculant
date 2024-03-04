@@ -4,9 +4,7 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('plan_log')
-    .addColumn('id', 'uuid', (col) =>
-      col.primaryKey().defaultTo(sql`gen_random_uuid()`)
-    )
+    .addColumn('id', 'uuid', (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
     .addColumn('plan_id', 'integer', (col) => col.notNull().references('plan.id'))
     .addColumn('action', 'varchar', (col) => col.notNull())
     .addColumn('categories_max', 'integer', (col) => col.notNull())
@@ -20,17 +18,9 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
-  await db.schema
-    .createIndex('plan_log_plan_id_key')
-    .on('plan_log')
-    .column('plan_id')
-    .execute()
+  await db.schema.createIndex('plan_log_plan_id_key').on('plan_log').column('plan_id').execute()
 
-  await db.schema
-    .createIndex('plan_log_action_key')
-    .on('plan_log')
-    .column('action')
-    .execute()
+  await db.schema.createIndex('plan_log_action_key').on('plan_log').column('action').execute()
 
   await db.schema
     .createIndex('plan_log_created_at_key')

@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { User, UserStatus } from '@avito-speculant/domain'
+import { User, UserStatus } from './user.js'
 import { UserRow } from './user.table.js'
 import { TransactionDatabase } from '../database.js'
 
@@ -39,10 +39,7 @@ export async function selectRowByTgFromIdForShare(
     .executeTakeFirst()
 }
 
-export async function insertRow(
-  trx: TransactionDatabase,
-  tg_from_id: string
-): Promise<UserRow> {
+export async function insertRow(trx: TransactionDatabase, tg_from_id: string): Promise<UserRow> {
   return await trx
     .insertInto('user')
     .values(() => ({
@@ -58,10 +55,23 @@ export async function insertRow(
     .executeTakeFirstOrThrow()
 }
 
-export async function selectRowsList(
+export async function updateRowStatus(
   trx: TransactionDatabase,
-  all: boolean
-): Promise<UserRow[]> {
+  user_id: number,
+  status: UserStatus
+): Promise<UserRow> {
+  return await trx
+    .updateTable('user')
+    .set(() => ({
+      status,
+      updated_at: sql`NOW()`
+    }))
+    .where('id', '=', user_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
+export async function selectRowsList(trx: TransactionDatabase, all: boolean): Promise<UserRow[]> {
   const filter = all ? ['trial', 'paid', 'block'] : ['trial', 'paid']
 
   return await trx

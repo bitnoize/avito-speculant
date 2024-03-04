@@ -1,5 +1,5 @@
 import { Generated, ColumnType, Selectable, Insertable } from 'kysely'
-import { CategoryLogData } from '@avito-speculant/domain'
+import { CategoryLogData } from './category-log.js'
 
 export interface CategoryLogTable {
   id: Generated<string>

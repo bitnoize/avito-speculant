@@ -19,18 +19,18 @@ export default (config: Config, logger: Logger) => {
         defaultValueIsSerializable: true
       })
     },
-    handler: async (args) => {
+    handler: async ({ planId, limit }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
-      const response = await planLogService.listPlanLogs(db, {
-        planId: args.planId,
-        limit: args.limit
+      const listedPlanLogs = await planLogService.listPlanLogs(db, {
+        planId,
+        limit
       })
 
-      logger.info(response)
+      logger.info(listedPlanLogs)
 
-      await db.destroy()
+      await databaseService.closeDatabase(db)
     }
   })
 }

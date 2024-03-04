@@ -1,4 +1,4 @@
-import { PlanLog } from '@avito-speculant/domain'
+import { PlanLog } from '../plan-log.js'
 
 export interface ListPlanLogsRequest {
   planId: number

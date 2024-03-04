@@ -16,115 +16,173 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheStoreUserModel(
-      userModelKey: string,
-      id: number,
-      tg_from_id: string,
-      status: string,
-      subscriptions: number,
-      categories: number,
-      created_at: number,
-      updated_at: number,
-      queued_at: number,
+    //
+    // UserCache
+    //
+
+    saveUserCache(
+      userKey: string,
+      usersKey: string,
+      userId: number,
+      tgFromId: string,
       timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheFetchUserModel(
-      userModelKey: string,
+    fetchUserCache(userKey: string, callback?: Callback<string>): Result<string, Context>
+
+    dropUserCache(
+      userKey: string,
+      usersKey: string,
+      userId: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheStorePlanModel(
-      planModelKey: string,
-      id: number,
-      categories_max: number,
-      price_rub: number,
-      duration_days: number,
-      interval_sec: number,
-      analytics_on: number,
-      is_enabled: number,
-      subscriptions: number,
-      created_at: number,
-      updated_at: number,
-      queued_at: number,
+    fetchUsersCacheIndex(usersKey: string, callback?: Callback<string>): Result<string, Context>
+
+    //
+    // PlanCache
+    //
+
+    savePlanCache(
+      planKey: string,
+      plansKey: string,
+      planId: number,
+      categoriesMax: number,
+      priceRub: number,
+      durationDays: number,
+      intervalSec: number,
+      analyticsOn: number,
       timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheFetchPlanModel(
-      planModelKey: string,
+    fetchPlanCache(planKey: string, callback?: Callback<string>): Result<string, Context>
+
+    dropPlanCache(
+      planKey: string,
+      plansKey: string,
+      planId: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheStorePlanCollection(
-      planCollectionKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
+    fetchPlansCacheIndex(plansKey: string, callback?: Callback<string>): Result<string, Context>
 
-    cacheFetchPlanCollection(
-      planCollectionKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
+    //
+    // SubscriptionCache
+    //
 
-    cacheStoreSubscriptionModel(
-      subscriptionModelKey: string,
-      id: number,
-      user_id: number,
-      plan_id: number,
-      categories_max: number,
-      price_rub: number,
-      duration_days: number,
-      interval_sec: number,
-      analytics_on: boolean,
-      status: string,
-      created_at: number,
-      updated_at: number,
-      queued_at: number,
+    saveSubscriptionCache(
+      subscriptionKey: string,
+      userSubscriptionKey: string,
+      planSubscriptionsKey: string,
+      subscriptionId: number,
+      userId: number,
+      planId: number,
+      categoriesMax: number,
+      priceRub: number,
+      durationDays: number,
+      intervalSec: number,
+      analyticsOn: number,
       timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheFetchSubscriptionModel(
-      subscriptionModelKey: string,
+    fetchSubscriptionCache(
+      subscriptionKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheStoreSubscriptionCollection(
-      subscriptionCollectionKey: string,
+    dropSubscriptionCache(
+      subscriptionKey: string,
+      userSubscriptionKey: string,
+      planSubscriptionsKey: string,
+      subscriptionId: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheFetchSubscriptionCollection(
-      subscriptionCollectionKey: string,
+    fetchUserSubscriptionCacheIndex(
+      userSubscriptionKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheStoreCategoryModel(
-      categoryModelKey: string,
-      id: number,
-      user_id: number,
-      avito_url: string,
-      is_enabled: number,
-      created_at: number,
-      updated_at: number,
-      queued_at: number,
+    fetchPlanSubscriptionsCacheIndex(
+      planSubscriptionsKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    //
+    // CategoryCache
+    //
+
+    saveCategoryCache(
+      categoryKey: string,
+      userCategoriesKey: string,
+      categoryId: number,
+      userId: number,
+      avitoUrl: string,
       timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheFetchCategoryModel(
-      categoryModelKey: string,
+    fetchCategoryCache(categoryKey: string, callback?: Callback<string>): Result<string, Context>
+
+    dropCategoryCache(
+      categoryKey: string,
+      userCategoriesKey: string,
+      categoryId: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheStoreCategoryCollection(
-      categoryCollectionKey: string,
+    fetchUserCategoriesCacheIndex(
+      userCategoriesKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    cacheFetchCategoryCollection(
-      categoryCollectionKey: string,
+    attachScraperCategoryCache(
+      scraperCategoriesKey: string,
+      categoryId: number,
+      timeout: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    detachScraperCategoryCache(
+      scraperCategoriesKey: string,
+      categoryId: number,
+      timeout: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchScraperCategoriesCacheIndex(
+      scraperCategoriesKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    //
+    // ScraperCache
+    //
+
+    saveScraperCache(
+      scraperKey: string,
+      scrapersKey: string,
+      scraperJobId: string,
+      avitoUrl: string,
+      intervalSec: number,
+      timeout: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchScraperCache(scraperKey: string, callback?: Callback<string>): Result<string, Context>
+
+    dropScraperCache(
+      scraperKey: string,
+      scrapersKey: string,
+      scraperJobId: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchScrapersCacheIndex(
+      scrapersKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
   }

@@ -1,7 +1,7 @@
 import { sql } from 'kysely'
-import { Notify, CategoryLog, CategoryLogData } from '@avito-speculant/domain'
+import { CategoryLog, CategoryLogData } from './category-log.js'
 import { CategoryLogRow } from './category-log.table.js'
-import { TransactionDatabase } from '../database.js'
+import { TransactionDatabase, Notify } from '../database.js'
 
 export async function insertRow(
   trx: TransactionDatabase,

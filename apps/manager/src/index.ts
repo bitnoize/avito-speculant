@@ -1,7 +1,7 @@
 import { binary, subcommands, run } from 'cmd-ts'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { DomainError } from '@avito-speculant/domain'
+import { HighDatabaseError } from '@avito-speculant/database'
 import systemStartCommand from './system/system-start.command.js'
 import systemStopCommand from './system/system-stop.command.js'
 import systemStatusCommand from './system/system-status.command.js'
@@ -14,7 +14,14 @@ import databaseEnablePlanCommand from './database/database-enable-plan.command.j
 import databaseDisablePlanCommand from './database/database-disable-plan.command.js'
 import databaseListPlansCommand from './database/database-list-plans.command.js'
 import databaseListPlanLogsCommand from './database/database-list-plan-logs.command.js'
+import databaseCreateSubscriptionCommand from './database/database-create-subscription.command.js'
+import databaseActivateSubscriptionCommand from './database/database-activate-subscription.command.js'
+import databaseListSubscriptionsCommand from './database/database-list-subscriptions.command.js'
 import databaseListSubscriptionLogsCommand from './database/database-list-subscription-logs.command.js'
+import databaseCreateCategoryCommand from './database/database-create-category.command.js'
+import databaseEnableCategoryCommand from './database/database-enable-category.command.js'
+import databaseDisableCategoryCommand from './database/database-disable-category.command.js'
+import databaseListCategoriesCommand from './database/database-list-categories.command.js'
 import databaseListCategoryLogsCommand from './database/database-list-category-logs.command.js'
 import queueListenHeartbeatCommand from './queue/queue-listen-heartbeat.command.js'
 import queueListenBusinessCommand from './queue/queue-listen-business.command.js'
@@ -41,7 +48,7 @@ async function bootstrap(): Promise<void> {
   const databaseCommand = subcommands({
     name: 'database',
     cmds: {
-      migrations: databaseMigrationsCommand(config, logger),
+      'migrations': databaseMigrationsCommand(config, logger),
       'list-users': databaseListUsersCommand(config, logger),
       'list-user-logs': databaseListUserLogsCommand(config, logger),
       'create-plan': databaseCreatePlanCommand(config, logger),
@@ -50,7 +57,14 @@ async function bootstrap(): Promise<void> {
       'disable-plan': databaseDisablePlanCommand(config, logger),
       'list-plans': databaseListPlansCommand(config, logger),
       'list-plan-logs': databaseListPlanLogsCommand(config, logger),
+      'create-subscription': databaseCreateSubscriptionCommand(config, logger),
+      'activate-subscription': databaseActivateSubscriptionCommand(config, logger),
+      'list-subscriptions': databaseListSubscriptionsCommand(config, logger),
       'list-subscription-logs': databaseListSubscriptionLogsCommand(config, logger),
+      'create-category': databaseCreateCategoryCommand(config, logger),
+      'enable-category': databaseEnableCategoryCommand(config, logger),
+      'disable-category': databaseDisableCategoryCommand(config, logger),
+      'list-categories': databaseListCategoriesCommand(config, logger),
       'list-category-logs': databaseListCategoryLogsCommand(config, logger)
     }
   })
@@ -79,7 +93,7 @@ async function bootstrap(): Promise<void> {
 
     await run(binaryApp, process.argv)
   } catch (error) {
-    if (error instanceof DomainError) {
+    if (error instanceof HighDatabaseError) {
       logger.error(
         {
           request: error.request,

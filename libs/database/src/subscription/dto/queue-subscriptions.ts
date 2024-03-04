@@ -1,4 +1,4 @@
-import { Subscription } from '@avito-speculant/domain'
+import { Subscription } from '../subscription.js'
 
 export interface QueueSubscriptionsRequest {
   limit: number

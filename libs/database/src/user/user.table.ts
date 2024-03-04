@@ -1,5 +1,5 @@
 import { Generated, ColumnType, Selectable, Insertable, Updateable } from 'kysely'
-import { UserStatus } from '@avito-speculant/domain'
+import { UserStatus } from './user.js'
 
 export interface UserTable {
   id: Generated<number>

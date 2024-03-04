@@ -1,4 +1,6 @@
-import { Notify, Plan, PlanLogData } from '@avito-speculant/domain'
+import { Plan } from '../plan.js'
+import { PlanLogData } from '../../plan-log/plan-log.js'
+import { Notify } from '../../database.js'
 
 export interface BusinessPlanRequest {
   planId: number

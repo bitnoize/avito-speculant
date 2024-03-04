@@ -1,22 +1,15 @@
-import {
-  Notify,
-  Plan,
-  PlanNotFoundError,
-  PlanIsEnabledError
-} from '@avito-speculant/domain'
 import { CreatePlanRequest, CreatePlanResponse } from './dto/create-plan.js'
 import { UpdatePlanRequest, UpdatePlanResponse } from './dto/update-plan.js'
-import {
-  EnableDisablePlanRequest,
-  EnableDisablePlanResponse
-} from './dto/enable-disable-plan.js'
+import { EnableDisablePlanRequest, EnableDisablePlanResponse } from './dto/enable-disable-plan.js'
 import { ListPlansRequest, ListPlansResponse } from './dto/list-plans.js'
 import { QueuePlansRequest, QueuePlansResponse } from './dto/queue-plans.js'
 import { BusinessPlanRequest, BusinessPlanResponse } from './dto/business-plan.js'
+import { Plan } from './plan.js'
+import { PlanNotFoundError, PlanIsEnabledError } from './plan.errors.js'
 import * as planRepository from './plan.repository.js'
 import * as planLogRepository from '../plan-log/plan-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
-import { KyselyDatabase } from '../database.js'
+import { KyselyDatabase, Notify } from '../database.js'
 
 /**
  * Create Plan
@@ -74,10 +67,7 @@ export async function updatePlan(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(
-      trx,
-      request.planId
-    )
+    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (selectedPlanRow === undefined) {
       throw new PlanNotFoundError<UpdatePlanRequest>(request)
@@ -151,10 +141,7 @@ export async function enablePlan(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(
-      trx,
-      request.planId
-    )
+    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (selectedPlanRow === undefined) {
       throw new PlanNotFoundError<EnableDisablePlanRequest>(request)
@@ -171,11 +158,7 @@ export async function enablePlan(
 
     // ...
 
-    const updatedPlanRow = await planRepository.updateRowIsEnabled(
-      trx,
-      selectedPlanRow.id,
-      true
-    )
+    const updatedPlanRow = await planRepository.updateRowIsEnabled(trx, selectedPlanRow.id, true)
 
     const planLogRow = await planLogRepository.insertRow(
       trx,
@@ -212,10 +195,7 @@ export async function disablePlan(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(
-      trx,
-      request.planId
-    )
+    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (selectedPlanRow === undefined) {
       throw new PlanNotFoundError<EnableDisablePlanRequest>(request)
@@ -232,11 +212,7 @@ export async function disablePlan(
 
     // ...
 
-    const updatedPlanRow = await planRepository.updateRowIsEnabled(
-      trx,
-      selectedPlanRow.id,
-      false
-    )
+    const updatedPlanRow = await planRepository.updateRowIsEnabled(trx, selectedPlanRow.id, false)
 
     const planLogRow = await planLogRepository.insertRow(
       trx,
@@ -292,10 +268,7 @@ export async function queuePlans(
   return await db.transaction().execute(async (trx) => {
     const plans: Plan[] = []
 
-    const selectedPlanRows = await planRepository.selectRowsSkipLockedForUpdate(
-      trx,
-      request.limit
-    )
+    const selectedPlanRows = await planRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
 
     for (const planRow of selectedPlanRows) {
       const updatedPlanRow = await planRepository.updateRowQueuedAt(trx, planRow.id)
@@ -322,10 +295,7 @@ export async function businessPlan(
     const backLog: Notify[] = []
     let isChanged = false
 
-    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(
-      trx,
-      request.planId
-    )
+    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (selectedPlanRow === undefined) {
       throw new PlanNotFoundError<BusinessPlanRequest>(request)

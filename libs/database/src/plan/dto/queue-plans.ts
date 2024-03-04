@@ -1,4 +1,4 @@
-import { Plan } from '@avito-speculant/domain'
+import { Plan } from '../plan.js'
 
 export interface QueuePlansRequest {
   limit: number

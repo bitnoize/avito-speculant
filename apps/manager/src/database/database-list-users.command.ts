@@ -15,17 +15,17 @@ export default (config: Config, logger: Logger) => {
         //defaultValueIsSerializable: true
       })
     },
-    handler: async (args) => {
+    handler: async ({ all }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
-      const response = await userService.listUsers(db, {
-        all: args.all
+      const listedUsers = await userService.listUsers(db, {
+        all
       })
 
-      logger.info(response)
+      logger.info(listedUsers)
 
-      await db.destroy()
+      await databaseService.closeDatabase(db)
     }
   })
 }

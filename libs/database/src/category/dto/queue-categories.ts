@@ -1,4 +1,4 @@
-import { Category } from '@avito-speculant/domain'
+import { Category } from '../category.js'
 
 export interface QueueCategoriesRequest {
   limit: number

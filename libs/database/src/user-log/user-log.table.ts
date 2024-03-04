@@ -1,5 +1,6 @@
 import { Generated, ColumnType, Selectable, Insertable } from 'kysely'
-import { UserStatus, UserLogData } from '@avito-speculant/domain'
+import { UserLogData } from './user-log.js'
+import { UserStatus } from '../user/user.js'
 
 export interface UserLogTable {
   id: Generated<string>

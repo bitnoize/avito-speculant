@@ -13,8 +13,6 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      //await systemService.acquireHeartbeatLock(redis, logger, 'test', 60_000)
-
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const heartbeatQueue = heartbeatService.initQueue(queueConnection, logger)
 
@@ -24,8 +22,8 @@ export default (config: Config, logger: Logger) => {
         logger.info(job, `Repeatable job dumped`)
       }
 
-      await heartbeatQueue.close()
-      await redis.disconnect()
+      await heartbeatService.closeQueue(heartbeatQueue)
+      await redisService.closeRedis(redis)
     }
   })
 }

@@ -2,10 +2,7 @@ import { Kysely, sql } from 'kysely'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function up(db: Kysely<any>): Promise<void> {
-  await db.schema
-    .createType('user_status')
-    .asEnum(['trial', 'paid', 'block'])
-    .execute()
+  await db.schema.createType('user_status').asEnum(['trial', 'paid', 'block']).execute()
 
   await db.schema
     .createTable('user')
@@ -26,29 +23,13 @@ export async function up(db: Kysely<any>): Promise<void> {
     .unique()
     .execute()
 
-  await db.schema
-    .createIndex('user_status_key')
-    .on('user')
-    .column('status')
-    .execute()
+  await db.schema.createIndex('user_status_key').on('user').column('status').execute()
 
-  await db.schema
-    .createIndex('user_created_at_key')
-    .on('user')
-    .column('created_at')
-    .execute()
+  await db.schema.createIndex('user_created_at_key').on('user').column('created_at').execute()
 
-  await db.schema
-    .createIndex('user_updated_at_key')
-    .on('user')
-    .column('updated_at')
-    .execute()
+  await db.schema.createIndex('user_updated_at_key').on('user').column('updated_at').execute()
 
-  await db.schema
-    .createIndex('user_queued_at_key')
-    .on('user')
-    .column('queued_at')
-    .execute()
+  await db.schema.createIndex('user_queued_at_key').on('user').column('queued_at').execute()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

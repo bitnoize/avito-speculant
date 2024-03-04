@@ -34,30 +34,31 @@ export default (config: Config, logger: Logger) => {
         long: 'analytics-on'
       })
     },
-    handler: async (args) => {
+    handler: async ({ planId, categoriesMax, priceRub, durationDays, intervalSec, analyticsOn }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const pubSub = redisService.initPubSub(redisOptions, logger)
 
-      const response = await planService.updatePlan(db, {
-        planId: args.planId,
-        categoriesMax: args.categoriesMax,
-        priceRub: args.priceRub,
-        durationDays: args.durationDays,
-        intervalSec: args.intervalSec,
-        analyticsOn:
-          args.analyticsOn === undefined ? undefined : !!args.analyticsOn,
-        data: {}
+      const updatedPlan = await planService.updatePlan(db, {
+        planId,
+        categoriesMax,
+        priceRub,
+        durationDays,
+        intervalSec,
+        analyticsOn: analyticsOn === undefined ? undefined : !!analyticsOn,
+        data: {
+          message: `Plan updated via Manager`
+        }
       })
 
-      await redisService.publishBackLog(pubSub, response.backLog, logger)
+      logger.info(updatedPlan)
 
-      logger.info(response)
+      await redisService.publishBackLog(pubSub, updatedPlan.backLog)
 
-      await pubSub.disconnect()
-      await db.destroy()
+      await redisService.closePubSub(pubSub)
+      await databaseService.closeDatabase(db)
     }
   })
 }

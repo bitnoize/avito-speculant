@@ -1,4 +1,4 @@
-import { User, Subscription, Category } from '@avito-speculant/domain'
+import { Category } from '../category.js'
 
 export interface ListCategoriesRequest {
   userId: number
@@ -8,8 +8,6 @@ export interface ListCategoriesRequest {
 export interface ListCategoriesResponse {
   message: string
   statusCode: number
-  user: User
-  subscription?: Subscription
   categories: Category[]
   all: boolean
 }

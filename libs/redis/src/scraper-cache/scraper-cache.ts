@@ -1,16 +1,5 @@
-export interface UserCache {
-  id: number
-}
-
-export interface CategoryCache {
-  id: number
-  scraperJobId: number
-  intervalSec: number
-
-}
-
 export interface ScraperCache {
-  jobId: number
+  jobId: string
   avitoUrl: string
   intervalSec: number
 }

@@ -1,9 +1,12 @@
 import { RedisOptions, Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
-import { Notify } from '@avito-speculant/domain'
 import * as systemRepository from './system/system.repository.js'
-import * as cacheRepository from './cache/cache.repository.js'
-import { RedisConfig } from './redis.js'
+import * as userCacheRepository from './user-cache/user-cache.repository.js'
+import * as planCacheRepository from './plan-cache/plan-cache.repository.js'
+import * as subscriptionCacheRepository from './subscription-cache/subscription-cache.repository.js'
+import * as categoryCacheRepository from './category-cache/category-cache.repository.js'
+import * as scraperCacheRepository from './scraper-cache/scraper-cache.repository.js'
+import { RedisConfig, Notify } from './redis.js'
 
 /**
  * Get RedisOptions from config
@@ -26,21 +29,162 @@ export function getRedisOptions<T extends RedisConfig>(config: T): RedisOptions 
 export function initRedis(options: RedisOptions, logger: Logger): Redis {
   const redis = new Redis(options)
 
+  //
+  // System
+  //
+
   redis.on('connect', () => {
     logger.debug(`Redis successfully connected`)
   })
 
-  redis.defineCommand('getScraperJobs', {
-    numberOfKeys: 1,
-    lua: cacheRepository.getScraperJobsLua
+  //
+  // UserCache
+  //
+
+  redis.defineCommand('saveUserCache', {
+    numberOfKeys: 2,
+    lua: userCacheRepository.saveUserCacheLua
   })
 
-  redis.defineCommand('getScraperJobById', {
+  redis.defineCommand('fetchUserCache', {
     numberOfKeys: 1,
-    lua: cacheRepository.getScraperJobByIdLua
+    lua: userCacheRepository.fetchUserCacheLua
+  })
+
+  redis.defineCommand('dropUserCache', {
+    numberOfKeys: 2,
+    lua: userCacheRepository.dropUserCacheLua
+  })
+
+  redis.defineCommand('fetchUsersCacheIndex', {
+    numberOfKeys: 1,
+    lua: userCacheRepository.fetchUsersCacheIndexLua
+  })
+
+  //
+  // PlanCache
+  //
+
+  redis.defineCommand('savePlanCache', {
+    numberOfKeys: 2,
+    lua: planCacheRepository.savePlanCacheLua
+  })
+
+  redis.defineCommand('fetchPlanCache', {
+    numberOfKeys: 1,
+    lua: planCacheRepository.fetchPlanCacheLua
+  })
+
+  redis.defineCommand('dropPlanCache', {
+    numberOfKeys: 2,
+    lua: planCacheRepository.dropPlanCacheLua
+  })
+
+  redis.defineCommand('fetchPlansCacheIndex', {
+    numberOfKeys: 1,
+    lua: planCacheRepository.fetchPlansCacheIndexLua
+  })
+
+  //
+  // SubscriptionCache
+  //
+
+  redis.defineCommand('saveSubscriptionCache', {
+    numberOfKeys: 3,
+    lua: subscriptionCacheRepository.saveSubscriptionCacheLua
+  })
+
+  redis.defineCommand('fetchSubscriptionCache', {
+    numberOfKeys: 1,
+    lua: subscriptionCacheRepository.fetchSubscriptionCacheLua
+  })
+
+  redis.defineCommand('dropSubscriptionCache', {
+    numberOfKeys: 3,
+    lua: subscriptionCacheRepository.dropSubscriptionCacheLua
+  })
+
+  redis.defineCommand('fetchUserSubscriptionCacheIndex', {
+    numberOfKeys: 1,
+    lua: subscriptionCacheRepository.fetchUserSubscriptionCacheIndexLua
+  })
+
+  redis.defineCommand('fetchPlanSubscriptionsCacheIndex', {
+    numberOfKeys: 1,
+    lua: subscriptionCacheRepository.fetchPlanSubscriptionsCacheIndexLua
+  })
+
+  //
+  // CategoryCache
+  //
+
+  redis.defineCommand('saveCategoryCache', {
+    numberOfKeys: 2,
+    lua: categoryCacheRepository.saveCategoryCacheLua
+  })
+
+  redis.defineCommand('fetchCategoryCache', {
+    numberOfKeys: 1,
+    lua: categoryCacheRepository.fetchCategoryCacheLua
+  })
+
+  redis.defineCommand('dropCategoryCache', {
+    numberOfKeys: 2,
+    lua: categoryCacheRepository.dropCategoryCacheLua
+  })
+
+  redis.defineCommand('fetchUserCategoriesCacheIndex', {
+    numberOfKeys: 1,
+    lua: categoryCacheRepository.fetchUserCategoriesCacheIndexLua
+  })
+
+  redis.defineCommand('attachScraperCategoryCacheIndex', {
+    numberOfKeys: 2,
+    lua: categoryCacheRepository.attachScraperCategoryCacheIndexLua
+  })
+
+  redis.defineCommand('detachScraperCategoryCacheIndex', {
+    numberOfKeys: 2,
+    lua: categoryCacheRepository.detachScraperCategoryCacheIndexLua
+  })
+
+  redis.defineCommand('fetchScraperCategoriesCacheIndex', {
+    numberOfKeys: 1,
+    lua: categoryCacheRepository.fetchScraperCategoriesCacheIndexLua
+  })
+
+  //
+  // ScraperCache
+  //
+
+  redis.defineCommand('saveScraperCache', {
+    numberOfKeys: 2,
+    lua: scraperCacheRepository.saveScraperCacheLua
+  })
+
+  redis.defineCommand('fetchScraperCache', {
+    numberOfKeys: 1,
+    lua: scraperCacheRepository.fetchScraperCacheLua
+  })
+
+  redis.defineCommand('dropScraperCache', {
+    numberOfKeys: 2,
+    lua: scraperCacheRepository.dropScraperCacheLua
+  })
+
+  redis.defineCommand('fetchScrapersCacheIndex', {
+    numberOfKeys: 1,
+    lua: scraperCacheRepository.fetchScrapersCacheIndexLua
   })
 
   return redis
+}
+
+/**
+ * Close Redis connection
+ */
+export async function closeRedis(redis: Redis): Promise<void> {
+  await redis.disconnect()
 }
 
 /**
@@ -57,17 +201,18 @@ export function initPubSub(options: RedisOptions, logger: Logger): Redis {
 }
 
 /*
- * Publish BackLog
+ * PubSub publish BackLog
  */
-export async function publishBackLog(
-  pubSub: Redis,
-  backLog: Notify[],
-  logger: Logger,
-): Promise<void> {
+export async function publishBackLog(pubSub: Redis, backLog: Notify[]): Promise<void> {
   for (const notify of backLog) {
-    const [channel, logId, modelId, action] = notify
-    await pubSub.publish(channel, `${logId}\t${modelId}\t${action}`)
-
-    logger.debug({ channel, logId, modelId, action }, `Publish BackLog Notify`)
+    const [channel, logId, id, action] = notify
+    await pubSub.publish(channel, `${logId}\t${id}\t${action}`)
   }
+}
+
+/**
+ * Close PubSub connection
+ */
+export async function closePubSub(pubSub: Redis): Promise<void> {
+  await pubSub.disconnect()
 }

@@ -1,12 +1,8 @@
 import { sql } from 'kysely'
-import {
-  Notify,
-  SubscriptionStatus,
-  SubscriptionLog,
-  SubscriptionLogData
-} from '@avito-speculant/domain'
+import { SubscriptionLog, SubscriptionLogData } from './subscription-log.js'
 import { SubscriptionLogRow } from './subscription-log.table.js'
-import { TransactionDatabase } from '../database.js'
+import { SubscriptionStatus } from '../subscription/subscription.js'
+import { TransactionDatabase, Notify } from '../database.js'
 
 export async function insertRow(
   trx: TransactionDatabase,

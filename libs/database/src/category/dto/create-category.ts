@@ -1,10 +1,6 @@
-import {
-  Notify,
-  User,
-  Subscription,
-  Category,
-  CategoryLogData
-} from '@avito-speculant/domain'
+import { Category } from '../category.js'
+import { CategoryLogData } from '../../category-log/category-log.js'
+import { Notify } from '../../database.js'
 
 export interface CreateCategoryRequest {
   userId: number
@@ -15,8 +11,6 @@ export interface CreateCategoryRequest {
 export interface CreateCategoryResponse {
   message: string
   statusCode: number
-  user: User
-  subscription?: Subscription
   category: Category
   backLog: Notify[]
 }

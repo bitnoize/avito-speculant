@@ -3,7 +3,6 @@ import {
   ConnectionOptions,
   RateLimiterOptions,
   Queue,
-  QueueEvents,
   BulkJobOptions,
   Worker,
   MetricsTime
@@ -23,10 +22,7 @@ import {
 /**
  * Initialize Queue
  */
-export function initQueue(
-  connection: ConnectionOptions,
-  logger: Logger
-): BusinessQueue {
+export function initQueue(connection: ConnectionOptions, logger: Logger): BusinessQueue {
   const queue = new Queue<BusinessData, BusinessResult>(BUSINESS_QUEUE_NAME, {
     connection
   })
@@ -39,33 +35,13 @@ export function initQueue(
 }
 
 /**
- * Initialize QueueEvents
- */
-export function initQueueEvents(
-  connection: ConnectionOptions,
-  logger: Logger
-): QueueEvents {
-  const queueEvents = new QueueEvents(BUSINESS_QUEUE_NAME, {
-    connection,
-    autorun: false
-  })
-
-  queueEvents.on('error', (error) => {
-    logger.error(error, `There was an error in the BusinessQueue`)
-  })
-
-  return queueEvents
-}
-
-/**
  * Add Jobs
  */
 export async function addJobs(
   queue: BusinessQueue,
   name: string,
   ids: number[],
-  heartbeatJob: HeartbeatJob,
-  logger: Logger,
+  heartbeatJob: HeartbeatJob
 ): Promise<BusinessJob[]> {
   if (heartbeatJob.id === undefined) {
     throw new Error(`HeartbeatJob lost id`)
@@ -78,20 +54,20 @@ export async function addJobs(
     }
   }
 
-  const jobs = await queue.addBulk(
+  return await queue.addBulk(
     ids.map((id) => ({
       name,
       data: { id },
       opts
     }))
   )
+}
 
-  jobs.forEach((job) => {
-    // FIXME
-    logger.debug(`BusinessJob added`)
-  })
-
-  return jobs
+/**
+ * Close Queue
+ */
+export async function closeQueue(queue: BusinessQueue): Promise<void> {
+  await queue.close()
 }
 
 /**
@@ -104,9 +80,7 @@ export function getWorkerConcurrency<T extends BusinessConfig>(config: T): numbe
 /**
  * Get Worker limiter from config
  */
-export function getWorkerLimiter<T extends BusinessConfig>(
-  config: T
-): RateLimiterOptions {
+export function getWorkerLimiter<T extends BusinessConfig>(config: T): RateLimiterOptions {
   return {
     max: config.BUSINESS_LIMITER_MAX,
     duration: config.BUSINESS_LIMITER_DURATION
@@ -123,29 +97,39 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): BusinessWorker {
-  const worker = new Worker<BusinessData, BusinessResult>(
-    BUSINESS_QUEUE_NAME,
-    processor,
-    {
-      connection,
-      concurrency,
-      limiter,
-      autorun: false,
-      removeOnComplete: {
-        count: 0
-      },
-      removeOnFail: {
-        count: 0
-      },
-      metrics: {
-        maxDataPoints: MetricsTime.ONE_WEEK
-      }
+  const worker = new Worker<BusinessData, BusinessResult>(BUSINESS_QUEUE_NAME, processor, {
+    connection,
+    concurrency,
+    limiter,
+    autorun: false,
+    removeOnComplete: {
+      count: 0
+    },
+    removeOnFail: {
+      count: 0
+    },
+    metrics: {
+      maxDataPoints: MetricsTime.ONE_WEEK
     }
-  )
+  })
 
   worker.on('error', (error) => {
     logger.error(error, `There was an error in the BusinessWorker`)
   })
 
   return worker
+}
+
+/**
+ * Run Worker
+ */
+export async function runWorker(worker: BusinessWorker): Promise<void> {
+  await worker.run()
+}
+
+/**
+ * Close Worker
+ */
+export async function closeWorker(worker: BusinessWorker): Promise<void> {
+  await worker.close()
 }

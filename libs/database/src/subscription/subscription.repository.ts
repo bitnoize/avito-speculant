@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { Subscription, SubscriptionStatus } from '@avito-speculant/domain'
+import { Subscription, SubscriptionStatus } from './subscription.js'
 import { SubscriptionRow } from './subscription.table.js'
 import { TransactionDatabase } from '../database.js'
 
@@ -105,9 +105,7 @@ export async function selectRowsList(
   user_id: number,
   all: boolean
 ): Promise<SubscriptionRow[]> {
-  const filter = all
-    ? ['wait', 'cancel', 'active', 'finish']
-    : ['wait', 'active', 'finish']
+  const filter = all ? ['wait', 'cancel', 'active', 'finish'] : ['wait', 'active', 'finish']
 
   return await trx
     .selectFrom('subscription')

@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { Plan } from '@avito-speculant/domain'
+import { Plan } from './plan.js'
 import { PlanRow } from './plan.table.js'
 import { TransactionDatabase } from '../database.js'
 
@@ -93,10 +93,7 @@ export async function updateRowIsEnabled(
     .executeTakeFirstOrThrow()
 }
 
-export async function selectRowsList(
-  trx: TransactionDatabase,
-  all: boolean
-): Promise<PlanRow[]> {
+export async function selectRowsList(trx: TransactionDatabase, all: boolean): Promise<PlanRow[]> {
   return await trx
     .selectFrom('plan')
     .selectAll()

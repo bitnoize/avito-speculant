@@ -1,4 +1,4 @@
-import { User, Plan, Subscription } from '@avito-speculant/domain'
+import { Subscription } from '../subscription.js'
 
 export interface ListSubscriptionsRequest {
   userId: number
@@ -8,8 +8,6 @@ export interface ListSubscriptionsRequest {
 export interface ListSubscriptionsResponse {
   message: string
   statusCode: number
-  user: User
-  plans: Plan[]
   subscriptions: Subscription[]
   all: boolean
 }

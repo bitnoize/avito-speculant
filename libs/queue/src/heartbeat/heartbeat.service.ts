@@ -1,12 +1,5 @@
 import { Logger } from '@avito-speculant/logger'
-import {
-  ConnectionOptions,
-  RateLimiterOptions,
-  Queue,
-  QueueEvents,
-  Worker,
-  MetricsTime
-} from 'bullmq'
+import { ConnectionOptions, RateLimiterOptions, Queue, Worker, MetricsTime } from 'bullmq'
 import {
   HEARTBEAT_QUEUE_NAME,
   HeartbeatConfig,
@@ -21,10 +14,7 @@ import {
 /**
  * Initialize Queue
  */
-export function initQueue(
-  connection: ConnectionOptions,
-  logger: Logger
-): HeartbeatQueue {
+export function initQueue(connection: ConnectionOptions, logger: Logger): HeartbeatQueue {
   const queue = new Queue<HeartbeatData, HeartbeatResult>(HEARTBEAT_QUEUE_NAME, {
     connection
   })
@@ -37,22 +27,10 @@ export function initQueue(
 }
 
 /**
- * Initialize QueueEvents
+ * Close Queue
  */
-export function initQueueEvents(
-  connection: ConnectionOptions,
-  logger: Logger
-): QueueEvents {
-  const queueEvents = new QueueEvents(HEARTBEAT_QUEUE_NAME, {
-    connection,
-    autorun: false
-  })
-
-  queueEvents.on('error', (error) => {
-    logger.error(error, `There was an error in the HeartbeatQueue`)
-  })
-
-  return queueEvents
+export async function closeQueue(queue: HeartbeatQueue): Promise<void> {
+  await queue.close()
 }
 
 /**
@@ -60,10 +38,11 @@ export function initQueueEvents(
  */
 export async function addJob(
   queue: HeartbeatQueue,
-  every: number,
+  name: string,
+  every: number
 ): Promise<HeartbeatJob> {
-  const job = await queue.add(
-    `queue_business`,
+  return await queue.add(
+    name,
     {
       step: 'queue-users'
     },
@@ -73,8 +52,6 @@ export async function addJob(
       }
     }
   )
-
-  return job
 }
 
 /**
@@ -87,9 +64,7 @@ export function getWorkerConcurrency<T extends HeartbeatConfig>(config: T): numb
 /**
  * Get Worker limiter from config
  */
-export function getWorkerLimiter<T extends HeartbeatConfig>(
-  config: T
-): RateLimiterOptions {
+export function getWorkerLimiter<T extends HeartbeatConfig>(config: T): RateLimiterOptions {
   return {
     max: config.HEARTBEAT_LIMITER_MAX,
     duration: config.HEARTBEAT_LIMITER_DURATION
@@ -106,29 +81,39 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): HeartbeatWorker {
-  const worker = new Worker<HeartbeatData, HeartbeatResult>(
-    HEARTBEAT_QUEUE_NAME,
-    processor,
-    {
-      connection,
-      concurrency,
-      limiter,
-      autorun: false,
-      removeOnComplete: {
-        count: 0
-      },
-      removeOnFail: {
-        count: 0
-      },
-      metrics: {
-        maxDataPoints: MetricsTime.ONE_WEEK
-      }
+  const worker = new Worker<HeartbeatData, HeartbeatResult>(HEARTBEAT_QUEUE_NAME, processor, {
+    connection,
+    concurrency,
+    limiter,
+    autorun: false,
+    removeOnComplete: {
+      count: 0
+    },
+    removeOnFail: {
+      count: 0
+    },
+    metrics: {
+      maxDataPoints: MetricsTime.ONE_WEEK
     }
-  )
+  })
 
   worker.on('error', (error) => {
     logger.error(error, `There was an error in the HeartbeatWorker`)
   })
 
   return worker
+}
+
+/**
+ * Run Worker
+ */
+export async function runWorker(worker: HeartbeatWorker): Promise<void> {
+  await worker.run()
+}
+
+/**
+ * Close Worker
+ */
+export async function closeWorker(worker: HeartbeatWorker): Promise<void> {
+  await worker.close()
 }

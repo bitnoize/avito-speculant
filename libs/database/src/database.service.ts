@@ -11,24 +11,16 @@ import {
 import { Logger } from '@avito-speculant/logger'
 import { DatabaseConfig, Database } from './database.js'
 
-pg.types.setTypeParser(pg.types.builtins.INT8, (value: string): number =>
-  parseInt(value, 10)
-)
+pg.types.setTypeParser(pg.types.builtins.INT8, (value: string): number => parseInt(value, 10))
 
-pg.types.setTypeParser(pg.types.builtins.TIMESTAMP, (value: string): number =>
-  Date.parse(value)
-)
+pg.types.setTypeParser(pg.types.builtins.TIMESTAMP, (value: string): number => Date.parse(value))
 
-pg.types.setTypeParser(pg.types.builtins.TIMESTAMPTZ, (value: string): number =>
-  Date.parse(value)
-)
+pg.types.setTypeParser(pg.types.builtins.TIMESTAMPTZ, (value: string): number => Date.parse(value))
 
 /**
  * Get DatabaseConfig from config
  */
-export function getDatabaseConfig<T extends DatabaseConfig>(
-  config: T
-): pg.ClientConfig {
+export function getDatabaseConfig<T extends DatabaseConfig>(config: T): pg.ClientConfig {
   return {
     host: config.POSTGRES_HOST,
     port: config.POSTGRES_PORT,
@@ -39,12 +31,9 @@ export function getDatabaseConfig<T extends DatabaseConfig>(
 }
 
 /**
- * Initialize Database instance
+ * Initialize database instance
  */
-export function initDatabase(
-  config: pg.PoolConfig,
-  logger: Logger
-): Kysely<Database> {
+export function initDatabase(config: pg.PoolConfig, logger: Logger): Kysely<Database> {
   const pool = new pg.Pool({
     ...config
   })
@@ -98,10 +87,7 @@ export function initDatabase(
 /*
  * Apply database migrations
  */
-export async function migrateToLatest(
-  db: Kysely<Database>,
-  logger: Logger
-): Promise<void> {
+export async function migrateToLatest(db: Kysely<Database>, logger: Logger): Promise<void> {
   const migrationFolder = new URL('./migrations', import.meta.url).pathname
   const provider = new FileMigrationProvider({
     fs,
@@ -130,4 +116,11 @@ export async function migrateToLatest(
   }
 
   logger.debug(`All database migrations successfully applied`)
+}
+
+/*
+ * Close database connection
+ */
+export async function closeDatabase(db: Kysely<Database>): Promise<void> {
+  await db.destroy()
 }

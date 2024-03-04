@@ -7,7 +7,6 @@
     "tsBuildInfoFile": ".cache/tsbuildinfo"
   },
   "references": [
-    { "path": "../../libs/domain" },
     { "path": "../../libs/logger" },
     { "path": "../../libs/database" },
     { "path": "../../libs/redis" },

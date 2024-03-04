@@ -14,24 +14,26 @@ export default (config: Config, logger: Logger) => {
         displayName: 'planId'
       })
     },
-    handler: async (args) => {
+    handler: async ({ planId }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const pubSub = redisService.initPubSub(redisOptions, logger)
 
-      const response = await planService.disablePlan(db, {
-        planId: args.planId,
-        data: {}
+      const disabledPlan = await planService.disablePlan(db, {
+        planId,
+        data: {
+          message: `Plan disabled via Manager`
+        }
       })
 
-      await redisService.publishBackLog(pubSub, response.backLog, logger)
+      logger.info(disabledPlan)
 
-      logger.info(response)
+      await redisService.publishBackLog(pubSub, disabledPlan.backLog)
 
-      await pubSub.disconnect()
-      await db.destroy()
+      await redisService.closePubSub(pubSub)
+      await databaseService.closeDatabase(db)
     }
   })
 }

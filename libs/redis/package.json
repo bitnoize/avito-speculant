@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/redis",
   "type": "module",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Avito-Speculant Redis shared library",
   "private": true,
   "main": "dist/index.js",
@@ -15,7 +15,6 @@
     "build:watch": "tsc -b -w"
   },
   "dependencies": {
-    "@avito-speculant/domain": "*",
     "@avito-speculant/logger": "*",
     "ioredis": "^5.3.2",
     "uuid": "^9.0.1"

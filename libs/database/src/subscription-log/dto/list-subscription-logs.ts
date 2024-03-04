@@ -1,4 +1,4 @@
-import { SubscriptionLog } from '@avito-speculant/domain'
+import { SubscriptionLog } from '../subscription-log.js'
 
 export interface ListSubscriptionLogsRequest {
   subscriptionId: number

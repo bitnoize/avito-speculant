@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { Category } from '@avito-speculant/domain'
+import { Category } from './category.js'
 import { CategoryRow } from './category.table.js'
 import { TransactionDatabase } from '../database.js'
 
@@ -23,20 +23,6 @@ export async function selectRowByIdForUpdate(
     .selectFrom('category')
     .selectAll()
     .where('id', '=', category_id)
-    .forUpdate()
-    .executeTakeFirst()
-}
-
-export async function selectRowByIdUserIdForUpdate(
-  trx: TransactionDatabase,
-  category_id: number,
-  user_id: number
-): Promise<CategoryRow | undefined> {
-  return await trx
-    .selectFrom('category')
-    .selectAll()
-    .where('id', '=', category_id)
-    .where('user_id', '=', user_id)
     .forUpdate()
     .executeTakeFirst()
 }

@@ -1,10 +1,10 @@
-import { SubscriptionNotFoundError } from '@avito-speculant/domain'
 import {
   ListSubscriptionLogsRequest,
   ListSubscriptionLogsResponse
 } from './dto/list-subscription-logs.js'
-import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as subscriptionLogRepository from './subscription-log.repository.js'
+import { SubscriptionNotFoundError } from '../subscription/subscription.errors.js'
+import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import { KyselyDatabase } from '../database.js'
 
 /*
@@ -33,8 +33,7 @@ export async function listSubscriptionLogs(
     return {
       message: `SubscriptionLogs successfully listed`,
       statusCode: 200,
-      subscriptionLogs:
-        subscriptionLogRepository.buildCollection(subscriptionLogRows),
+      subscriptionLogs: subscriptionLogRepository.buildCollection(subscriptionLogRows),
       limit: request.limit
     }
   })

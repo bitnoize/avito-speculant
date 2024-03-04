@@ -1,4 +1,4 @@
-import { User } from '@avito-speculant/domain'
+import { User } from '../user.js'
 
 export interface QueueUsersRequest {
   limit: number

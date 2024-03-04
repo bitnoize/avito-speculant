@@ -1,4 +1,4 @@
-import { CategoryLog } from '@avito-speculant/domain'
+import { CategoryLog } from '../category-log.js'
 
 export interface ListCategoryLogsRequest {
   categoryId: number

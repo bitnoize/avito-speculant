@@ -1,13 +1,8 @@
-import {
-  Notify,
-  User,
-  Subscription,
-  Category,
-  CategoryLogData
-} from '@avito-speculant/domain'
+import { Category } from '../category.js'
+import { CategoryLogData } from '../../category-log/category-log.js'
+import { Notify } from '../../database.js'
 
 export interface EnableDisableCategoryRequest {
-  userId: number
   categoryId: number
   data: CategoryLogData
 }
@@ -15,8 +10,6 @@ export interface EnableDisableCategoryRequest {
 export interface EnableDisableCategoryResponse {
   message: string
   statusCode: number
-  user: User
-  subscription?: Subscription
   category: Category
   backLog: Notify[]
 }

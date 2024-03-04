@@ -1,10 +1,6 @@
-import {
-  Notify,
-  User,
-  Plan,
-  Subscription,
-  SubscriptionLogData
-} from '@avito-speculant/domain'
+import { Subscription } from '../subscription.js'
+import { SubscriptionLogData } from '../../subscription-log/subscription-log.js'
+import { Notify } from '../../database.js'
 
 export interface CreateSubscriptionRequest {
   userId: number
@@ -15,8 +11,6 @@ export interface CreateSubscriptionRequest {
 export interface CreateSubscriptionResponse {
   message: string
   statusCode: number
-  user: User
-  plan: Plan
   subscription: Subscription
   backLog: Notify[]
 }

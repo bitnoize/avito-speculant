@@ -1,7 +1,7 @@
-import { PlanNotFoundError } from '@avito-speculant/domain'
 import { ListPlanLogsRequest, ListPlanLogsResponse } from './dto/list-plan-logs.js'
-import * as planRepository from '../plan/plan.repository.js'
 import * as planLogRepository from './plan-log.repository.js'
+import { PlanNotFoundError } from '../plan/plan.errors.js'
+import * as planRepository from '../plan/plan.repository.js'
 import { KyselyDatabase } from '../database.js'
 
 /*
@@ -18,11 +18,7 @@ export async function listPlanLogs(
       throw new PlanNotFoundError<ListPlanLogsRequest>(request)
     }
 
-    const planLogRows = await planLogRepository.selectRowsList(
-      trx,
-      planRow.id,
-      request.limit
-    )
+    const planLogRows = await planLogRepository.selectRowsList(trx, planRow.id, request.limit)
 
     return {
       message: `PlanLogs successfully listed`,

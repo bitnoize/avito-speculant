@@ -1,5 +1,5 @@
 import { Generated, ColumnType, Selectable, Insertable } from 'kysely'
-import { PlanLogData } from '@avito-speculant/domain'
+import { PlanLogData } from './plan-log.js'
 
 export interface PlanLogTable {
   id: Generated<string>

@@ -1,4 +1,7 @@
-import { Notify, User, Subscription, UserLogData } from '@avito-speculant/domain'
+import { User } from '../user.js'
+import { UserLogData } from '../../user-log/user-log.js'
+import { Subscription } from '../../subscription/subscription.js'
+import { Notify } from '../../database.js'
 
 export interface AuthorizeUserRequest {
   tgFromId: string

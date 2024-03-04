@@ -1,39 +1,25 @@
-import {
-  Notify,
-  Subscription,
-  UserNotFoundError,
-  UserBlockedError,
-  PlanNotFoundError,
-  PlanIsDisabledError,
-  SubscriptionNotFoundError,
-  SubscriptionExistsError,
-  SubscriptionNotWaitError
-} from '@avito-speculant/domain'
-import {
-  CreateSubscriptionRequest,
-  CreateSubscriptionResponse
-} from './dto/create-subscription.js'
-import {
-  CancelSubscriptionRequest,
-  CancelSubscriptionResponse
-} from './dto/cancel-subscription.js'
-import {
-  ListSubscriptionsRequest,
-  ListSubscriptionsResponse
-} from './dto/list-subscriptions.js'
-import {
-  QueueSubscriptionsRequest,
-  QueueSubscriptionsResponse
-} from './dto/queue-subscriptions.js'
+import { CreateSubscriptionRequest, CreateSubscriptionResponse } from './dto/create-subscription.js'
+import { CancelSubscriptionRequest, CancelSubscriptionResponse } from './dto/cancel-subscription.js'
+import { ListSubscriptionsRequest, ListSubscriptionsResponse } from './dto/list-subscriptions.js'
+import { QueueSubscriptionsRequest, QueueSubscriptionsResponse } from './dto/queue-subscriptions.js'
 import {
   BusinessSubscriptionRequest,
   BusinessSubscriptionResponse
 } from './dto/business-subscription.js'
-import * as userRepository from '../user/user.repository.js'
-import * as planRepository from '../plan/plan.repository.js'
+import { Subscription } from './subscription.js'
+import {
+  SubscriptionNotFoundError,
+  SubscriptionExistsError,
+  SubscriptionNotWaitError
+} from './subscription.errors.js'
 import * as subscriptionRepository from './subscription.repository.js'
 import * as subscriptionLogRepository from '../subscription-log/subscription-log.repository.js'
-import { KyselyDatabase } from '../database.js'
+import { UserNotFoundError, UserBlockedError } from '../user/user.errors.js'
+import * as userRepository from '../user/user.repository.js'
+import * as userLogRepository from '../user-log/user-log.repository.js'
+import { PlanNotFoundError, PlanIsDisabledError } from '../plan/plan.errors.js'
+import * as planRepository from '../plan/plan.repository.js'
+import { KyselyDatabase, Notify } from '../database.js'
 
 /**
  * Create Subscription
@@ -65,12 +51,11 @@ export async function createSubscription(
       throw new PlanIsDisabledError<CreateSubscriptionRequest>(request)
     }
 
-    const existsSubscriptionRow =
-      await subscriptionRepository.selectRowByUserIdStatusForShare(
-        trx,
-        userRow.id,
-        'wait'
-      )
+    const existsSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
+      trx,
+      userRow.id,
+      'wait'
+    )
 
     if (existsSubscriptionRow !== undefined) {
       throw new SubscriptionExistsError<CreateSubscriptionRequest>(request)
@@ -105,8 +90,6 @@ export async function createSubscription(
     return {
       message: `Subscription successfully created`,
       statusCode: 201,
-      user: userRepository.buildModel(userRow),
-      plan: planRepository.buildModel(planRow),
       subscription: subscriptionRepository.buildModel(insertedSubscriptionRow),
       backLog
     }
@@ -133,32 +116,20 @@ export async function cancelSubscription(
       throw new UserBlockedError<CancelSubscriptionRequest>(request)
     }
 
-    const selectedSubscriptionRow =
-      await subscriptionRepository.selectRowByIdUserIdForUpdate(
-        trx,
-        request.subscriptionId,
-        request.userId
-      )
+    const selectedSubscriptionRow = await subscriptionRepository.selectRowByIdUserIdForUpdate(
+      trx,
+      request.subscriptionId,
+      request.userId
+    )
 
     if (selectedSubscriptionRow === undefined) {
       throw new SubscriptionNotFoundError<CancelSubscriptionRequest>(request)
-    }
-
-    const planRow = await planRepository.selectRowByIdForShare(
-      trx,
-      selectedSubscriptionRow.plan_id
-    )
-
-    if (planRow === undefined) {
-      throw new PlanNotFoundError<CancelSubscriptionRequest>(request, 500)
     }
 
     if (selectedSubscriptionRow.status === 'cancel') {
       return {
         message: `Subscription allready canceled`,
         statusCode: 200,
-        user: userRepository.buildModel(userRow),
-        plan: planRepository.buildModel(planRow),
         subscription: subscriptionRepository.buildModel(selectedSubscriptionRow),
         backLog
       }
@@ -192,8 +163,88 @@ export async function cancelSubscription(
     return {
       message: `Subscription successfully canceled`,
       statusCode: 201,
-      user: userRepository.buildModel(userRow),
-      plan: planRepository.buildModel(planRow),
+      subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
+      backLog
+    }
+  })
+}
+
+/**
+ * Activate Subscription
+ */
+export async function activateSubscription(
+  db: KyselyDatabase,
+  request: CancelSubscriptionRequest
+): Promise<CancelSubscriptionResponse> {
+  return await db.transaction().execute(async (trx) => {
+    const backLog: Notify[] = []
+
+    const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
+
+    if (userRow === undefined) {
+      throw new UserNotFoundError<CancelSubscriptionRequest>(request)
+    }
+
+    if (userRow.status === 'block') {
+      throw new UserBlockedError<CancelSubscriptionRequest>(request)
+    }
+
+    const selectedSubscriptionRow = await subscriptionRepository.selectRowByIdUserIdForUpdate(
+      trx,
+      request.subscriptionId,
+      request.userId
+    )
+
+    if (selectedSubscriptionRow === undefined) {
+      throw new SubscriptionNotFoundError<CancelSubscriptionRequest>(request)
+    }
+
+    if (selectedSubscriptionRow.status !== 'wait') {
+      throw new SubscriptionNotWaitError<CancelSubscriptionRequest>(request)
+    }
+
+    const updatedSubscriptionRow = await subscriptionRepository.updateRowStatus(
+      trx,
+      selectedSubscriptionRow.id,
+      'active'
+    )
+
+    const subscriptionLogRow = await subscriptionLogRepository.insertRow(
+      trx,
+      updatedSubscriptionRow.id,
+      'active_wait_subscription',
+      updatedSubscriptionRow.categories_max,
+      updatedSubscriptionRow.price_rub,
+      updatedSubscriptionRow.duration_days,
+      updatedSubscriptionRow.interval_sec,
+      updatedSubscriptionRow.analytics_on,
+      updatedSubscriptionRow.status,
+      request.data
+    )
+
+    backLog.push(subscriptionLogRepository.buildNotify(subscriptionLogRow))
+
+    const updatedUserRow = await userRepository.updateRowStatus(
+      trx,
+      userRow.id,
+      'paid'
+    )
+
+    const userLogRow = await userLogRepository.insertRow(
+      trx,
+      updatedUserRow.id,
+      'update_user_paid',
+      updatedUserRow.status,
+      updatedUserRow.subscriptions,
+      updatedUserRow.categories,
+      request.data
+    )
+
+    backLog.push(userLogRepository.buildNotify(userLogRow))
+
+    return {
+      message: `Subscription successfully activated`,
+      statusCode: 201,
       subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
       backLog
     }
@@ -218,8 +269,6 @@ export async function listSubscriptions(
       throw new UserBlockedError<ListSubscriptionsRequest>(request)
     }
 
-    const planRows = await planRepository.selectRowsList(trx, true)
-
     const subscriptionRows = await subscriptionRepository.selectRowsList(
       trx,
       request.userId,
@@ -229,8 +278,6 @@ export async function listSubscriptions(
     return {
       message: `Subscriptions successfully listed`,
       statusCode: 200,
-      user: userRepository.buildModel(userRow),
-      plans: planRepository.buildCollection(planRows),
       subscriptions: subscriptionRepository.buildCollection(subscriptionRows),
       all: request.all
     }
@@ -247,8 +294,10 @@ export async function queueSubscriptions(
   return await db.transaction().execute(async (trx) => {
     const subscriptions: Subscription[] = []
 
-    const selectedSubscriptionRows =
-      await subscriptionRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
+    const selectedSubscriptionRows = await subscriptionRepository.selectRowsSkipLockedForUpdate(
+      trx,
+      request.limit
+    )
 
     for (const subscriptionRow of selectedSubscriptionRows) {
       const updatedSubscriptionRow = await subscriptionRepository.updateRowQueuedAt(
@@ -278,29 +327,22 @@ export async function businessSubscription(
     const backLog: Notify[] = []
     let isChanged = false
 
-    const selectedSubscriptionRow =
-      await subscriptionRepository.selectRowByIdForUpdate(
-        trx,
-        request.subscriptionId
-      )
+    const selectedSubscriptionRow = await subscriptionRepository.selectRowByIdForUpdate(
+      trx,
+      request.subscriptionId
+    )
 
     if (selectedSubscriptionRow === undefined) {
       throw new SubscriptionNotFoundError<BusinessSubscriptionRequest>(request)
     }
 
-    const userRow = await userRepository.selectRowByIdForShare(
-      trx,
-      selectedSubscriptionRow.user_id
-    )
+    const userRow = await userRepository.selectRowByIdForShare(trx, selectedSubscriptionRow.user_id)
 
     if (userRow === undefined) {
       throw new UserNotFoundError<BusinessSubscriptionRequest>(request, 500)
     }
 
-    const planRow = await planRepository.selectRowByIdForShare(
-      trx,
-      selectedSubscriptionRow.plan_id
-    )
+    const planRow = await planRepository.selectRowByIdForShare(trx, selectedSubscriptionRow.plan_id)
 
     if (planRow === undefined) {
       throw new PlanNotFoundError<BusinessSubscriptionRequest>(request, 500)
@@ -348,8 +390,6 @@ export async function businessSubscription(
       return {
         message: `Subscription successfully processed`,
         statusCode: 201,
-        user: userRepository.buildModel(userRow),
-        plan: planRepository.buildModel(planRow),
         subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
         backLog
       }
@@ -358,8 +398,6 @@ export async function businessSubscription(
     return {
       message: `Subscription successfully processed`,
       statusCode: 200,
-      user: userRepository.buildModel(userRow),
-      plan: planRepository.buildModel(planRow),
       subscription: subscriptionRepository.buildModel(selectedSubscriptionRow),
       backLog
     }

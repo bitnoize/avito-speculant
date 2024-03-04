@@ -19,18 +19,18 @@ export default (config: Config, logger: Logger) => {
         defaultValueIsSerializable: true
       })
     },
-    handler: async (args) => {
+    handler: async ({ subscriptionId, limit }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
-      const response = await subscriptionLogService.listSubscriptionLogs(db, {
-        subscriptionId: args.subscriptionId,
-        limit: args.limit
+      const listedSubscriptionLogs = await subscriptionLogService.listSubscriptionLogs(db, {
+        subscriptionId,
+        limit
       })
 
-      logger.info(response)
+      logger.info(listedSubscriptionLogs)
 
-      await db.destroy()
+      await databaseService.closeDatabase(db)
     }
   })
 }

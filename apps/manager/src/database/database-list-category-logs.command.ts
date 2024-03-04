@@ -19,18 +19,18 @@ export default (config: Config, logger: Logger) => {
         defaultValueIsSerializable: true
       })
     },
-    handler: async (args) => {
+    handler: async ({ categoryId, limit }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
-      const response = await categoryLogService.listCategoryLogs(db, {
-        categoryId: args.categoryId,
-        limit: args.limit
+      const listedCategoryLogs = await categoryLogService.listCategoryLogs(db, {
+        categoryId,
+        limit
       })
 
-      logger.info(response)
+      logger.info(listedCategoryLogs)
 
-      await db.destroy()
+      await databaseService.closeDatabase(db)
     }
   })
 }

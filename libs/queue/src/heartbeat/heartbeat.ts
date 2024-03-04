@@ -14,6 +14,7 @@ export const HEARTBEAT_STEPS = [
   'queue-subscriptions',
   'queue-categories',
   'wait-results',
+  'check-scrapers',
   'complete'
 ]
 export type HeartbeatStep = (typeof HEARTBEAT_STEPS)[number]

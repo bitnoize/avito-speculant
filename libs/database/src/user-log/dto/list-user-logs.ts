@@ -1,4 +1,4 @@
-import { UserLog } from '@avito-speculant/domain'
+import { UserLog } from '../user-log.js'
 
 export interface ListUserLogsRequest {
   userId: number

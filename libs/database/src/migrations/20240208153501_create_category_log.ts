@@ -4,12 +4,8 @@ import { Kysely, sql } from 'kysely'
 export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('category_log')
-    .addColumn('id', 'uuid', (col) =>
-      col.primaryKey().defaultTo(sql`gen_random_uuid()`)
-    )
-    .addColumn('category_id', 'integer', (col) =>
-      col.notNull().references('category.id')
-    )
+    .addColumn('id', 'uuid', (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
+    .addColumn('category_id', 'integer', (col) => col.notNull().references('category.id'))
     .addColumn('action', 'varchar', (col) => col.notNull())
     .addColumn('avito_url', 'varchar', (col) => col.notNull())
     .addColumn('is_enabled', 'boolean', (col) => col.notNull())

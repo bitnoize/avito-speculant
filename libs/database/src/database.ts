@@ -29,3 +29,8 @@ export interface Database {
 
 export type KyselyDatabase = Kysely<Database>
 export type TransactionDatabase = Transaction<Database>
+
+export const CHANNELS = ['user', 'plan', 'subscription', 'category']
+export type Channel = (typeof CHANNELS)[number]
+
+export type Notify = [Channel, string, number, string]

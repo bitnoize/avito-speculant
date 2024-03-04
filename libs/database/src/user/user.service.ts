@@ -1,16 +1,14 @@
-import { UserNotFoundError, Notify, User } from '@avito-speculant/domain'
-import {
-  AuthorizeUserRequest,
-  AuthorizeUserResponse
-} from './dto/authorize-user.js'
+import { AuthorizeUserRequest, AuthorizeUserResponse } from './dto/authorize-user.js'
 import { ListUsersRequest, ListUsersResponse } from './dto/list-users.js'
 import { QueueUsersRequest, QueueUsersResponse } from './dto/queue-users.js'
 import { BusinessUserRequest, BusinessUserResponse } from './dto/business-user.js'
+import { User } from './user.js'
+import { UserNotFoundError } from './user.errors.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as categoryRepository from '../category/category.repository.js'
-import { KyselyDatabase } from '../database.js'
+import { KyselyDatabase, Notify } from '../database.js'
 
 /**
  * Authorize User
@@ -22,18 +20,14 @@ export async function authorizeUser(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const selectedUserRow = await userRepository.selectRowByTgFromIdForShare(
-      trx,
-      request.tgFromId
-    )
+    const selectedUserRow = await userRepository.selectRowByTgFromIdForShare(trx, request.tgFromId)
 
     if (selectedUserRow !== undefined) {
-      const subscriptionRow =
-        await subscriptionRepository.selectRowByUserIdStatusForShare(
-          trx,
-          selectedUserRow.id,
-          'active' // FIXME
-        )
+      const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
+        trx,
+        selectedUserRow.id,
+        'active' // FIXME
+      )
 
       return {
         message: `User allready exists`,
@@ -103,10 +97,7 @@ export async function queueUsers(
   return await db.transaction().execute(async (trx) => {
     const users: User[] = []
 
-    const selectedUserRows = await userRepository.selectRowsSkipLockedForUpdate(
-      trx,
-      request.limit
-    )
+    const selectedUserRows = await userRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
 
     for (const userRow of selectedUserRows) {
       const updatedUserRow = await userRepository.updateRowQueuedId(trx, userRow.id)
@@ -133,10 +124,7 @@ export async function businessUser(
     const backLog: Notify[] = []
     let isChanged = false
 
-    const selectedUserRow = await userRepository.selectRowByIdForUpdate(
-      trx,
-      request.userId
-    )
+    const selectedUserRow = await userRepository.selectRowByIdForUpdate(trx, request.userId)
 
     if (selectedUserRow === undefined) {
       throw new UserNotFoundError<BusinessUserRequest>(request)
@@ -157,10 +145,7 @@ export async function businessUser(
       selectedUserRow.subscriptions = subscriptions
     }
 
-    const { categories } = await categoryRepository.selectCountByUserId(
-      trx,
-      selectedUserRow.id
-    )
+    const { categories } = await categoryRepository.selectCountByUserId(trx, selectedUserRow.id)
 
     if (selectedUserRow.categories !== categories) {
       isChanged = true

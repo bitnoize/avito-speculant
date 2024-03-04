@@ -19,13 +19,13 @@ export default (config: Config, logger: Logger) => {
       const jobs = await heartbeatQueue.getRepeatableJobs()
 
       for (const job of jobs) {
-        logger.info(job, `Repeatable job now destroed`)
-
         heartbeatQueue.removeRepeatableByKey(job.key)
+
+        logger.info(job, `Repeatable job now destroed`)
       }
 
-      await heartbeatQueue.close()
-      await redis.disconnect()
+      await heartbeatService.closeQueue(heartbeatQueue)
+      await redisService.closeRedis(redis)
     }
   })
 }
