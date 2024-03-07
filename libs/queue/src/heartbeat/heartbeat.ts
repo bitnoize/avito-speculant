@@ -13,8 +13,10 @@ export const HEARTBEAT_STEPS = [
   'queue-plans',
   'queue-subscriptions',
   'queue-categories',
+  'queue-proxies',
   'wait-results',
   'check-scrapers',
+  //'check-reporters',
   'complete'
 ]
 export type HeartbeatStep = (typeof HEARTBEAT_STEPS)[number]

@@ -19,6 +19,8 @@
 * subscriptionLogService - Логи подписок
 * categoryService - Категории
 * categoryLogService - Логи категорий
+* proxyService - Прокси
+* proxyLogService - Логи проксей
 
 ```
 # Собрать модуль

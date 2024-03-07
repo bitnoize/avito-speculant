@@ -38,9 +38,9 @@ export async function insertRow(
       user_id,
       avito_url,
       is_enabled: false,
-      created_at: sql`NOW()`,
-      updated_at: sql`NOW()`,
-      queued_at: sql`NOW()`
+      created_at: sql<number>`now()`,
+      updated_at: sql<number>`now()`,
+      queued_at: sql<number>`now()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -55,7 +55,7 @@ export async function updateRow(
     .updateTable('category')
     .set(() => ({
       avito_url,
-      updated_at: sql`NOW()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', category_id)
     .returningAll()
@@ -71,7 +71,7 @@ export async function updateRowIsEnabled(
     .updateTable('category')
     .set(() => ({
       is_enabled,
-      updated_at: sql`NOW()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', category_id)
     .returningAll()
@@ -129,7 +129,7 @@ export async function updateRowQueuedAt(
   return await trx
     .updateTable('category')
     .set(() => ({
-      queued_at: sql`NOW()`
+      queued_at: sql<number>`now()`
     }))
     .where('id', '=', category_id)
     .returningAll()
@@ -145,7 +145,7 @@ export async function updateRowBusiness(
     .updateTable('category')
     .set(() => ({
       is_enabled,
-      updated_at: sql`NOW()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', category_id)
     .returningAll()

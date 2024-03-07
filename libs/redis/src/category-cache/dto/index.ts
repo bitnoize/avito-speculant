@@ -1,6 +1,5 @@
-export * from './save-category-cache.js'
 export * from './fetch-category-cache.js'
+export * from './save-category-cache.js'
 export * from './drop-category-cache.js'
 export * from './list-user-categories-cache.js'
-export * from './attach-detach-scraper-category-cache.js'
 export * from './list-scraper-categories-cache.js'

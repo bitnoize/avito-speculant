@@ -237,6 +237,44 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
       break
     }
 
+    case 'proxy': {
+      //
+      // Proxy Business Job
+      //
+
+      const businessProxy = await proxyService.businessProxy(db, {
+        proxyId: businessJob.data.id,
+        data: {
+          businessJobId: businessJob.id
+        }
+      })
+
+      logger.debug(businessProxy)
+
+      const { proxy, backLog } = businessProxy
+
+      if (proxy.isEnabled) {
+        const savedProxyCache = await proxyCacheService.saveProxyCache(redis, {
+          proxyId: proxy.id,
+          proxyUrl: proxy.proxyUrl,
+          isOnline: proxy.isOnline,
+          timeout: config.CACHE_BUSINESS_TIMEOUT
+        })
+
+        logger.debug(savedProxyCache)
+      } else {
+        const droppedProxyCache = await planCacheService.dropProxyCache(redis, {
+          planId: plan.id
+        })
+
+        logger.debug(droppedProxyCache)
+      }
+
+      await redisService.publish(pubSub, backLog)
+
+      break
+    }
+
     default: {
       throw new Error(`BusinessJob unknown name`)
     }

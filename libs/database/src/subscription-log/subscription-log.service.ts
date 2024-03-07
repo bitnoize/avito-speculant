@@ -1,7 +1,5 @@
-import {
-  ListSubscriptionLogsRequest,
-  ListSubscriptionLogsResponse
-} from './dto/list-subscription-logs.js'
+import { ListSubscriptionLogsRequest, ListSubscriptionLogsResponse } from './dto/index.js'
+import { DEFAULT_SUBSCRIPTION_LOG_LIST_LIMIT } from './subscription-log.js'
 import * as subscriptionLogRepository from './subscription-log.repository.js'
 import { SubscriptionNotFoundError } from '../subscription/subscription.errors.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
@@ -27,7 +25,7 @@ export async function listSubscriptionLogs(
     const subscriptionLogRows = await subscriptionLogRepository.selectRowsList(
       trx,
       subscriptionRow.id,
-      request.limit
+      (request.limit ??= DEFAULT_SUBSCRIPTION_LOG_LIST_LIMIT)
     )
 
     return {

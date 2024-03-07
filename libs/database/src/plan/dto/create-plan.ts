@@ -1,6 +1,6 @@
+import { Notify } from '@avito-speculant/notify'
 import { Plan } from '../plan.js'
 import { PlanLogData } from '../../plan-log/plan-log.js'
-import { Notify } from '../../database.js'
 
 export interface CreatePlanRequest {
   categoriesMax: number

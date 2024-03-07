@@ -1,14 +1,21 @@
-import { AuthorizeUserRequest, AuthorizeUserResponse } from './dto/authorize-user.js'
-import { ListUsersRequest, ListUsersResponse } from './dto/list-users.js'
-import { QueueUsersRequest, QueueUsersResponse } from './dto/queue-users.js'
-import { BusinessUserRequest, BusinessUserResponse } from './dto/business-user.js'
-import { User } from './user.js'
+import { Notify } from '@avito-speculant/notify'
+import {
+  AuthorizeUserRequest,
+  AuthorizeUserResponse,
+  ListUsersRequest,
+  ListUsersResponse,
+  QueueUsersRequest,
+  QueueUsersResponse,
+  BusinessUserRequest,
+  BusinessUserResponse
+} from './dto/index.js'
+import { DEFAULT_USER_LIST_ALL, DEFAULT_USER_QUEUE_LIMIT, User } from './user.js'
 import { UserNotFoundError } from './user.errors.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as categoryRepository from '../category/category.repository.js'
-import { KyselyDatabase, Notify } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /**
  * Authorize User
@@ -20,19 +27,19 @@ export async function authorizeUser(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const selectedUserRow = await userRepository.selectRowByTgFromIdForShare(trx, request.tgFromId)
+    const existsUserRow = await userRepository.selectRowByTgFromIdForShare(trx, request.tgFromId)
 
-    if (selectedUserRow !== undefined) {
+    if (existsUserRow !== undefined) {
       const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
         trx,
-        selectedUserRow.id,
-        'active' // FIXME
+        existsUserRow.id,
+        'active'
       )
 
       return {
-        message: `User allready exists`,
+        message: `User successfully authorized`,
         statusCode: 200,
-        user: userRepository.buildModel(selectedUserRow),
+        user: userRepository.buildModel(existsUserRow),
         subscription:
           subscriptionRow !== undefined
             ? subscriptionRepository.buildModel(subscriptionRow)
@@ -76,7 +83,10 @@ export async function listUsers(
   return await db.transaction().execute(async (trx) => {
     // ...
 
-    const userRows = await userRepository.selectRowsList(trx, request.all)
+    const userRows = await userRepository.selectRowsList(
+      trx,
+      (request.all ??= DEFAULT_USER_LIST_ALL)
+    )
 
     return {
       message: `Users successfully listed`,
@@ -97,18 +107,22 @@ export async function queueUsers(
   return await db.transaction().execute(async (trx) => {
     const users: User[] = []
 
-    const selectedUserRows = await userRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
+    const userRows = await userRepository.selectRowsSkipLockedForUpdate(
+      trx,
+      (request.limit ??= DEFAULT_USER_QUEUE_LIMIT)
+    )
 
-    for (const userRow of selectedUserRows) {
+    for (const userRow of userRows) {
       const updatedUserRow = await userRepository.updateRowQueuedId(trx, userRow.id)
 
       users.push(userRepository.buildModel(updatedUserRow))
     }
 
     return {
-      message: `Users successfully queued`,
+      message: `Users successfully enqueued`,
       statusCode: 200,
-      users
+      users,
+      limit: request.limit
     }
   })
 }
@@ -124,68 +138,67 @@ export async function businessUser(
     const backLog: Notify[] = []
     let isChanged = false
 
-    const selectedUserRow = await userRepository.selectRowByIdForUpdate(trx, request.userId)
+    const userRow = await userRepository.selectRowByIdForUpdate(trx, request.userId)
 
-    if (selectedUserRow === undefined) {
+    if (userRow === undefined) {
       throw new UserNotFoundError<BusinessUserRequest>(request)
     }
 
-    if (selectedUserRow.status === 'paid') {
+    if (userRow.status === 'paid') {
       // TODO
     }
 
-    const { subscriptions } = await subscriptionRepository.selectCountByUserId(
-      trx,
-      selectedUserRow.id
-    )
+    const { subscriptions } = await subscriptionRepository.selectCountByUserId(trx, userRow.id)
 
-    if (selectedUserRow.subscriptions !== subscriptions) {
+    if (userRow.subscriptions !== subscriptions) {
       isChanged = true
 
-      selectedUserRow.subscriptions = subscriptions
+      userRow.subscriptions = subscriptions
     }
 
-    const { categories } = await categoryRepository.selectCountByUserId(trx, selectedUserRow.id)
+    const { categories } = await categoryRepository.selectCountByUserId(trx, userRow.id)
 
-    if (selectedUserRow.categories !== categories) {
+    if (userRow.categories !== categories) {
       isChanged = true
 
-      selectedUserRow.categories = categories
+      userRow.categories = categories
     }
 
-    if (isChanged) {
-      const updatedUserRow = await userRepository.updateRowBusiness(
-        trx,
-        selectedUserRow.id,
-        selectedUserRow.status,
-        selectedUserRow.subscriptions,
-        selectedUserRow.categories
-      )
+    // ...
 
-      const userLogRow = await userLogRepository.insertRow(
-        trx,
-        updatedUserRow.id,
-        'business_user',
-        updatedUserRow.status,
-        updatedUserRow.subscriptions,
-        updatedUserRow.categories,
-        request.data
-      )
-
-      backLog.push(userLogRepository.buildNotify(userLogRow))
-
+    if (!isChanged) {
       return {
-        message: `User successfully processed`,
-        statusCode: 201,
-        user: userRepository.buildModel(updatedUserRow),
+        message: `User not changed`,
+        statusCode: 200,
+        user: userRepository.buildModel(userRow),
         backLog
       }
     }
 
+    const updatedUserRow = await userRepository.updateRowBusiness(
+      trx,
+      userRow.id,
+      userRow.status,
+      userRow.subscriptions,
+      userRow.categories
+    )
+
+    const userLogRow = await userLogRepository.insertRow(
+      trx,
+      updatedUserRow.id,
+      'business_user',
+      updatedUserRow.status,
+      updatedUserRow.subscriptions,
+      updatedUserRow.categories,
+      request.data
+    )
+
+    backLog.push(userLogRepository.buildNotify(userLogRow))
+
     return {
       message: `User successfully processed`,
-      statusCode: 200,
-      user: userRepository.buildModel(selectedUserRow),
+      statusCode: 201,
+      user: userRepository.buildModel(updatedUserRow),
       backLog
     }
   })

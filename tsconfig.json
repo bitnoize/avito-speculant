@@ -3,7 +3,7 @@
   "references": [
     { "path": "libs/config" },
     { "path": "libs/logger" },
-    { "path": "libs/domain" },
+    { "path": "libs/notify" },
     { "path": "libs/database" },
     { "path": "libs/redis" },
     { "path": "libs/queue" },
@@ -12,6 +12,7 @@
     { "path": "apps/worker-heartbeat" },
     { "path": "apps/worker-business" },
     { "path": "apps/worker-scraper" },
-    { "path": "apps/worker-proxycheck" }
+    { "path": "apps/worker-proxycheck" },
+    { "path": "apps/worker-report" }
   ]
 }

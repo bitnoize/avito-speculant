@@ -26,7 +26,8 @@ export const configSchema: JSONSchemaType<Config> = {
     'HEARTBEAT_QUEUE_USERS_LIMIT',
     'HEARTBEAT_QUEUE_PLANS_LIMIT',
     'HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT',
-    'HEARTBEAT_QUEUE_CATEGORIES_LIMIT'
+    'HEARTBEAT_QUEUE_CATEGORIES_LIMIT',
+    'HEARTBEAT_QUEUE_PROXIES_LIMIT'
   ],
   properties: {
     LOG_LEVEL: {
@@ -100,6 +101,10 @@ export const configSchema: JSONSchemaType<Config> = {
     HEARTBEAT_QUEUE_CATEGORIES_LIMIT: {
       type: 'number',
       default: 10
+    },
+    HEARTBEAT_QUEUE_PROXIES_LIMIT: {
+      type: 'number',
+      default: 100
     }
   }
 }

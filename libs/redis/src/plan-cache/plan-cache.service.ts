@@ -1,9 +1,27 @@
 import { Redis } from 'ioredis'
-import { SavePlanCacheRequest, SavePlanCacheResponse } from './dto/save-plan-cache.js'
-import { FetchPlanCacheRequest, FetchPlanCacheResponse } from './dto/fetch-plan-cache.js'
-import { DropPlanCacheRequest, DropPlanCacheResponse } from './dto/drop-plan-cache.js'
-import { ListPlansCacheResponse } from './dto/list-plans-cache.js'
+import {
+  SavePlanCacheRequest,
+  SavePlanCacheResponse,
+  FetchPlanCacheRequest,
+  FetchPlanCacheResponse,
+  DropPlanCacheRequest,
+  DropPlanCacheResponse,
+  ListPlansCacheResponse
+} from './dto/index.js'
 import * as planCacheRepository from './plan-cache.repository.js'
+
+export async function fetchPlanCache(
+  redis: Redis,
+  request: FetchPlanCacheRequest
+): Promise<FetchPlanCacheResponse> {
+  const planCache = await planCacheRepository.fetchModel(redis, request.planId)
+
+  return {
+    message: `PlanCache successfully fetched`,
+    statusCode: 200,
+    planCache
+  }
+}
 
 export async function savePlanCache(
   redis: Redis,
@@ -26,24 +44,11 @@ export async function savePlanCache(
   }
 }
 
-export async function fetchPlanCache(
-  redis: Redis,
-  request: FetchPlanCacheRequest
-): Promise<FetchPlanCacheResponse> {
-  const planCache = await planCacheRepository.fetchModel(redis, request.planId)
-
-  return {
-    message: `PlanCache successfully fetched`,
-    statusCode: 200,
-    planCache
-  }
-}
-
 export async function dropPlanCache(
   redis: Redis,
   request: DropPlanCacheRequest
 ): Promise<DropPlanCacheResponse> {
-  await planCacheRepository.dropModel(redis, request.planId)
+  await planCacheRepository.dropModel(redis, request.planId, request.timeout)
 
   return {
     message: `PlanCache successfully dropped`,

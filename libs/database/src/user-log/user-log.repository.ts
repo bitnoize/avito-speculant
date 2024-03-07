@@ -1,8 +1,9 @@
 import { sql } from 'kysely'
+import { Notify } from '@avito-speculant/notify'
 import { UserLog, UserLogData } from './user-log.js'
 import { UserLogRow } from './user-log.table.js'
 import { UserStatus } from '../user/user.js'
-import { TransactionDatabase, Notify } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function insertRow(
   trx: TransactionDatabase,
@@ -22,7 +23,7 @@ export async function insertRow(
       subscriptions,
       categories,
       data,
-      created_at: sql`NOW()`
+      created_at: sql<number>`now()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()

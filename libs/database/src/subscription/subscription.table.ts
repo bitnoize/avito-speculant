@@ -11,9 +11,9 @@ export interface SubscriptionTable {
   interval_sec: ColumnType<number, number, never>
   analytics_on: ColumnType<boolean, boolean, never>
   status: ColumnType<SubscriptionStatus, SubscriptionStatus, SubscriptionStatus | undefined>
-  created_at: ColumnType<number, string, never>
-  updated_at: ColumnType<number, string, string | undefined>
-  queued_at: ColumnType<number, string, string | undefined>
+  created_at: ColumnType<number, number, never>
+  updated_at: ColumnType<number, number, number | undefined>
+  queued_at: ColumnType<number, number, number | undefined>
 }
 
 export type SubscriptionRow = Selectable<SubscriptionTable>

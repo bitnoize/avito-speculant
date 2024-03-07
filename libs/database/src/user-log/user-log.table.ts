@@ -10,7 +10,7 @@ export interface UserLogTable {
   subscriptions: ColumnType<number, number, never>
   categories: ColumnType<number, number, never>
   data: ColumnType<UserLogData, UserLogData, never>
-  created_at: ColumnType<number, string, never>
+  created_at: ColumnType<number, number, never>
 }
 
 export type UserLogRow = Selectable<UserLogTable>

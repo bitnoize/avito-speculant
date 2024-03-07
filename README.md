@@ -18,6 +18,9 @@ Avito-Speculant
 * [@avito-speculant/worker-scraper](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-scraper) - Воркер для очереди **scraper**
 
 ```
+# Установить зависимости
+npm install
+
 # Собрать все модули
 npm --ws run build
 

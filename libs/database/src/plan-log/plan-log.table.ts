@@ -13,7 +13,7 @@ export interface PlanLogTable {
   is_enabled: ColumnType<boolean, boolean, never>
   subscriptions: ColumnType<number, number, never>
   data: ColumnType<PlanLogData, PlanLogData, never>
-  created_at: ColumnType<number, string, never>
+  created_at: ColumnType<number, number, never>
 }
 
 export type PlanLogRow = Selectable<PlanLogTable>

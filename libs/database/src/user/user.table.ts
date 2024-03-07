@@ -7,9 +7,9 @@ export interface UserTable {
   status: ColumnType<UserStatus, UserStatus, UserStatus | undefined>
   subscriptions: ColumnType<number, number, number | undefined>
   categories: ColumnType<number, number, number | undefined>
-  created_at: ColumnType<number, string, never>
-  updated_at: ColumnType<number, string, string | undefined>
-  queued_at: ColumnType<number, string, string | undefined>
+  created_at: ColumnType<number, number, never>
+  updated_at: ColumnType<number, number, number | undefined>
+  queued_at: ColumnType<number, number, number | undefined>
 }
 
 export type UserRow = Selectable<UserTable>

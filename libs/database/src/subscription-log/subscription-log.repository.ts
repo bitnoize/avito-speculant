@@ -1,18 +1,14 @@
 import { sql } from 'kysely'
+import { Notify } from '@avito-speculant/notify'
 import { SubscriptionLog, SubscriptionLogData } from './subscription-log.js'
 import { SubscriptionLogRow } from './subscription-log.table.js'
 import { SubscriptionStatus } from '../subscription/subscription.js'
-import { TransactionDatabase, Notify } from '../database.js'
+import { TransactionDatabase } from '../database.js'
 
 export async function insertRow(
   trx: TransactionDatabase,
   subscription_id: number,
   action: string,
-  categories_max: number,
-  price_rub: number,
-  duration_days: number,
-  interval_sec: number,
-  analytics_on: boolean,
   status: SubscriptionStatus,
   data: SubscriptionLogData
 ): Promise<SubscriptionLogRow> {
@@ -21,14 +17,9 @@ export async function insertRow(
     .values(() => ({
       subscription_id,
       action,
-      categories_max,
-      price_rub,
-      duration_days,
-      interval_sec,
-      analytics_on,
       status,
       data,
-      created_at: sql`NOW()`
+      created_at: sql<number>`now()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -53,11 +44,6 @@ export const buildModel = (row: SubscriptionLogRow): SubscriptionLog => {
     id: row.id,
     subscriptionId: row.subscription_id,
     action: row.action,
-    categoriesMax: row.categories_max,
-    priceRub: row.price_rub,
-    durationDays: row.duration_days,
-    intervalSec: row.interval_sec,
-    analyticsOn: row.analytics_on,
     status: row.status,
     data: row.data,
     createdAt: row.created_at

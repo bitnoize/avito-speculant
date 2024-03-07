@@ -12,13 +12,9 @@ export default (config: Config, logger: Logger) => {
       subscriptionId: positional({
         type: number,
         displayName: 'subscriptionId'
-      }),
-      userId: positional({
-        type: number,
-        displayName: 'userId'
       })
     },
-    handler: async ({ subscriptionId, userId }) => {
+    handler: async ({ subscriptionId }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
@@ -27,7 +23,6 @@ export default (config: Config, logger: Logger) => {
 
       const activatedSubscription = await subscriptionService.activateSubscription(db, {
         subscriptionId,
-        userId,
         data: {
           message: `Activate Subscription and User via Manager`,
         }

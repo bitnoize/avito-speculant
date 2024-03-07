@@ -47,9 +47,9 @@ export async function insertRow(trx: TransactionDatabase, tg_from_id: string): P
       status: 'trial',
       subscriptions: 0,
       categories: 0,
-      created_at: sql`now()`,
-      updated_at: sql`now()`,
-      queued_at: sql`now()`
+      created_at: sql<number>`now()`,
+      updated_at: sql<number>`now()`,
+      queued_at: sql<number>`now()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -64,7 +64,7 @@ export async function updateRowStatus(
     .updateTable('user')
     .set(() => ({
       status,
-      updated_at: sql`NOW()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', user_id)
     .returningAll()
@@ -105,7 +105,7 @@ export async function updateRowQueuedId(
   return await trx
     .updateTable('user')
     .set(() => ({
-      queued_at: sql`now()`
+      queued_at: sql<number>`now()`
     }))
     .where('id', '=', user_id)
     .returningAll()
@@ -125,7 +125,7 @@ export async function updateRowBusiness(
       status,
       subscriptions,
       categories,
-      updated_at: sql`now()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', user_id)
     .returningAll()

@@ -1,9 +1,27 @@
 import { Redis } from 'ioredis'
-import { SaveScraperCacheRequest, SaveScraperCacheResponse } from './dto/save-scraper-cache.js'
-import { FetchScraperCacheRequest, FetchScraperCacheResponse } from './dto/fetch-scraper-cache.js'
-import { DropScraperCacheRequest, DropScraperCacheResponse } from './dto/drop-scraper-cache.js'
-import { ListScrapersCacheResponse } from './dto/list-scrapers-cache.js'
+import {
+  FetchScraperCacheRequest,
+  FetchScraperCacheResponse,
+  SaveScraperCacheRequest,
+  SaveScraperCacheResponse,
+  DropScraperCacheRequest,
+  DropScraperCacheResponse,
+  ListScrapersCacheResponse
+} from './dto/index.js'
 import * as scraperCacheRepository from './scraper-cache.repository.js'
+
+export async function fetchScraperCache(
+  redis: Redis,
+  request: FetchScraperCacheRequest
+): Promise<FetchScraperCacheResponse> {
+  const scraperCache = await scraperCacheRepository.fetchModel(redis, request.scraperJobId)
+
+  return {
+    message: `ScraperCache successfully fetched`,
+    statusCode: 200,
+    scraperCache
+  }
+}
 
 export async function saveScraperCache(
   redis: Redis,
@@ -23,24 +41,11 @@ export async function saveScraperCache(
   }
 }
 
-export async function fetchScraperCache(
-  redis: Redis,
-  request: FetchScraperCacheRequest
-): Promise<FetchScraperCacheResponse> {
-  const scraperCache = await scraperCacheRepository.fetchModel(redis, request.scraperJobId)
-
-  return {
-    message: `ScraperCache successfully fetched`,
-    statusCode: 200,
-    scraperCache
-  }
-}
-
 export async function dropScraperCache(
   redis: Redis,
   request: DropScraperCacheRequest
 ): Promise<DropScraperCacheResponse> {
-  await scraperCacheRepository.dropModel(redis, request.scraperJobId)
+  await scraperCacheRepository.dropModel(redis, request.scraperJobId, request.timeout)
 
   return {
     message: `ScraperCache successfully dropped`,

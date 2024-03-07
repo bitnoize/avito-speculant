@@ -27,20 +27,6 @@ export async function selectRowByIdForUpdate(
     .executeTakeFirst()
 }
 
-export async function selectRowByIdUserIdForUpdate(
-  trx: TransactionDatabase,
-  subscription_id: number,
-  user_id: number
-): Promise<SubscriptionRow | undefined> {
-  return await trx
-    .selectFrom('subscription')
-    .selectAll()
-    .where('id', '=', subscription_id)
-    .where('user_id', '=', user_id)
-    .forUpdate()
-    .executeTakeFirst()
-}
-
 export async function selectRowByUserIdStatusForShare(
   trx: TransactionDatabase,
   user_id: number,
@@ -76,9 +62,9 @@ export async function insertRow(
       interval_sec,
       analytics_on,
       status: 'wait',
-      created_at: sql`NOW()`,
-      updated_at: sql`NOW()`,
-      queued_at: sql`NOW()`
+      created_at: sql<number>`now()`,
+      updated_at: sql<number>`now()`,
+      queued_at: sql<number>`now()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -93,7 +79,7 @@ export async function updateRowStatus(
     .updateTable('subscription')
     .set(() => ({
       status,
-      updated_at: sql`NOW()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', subscription_id)
     .returningAll()
@@ -163,7 +149,7 @@ export async function updateRowQueuedAt(
   return await trx
     .updateTable('subscription')
     .set(() => ({
-      queued_at: sql`NOW()`
+      queued_at: sql<number>`now()`
     }))
     .where('id', '=', subscription_id)
     .returningAll()
@@ -179,7 +165,7 @@ export async function updateRowBusiness(
     .updateTable('subscription')
     .set(() => ({
       status,
-      updated_at: sql`NOW()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', subscription_id)
     .returningAll()

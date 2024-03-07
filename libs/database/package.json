@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/database",
   "type": "module",
-  "version": "0.0.12",
+  "version": "0.0.15",
   "description": "Avito-Speculant Database shared library",
   "private": true,
   "main": "dist/index.js",
@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@avito-speculant/logger": "*",
+    "@avito-speculant/notify": "*",
     "kysely": "^0.27.2",
     "pg": "^8.11.3"
   },

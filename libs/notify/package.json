@@ -1,0 +1,17 @@
+{
+  "name": "@avito-speculant/notify",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Avito-Speculant Notify shared library",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "format": "prettier -w \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "clean": "rimraf .cache dist",
+    "prebuild": "npm run clean",
+    "build": "tsc -b",
+    "build:watch": "tsc -b -w"
+  }
+}

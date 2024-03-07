@@ -1,10 +1,28 @@
 import { Redis } from 'ioredis'
-import { SaveUserCacheRequest, SaveUserCacheResponse } from './dto/save-user-cache.js'
-import { FetchUserCacheRequest, FetchUserCacheResponse } from './dto/fetch-user-cache.js'
-import { DropUserCacheRequest, DropUserCacheResponse } from './dto/drop-user-cache.js'
-import { ListUsersCacheResponse } from './dto/list-users-cache.js'
+import {
+  FetchUserCacheRequest,
+  FetchUserCacheResponse,
+  SaveUserCacheRequest,
+  SaveUserCacheResponse,
+  DropUserCacheRequest,
+  DropUserCacheResponse,
+  ListUsersCacheResponse
+} from './dto/index.js'
 import * as userCacheRepository from './user-cache.repository.js'
 import * as subscriptionCacheRepository from '../subscription-cache/subscription-cache.repository.js'
+
+export async function fetchUserCache(
+  redis: Redis,
+  request: FetchUserCacheRequest
+): Promise<FetchUserCacheResponse> {
+  const userCache = await userCacheRepository.fetchModel(redis, request.userId)
+
+  return {
+    message: `UserCache successfully fetched`,
+    statusCode: 200,
+    userCache
+  }
+}
 
 export async function saveUserCache(
   redis: Redis,
@@ -18,28 +36,11 @@ export async function saveUserCache(
   }
 }
 
-export async function fetchUserCache(
-  redis: Redis,
-  request: FetchUserCacheRequest
-): Promise<FetchUserCacheResponse> {
-  const userCache = await userCacheRepository.fetchModel(redis, request.userId)
-
-  const subscriptionid = await subscriptionCacheRepository.fetchUserIndex(redis, userCache.id)
-  const subscriptionCache = await subscriptionCacheRepository.fetchModel(redis, subscriptionid)
-
-  return {
-    message: `UserCache successfully fetched`,
-    statusCode: 200,
-    userCache,
-    subscriptionCache
-  }
-}
-
 export async function dropUserCache(
   redis: Redis,
   request: DropUserCacheRequest
 ): Promise<DropUserCacheResponse> {
-  await userCacheRepository.dropModel(redis, request.userId)
+  await userCacheRepository.dropModel(redis, request.userId, request.timeout)
 
   return {
     message: `UserCache successfully dropped`,

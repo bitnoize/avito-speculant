@@ -1,16 +1,41 @@
 import { Redis } from 'ioredis'
-import { SubscriptionCache } from './subscription-cache.js'
+import {
+  SubscriptionCache,
+  subscriptionCacheKey,
+  userSubscriptionCacheKey,
+  planSubscriptionsCacheKey
+} from './subscription-cache.js'
 import { parseNumber, parseManyNumbers } from '../redis.utils.js'
-import { REDIS_CACHE_PREFIX } from '../redis.js'
 
-const subscriptionKey = (subscriptionId: number) =>
-  [REDIS_CACHE_PREFIX, 'subscription', subscriptionId].join(':')
+export const fetchSubscriptionCacheLua = `
+if redis.call('EXISTS', KEYS[1]) == 0 then
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
+end
 
-const userSubscriptionKey = (userId: number) =>
-  [REDIS_CACHE_PREFIX, 'user-subscription', userId].join(':')
+local subscription_cache = redis.call(
+  'HMGET', KEYS[1],
+  'id',
+  'user_id',
+  'plan_id',
+  'categories_max',
+  'price_rub',
+  'duration_days',
+  'interval_sec',
+  'analytics_on'
+)
 
-const planSubscriptionsKey = (planId: number) =>
-  [REDIS_CACHE_PREFIX, 'plan-subscriptions', planId].join(':')
+return {
+  unpack(subscription_cache)
+}
+`
+
+export async function fetchModel(redis: Redis, subscriptionId: number): Promise<SubscriptionCache> {
+  const result = await redis.fetchSubscriptionCache(
+    subscriptionCacheKey(subscriptionId) // KEYS[1]
+  )
+
+  return parseModel(result)
+}
 
 export const saveSubscriptionCacheLua = `
 redis.call(
@@ -48,9 +73,9 @@ export async function saveModel(
   timeout: number
 ): Promise<void> {
   await redis.saveSubscriptionCache(
-    subscriptionKey(subscriptionId), // KEYS[1]
-    userSubscriptionKey(userId), // KEYS[2]
-    planSubscriptionsKey(planId), // KEYS[3]
+    subscriptionCacheKey(subscriptionId), // KEYS[1]
+    userSubscriptionCacheKey(userId), // KEYS[2]
+    planSubscriptionsCacheKey(planId), // KEYS[3]
     subscriptionId, // ARGV[1]
     userId, // ARGV[2]
     planId, // ARGV[3]
@@ -63,53 +88,30 @@ export async function saveModel(
   )
 }
 
-export const fetchSubscriptionCacheLua = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
-end
-
-local subscription_cache = redis.call(
-  'HMGET', KEYS[1],
-  'id',
-  'user_id',
-  'plan_id',
-  'categories_max',
-  'price_rub',
-  'duration_days',
-  'interval_sec',
-  'analytics_on'
-)
-
-return {
-  unpack(subscription_cache)
-}
-`
-
-export async function fetchModel(redis: Redis, subscriptionId: number): Promise<SubscriptionCache> {
-  const result = await redis.fetchSubscriptionCache(
-    subscriptionKey(subscriptionId) // KEYS[1]
-  )
-
-  return parseModel(result)
-}
-
 export const dropSubscriptionCacheLua = `
 redis.call('DEL', KEYS[1])
+
 redis.call('DEL', KEYS[2])
+
 redis.call('SREM', KEYS[3], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[2])
+
+return redis.status_reply('OK')
 `
 
 export async function dropModel(
   redis: Redis,
   subscriptionId: number,
   userId: number,
-  planId: number
+  planId: number,
+  timeout: number
 ): Promise<void> {
   await redis.dropSubscriptionCache(
-    subscriptionKey(subscriptionId), // KEYS[1]
-    userSubscriptionKey(userId), // KEYS[2]
-    planSubscriptionsKey(planId), // KEYS[3]
-    subscriptionId // ARGV[1]
+    subscriptionCacheKey(subscriptionId), // KEYS[1]
+    userSubscriptionCacheKey(userId), // KEYS[2]
+    planSubscriptionsCacheKey(planId), // KEYS[3]
+    subscriptionId, // ARGV[1]
+    timeout // ARGV[2]
   )
 }
 
@@ -119,7 +121,7 @@ return redis.call('GET', KEYS[1])
 
 export async function fetchUserIndex(redis: Redis, userId: number): Promise<number> {
   const result = await redis.fetchUserSubscriptionCacheIndex(
-    userSubscriptionKey(userId) // KEYS[1]
+    userSubscriptionCacheKey(userId) // KEYS[1]
   )
 
   return parseNumber(result)
@@ -131,7 +133,7 @@ return redis.call('SMEMBERS', KEYS[1])
 
 export async function fetchPlanIndex(redis: Redis, planId: number): Promise<number[]> {
   const result = await redis.fetchPlanSubscriptionsCacheIndex(
-    planSubscriptionsKey(planId) // KEYS[1]
+    planSubscriptionsCacheKey(planId) // KEYS[1]
   )
 
   return parseManyNumbers(result)
@@ -149,7 +151,7 @@ export async function fetchCollection(
 
   subscriptionIds.forEach((subscriptionId) => {
     pipeline.fetchSubscriptionCache(
-      subscriptionKey(subscriptionId) // KEYS[1]
+      subscriptionCacheKey(subscriptionId) // KEYS[1]
     )
   })
 

@@ -1,25 +1,33 @@
 import { Redis } from 'ioredis'
 import {
-  SaveSubscriptionCacheRequest,
-  SaveSubscriptionCacheResponse
-} from './dto/save-subscription-cache.js'
-import {
   FetchSubscriptionCacheRequest,
-  FetchSubscriptionCacheResponse
-} from './dto/fetch-subscription-cache.js'
-import {
+  FetchSubscriptionCacheResponse,
+  SaveSubscriptionCacheRequest,
+  SaveSubscriptionCacheResponse,
   DropSubscriptionCacheRequest,
-  DropSubscriptionCacheResponse
-} from './dto/drop-subscription-cache.js'
-import {
+  DropSubscriptionCacheResponse,
   FetchUserSubscriptionCacheRequest,
-  FetchUserSubscriptionCacheResponse
-} from './dto/fetch-user-subscription-cache.js'
-import {
+  FetchUserSubscriptionCacheResponse,
   ListPlanSubscriptionsCacheRequest,
   ListPlanSubscriptionsCacheResponse
-} from './dto/list-plan-subscriptions-cache.js'
+} from './dto/index.js'
 import * as subscriptionCacheRepository from './subscription-cache.repository.js'
+
+export async function fetchSubscriptionCache(
+  redis: Redis,
+  request: FetchSubscriptionCacheRequest
+): Promise<FetchSubscriptionCacheResponse> {
+  const subscriptionCache = await subscriptionCacheRepository.fetchModel(
+    redis,
+    request.subscriptionId
+  )
+
+  return {
+    message: `SubscriptionCache successfully fetched`,
+    statusCode: 200,
+    subscriptionCache
+  }
+}
 
 export async function saveSubscriptionCache(
   redis: Redis,
@@ -44,22 +52,6 @@ export async function saveSubscriptionCache(
   }
 }
 
-export async function fetchSubscriptionCache(
-  redis: Redis,
-  request: FetchSubscriptionCacheRequest
-): Promise<FetchSubscriptionCacheResponse> {
-  const subscriptionCache = await subscriptionCacheRepository.fetchModel(
-    redis,
-    request.subscriptionId
-  )
-
-  return {
-    message: `SubscriptionCache successfully fetched`,
-    statusCode: 200,
-    subscriptionCache
-  }
-}
-
 export async function dropSubscriptionCache(
   redis: Redis,
   request: DropSubscriptionCacheRequest
@@ -68,7 +60,8 @@ export async function dropSubscriptionCache(
     redis,
     request.subscriptionId,
     request.userId,
-    request.planId
+    request.planId,
+    request.timeout
   )
 
   return {
@@ -85,7 +78,7 @@ export async function fetchUserSubscriptionCache(
   const subscriptionCache = await subscriptionCacheRepository.fetchModel(redis, subscriptionId)
 
   return {
-    message: `SubscriptionCache successfully fetched by User`,
+    message: `SubscriptionCache successfully fetched`,
     statusCode: 200,
     subscriptionCache
   }

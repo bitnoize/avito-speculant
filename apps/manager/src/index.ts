@@ -16,6 +16,7 @@ import databaseListPlansCommand from './database/database-list-plans.command.js'
 import databaseListPlanLogsCommand from './database/database-list-plan-logs.command.js'
 import databaseCreateSubscriptionCommand from './database/database-create-subscription.command.js'
 import databaseActivateSubscriptionCommand from './database/database-activate-subscription.command.js'
+import databaseCancelSubscriptionCommand from './database/database-cancel-subscription.command.js'
 import databaseListSubscriptionsCommand from './database/database-list-subscriptions.command.js'
 import databaseListSubscriptionLogsCommand from './database/database-list-subscription-logs.command.js'
 import databaseCreateCategoryCommand from './database/database-create-category.command.js'
@@ -59,6 +60,7 @@ async function bootstrap(): Promise<void> {
       'list-plan-logs': databaseListPlanLogsCommand(config, logger),
       'create-subscription': databaseCreateSubscriptionCommand(config, logger),
       'activate-subscription': databaseActivateSubscriptionCommand(config, logger),
+      'cancel-subscription': databaseCancelSubscriptionCommand(config, logger),
       'list-subscriptions': databaseListSubscriptionsCommand(config, logger),
       'list-subscription-logs': databaseListSubscriptionLogsCommand(config, logger),
       'create-category': databaseCreateCategoryCommand(config, logger),
@@ -104,6 +106,8 @@ async function bootstrap(): Promise<void> {
     } else {
       logger.fatal(error.stack ?? error.message)
     }
+
+    process.exit(1)
   }
 }
 

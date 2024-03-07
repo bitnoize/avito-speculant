@@ -1,11 +1,33 @@
 import { Redis } from 'ioredis'
-import { ScraperCache } from './scraper-cache.js'
+import { ScraperCache, scraperCacheKey, scrapersCacheKey } from './scraper-cache.js'
 import { parseNumber, parseString, parseManyStrings } from '../redis.utils.js'
-import { REDIS_CACHE_PREFIX } from '../redis.js'
 
-const scraperKey = (scraperJobId: string) => [REDIS_CACHE_PREFIX, 'scraper', scraperJobId].join(':')
+export const fetchScraperCacheLua = `
+if redis.call('EXISTS', KEYS[1]) == 0 then
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
+end
 
-const scrapersKey = () => [REDIS_CACHE_PREFIX, 'scrapers'].join(':')
+local scraper_cache = redis.call(
+  'HMGET', KEYS[1],
+  'job_id',
+  'avito_url',
+  'interval_sec',
+  'total_count',
+  'success_count'
+)
+
+return {
+  unpack(scraper_cache)
+}
+`
+
+export async function fetchModel(redis: Redis, scraperJobId: string): Promise<ScraperCache> {
+  const result = await redis.fetchScraperCache(
+    scraperCacheKey(scraperJobId) // KEYS[1]
+  )
+
+  return parseModel(result)
+}
 
 export const saveScraperCacheLua = `
 redis.call(
@@ -14,10 +36,12 @@ redis.call(
   'avito_url', ARGV[2],
   'interval_sec', ARGV[3],
 )
+redis.call('HSETNX', KEYS[1], 'total_count', 0)
+redis.call('HSETNX', KEYS[1], 'success_count', 0)
 redis.call('PEXPIRE', KEYS[1], ARGV[4])
 
 redis.call('SADD', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[4])
+redis.call('PEXPIRE', KEYS[2], ARGV[4])
 
 return redis.status_reply('OK')
 `
@@ -30,8 +54,8 @@ export async function saveModel(
   timeout: number
 ): Promise<void> {
   await redis.saveScraperCache(
-    scraperKey(scraperJobId), // KEYS[1]
-    scrapersKey(), // KEYS[2]
+    scraperCacheKey(scraperJobId), // KEYS[1]
+    scrapersCacheKey(), // KEYS[2]
     scraperJobId, // ARGV[1]
     avitoUrl, // ARGV[2]
     intervalSec, // ARGV[3]
@@ -39,41 +63,23 @@ export async function saveModel(
   )
 }
 
-export const fetchScraperCacheLua = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
-end
-
-local scraper_cache = redis.call(
-  'HMGET', KEYS[1],
-  'id',
-  'avito_url',
-  'interval_sec'
-)
-
-return {
-  unpack(scraper_cache)
-}
-`
-
-export async function fetchModel(redis: Redis, scraperJobId: string): Promise<ScraperCache> {
-  const result = await redis.fetchScraperCache(
-    scraperKey(scraperJobId) // KEYS[1]
-  )
-
-  return parseModel(result)
-}
-
 export const dropScraperCacheLua = `
 redis.call('DEL', KEYS[1])
+
 redis.call('SREM', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[2])
 `
 
-export async function dropModel(redis: Redis, scraperJobId: string): Promise<void> {
+export async function dropModel(
+  redis: Redis,
+  scraperJobId: string,
+  timeout: number
+): Promise<void> {
   await redis.dropScraperCache(
-    scraperKey(scraperJobId), // KEYS[1]
-    scrapersKey(), // KEYS[2]
-    scraperJobId // ARGV[1]
+    scraperCacheKey(scraperJobId), // KEYS[1]
+    scrapersCacheKey(), // KEYS[2]
+    scraperJobId, // ARGV[1]
+    timeout // ARGV[2]
   )
 }
 
@@ -83,7 +89,7 @@ return redis.call('SMEMBERS', KEYS[1])
 
 export async function fetchIndex(redis: Redis): Promise<string[]> {
   const results = await redis.fetchScrapersCacheIndex(
-    scrapersKey() // KEYS[1]
+    scrapersCacheKey() // KEYS[1]
   )
 
   return parseManyStrings(results)
@@ -101,7 +107,7 @@ export async function fetchCollection(
 
   scraperJobIds.forEach((scraperJobId) => {
     pipeline.fetchScraperCache(
-      scraperKey(scraperJobId) // KEYS[1]
+      scraperCacheKey(scraperJobId) // KEYS[1]
     )
   })
 
@@ -111,14 +117,16 @@ export async function fetchCollection(
 }
 
 const parseModel = (result: unknown): ScraperCache => {
-  if (!(Array.isArray(result) && result.length === 3)) {
+  if (!(Array.isArray(result) && result.length === 5)) {
     throw new TypeError(`Redis malformed result`)
   }
 
   return {
     jobId: parseString(result[0]),
     avitoUrl: parseString(result[1]),
-    intervalSec: parseNumber(result[2])
+    intervalSec: parseNumber(result[2]),
+    totalCount: parseNumber(result[3]),
+    successCount: parseNumber(result[4])
   }
 }
 

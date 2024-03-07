@@ -2,7 +2,7 @@ import { Subscription } from '../subscription.js'
 
 export interface ListSubscriptionsRequest {
   userId: number
-  all: boolean
+  all?: boolean
 }
 
 export interface ListSubscriptionsResponse {

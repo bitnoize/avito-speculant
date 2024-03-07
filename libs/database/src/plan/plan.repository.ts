@@ -45,9 +45,9 @@ export async function insertRow(
       analytics_on,
       is_enabled: false,
       subscriptions: 0,
-      created_at: sql`NOW()`,
-      updated_at: sql`NOW()`,
-      queued_at: sql`NOW()`
+      created_at: sql<number>`now()`,
+      updated_at: sql<number>`now()`,
+      queued_at: sql<number>`now()`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -70,7 +70,7 @@ export async function updateRow(
       duration_days,
       interval_sec,
       analytics_on,
-      updated_at: sql`NOW()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', plan_id)
     .returningAll()
@@ -86,7 +86,7 @@ export async function updateRowIsEnabled(
     .updateTable('plan')
     .set(() => ({
       is_enabled,
-      updated_at: sql`NOW()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', plan_id)
     .returningAll()
@@ -125,7 +125,7 @@ export async function updateRowQueuedAt(
   return await trx
     .updateTable('plan')
     .set(() => ({
-      queued_at: sql`NOW()`
+      queued_at: sql<number>`now()`
     }))
     .where('id', '=', plan_id)
     .returningAll()
@@ -143,7 +143,7 @@ export async function updateRowBusiness(
     .set(() => ({
       is_enabled,
       subscriptions,
-      updated_at: sql`NOW()`
+      updated_at: sql<number>`now()`
     }))
     .where('id', '=', plan_id)
     .returningAll()

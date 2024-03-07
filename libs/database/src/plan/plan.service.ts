@@ -1,15 +1,24 @@
-import { CreatePlanRequest, CreatePlanResponse } from './dto/create-plan.js'
-import { UpdatePlanRequest, UpdatePlanResponse } from './dto/update-plan.js'
-import { EnableDisablePlanRequest, EnableDisablePlanResponse } from './dto/enable-disable-plan.js'
-import { ListPlansRequest, ListPlansResponse } from './dto/list-plans.js'
-import { QueuePlansRequest, QueuePlansResponse } from './dto/queue-plans.js'
-import { BusinessPlanRequest, BusinessPlanResponse } from './dto/business-plan.js'
-import { Plan } from './plan.js'
+import { Notify } from '@avito-speculant/notify'
+import {
+  CreatePlanRequest,
+  CreatePlanResponse,
+  UpdatePlanRequest,
+  UpdatePlanResponse,
+  EnableDisablePlanRequest,
+  EnableDisablePlanResponse,
+  ListPlansRequest,
+  ListPlansResponse,
+  QueuePlansRequest,
+  QueuePlansResponse,
+  BusinessPlanRequest,
+  BusinessPlanResponse
+} from './dto/index.js'
+import { DEFAULT_PLAN_LIST_ALL, DEFAULT_PLAN_QUEUE_LIMIT, Plan } from './plan.js'
 import { PlanNotFoundError, PlanIsEnabledError } from './plan.errors.js'
 import * as planRepository from './plan.repository.js'
 import * as planLogRepository from '../plan-log/plan-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
-import { KyselyDatabase, Notify } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Plan
@@ -67,13 +76,13 @@ export async function updatePlan(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
+    const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
-    if (selectedPlanRow === undefined) {
+    if (planRow === undefined) {
       throw new PlanNotFoundError<UpdatePlanRequest>(request)
     }
 
-    if (selectedPlanRow.is_enabled) {
+    if (planRow.is_enabled) {
       throw new PlanIsEnabledError<UpdatePlanRequest>(request)
     }
 
@@ -91,14 +100,14 @@ export async function updatePlan(
       return {
         message: `Plan no updates specified`,
         statusCode: 200,
-        plan: planRepository.buildModel(selectedPlanRow),
+        plan: planRepository.buildModel(planRow),
         backLog
       }
     }
 
     const updatedPlanRow = await planRepository.updateRow(
       trx,
-      selectedPlanRow.id,
+      planRow.id,
       request.categoriesMax,
       request.priceRub,
       request.durationDays,
@@ -141,24 +150,24 @@ export async function enablePlan(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
+    const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
-    if (selectedPlanRow === undefined) {
+    if (planRow === undefined) {
       throw new PlanNotFoundError<EnableDisablePlanRequest>(request)
     }
 
-    if (selectedPlanRow.is_enabled) {
+    if (planRow.is_enabled) {
       return {
         message: `Plan allready enabled`,
         statusCode: 200,
-        plan: planRepository.buildModel(selectedPlanRow),
+        plan: planRepository.buildModel(planRow),
         backLog
       }
     }
 
     // ...
 
-    const updatedPlanRow = await planRepository.updateRowIsEnabled(trx, selectedPlanRow.id, true)
+    const updatedPlanRow = await planRepository.updateRowIsEnabled(trx, planRow.id, true)
 
     const planLogRow = await planLogRepository.insertRow(
       trx,
@@ -195,24 +204,24 @@ export async function disablePlan(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
+    const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
-    if (selectedPlanRow === undefined) {
+    if (planRow === undefined) {
       throw new PlanNotFoundError<EnableDisablePlanRequest>(request)
     }
 
-    if (!selectedPlanRow.is_enabled) {
+    if (!planRow.is_enabled) {
       return {
         message: `Plan allready disabled`,
         statusCode: 200,
-        plan: planRepository.buildModel(selectedPlanRow),
+        plan: planRepository.buildModel(planRow),
         backLog
       }
     }
 
     // ...
 
-    const updatedPlanRow = await planRepository.updateRowIsEnabled(trx, selectedPlanRow.id, false)
+    const updatedPlanRow = await planRepository.updateRowIsEnabled(trx, planRow.id, false)
 
     const planLogRow = await planLogRepository.insertRow(
       trx,
@@ -247,7 +256,10 @@ export async function listPlans(
   request: ListPlansRequest
 ): Promise<ListPlansResponse> {
   return await db.transaction().execute(async (trx) => {
-    const planRows = await planRepository.selectRowsList(trx, request.all)
+    const planRows = await planRepository.selectRowsList(
+      trx,
+      (request.all ??= DEFAULT_PLAN_LIST_ALL)
+    )
 
     return {
       message: `Plans successfully listed`,
@@ -268,18 +280,22 @@ export async function queuePlans(
   return await db.transaction().execute(async (trx) => {
     const plans: Plan[] = []
 
-    const selectedPlanRows = await planRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
+    const planRows = await planRepository.selectRowsSkipLockedForUpdate(
+      trx,
+      (request.limit ??= DEFAULT_PLAN_QUEUE_LIMIT)
+    )
 
-    for (const planRow of selectedPlanRows) {
+    for (const planRow of planRows) {
       const updatedPlanRow = await planRepository.updateRowQueuedAt(trx, planRow.id)
 
       plans.push(planRepository.buildModel(updatedPlanRow))
     }
 
     return {
-      message: `Plans successfully queued`,
+      message: `Plans successfully enqueued`,
       statusCode: 200,
-      plans
+      plans,
+      limit: request.limit
     }
   })
 }
@@ -295,63 +311,62 @@ export async function businessPlan(
     const backLog: Notify[] = []
     let isChanged = false
 
-    const selectedPlanRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
+    const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
-    if (selectedPlanRow === undefined) {
+    if (planRow === undefined) {
       throw new PlanNotFoundError<BusinessPlanRequest>(request)
     }
 
-    if (selectedPlanRow.is_enabled) {
+    if (planRow.is_enabled) {
       // TODO
     }
 
-    const { subscriptions } = await subscriptionRepository.selectCountByPlanId(
-      trx,
-      selectedPlanRow.id
-    )
+    const { subscriptions } = await subscriptionRepository.selectCountByPlanId(trx, planRow.id)
 
-    if (selectedPlanRow.subscriptions !== subscriptions) {
+    if (planRow.subscriptions !== subscriptions) {
       isChanged = true
 
-      selectedPlanRow.subscriptions = subscriptions
+      planRow.subscriptions = subscriptions
     }
 
-    if (isChanged) {
-      const updatedPlanRow = await planRepository.updateRowBusiness(
-        trx,
-        selectedPlanRow.id,
-        selectedPlanRow.is_enabled,
-        selectedPlanRow.subscriptions
-      )
+    // ...
 
-      const planLogRow = await planLogRepository.insertRow(
-        trx,
-        updatedPlanRow.id,
-        'business_plan',
-        updatedPlanRow.categories_max,
-        updatedPlanRow.price_rub,
-        updatedPlanRow.duration_days,
-        updatedPlanRow.interval_sec,
-        updatedPlanRow.analytics_on,
-        updatedPlanRow.is_enabled,
-        updatedPlanRow.subscriptions,
-        request.data
-      )
-
-      backLog.push(planLogRepository.buildNotify(planLogRow))
-
+    if (!isChanged) {
       return {
-        message: `Plan successfully processed`,
-        statusCode: 201,
-        plan: planRepository.buildModel(updatedPlanRow),
+        message: `Plan not changed`,
+        statusCode: 200,
+        plan: planRepository.buildModel(planRow),
         backLog
       }
     }
 
+    const updatedPlanRow = await planRepository.updateRowBusiness(
+      trx,
+      planRow.id,
+      planRow.is_enabled,
+      planRow.subscriptions
+    )
+
+    const planLogRow = await planLogRepository.insertRow(
+      trx,
+      updatedPlanRow.id,
+      'business_plan',
+      updatedPlanRow.categories_max,
+      updatedPlanRow.price_rub,
+      updatedPlanRow.duration_days,
+      updatedPlanRow.interval_sec,
+      updatedPlanRow.analytics_on,
+      updatedPlanRow.is_enabled,
+      updatedPlanRow.subscriptions,
+      request.data
+    )
+
+    backLog.push(planLogRepository.buildNotify(planLogRow))
+
     return {
       message: `Plan successfully processed`,
-      statusCode: 200,
-      plan: planRepository.buildModel(selectedPlanRow),
+      statusCode: 201,
+      plan: planRepository.buildModel(updatedPlanRow),
       backLog
     }
   })

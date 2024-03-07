@@ -7,7 +7,7 @@
   "workspaces": [
     "libs/config",
     "libs/logger",
-    "libs/domain",
+    "libs/notify",
     "libs/database",
     "libs/redis",
     "libs/queue",
@@ -16,7 +16,8 @@
     "apps/worker-heartbeat",
     "apps/worker-business",
     "apps/worker-scraper",
-    "apps/worker-proxycheck"
+    "apps/worker-proxycheck",
+    "apps/worker-report"
   ],
   "engines": {
     "npm": ">=9.8.0",

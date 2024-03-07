@@ -1,6 +1,6 @@
+import { Notify } from '@avito-speculant/notify'
 import { Category } from '../category.js'
 import { CategoryLogData } from '../../category-log/category-log.js'
-import { Notify } from '../../database.js'
 
 export interface EnableDisableCategoryRequest {
   categoryId: number

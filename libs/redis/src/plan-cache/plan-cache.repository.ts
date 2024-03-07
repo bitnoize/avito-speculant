@@ -1,10 +1,34 @@
 import { Redis } from 'ioredis'
-import { PlanCache } from './plan-cache.js'
+import { PlanCache, planCacheKey, plansCacheKey } from './plan-cache.js'
 import { parseNumber, parseManyNumbers } from '../redis.utils.js'
 
-const planKey = (planId: number) => ['cache', 'plan', planId].join(':')
+export const fetchPlanCacheLua = `
+if redis.call('EXISTS', KEYS[1]) == 0 then
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
+end
 
-const plansKey = () => ['cache', 'plans'].join(':')
+local plan_cache = redis.call(
+  'HMGET', KEYS[1],
+  'id',
+  'categories_max',
+  'price_rub',
+  'duration_days',
+  'interval_sec',
+  'analytics_on'
+)
+
+return {
+  unpack(plan_cache)
+}
+`
+
+export async function fetchModel(redis: Redis, planId: number): Promise<PlanCache> {
+  const result = await redis.fetchPlanCache(
+    planCacheKey(planId) // KEYS[1]
+  )
+
+  return parseModel(result)
+}
 
 export const savePlanCacheLua = `
 redis.call(
@@ -35,8 +59,8 @@ export async function saveModel(
   timeout: number
 ): Promise<void> {
   await redis.savePlanCache(
-    planKey(planId), // KEYS[1]
-    plansKey(), // KEYS[2]
+    planCacheKey(planId), // KEYS[1]
+    plansCacheKey(), // KEYS[2]
     planId, // ARGV[1]
     categoriesMax, // ARGV[2]
     priceRub, // ARGV[3]
@@ -47,44 +71,21 @@ export async function saveModel(
   )
 }
 
-export const fetchPlanCacheLua = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
-end
-
-local plan_cache = redis.call(
-  'HMGET', KEYS[1],
-  'id',
-  'categories_max',
-  'price_rub',
-  'duration_days',
-  'interval_sec',
-  'analytics_on'
-)
-
-return {
-  unpack(plan_cache)
-}
-`
-
-export async function fetchModel(redis: Redis, planId: number): Promise<PlanCache> {
-  const result = await redis.fetchPlanCache(
-    planKey(planId) // KEYS[1]
-  )
-
-  return parseModel(result)
-}
-
 export const dropPlanCacheLua = `
 redis.call('DEL', KEYS[1])
+
 redis.call('SREM', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[2])
+
+return redis.status_reply('OK')
 `
 
-export async function dropModel(redis: Redis, planId: number): Promise<void> {
+export async function dropModel(redis: Redis, planId: number, timeout: number): Promise<void> {
   await redis.dropPlanCache(
-    planKey(planId), // KEYS[1]
-    plansKey(), // KEYS[2]
-    planId // ARGV[1]
+    planCacheKey(planId), // KEYS[1]
+    plansCacheKey(), // KEYS[2]
+    planId, // ARGV[1]
+    timeout // ARGV[2]
   )
 }
 
@@ -94,7 +95,7 @@ return redis.call('SMEMBERS', KEYS[1])
 
 export async function fetchIndex(redis: Redis): Promise<number[]> {
   const results = await redis.fetchPlansCacheIndex(
-    plansKey() // KEYS[1]
+    plansCacheKey() // KEYS[1]
   )
 
   return parseManyNumbers(results)
@@ -109,7 +110,7 @@ export async function fetchCollection(redis: Redis, planIds: number[]): Promise<
 
   planIds.forEach((planId) => {
     pipeline.fetchPlanCache(
-      planKey(planId) // KEYS[1]
+      planCacheKey(planId) // KEYS[1]
     )
   })
 
@@ -120,7 +121,7 @@ export async function fetchCollection(redis: Redis, planIds: number[]): Promise<
 
 const parseModel = (result: unknown): PlanCache => {
   if (!(Array.isArray(result) && result.length === 6)) {
-    throw new TypeError(`malformed result array`)
+    throw new TypeError(`Redis malformed result`)
   }
 
   return {

@@ -8,7 +8,7 @@ export interface CategoryLogTable {
   avito_url: ColumnType<string, string, never>
   is_enabled: ColumnType<boolean, boolean, never>
   data: ColumnType<CategoryLogData, CategoryLogData, never>
-  created_at: ColumnType<number, string, never>
+  created_at: ColumnType<number, number, never>
 }
 
 export type CategoryLogRow = Selectable<CategoryLogTable>

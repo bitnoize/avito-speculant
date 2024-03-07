@@ -1,7 +1,7 @@
 import { Plan } from '../plan.js'
 
 export interface ListPlansRequest {
-  all: boolean
+  all?: boolean
 }
 
 export interface ListPlansResponse {

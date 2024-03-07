@@ -1,7 +1,7 @@
 import { User } from '../user.js'
 
 export interface ListUsersRequest {
-  all: boolean
+  all?: boolean
 }
 
 export interface ListUsersResponse {

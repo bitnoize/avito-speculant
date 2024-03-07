@@ -1,6 +1,6 @@
+import { Notify } from '@avito-speculant/notify'
 import { User } from '../user.js'
 import { UserLogData } from '../../user-log/user-log.js'
-import { Notify } from '../../database.js'
 
 export interface BusinessUserRequest {
   userId: number

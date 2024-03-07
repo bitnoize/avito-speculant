@@ -1,16 +1,20 @@
 import { Bot, GrammyError, HttpError, session } from 'grammy'
 import { RedisAdapter } from '@grammyjs/storage-redis'
+import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import {
-  databaseService,
   AuthorizeUserRequest,
+  databaseService,
   userService
 } from '@avito-speculant/database'
 import { redisService } from '@avito-speculant/redis'
-import { Config, config } from './config.js'
+import { Config } from './bot.js'
+import { configSchema } from './bot.schema.js'
 import { BotContext } from './context.js'
 
 async function bootstrap(): Promise<void> {
+  const config = configService.initConfig<Config>(configSchema)
+
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
   const logger = loggerService.initLogger(loggerOptions)
 
@@ -33,24 +37,27 @@ async function bootstrap(): Promise<void> {
 
   bot.use(async (ctx, next) => {
     if (ctx.from) {
-      const authorizeUserResponse = await userService.authorizeUser(db, {
+      const authorizedUser = await userService.authorizeUser(db, {
         tgFromId: ctx.from.id.toString(),
         data: {
-          from: ctx.from
+          from: ctx.from,
+          message: `Authorize user in Bot`
         }
       })
 
-      ctx.user = authorizeUserResponse.user
+      logger.info(authorizedUser)
 
-      await redisService.publishBackLog(pubSub, authorizeUserResponse.backLog, logger)
+      const { user, backLog } = authorizedUser
+
+      ctx.user = user
+
+      await redisService.publishBackLog(pubSub, backLog)
 
       await next()
     }
   })
 
   bot.command('start', async (ctx) => {
-    logger.info(ctx.user, `User authorized for start`)
-
     await ctx.reply(`blablabla: ${ctx.user.status}`)
   })
 

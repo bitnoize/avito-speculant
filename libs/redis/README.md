@@ -1,11 +1,12 @@
 @avito-speculant/redis
 ----------------------
 
-Модели и коллекции в Редисе
+Операционное хранилище
 
 Стек:
 
 * [Redis](https://redis.io/) - Старый добрый Редис 😄
+* [Lua Scripting](https://redis.io/docs/interact/programmability/eval-intro/) - Функции на Lua
 
 Реализует сервисы:
 
@@ -15,6 +16,7 @@
 * planCacheService - Тарифные планы
 * subscriptionCacheService - Подписки
 * categoryCacheService - Категории
+* proxyCacheService - Прокси
 
 ```
 # Собрать модуль

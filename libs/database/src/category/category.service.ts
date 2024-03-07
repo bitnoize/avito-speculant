@@ -1,12 +1,17 @@
-import { CreateCategoryRequest, CreateCategoryResponse } from './dto/create-category.js'
+import { Notify } from '@avito-speculant/notify'
 import {
+  CreateCategoryRequest,
+  CreateCategoryResponse,
   EnableDisableCategoryRequest,
-  EnableDisableCategoryResponse
-} from './dto/enable-disable-category.js'
-import { ListCategoriesRequest, ListCategoriesResponse } from './dto/list-categories.js'
-import { QueueCategoriesRequest, QueueCategoriesResponse } from './dto/queue-categories.js'
-import { BusinessCategoryRequest, BusinessCategoryResponse } from './dto/business-category.js'
-import { Category } from './category.js'
+  EnableDisableCategoryResponse,
+  ListCategoriesRequest,
+  ListCategoriesResponse,
+  QueueCategoriesRequest,
+  QueueCategoriesResponse,
+  BusinessCategoryRequest,
+  BusinessCategoryResponse
+} from './dto/index.js'
+import { DEFAULT_CATEGORY_LIST_ALL, DEFAULT_CATEGORY_QUEUE_LIMIT, Category } from './category.js'
 import { CategoryNotFoundError, CategoriesLimitExceedError } from './category.errors.js'
 import * as categoryRepository from './category.repository.js'
 import * as categoryLogRepository from '../category-log/category-log.repository.js'
@@ -14,7 +19,7 @@ import { UserNotFoundError, UserBlockedError, UserNotPaidError } from '../user/u
 import * as userRepository from '../user/user.repository.js'
 import { SubscriptionNotActiveError } from '../subscription/subscription.errors.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
-import { KyselyDatabase, Notify } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Category
@@ -74,10 +79,7 @@ export async function enableCategory(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const categoryRow = await categoryRepository.selectRowByIdForUpdate(
-      trx,
-      request.categoryId
-    )
+    const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
       throw new CategoryNotFoundError<EnableDisableCategoryRequest>(request)
@@ -92,10 +94,7 @@ export async function enableCategory(
       }
     }
 
-    const userRow = await userRepository.selectRowByIdForShare(
-      trx,
-      categoryRow.user_id
-    )
+    const userRow = await userRepository.selectRowByIdForShare(trx, categoryRow.user_id)
 
     if (userRow === undefined) {
       throw new UserNotFoundError<EnableDisableCategoryRequest>(request, 500)
@@ -115,10 +114,7 @@ export async function enableCategory(
       throw new SubscriptionNotActiveError<EnableDisableCategoryRequest>(request)
     }
 
-    const { categories } = await categoryRepository.selectCountByUserId(
-      trx,
-      categoryRow.user_id
-    )
+    const { categories } = await categoryRepository.selectCountByUserId(trx, categoryRow.user_id)
 
     if (categories >= subscriptionRow.categories_max) {
       throw new CategoriesLimitExceedError<EnableDisableCategoryRequest>(request)
@@ -162,10 +158,7 @@ export async function disableCategory(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const categoryRow = await categoryRepository.selectRowByIdForUpdate(
-      trx,
-      request.categoryId
-    )
+    const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
       throw new CategoryNotFoundError<EnableDisableCategoryRequest>(request)
@@ -228,7 +221,11 @@ export async function listCategories(
 
     // ...
 
-    const categoryRows = await categoryRepository.selectRowsList(trx, userRow.id, request.all)
+    const categoryRows = await categoryRepository.selectRowsList(
+      trx,
+      userRow.id,
+      (request.all ??= DEFAULT_CATEGORY_LIST_ALL)
+    )
 
     return {
       message: `Categories successfully listed`,
@@ -251,7 +248,7 @@ export async function queueCategories(
 
     const categoryRows = await categoryRepository.selectRowsSkipLockedForUpdate(
       trx,
-      request.limit
+      (request.limit ??= DEFAULT_CATEGORY_QUEUE_LIMIT)
     )
 
     for (const categoryRow of categoryRows) {
@@ -261,9 +258,10 @@ export async function queueCategories(
     }
 
     return {
-      message: `Categories successfully queued`,
+      message: `Categories successfully enqueued`,
       statusCode: 200,
-      categories
+      categories,
+      limit: request.limit
     }
   })
 }
@@ -279,10 +277,7 @@ export async function businessCategory(
     const backLog: Notify[] = []
     let isChanged = false
 
-    const categoryRow = await categoryRepository.selectRowByIdForUpdate(
-      trx,
-      request.categoryId
-    )
+    const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
       throw new CategoryNotFoundError<BusinessCategoryRequest>(request)

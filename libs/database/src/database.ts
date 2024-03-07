@@ -7,6 +7,8 @@ import { SubscriptionTable } from './subscription/subscription.table.js'
 import { SubscriptionLogTable } from './subscription-log/subscription-log.table.js'
 import { CategoryTable } from './category/category.table.js'
 import { CategoryLogTable } from './category-log/category-log.table.js'
+import { ProxyTable } from './proxy/proxy.table.js'
+import { ProxyLogTable } from './proxy-log/proxy-log.table.js'
 
 export type DatabaseConfig = {
   POSTGRES_HOST: string
@@ -25,12 +27,14 @@ export interface Database {
   subscription_log: SubscriptionLogTable
   category: CategoryTable
   category_log: CategoryLogTable
+  proxy: ProxyTable
+  proxy_log: ProxyLogTable
 }
 
 export type KyselyDatabase = Kysely<Database>
 export type TransactionDatabase = Transaction<Database>
 
-export const CHANNELS = ['user', 'plan', 'subscription', 'category']
+export const CHANNELS = ['user', 'plan', 'subscription', 'category', 'proxy']
 export type Channel = (typeof CHANNELS)[number]
 
 export type Notify = [Channel, string, number, string]

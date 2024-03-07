@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/bot",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Avito-Speculant Bot application",
   "private": true,
   "main": "dist/index.js",
@@ -16,13 +16,12 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@avito-speculant/database": "*",
+    "@avito-speculant/config": "*",
     "@avito-speculant/logger": "*",
-    "@avito-speculant/queue": "*",
+    "@avito-speculant/database": "*",
     "@avito-speculant/redis": "*",
+    "@avito-speculant/queue": "*",
     "@grammyjs/storage-redis": "^2.4.1",
-    "@sinclair/typebox": "^0.32.12",
-    "env-schema": "^5.2.1",
     "fastify": "^4.26.0",
     "grammy": "^1.20.3"
   }

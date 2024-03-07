@@ -1,4 +1,5 @@
-import { ListUserLogsRequest, ListUserLogsResponse } from './dto/list-user-logs.js'
+import { ListUserLogsRequest, ListUserLogsResponse } from './dto/index.js'
+import { DEFAULT_USER_LOG_LIST_LIMIT } from './user-log.js'
 import * as userLogRepository from './user-log.repository.js'
 import { UserNotFoundError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
@@ -18,7 +19,11 @@ export async function listUserLogs(
       throw new UserNotFoundError<ListUserLogsRequest>(request)
     }
 
-    const userLogRows = await userLogRepository.selectRowsList(trx, userRow.id, request.limit)
+    const userLogRows = await userLogRepository.selectRowsList(
+      trx,
+      userRow.id,
+      (request.limit ??= DEFAULT_USER_LOG_LIST_LIMIT)
+    )
 
     return {
       message: `UserLogs successfully listed`,
