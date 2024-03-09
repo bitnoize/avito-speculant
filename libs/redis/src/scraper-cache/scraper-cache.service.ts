@@ -2,14 +2,39 @@ import { Redis } from 'ioredis'
 import {
   FetchScraperCacheRequest,
   FetchScraperCacheResponse,
+  FindScraperCacheRequest,
+  FindScraperCacheResponse,
+  ListScrapersCacheResponse,
   SaveScraperCacheRequest,
   SaveScraperCacheResponse,
   DropScraperCacheRequest,
-  DropScraperCacheResponse,
-  ListScrapersCacheResponse
+  DropScraperCacheResponse
 } from './dto/index.js'
 import * as scraperCacheRepository from './scraper-cache.repository.js'
 
+/*
+ * Create ScraperCache
+ */
+export async function createScraperCache(
+  redis: Redis,
+  request: CreateScraperCacheRequest
+): Promise<CreateScraperCacheResponse> {
+  const scraperCache = scraperCacheRepository.createModel(
+    request.scraperJobId,
+    request.avitoUrl,
+    request.intervalSec
+  )
+
+  return {
+    message: `ScraperCache successfully created`,
+    statusCode: 200,
+    scraperCache
+  }
+}
+
+/*
+ * Fetch ScraperCache
+ */
 export async function fetchScraperCache(
   redis: Redis,
   request: FetchScraperCacheRequest
@@ -23,6 +48,48 @@ export async function fetchScraperCache(
   }
 }
 
+/*
+ * Find ScraperCache
+ */
+export async function findScraperCache(
+  redis: Redis,
+  request: FindScraperCacheRequest
+): Promise<FindScraperCacheResponse> {
+  const scraperJobId = await scraperCacheRepository.findAvitoUrlIndex(redis, request.avitoUrl)
+
+  if (scraperJobId === undefined) {
+    return {
+      message: `ScraperCache not found`,
+      statusCode: 404
+    }
+  }
+
+  const scraperCache = await scraperCacheRepository.fetchModel(redis, scraperJobId)
+
+  return {
+    message: `ScraperCache successfully found`,
+    statusCode: 200,
+    scraperCache
+  }
+}
+
+/*
+ * List ScraperCache
+ */
+export async function listScrapersCache(redis: Redis): Promise<ListScrapersCacheResponse> {
+  const scraperJobIds = await scraperCacheRepository.fetchIndex(redis)
+  const scrapersCache = await scraperCacheRepository.fetchCollection(redis, scraperJobIds)
+
+  return {
+    message: `ScrapersCache successfully listed`,
+    statusCode: scrapersCache.length > 0 ? 200 : 204,
+    scrapersCache
+  }
+}
+
+/*
+ * Save ScraperCache
+ */
 export async function saveScraperCache(
   redis: Redis,
   request: SaveScraperCacheRequest
@@ -31,8 +98,7 @@ export async function saveScraperCache(
     redis,
     request.scraperJobId,
     request.avitoUrl,
-    request.intervalSec,
-    request.timeout
+    request.intervalSec
   )
 
   return {
@@ -41,25 +107,17 @@ export async function saveScraperCache(
   }
 }
 
+/*
+ * Drop ScraperCache
+ */
 export async function dropScraperCache(
   redis: Redis,
   request: DropScraperCacheRequest
 ): Promise<DropScraperCacheResponse> {
-  await scraperCacheRepository.dropModel(redis, request.scraperJobId, request.timeout)
+  await scraperCacheRepository.dropModel(redis, request.scraperJobId, request.avitoUrl)
 
   return {
     message: `ScraperCache successfully dropped`,
     statusCode: 200
-  }
-}
-
-export async function listScrapersCache(redis: Redis): Promise<ListScrapersCacheResponse> {
-  const scraperIds = await scraperCacheRepository.fetchIndex(redis)
-  const scrapersCache = await scraperCacheRepository.fetchCollection(redis, scraperIds)
-
-  return {
-    message: `ScrapersCache successfully listed`,
-    statusCode: 200,
-    scrapersCache
   }
 }

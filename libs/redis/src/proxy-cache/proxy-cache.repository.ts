@@ -1,5 +1,6 @@
 import { Redis } from 'ioredis'
 import { ProxyCache, proxyCacheKey, proxiesCacheKey } from './proxy-cache.js'
+import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import { parseNumber, parseManyNumbers, parseString } from '../redis.utils.js'
 
 export const fetchProxyCacheLua = `
@@ -27,61 +28,6 @@ export async function fetchModel(redis: Redis, proxyId: number): Promise<ProxyCa
   )
 
   return parseModel(result)
-}
-
-export const saveProxyCacheLua = `
-redis.call('HSET', KEYS[1], 'id', ARGV[1], 'proxy_url', ARGV[2], 'is_online', ARGV[3])
-redis.call('HSETNX', KEYS[1], 'total_count', 0)
-redis.call('HSETNX', KEYS[1], 'success_count', 0)
-redis.call('PEXPIRE', KEYS[1], ARGV[4])
-
-redis.call('SADD', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[4])
-
-redis.call('SREM', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[4])
-
-return redis.status_reply('OK')
-`
-
-export async function saveModel(
-  redis: Redis,
-  proxyId: number,
-  proxyUrl: string,
-  isOnline: boolean,
-  timeout: number
-): Promise<void> {
-  await redis.saveProxyCache(
-    proxyCacheKey(proxyId), // KEYS[1]
-    proxiesCacheKey(isOnline), // KEYS[2]
-    proxiesCacheKey(!isOnline), // KEYS[3]
-    proxyId, // ARGV[1]
-    proxyUrl, // ARGV[2]
-    isOnline ? 1 : 0, // ARGV[3]
-    timeout // ARGV[4]
-  )
-}
-
-export const dropProxyCacheLua = `
-redis.call('DEL', KEYS[1])
-
-redis.call('SREM', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[2])
-
-redis.call('SREM', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[2])
-
-return redis.status_reply('OK')
-`
-
-export async function dropModel(redis: Redis, proxyId: number, timeout: number): Promise<void> {
-  await redis.dropProxyCache(
-    proxyCacheKey(proxyId), // KEYS[1]
-    proxiesCacheKey(true), // KEYS[2]
-    proxiesCacheKey(false), // KEYS[3]
-    proxyId, // ARGV[1]
-    timeout // ARGV[2]
-  )
 }
 
 export const fetchProxiesCacheIndexLua = `
@@ -112,6 +58,60 @@ export async function fetchCollection(redis: Redis, proxyIds: number[]): Promise
   const results = await pipeline.exec()
 
   return parseCollection(results)
+}
+
+export const saveProxyCacheLua = `
+redis.call('HSET', KEYS[1], 'id', ARGV[1], 'proxy_url', ARGV[2], 'is_online', ARGV[3])
+redis.call('HSETNX', KEYS[1], 'total_count', 0)
+redis.call('HSETNX', KEYS[1], 'success_count', 0)
+redis.call('PEXPIRE', KEYS[1], ARGV[4])
+
+redis.call('SADD', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[4])
+
+redis.call('SREM', KEYS[3], ARGV[1])
+redis.call('PEXPIRE', KEYS[3], ARGV[4])
+
+return redis.status_reply('OK')
+`
+
+export async function saveModel(
+  redis: Redis,
+  proxyId: number,
+  proxyUrl: string,
+  isOnline: boolean
+): Promise<void> {
+  await redis.saveProxyCache(
+    proxyCacheKey(proxyId), // KEYS[1]
+    proxiesCacheKey(isOnline), // KEYS[2]
+    proxiesCacheKey(!isOnline), // KEYS[3]
+    proxyId, // ARGV[1]
+    proxyUrl, // ARGV[2]
+    isOnline ? 1 : 0, // ARGV[3]
+    REDIS_CACHE_TIMEOUT // ARGV[4]
+  )
+}
+
+export const dropProxyCacheLua = `
+redis.call('DEL', KEYS[1])
+
+redis.call('SREM', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[2])
+
+redis.call('SREM', KEYS[3], ARGV[1])
+redis.call('PEXPIRE', KEYS[3], ARGV[2])
+
+return redis.status_reply('OK')
+`
+
+export async function dropModel(redis: Redis, proxyId: number): Promise<void> {
+  await redis.dropProxyCache(
+    proxyCacheKey(proxyId), // KEYS[1]
+    proxiesCacheKey(true), // KEYS[2]
+    proxiesCacheKey(false), // KEYS[3]
+    proxyId, // ARGV[1]
+    REDIS_CACHE_TIMEOUT // ARGV[2]
+  )
 }
 
 const parseModel = (result: unknown): ProxyCache => {

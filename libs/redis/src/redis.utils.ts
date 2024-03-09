@@ -1,7 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
-
-export const randomHash = (): string => uuidv4().replaceAll('-', '')
-
 export const parseNumber = (result: unknown): number => {
   if (!(result != null && typeof result === 'string' && result.length > 0)) {
     throw new TypeError(`Redis malformed result`)

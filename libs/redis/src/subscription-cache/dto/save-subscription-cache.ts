@@ -7,7 +7,6 @@ export interface SaveSubscriptionCacheRequest {
   durationDays: number
   intervalSec: number
   analyticsOn: boolean
-  timeout: number
 }
 
 export interface SaveSubscriptionCacheResponse {

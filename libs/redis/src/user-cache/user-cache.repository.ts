@@ -1,5 +1,6 @@
 import { Redis } from 'ioredis'
 import { UserCache, userCacheKey, usersCacheKey } from './user-cache.js'
+import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import { parseNumber, parseManyNumbers, parseString } from '../redis.utils.js'
 
 export const fetchUserCacheLua = `
@@ -20,49 +21,6 @@ export async function fetchModel(redis: Redis, userId: number): Promise<UserCach
   )
 
   return parseModel(result)
-}
-
-export const saveUserCacheLua = `
-redis.call('HSET', KEYS[1], 'id', ARGV[1], 'tg_from_id', ARGV[2])
-redis.call('PEXPIRE', KEYS[1], ARGV[3])
-
-redis.call('SADD', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[3])
-
-return redis.status_reply('OK')
-`
-
-export async function saveModel(
-  redis: Redis,
-  userId: number,
-  tgFromId: string,
-  timeout: number
-): Promise<void> {
-  await redis.saveUserCache(
-    userCacheKey(userId), // KEYS[1]
-    usersCacheKey(), // KEYS[2]
-    userId, // ARGV[1]
-    tgFromId, // ARGV[2]
-    timeout // ARGV[3]
-  )
-}
-
-export const dropUserCacheLua = `
-redis.call('DEL', KEYS[1])
-
-redis.call('SREM', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[2])
-
-return redis.status_reply('OK')
-`
-
-export async function dropModel(redis: Redis, userId: number, timeout: number): Promise<void> {
-  await redis.dropUserCache(
-    userCacheKey(userId), // KEYS[1]
-    usersCacheKey(), // KEYS[2]
-    userId, // ARGV[1]
-    timeout // ARGV[2]
-  )
 }
 
 export const fetchUsersCacheIndexLua = `
@@ -93,6 +51,44 @@ export async function fetchCollection(redis: Redis, userIds: number[]): Promise<
   const results = await pipeline.exec()
 
   return parseCollection(results)
+}
+
+export const saveUserCacheLua = `
+redis.call('HSET', KEYS[1], 'id', ARGV[1], 'tg_from_id', ARGV[2])
+redis.call('PEXPIRE', KEYS[1], ARGV[3])
+
+redis.call('SADD', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[3])
+
+return redis.status_reply('OK')
+`
+
+export async function saveModel(redis: Redis, userId: number, tgFromId: string): Promise<void> {
+  await redis.saveUserCache(
+    userCacheKey(userId), // KEYS[1]
+    usersCacheKey(), // KEYS[2]
+    userId, // ARGV[1]
+    tgFromId, // ARGV[2]
+    REDIS_CACHE_TIMEOUT // ARGV[3]
+  )
+}
+
+export const dropUserCacheLua = `
+redis.call('DEL', KEYS[1])
+
+redis.call('SREM', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[2])
+
+return redis.status_reply('OK')
+`
+
+export async function dropModel(redis: Redis, userId: number): Promise<void> {
+  await redis.dropUserCache(
+    userCacheKey(userId), // KEYS[1]
+    usersCacheKey(), // KEYS[2]
+    userId, // ARGV[1]
+    REDIS_CACHE_TIMEOUT // ARGV[2]
+  )
 }
 
 const parseModel = (result: unknown): UserCache => {

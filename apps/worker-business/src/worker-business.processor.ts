@@ -5,7 +5,8 @@ import {
   userService,
   planService,
   subscriptionService,
-  categoryService
+  categoryService,
+  proxyService
 } from '@avito-speculant/database'
 import {
   redisService,
@@ -14,14 +15,17 @@ import {
   planCacheService,
   subscriptionCacheService,
   categoryCacheService,
+  proxyCacheService,
   scraperCacheService,
 } from '@avito-speculant/redis'
 import {
   BusinessResult,
   BusinessJob,
   BusinessProcessor,
+  queueService,
+  scraperService
 } from '@avito-speculant/queue'
-import { CACHE_BUSINESS_TIMEOUT, Config } from './worker-business.js'
+import { Config } from './worker-business.js'
 import { configSchema } from './worker-business.schema.js'
 
 const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) => {
@@ -43,7 +47,7 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
   switch (businessJob.name) {
     case 'user': {
       //
-      // User Business Job
+      // user
       //
 
       const businessUser = await userService.businessUser(db, {
@@ -52,35 +56,31 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
           businessJobId: businessJob.id
         }
       })
-
-      logger.debug(businessUser)
+      logger.info(businessUser)
 
       const { user, backLog } = businessUser
 
       if (user.status === 'paid') {
         const savedUserCache = await userCacheService.saveUserCache(redis, {
           userId: user.id,
-          tgFromId: user.tgFromId,
-          timeout: config.CACHE_BUSINESS_TIMEOUT
+          tgFromId: user.tgFromId
         })
-
-        logger.debug(savedUserCache)
+        logger.info(savedUserCache)
       } else {
         const droppedUserCache = await userCacheService.dropUserCache(redis, {
           userId: user.id
         })
-
-        logger.debug(droppedUserCache)
+        logger.info(droppedUserCache)
       }
 
-      await redisService.publish(pubSub, backLog)
+      await redisService.publishBackLog(pubSub, backLog)
 
       break
     }
 
     case 'plan': {
       //
-      // Plan Business Job
+      // plan
       //
 
       const businessPlan = await planService.businessPlan(db, {
@@ -89,8 +89,7 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
           businessJobId: businessJob.id
         }
       })
-
-      logger.debug(businessPlan)
+      logger.info(businessPlan)
 
       const { plan, backLog } = businessPlan
 
@@ -101,27 +100,24 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
           priceRub: plan.priceRub,
           durationDays: plan.durationDays,
           intervalSec: plan.intervalSec,
-          analyticsOn: plan.analyticsOn,
-          timeout: config.CACHE_BUSINESS_TIMEOUT
+          analyticsOn: plan.analyticsOn
         })
-
-        logger.debug(savedPlanCache)
+        logger.info(savedPlanCache)
       } else {
         const droppedPlanCache = await planCacheService.dropPlanCache(redis, {
           planId: plan.id
         })
-
-        logger.debug(droppedPlanCache)
+        logger.info(droppedPlanCache)
       }
 
-      await redisService.publish(pubSub, backLog)
+      await redisService.publishBackLog(pubSub, backLog)
 
       break
     }
 
     case 'subscription': {
       //
-      // Subscription Business Job
+      // subscription
       //
 
       const businessSubscription = await subscriptionService.businessSubscription(db, {
@@ -130,8 +126,7 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
           businessJobId: businessJob.id
         }
       })
-
-      logger.debug(businessSubscription)
+      logger.info(businessSubscription)
 
       const { subscription, backLog } = businessSubscription
 
@@ -144,29 +139,26 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
           priceRub: subscription.priceRub,
           durationDays: subscription.durationDays,
           intervalSec: subscription.intervalSec,
-          analyticsOn: subscription.analyticsOn,
-          timeout: config.CACHE_BUSINESS_TIMEOUT
+          analyticsOn: subscription.analyticsOn
         })
-
-        logger.debug(savedSubscriptionCache)
+        logger.info(savedSubscriptionCache)
       } else {
         const droppedSubscriptionCache = await subscriptionCacheService.dropSubscriptionCache(redis, {
           subscriptionId: subscription.id,
           userId: subscription.userId,
           planId: subscription.planId
         })
-
-        logger.debug(droppedSubscriptionCache)
+        logger.info(droppedSubscriptionCache)
       }
 
-      await redisService.publish(pubSub, backLog)
+      await redisService.publishBackLog(pubSub, backLog)
 
       break
     }
 
     case 'category': {
       //
-      // Category Business Job
+      // category
       //
 
       const businessCategory = await categoryService.businessCategory(db, {
@@ -175,71 +167,67 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
           businessJobId: businessJob.id
         }
       })
-
-      logger.debug(businessCategory)
+      logger.info(businessCategory)
 
       const { category, backLog } = businessCategory
 
       const findedScraperCache = await scraperCacheService.findScraperCache(redis, {
         avitoUrl: category.avitoUrl
       })
-
-      logger.debug(findedScraperCache)
+      logger.info(findedScraperCache)
 
       const { scraperCache } = findedScraperCache
 
       if (scraperCache !== undefined) {
+        // ScraperCache allready exists
+
         if (category.isEnabled) {
           const savedCategoryCache = await categoryCacheService.saveCategoryCache(redis, {
             categoryId: category.id,
             userId: category.userId,
-            avitoUrl: category.avitoUrl,
             scraperJobId: scraperCache.jobId,
-            timeout: config.CACHE_BUSINESS_TIMEOUT
+            avitoUrl: category.avitoUrl,
           })
-
-          logger.debug(savedCategoryCache)
+          logger.info(savedCategoryCache)
         } else {
           const droppedCategoryCache = await categoryCacheService.dropCategoryCache(redis, {
             categoryId: category.id,
-            scraperJobId: scraperCache.jobId,
-            timeout: config.CACHE_DROP_TIMEOUT
+            userId: category.userId,
+            scraperJobId: scraperCache.jobId
           })
-
-          logger.debug(droppedCategoryCache)
+          logger.info(droppedCategoryCache)
         }
       } else {
+        // ScraperCache not exists yet
+
         if (category.isEnabled) {
+          const scraperJobId = redisService.randomHash()
+
           const savedScraperCache = await scraperCacheService.saveScraperCache(redis, {
+            scraperJobId,
             avitoUrl: category.avitoUrl,
             intervalSec: category.intervalSec,
-            timeout: config.CACHE_BUSINESS_TIMEOUT
           })
-
-          logger.debug(savedScraperCache)
-
-          const { scraperCache as newScraperCache } = savedScraperCache
+          logger.info(savedScraperCache)
 
           const savedCategoryCache = await categoryCacheService.saveCategoryCache(redis, {
             categoryId: category.id,
             userId: category.userId,
             avitoUrl: category.avitoUrl,
-            scraperJobId: newScraperCache.jobId,
-            timeout: config.CACHE_BUSINESS_TIMEOUT
+            scraperJobId
           })
-
-          logger.debug(savedCategoryCache)
+          logger.info(savedCategoryCache)
         }
       }
 
-      await redisService.publish(pubSub, backLog)
+      await redisService.publishBackLog(pubSub, backLog)
 
       break
     }
 
     case 'proxy': {
       //
-      // Proxy Business Job
+      // proxy
       //
 
       const businessProxy = await proxyService.businessProxy(db, {
@@ -248,8 +236,7 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
           businessJobId: businessJob.id
         }
       })
-
-      logger.debug(businessProxy)
+      logger.info(businessProxy)
 
       const { proxy, backLog } = businessProxy
 
@@ -258,19 +245,16 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
           proxyId: proxy.id,
           proxyUrl: proxy.proxyUrl,
           isOnline: proxy.isOnline,
-          timeout: config.CACHE_BUSINESS_TIMEOUT
         })
-
-        logger.debug(savedProxyCache)
+        logger.info(savedProxyCache)
       } else {
         const droppedProxyCache = await planCacheService.dropProxyCache(redis, {
           planId: plan.id
         })
-
-        logger.debug(droppedProxyCache)
+        logger.info(droppedProxyCache)
       }
 
-      await redisService.publish(pubSub, backLog)
+      await redisService.publishBackLog(pubSub, backLog)
 
       break
     }
@@ -280,9 +264,10 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
     }
   }
 
-  await pubSub.disconnect()
-  await redis.disconnect()
-  await db.destroy()
+  await scraperService.closeQueue(scraperQueue)
+  await redisService.closePubSub(pubSub)
+  await redisService.closeRedis(redis)
+  await databaseService.closeDatabase(db)
 }
 
 export default businessProcessor

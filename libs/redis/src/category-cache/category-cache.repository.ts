@@ -5,6 +5,7 @@ import {
   userCategoriesCacheKey,
   scraperCategoriesCacheKey
 } from './category-cache.js'
+import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import { parseNumber, parseManyNumbers, parseString } from '../redis.utils.js'
 
 export const fetchCategoryCacheLua = `
@@ -31,73 +32,6 @@ export async function fetchModel(redis: Redis, categoryId: number): Promise<Cate
   )
 
   return parseModel(result)
-}
-
-export const saveCategoryCacheLua = `
-redis.call(
-  'HSET', KEYS[1],
-  'id', ARGV[1],
-  'user_id', ARGV[2],
-  'scraper_job_id', ARGV[3],
-  'avito_url', ARGV[4]
-)
-redis.call('PEXPIRE', KEYS[1], ARGV[5])
-
-redis.call('SADD', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[5])
-
-redis.call('SADD', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[5])
-
-return redis.status_reply('OK')
-`
-
-export async function saveModel(
-  redis: Redis,
-  categoryId: number,
-  userId: number,
-  scraperJobId: string,
-  avitoUrl: string,
-  timeout: number
-): Promise<void> {
-  await redis.saveCategoryCache(
-    categoryCacheKey(categoryId), // KEYS[1]
-    userCategoriesCacheKey(userId), // KEYS[2]
-    scraperCategoriesCacheKey(scraperJobId), // KEYS[3]
-    categoryId, // ARGV[1]
-    userId, // ARGV[2]
-    scraperJobId, // ARGV[3]
-    avitoUrl, // ARGV[4]
-    timeout // ARGV[5]
-  )
-}
-
-export const dropCategoryCacheLua = `
-redis.call('DEL', KEYS[1])
-
-redis.call('SREM', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[2])
-
-redis.call('SREM', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[2])
-
-return redis.status_reply('OK')
-`
-
-export async function dropModel(
-  redis: Redis,
-  categoryId: number,
-  userId: number,
-  scraperJobId: string,
-  timeout: number
-): Promise<void> {
-  await redis.dropCategoryCache(
-    categoryCacheKey(categoryId), // KEYS[1]
-    userCategoriesCacheKey(userId), // KEYS[2]
-    scraperCategoriesCacheKey(scraperJobId), // KEYS[3]
-    categoryId, // ARGV[1]
-    timeout // ARGV[2]
-  )
 }
 
 export const fetchUserCategoriesCacheIndexLua = `
@@ -143,6 +77,71 @@ export async function fetchCollection(
   const results = await pipeline.exec()
 
   return parseCollection(results)
+}
+
+export const saveCategoryCacheLua = `
+redis.call(
+  'HSET', KEYS[1],
+  'id', ARGV[1],
+  'user_id', ARGV[2],
+  'scraper_job_id', ARGV[3],
+  'avito_url', ARGV[4]
+)
+redis.call('PEXPIRE', KEYS[1], ARGV[5])
+
+redis.call('SADD', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[5])
+
+redis.call('SADD', KEYS[3], ARGV[1])
+redis.call('PEXPIRE', KEYS[3], ARGV[5])
+
+return redis.status_reply('OK')
+`
+
+export async function saveModel(
+  redis: Redis,
+  categoryId: number,
+  userId: number,
+  scraperJobId: string,
+  avitoUrl: string
+): Promise<void> {
+  await redis.saveCategoryCache(
+    categoryCacheKey(categoryId), // KEYS[1]
+    userCategoriesCacheKey(userId), // KEYS[2]
+    scraperCategoriesCacheKey(scraperJobId), // KEYS[3]
+    categoryId, // ARGV[1]
+    userId, // ARGV[2]
+    scraperJobId, // ARGV[3]
+    avitoUrl, // ARGV[4]
+    REDIS_CACHE_TIMEOUT // ARGV[5]
+  )
+}
+
+export const dropCategoryCacheLua = `
+redis.call('DEL', KEYS[1])
+
+redis.call('SREM', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[2])
+
+redis.call('SREM', KEYS[3], ARGV[1])
+redis.call('PEXPIRE', KEYS[3], ARGV[2])
+
+return redis.status_reply('OK')
+`
+
+export async function dropModel(
+  redis: Redis,
+  categoryId: number,
+  userId: number,
+  scraperJobId: string
+): Promise<void> {
+  await redis.dropCategoryCache(
+    categoryCacheKey(categoryId), // KEYS[1]
+    userCategoriesCacheKey(userId), // KEYS[2]
+    scraperCategoriesCacheKey(scraperJobId), // KEYS[3]
+    categoryId, // ARGV[1]
+    REDIS_CACHE_TIMEOUT // ARGV[2]
+  )
 }
 
 const parseModel = (result: unknown): CategoryCache => {

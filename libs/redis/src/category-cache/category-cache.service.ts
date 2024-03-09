@@ -2,17 +2,20 @@ import { Redis } from 'ioredis'
 import {
   FetchCategoryCacheRequest,
   FetchCategoryCacheResponse,
-  SaveCategoryCacheRequest,
-  SaveCategoryCacheResponse,
-  DropCategoryCacheRequest,
-  DropCategoryCacheResponse,
   ListUserCategoriesCacheRequest,
   ListUserCategoriesCacheResponse,
   ListScraperCategoriesCacheRequest,
-  ListScraperCategoriesCacheResponse
+  ListScraperCategoriesCacheResponse,
+  SaveCategoryCacheRequest,
+  SaveCategoryCacheResponse,
+  DropCategoryCacheRequest,
+  DropCategoryCacheResponse
 } from './dto/index.js'
 import * as categoryCacheRepository from './category-cache.repository.js'
 
+/*
+ * Fetch CategoryCache
+ */
 export async function fetchCategoryCache(
   redis: Redis,
   request: FetchCategoryCacheRequest
@@ -26,43 +29,9 @@ export async function fetchCategoryCache(
   }
 }
 
-export async function saveCategoryCache(
-  redis: Redis,
-  request: SaveCategoryCacheRequest
-): Promise<SaveCategoryCacheResponse> {
-  await categoryCacheRepository.saveModel(
-    redis,
-    request.categoryId,
-    request.userId,
-    request.scraperJobId,
-    request.avitoUrl,
-    request.timeout
-  )
-
-  return {
-    message: `CategoryCache successfully saved`,
-    statusCode: 200
-  }
-}
-
-export async function dropCategoryCache(
-  redis: Redis,
-  request: DropCategoryCacheRequest
-): Promise<DropCategoryCacheResponse> {
-  await categoryCacheRepository.dropModel(
-    redis,
-    request.categoryId,
-    request.userId,
-    request.scraperJobId,
-    request.timeout
-  )
-
-  return {
-    message: `CategoryCache successfully dropped`,
-    statusCode: 200
-  }
-}
-
+/*
+ * List User CategoryCache
+ */
 export async function listUserCategoriesCache(
   redis: Redis,
   request: ListUserCategoriesCacheRequest
@@ -77,6 +46,9 @@ export async function listUserCategoriesCache(
   }
 }
 
+/*
+ * List Scraper CategoryCache
+ */
 export async function listScraperCategoriesCache(
   redis: Redis,
   request: ListScraperCategoriesCacheRequest
@@ -88,5 +60,46 @@ export async function listScraperCategoriesCache(
     message: `CategoriesCache successfully listed`,
     statusCode: 200,
     categoriesCache
+  }
+}
+
+/*
+ * Save CategoryCache
+ */
+export async function saveCategoryCache(
+  redis: Redis,
+  request: SaveCategoryCacheRequest
+): Promise<SaveCategoryCacheResponse> {
+  await categoryCacheRepository.saveModel(
+    redis,
+    request.categoryId,
+    request.userId,
+    request.scraperJobId,
+    request.avitoUrl
+  )
+
+  return {
+    message: `CategoryCache successfully saved`,
+    statusCode: 200
+  }
+}
+
+/*
+ * Drop CategoryCache
+ */
+export async function dropCategoryCache(
+  redis: Redis,
+  request: DropCategoryCacheRequest
+): Promise<DropCategoryCacheResponse> {
+  await categoryCacheRepository.dropModel(
+    redis,
+    request.categoryId,
+    request.userId,
+    request.scraperJobId
+  )
+
+  return {
+    message: `CategoryCache successfully dropped`,
+    statusCode: 200
   }
 }

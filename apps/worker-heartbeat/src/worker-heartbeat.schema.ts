@@ -1,13 +1,15 @@
+import { JSONSchemaType } from '@avito-speculant/config'
+import { DEFAULT_LOG_LEVEL } from '@avito-speculant/logger'
 import {
-  JSONSchemaType,
-  DEFAULT_LOG_LEVEL,
-  DEFAULT_REDIS_HOST,
-  DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE,
   DEFAULT_POSTGRES_HOST,
   DEFAULT_POSTGRES_PORT,
   DEFAULT_POSTGRES_DATABASE
-} from '@avito-speculant/config'
+} from '@avito-speculant/database'
+import {
+  DEFAULT_REDIS_HOST,
+  DEFAULT_REDIS_PORT,
+  DEFAULT_REDIS_DATABASE
+} from '@avito-speculant/redis'
 import { Config } from './worker-heartbeat.js'
 
 export const configSchema: JSONSchemaType<Config> = {
@@ -92,7 +94,7 @@ export const configSchema: JSONSchemaType<Config> = {
     },
     HEARTBEAT_QUEUE_PLANS_LIMIT: {
       type: 'number',
-      default: 2
+      default: 1
     },
     HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT: {
       type: 'number',
@@ -104,7 +106,7 @@ export const configSchema: JSONSchemaType<Config> = {
     },
     HEARTBEAT_QUEUE_PROXIES_LIMIT: {
       type: 'number',
-      default: 100
+      default: 10
     }
   }
 }

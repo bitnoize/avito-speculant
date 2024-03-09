@@ -22,6 +22,11 @@ declare module 'ioredis' {
 
     fetchUserCache(userCacheKey: string, callback?: Callback<string>): Result<string, Context>
 
+    fetchUsersCacheIndex(
+      usersCacheKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
     saveUserCache(
       userCacheKey: string,
       usersCacheKey: string,
@@ -39,16 +44,16 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchUsersCacheIndex(
-      usersCacheKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
     //
     // PlanCache
     //
 
     fetchPlanCache(planCacheKey: string, callback?: Callback<string>): Result<string, Context>
+
+    fetchPlansCacheIndex(
+      plansCacheKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
 
     savePlanCache(
       planCacheKey: string,
@@ -71,17 +76,22 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchPlansCacheIndex(
-      plansCacheKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
     //
     // SubscriptionCache
     //
 
     fetchSubscriptionCache(
       subscriptionCacheKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchUserSubscriptionCacheIndex(
+      userSubscriptionCacheKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchPlanSubscriptionsCacheIndex(
+      planSubscriptionsCacheKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -110,22 +120,22 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchUserSubscriptionCacheIndex(
-      userSubscriptionCacheKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    fetchPlanSubscriptionsCacheIndex(
-      planSubscriptionsCacheKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
     //
     // CategoryCache
     //
 
     fetchCategoryCache(
       categoryCacheKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchUserCategoriesCacheIndex(
+      userCategoriesCacheKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchScraperCategoriesCacheIndex(
+      scraperCategoriesCacheKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -150,21 +160,16 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchUserCategoriesCacheIndex(
-      userCategoriesCacheKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    fetchScraperCategoriesCacheIndex(
-      scraperCategoriesCacheKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
     //
     // ProxyCache
     //
 
     fetchProxyCache(proxyCacheKey: string, callback?: Callback<string>): Result<string, Context>
+
+    fetchProxiesCacheIndex(
+      proxiesCacheKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
 
     saveProxyCache(
       proxyCacheKey: string,
@@ -186,19 +191,25 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchProxiesCacheIndex(
-      proxiesCacheKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
     //
     // ScraperCache
     //
 
     fetchScraperCache(scraperCacheKey: string, callback?: Callback<string>): Result<string, Context>
 
+    findScraperCacheAvitoUrlIndex(
+      scraperCacheAvitoUrlKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchScrapersCacheIndex(
+      scrapersCacheKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
     saveScraperCache(
       scraperCacheKey: string,
+      scraperCacheAvitoUrlKey: string,
       scrapersCacheKey: string,
       scraperJobId: string,
       avitoUrl: string,
@@ -209,14 +220,10 @@ declare module 'ioredis' {
 
     dropScraperCache(
       scraperCacheKey: string,
+      scraperCacheAvitoUrlKey: string,
       scrapersCacheKey: string,
       scraperJobId: string,
       timeout: number,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    fetchScrapersCacheIndex(
-      scrapersCacheKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
   }

@@ -5,7 +5,6 @@ export interface SavePlanCacheRequest {
   durationDays: number
   intervalSec: number
   analyticsOn: boolean
-  timeout: number
 }
 
 export interface SavePlanCacheResponse {

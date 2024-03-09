@@ -2,17 +2,20 @@ import { Redis } from 'ioredis'
 import {
   FetchSubscriptionCacheRequest,
   FetchSubscriptionCacheResponse,
-  SaveSubscriptionCacheRequest,
-  SaveSubscriptionCacheResponse,
-  DropSubscriptionCacheRequest,
-  DropSubscriptionCacheResponse,
   FetchUserSubscriptionCacheRequest,
   FetchUserSubscriptionCacheResponse,
   ListPlanSubscriptionsCacheRequest,
-  ListPlanSubscriptionsCacheResponse
+  ListPlanSubscriptionsCacheResponse,
+  SaveSubscriptionCacheRequest,
+  SaveSubscriptionCacheResponse,
+  DropSubscriptionCacheRequest,
+  DropSubscriptionCacheResponse
 } from './dto/index.js'
 import * as subscriptionCacheRepository from './subscription-cache.repository.js'
 
+/*
+ * Fetch SubscriptionCache
+ */
 export async function fetchSubscriptionCache(
   redis: Redis,
   request: FetchSubscriptionCacheRequest
@@ -29,47 +32,9 @@ export async function fetchSubscriptionCache(
   }
 }
 
-export async function saveSubscriptionCache(
-  redis: Redis,
-  request: SaveSubscriptionCacheRequest
-): Promise<SaveSubscriptionCacheResponse> {
-  await subscriptionCacheRepository.saveModel(
-    redis,
-    request.subscriptionId,
-    request.userId,
-    request.planId,
-    request.categoriesMax,
-    request.priceRub,
-    request.durationDays,
-    request.intervalSec,
-    request.analyticsOn,
-    request.timeout
-  )
-
-  return {
-    message: `SubscriptionCache successfully saved`,
-    statusCode: 200
-  }
-}
-
-export async function dropSubscriptionCache(
-  redis: Redis,
-  request: DropSubscriptionCacheRequest
-): Promise<DropSubscriptionCacheResponse> {
-  await subscriptionCacheRepository.dropModel(
-    redis,
-    request.subscriptionId,
-    request.userId,
-    request.planId,
-    request.timeout
-  )
-
-  return {
-    message: `SubscriptionCache successfully dropped`,
-    statusCode: 200
-  }
-}
-
+/*
+ * Fetch User SubscriptionCache
+ */
 export async function fetchUserSubscriptionCache(
   redis: Redis,
   request: FetchUserSubscriptionCacheRequest
@@ -84,6 +49,9 @@ export async function fetchUserSubscriptionCache(
   }
 }
 
+/*
+ * List Plan SubscriptionsCache
+ */
 export async function listPlanSubscriptionsCache(
   redis: Redis,
   request: ListPlanSubscriptionsCacheRequest
@@ -98,5 +66,50 @@ export async function listPlanSubscriptionsCache(
     message: `PlanSubscriptionsCache successfully listed`,
     statusCode: 200,
     subscriptionsCache
+  }
+}
+
+/*
+ * Save SubscriptionCache
+ */
+export async function saveSubscriptionCache(
+  redis: Redis,
+  request: SaveSubscriptionCacheRequest
+): Promise<SaveSubscriptionCacheResponse> {
+  await subscriptionCacheRepository.saveModel(
+    redis,
+    request.subscriptionId,
+    request.userId,
+    request.planId,
+    request.categoriesMax,
+    request.priceRub,
+    request.durationDays,
+    request.intervalSec,
+    request.analyticsOn
+  )
+
+  return {
+    message: `SubscriptionCache successfully saved`,
+    statusCode: 200
+  }
+}
+
+/*
+ * Drop SubscriptionCache
+ */
+export async function dropSubscriptionCache(
+  redis: Redis,
+  request: DropSubscriptionCacheRequest
+): Promise<DropSubscriptionCacheResponse> {
+  await subscriptionCacheRepository.dropModel(
+    redis,
+    request.subscriptionId,
+    request.userId,
+    request.planId
+  )
+
+  return {
+    message: `SubscriptionCache successfully dropped`,
+    statusCode: 200
   }
 }

@@ -1,13 +1,15 @@
+import { JSONSchemaType } from '@avito-speculant/config'
+import { DEFAULT_LOG_LEVEL } from '@avito-speculant/logger'
 import {
-  JSONSchemaType,
-  DEFAULT_LOG_LEVEL,
-  DEFAULT_REDIS_HOST,
-  DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE,
   DEFAULT_POSTGRES_HOST,
   DEFAULT_POSTGRES_PORT,
   DEFAULT_POSTGRES_DATABASE
-} from '@avito-speculant/config'
+} from '@avito-speculant/database'
+import {
+  DEFAULT_REDIS_HOST,
+  DEFAULT_REDIS_PORT,
+  DEFAULT_REDIS_DATABASE
+} from '@avito-speculant/redis'
 import { Config } from './bot.js'
 
 export const configSchema: JSONSchemaType<Config> = {

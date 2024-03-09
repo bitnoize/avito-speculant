@@ -3,6 +3,8 @@
 
 Воркер для очереди **business**
 
+Реализует заполнение кеша из базы
+
 ```
 # Собрать модуль
 npm -w @avito-speculant/worker-business run build

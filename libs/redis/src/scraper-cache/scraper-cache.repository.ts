@@ -1,6 +1,28 @@
 import { Redis } from 'ioredis'
-import { ScraperCache, scraperCacheKey, scrapersCacheKey } from './scraper-cache.js'
-import { parseNumber, parseString, parseManyStrings } from '../redis.utils.js'
+import {
+  ScraperCache,
+  scraperCacheKey,
+  scraperCacheAvitoUrlKey,
+  scrapersCacheKey
+} from './scraper-cache.js'
+import { REDIS_CACHE_TIMEOUT } from '../redis.js'
+import {
+  randomHash,
+  parseNumber,
+  parseString,
+  parseManyStrings,
+} from '../redis.utils.js'
+
+export async function createModel(
+  avitoUrl: string,
+  intervalSec: number
+): ScraperCache {
+  return {
+    scraperJobId: randomHash(),
+    avitoUrl,
+    intervalSec
+  }
+}
 
 export const fetchScraperCacheLua = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -21,6 +43,9 @@ return {
 }
 `
 
+/*
+ * Fetch scraperCache by scraperJobId
+ */
 export async function fetchModel(redis: Redis, scraperJobId: string): Promise<ScraperCache> {
   const result = await redis.fetchScraperCache(
     scraperCacheKey(scraperJobId) // KEYS[1]
@@ -29,64 +54,35 @@ export async function fetchModel(redis: Redis, scraperJobId: string): Promise<Sc
   return parseModel(result)
 }
 
-export const saveScraperCacheLua = `
-redis.call(
-  'HSET', KEYS[1],
-  'job_id', ARGV[1],
-  'avito_url', ARGV[2],
-  'interval_sec', ARGV[3],
-)
-redis.call('HSETNX', KEYS[1], 'total_count', 0)
-redis.call('HSETNX', KEYS[1], 'success_count', 0)
-redis.call('PEXPIRE', KEYS[1], ARGV[4])
-
-redis.call('SADD', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[4])
-
-return redis.status_reply('OK')
+export const findScraperCacheAvitoUrlIndexLua = `
+return redis.call('GET', KEYS[1])
 `
 
-export async function saveModel(
+/*
+ * Find scraperCache by avitoUrl
+ */
+export async function findAvitoUrlIndex(
   redis: Redis,
-  scraperJobId: string,
-  avitoUrl: string,
-  intervalSec: number,
-  timeout: number
-): Promise<void> {
-  await redis.saveScraperCache(
-    scraperCacheKey(scraperJobId), // KEYS[1]
-    scrapersCacheKey(), // KEYS[2]
-    scraperJobId, // ARGV[1]
-    avitoUrl, // ARGV[2]
-    intervalSec, // ARGV[3]
-    timeout // ARGV[4]
+  avitoUrl: string
+): Promise<string | undefined> {
+  const result = await redis.findScraperCacheAvitoUrlIndex(
+    scraperCacheAvitoUrlKey(avitoUrl) // KEYS[1]
   )
-}
 
-export const dropScraperCacheLua = `
-redis.call('DEL', KEYS[1])
+  if (result == null) {
+    return undefined
+  }
 
-redis.call('SREM', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[2])
-`
-
-export async function dropModel(
-  redis: Redis,
-  scraperJobId: string,
-  timeout: number
-): Promise<void> {
-  await redis.dropScraperCache(
-    scraperCacheKey(scraperJobId), // KEYS[1]
-    scrapersCacheKey(), // KEYS[2]
-    scraperJobId, // ARGV[1]
-    timeout // ARGV[2]
-  )
+  return parseString(result)
 }
 
 export const fetchScrapersCacheIndexLua = `
 return redis.call('SMEMBERS', KEYS[1])
 `
 
+/*
+ * Fetch scraperCache index
+ */
 export async function fetchIndex(redis: Redis): Promise<string[]> {
   const results = await redis.fetchScrapersCacheIndex(
     scrapersCacheKey() // KEYS[1]
@@ -95,6 +91,9 @@ export async function fetchIndex(redis: Redis): Promise<string[]> {
   return parseManyStrings(results)
 }
 
+/*
+ * Fetch multiple models by scraperJobId as collection
+ */
 export async function fetchCollection(
   redis: Redis,
   scraperJobIds: string[]
@@ -114,6 +113,72 @@ export async function fetchCollection(
   const results = await pipeline.exec()
 
   return parseCollection(results)
+}
+
+export const saveScraperCacheLua = `
+redis.call(
+  'HSET', KEYS[1],
+  'job_id', ARGV[1],
+  'avito_url', ARGV[2],
+  'interval_sec', ARGV[3],
+)
+redis.call('HSETNX', KEYS[1], 'total_count', 0)
+redis.call('HSETNX', KEYS[1], 'success_count', 0)
+redis.call('PEXPIRE', KEYS[1], ARGV[4])
+
+redis.call('SET', KEYS[3], ARGV[2])
+redis.call('PEXPIRE', KEYS[3], ARGV[4])
+
+redis.call('SADD', KEYS[3], ARGV[1])
+redis.call('PEXPIRE', KEYS[3], ARGV[4])
+
+return redis.status_reply('OK')
+`
+
+/*
+ * Save scraperCache
+ */
+export async function saveModel(
+  redis: Redis,
+  scraperJobId: string,
+  avitoUrl: string,
+  intervalSec: number
+): Promise<void> {
+  await redis.saveScraperCache(
+    scraperCacheKey(scraperJobId), // KEYS[1]
+    scraperCacheAvitoUrlKey(avitoUrl), // KEYS[2]
+    scrapersCacheKey(), // KEYS[3]
+    scraperJobId, // ARGV[1]
+    avitoUrl, // ARGV[2]
+    intervalSec, // ARGV[3]
+    REDIS_CACHE_TIMEOUT // ARGV[4]
+  )
+}
+
+export const dropScraperCacheLua = `
+redis.call('DEL', KEYS[1])
+
+redis.call('DEL', KEYS[2])
+
+redis.call('SREM', KEYS[3], ARGV[1])
+redis.call('PEXPIRE', KEYS[3], ARGV[2])
+`
+
+/*
+ * Drop scraperCache
+ */
+export async function dropModel(
+  redis: Redis,
+  scraperJobId: string,
+  avitoUrl: string
+): Promise<void> {
+  await redis.dropScraperCache(
+    scraperCacheKey(scraperJobId), // KEYS[1]
+    scraperCacheAvitoUrlKey(avitoUrl), // KEYS[2]
+    scrapersCacheKey(), // KEYS[3]
+    scraperJobId, // ARGV[1]
+    REDIS_CACHE_TIMEOUT // ARGV[2]
+  )
 }
 
 const parseModel = (result: unknown): ScraperCache => {

@@ -1,7 +1,7 @@
 import { command, positional, number } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { databaseService, categoryService } from '@avito-speculant/database'
-import { redisService } from '@avito-speculant/redis'
+import { redisService, categoryCacheService } from '@avito-speculant/redis'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
@@ -27,10 +27,21 @@ export default (config: Config, logger: Logger) => {
           message: `Category enabled via Manager`
         }
       })
-
       logger.info(enabledCategory)
 
-      await redisService.publishBackLog(pubSub, enabledCategory.backLog)
+      const { category, backLog } = enabledCategory
+
+      if (category.isEnabled) {
+        const savedCategoryCache = categoryCacheService.saveCategoryCache(redis, {
+          categoryId: category.id,
+          userId: category.userId,
+          scraperJobId: category.scraperJobId,
+          avitoUrl: category.avitoUrl
+
+        })
+      }
+
+      await redisService.publishBackLog(pubSub, backLog)
 
       await redisService.closePubSub(pubSub)
       await databaseService.closeDatabase(db)

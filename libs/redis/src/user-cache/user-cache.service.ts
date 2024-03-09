@@ -2,15 +2,17 @@ import { Redis } from 'ioredis'
 import {
   FetchUserCacheRequest,
   FetchUserCacheResponse,
+  ListUsersCacheResponse,
   SaveUserCacheRequest,
   SaveUserCacheResponse,
   DropUserCacheRequest,
-  DropUserCacheResponse,
-  ListUsersCacheResponse
+  DropUserCacheResponse
 } from './dto/index.js'
 import * as userCacheRepository from './user-cache.repository.js'
-import * as subscriptionCacheRepository from '../subscription-cache/subscription-cache.repository.js'
 
+/*
+ * Fetch UserCache
+ */
 export async function fetchUserCache(
   redis: Redis,
   request: FetchUserCacheRequest
@@ -24,30 +26,9 @@ export async function fetchUserCache(
   }
 }
 
-export async function saveUserCache(
-  redis: Redis,
-  request: SaveUserCacheRequest
-): Promise<SaveUserCacheResponse> {
-  await userCacheRepository.saveModel(redis, request.userId, request.tgFromId, request.timeout)
-
-  return {
-    message: `UserCache successfully saved`,
-    statusCode: 200
-  }
-}
-
-export async function dropUserCache(
-  redis: Redis,
-  request: DropUserCacheRequest
-): Promise<DropUserCacheResponse> {
-  await userCacheRepository.dropModel(redis, request.userId, request.timeout)
-
-  return {
-    message: `UserCache successfully dropped`,
-    statusCode: 200
-  }
-}
-
+/*
+ * List UserCache
+ */
 export async function listUsersCache(redis: Redis): Promise<ListUsersCacheResponse> {
   const userIds = await userCacheRepository.fetchIndex(redis)
   const usersCache = await userCacheRepository.fetchCollection(redis, userIds)
@@ -56,5 +37,35 @@ export async function listUsersCache(redis: Redis): Promise<ListUsersCacheRespon
     message: `UsersCache successfully listed`,
     statusCode: 200,
     usersCache
+  }
+}
+
+/*
+ * Save UserCache
+ */
+export async function saveUserCache(
+  redis: Redis,
+  request: SaveUserCacheRequest
+): Promise<SaveUserCacheResponse> {
+  await userCacheRepository.saveModel(redis, request.userId, request.tgFromId)
+
+  return {
+    message: `UserCache successfully saved`,
+    statusCode: 200
+  }
+}
+
+/*
+ * Drop UserCache
+ */
+export async function dropUserCache(
+  redis: Redis,
+  request: DropUserCacheRequest
+): Promise<DropUserCacheResponse> {
+  await userCacheRepository.dropModel(redis, request.userId)
+
+  return {
+    message: `UserCache successfully dropped`,
+    statusCode: 200
   }
 }

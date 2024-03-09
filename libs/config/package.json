@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/config",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Avito-Speculant Config shared library",
   "private": true,
   "main": "dist/index.js",

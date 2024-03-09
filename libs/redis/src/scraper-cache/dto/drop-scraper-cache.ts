@@ -1,6 +1,6 @@
 export interface DropScraperCacheRequest {
   scraperJobId: string
-  timeout: number
+  avitoUrl: string
 }
 
 export interface DropScraperCacheResponse {

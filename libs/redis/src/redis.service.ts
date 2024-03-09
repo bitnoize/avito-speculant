@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import { RedisOptions, Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
 import { Notify } from '@avito-speculant/notify'
@@ -9,6 +10,11 @@ import * as categoryCacheRepository from './category-cache/category-cache.reposi
 import * as proxyCacheRepository from './proxy-cache/proxy-cache.repository.js'
 import * as scraperCacheRepository from './scraper-cache/scraper-cache.repository.js'
 import { RedisConfig } from './redis.js'
+
+/*
+ * Generate random identifier
+ */
+export const randomHash = (): string => uuidv4().replaceAll('-', '')
 
 /**
  * Get RedisOptions from config
@@ -178,6 +184,16 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: scraperCacheRepository.fetchScraperCacheLua
   })
 
+  redis.defineCommand('findScraperCacheAvitoUrlIndex', {
+    numberOfKeys: 1,
+    lua: scraperCacheRepository.findScraperCacheAvitoUrlIndexLua
+  })
+
+  redis.defineCommand('fetchScrapersCacheIndex', {
+    numberOfKeys: 1,
+    lua: scraperCacheRepository.fetchScrapersCacheIndexLua
+  })
+
   redis.defineCommand('saveScraperCache', {
     numberOfKeys: 2,
     lua: scraperCacheRepository.saveScraperCacheLua
@@ -186,11 +202,6 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
   redis.defineCommand('dropScraperCache', {
     numberOfKeys: 2,
     lua: scraperCacheRepository.dropScraperCacheLua
-  })
-
-  redis.defineCommand('fetchScrapersCacheIndex', {
-    numberOfKeys: 1,
-    lua: scraperCacheRepository.fetchScrapersCacheIndexLua
   })
 
   return redis

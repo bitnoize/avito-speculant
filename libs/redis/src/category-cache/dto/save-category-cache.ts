@@ -3,7 +3,6 @@ export interface SaveCategoryCacheRequest {
   userId: number
   scraperJobId: string
   avitoUrl: string
-  timeout: number
 }
 
 export interface SaveCategoryCacheResponse {

@@ -11,4 +11,7 @@ export interface ScraperCache {
 export const scraperCacheKey = (scraperJobId: string) =>
   [REDIS_CACHE_PREFIX, 'scraper', scraperJobId].join(':')
 
+export const scraperCacheAvitoUrlKey = (avitoUrl: string) =>
+  [REDIS_CACHE_PREFIX, 'scraper-avito_url', avitoUrl].join(':')
+
 export const scrapersCacheKey = () => [REDIS_CACHE_PREFIX, 'scrapers'].join(':')
