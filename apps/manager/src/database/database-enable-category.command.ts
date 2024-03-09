@@ -31,16 +31,6 @@ export default (config: Config, logger: Logger) => {
 
       const { category, backLog } = enabledCategory
 
-      if (category.isEnabled) {
-        const savedCategoryCache = categoryCacheService.saveCategoryCache(redis, {
-          categoryId: category.id,
-          userId: category.userId,
-          scraperJobId: category.scraperJobId,
-          avitoUrl: category.avitoUrl
-
-        })
-      }
-
       await redisService.publishBackLog(pubSub, backLog)
 
       await redisService.closePubSub(pubSub)
