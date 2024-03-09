@@ -7,22 +7,10 @@ import {
 } from './scraper-cache.js'
 import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import {
-  randomHash,
   parseNumber,
   parseString,
   parseManyStrings,
 } from '../redis.utils.js'
-
-export async function createModel(
-  avitoUrl: string,
-  intervalSec: number
-): ScraperCache {
-  return {
-    scraperJobId: randomHash(),
-    avitoUrl,
-    intervalSec
-  }
-}
 
 export const fetchScraperCacheLua = `
 if redis.call('EXISTS', KEYS[1]) == 0 then

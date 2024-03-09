@@ -13,26 +13,6 @@ import {
 import * as scraperCacheRepository from './scraper-cache.repository.js'
 
 /*
- * Create ScraperCache
- */
-export async function createScraperCache(
-  redis: Redis,
-  request: CreateScraperCacheRequest
-): Promise<CreateScraperCacheResponse> {
-  const scraperCache = scraperCacheRepository.createModel(
-    request.scraperJobId,
-    request.avitoUrl,
-    request.intervalSec
-  )
-
-  return {
-    message: `ScraperCache successfully created`,
-    statusCode: 200,
-    scraperCache
-  }
-}
-
-/*
  * Fetch ScraperCache
  */
 export async function fetchScraperCache(
