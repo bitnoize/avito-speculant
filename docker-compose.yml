@@ -3,14 +3,39 @@ networks:
     external: true
 
 services:
+  manager:
+    image: ghcr.io/bitnoize/avito-speculant-manager:latest
+    build:
+      context: .
+      dockerfile: ./apps/manager/Dockerfile
+    environment:
+      - UID=54720
+      - GID=54720
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_DATABASE
+      - POSTGRES_USERNAME
+      - POSTGRES_PASSWORD
+    networks:
+      - avito-speculant-net
+    depends_on:
+      - connect-postgres
+      - connect-redis
+    restart: no
+
   bot:
     image: ghcr.io/bitnoize/avito-speculant-bot:latest
     build:
       context: .
       dockerfile: ./apps/bot/Dockerfile
     environment:
-      - UID=54210
-      - GID=54210
+      - UID=54710
+      - GID=54710
       - NODE_ENV
       - LOG_LEVEL
       - REDIS_HOST
@@ -31,14 +56,16 @@ services:
       - connect-redis
     restart: unless-stopped
 
-  manager:
-    image: ghcr.io/bitnoize/avito-speculant-manager:latest
+  worker-heartbeat:
+    image: ghcr.io/bitnoize/avito-speculant-worker-heartbeat:latest
     build:
       context: .
-      dockerfile: ./apps/manager/Dockerfile
+      dockerfile: ./apps/worker-heartbeat/Dockerfile
     environment:
-      - UID=54220
-      - GID=54220
+      - UID=54730
+      - GID=54730
+      - NODE_ENV
+      - LOG_LEVEL
       - REDIS_HOST
       - REDIS_PORT
       - REDIS_DATABASE
@@ -49,12 +76,50 @@ services:
       - POSTGRES_DATABASE
       - POSTGRES_USERNAME
       - POSTGRES_PASSWORD
+      - HEARTBEAT_CONCURRENCY
+      - HEARTBEAT_LIMITER_MAX
+      - HEARTBEAT_LIMITER_DURATION
+      - HEARTBEAT_QUEUE_USERS_LIMIT
+      - HEARTBEAT_QUEUE_PLANS_LIMIT
+      - HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT
+      - HEARTBEAT_QUEUE_CATEGORIES_LIMIT
+      - HEARTBEAT_QUEUE_PROXIES_LIMIT
     networks:
       - avito-speculant-net
     depends_on:
       - connect-postgres
       - connect-redis
-    restart: no
+    restart: unless-stopped
+
+  worker-business:
+    image: ghcr.io/bitnoize/avito-speculant-worker-business:latest
+    build:
+      context: .
+      dockerfile: ./apps/business/Dockerfile
+    environment:
+      - UID=54730
+      - GID=54730
+      - NODE_ENV
+      - LOG_LEVEL
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_DATABASE
+      - POSTGRES_USERNAME
+      - POSTGRES_PASSWORD
+      - BUSINESS_CONCURRENCY
+      - BUSINESS_LIMITER_MAX
+      - BUSINESS_LIMITER_DURATION
+    networks:
+      - avito-speculant-net
+    depends_on:
+      - connect-postgres
+      - connect-redis
+    restart: unless-stopped
 
   connect-postgres:
     image: alpine/socat

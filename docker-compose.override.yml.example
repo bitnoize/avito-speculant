@@ -1,4 +1,11 @@
 services:
+  manager:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: 256Mb
+
   bot:
     deploy:
       replicas: 1
@@ -7,8 +14,17 @@ services:
           cpus: "0.2"
           memory: 256Mb
 
-  manager:
+  worker-heartbeat:
     deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: 256Mb
+
+  worker-business:
+    deploy:
+      replicas: 2
       resources:
         limits:
           cpus: "0.2"
