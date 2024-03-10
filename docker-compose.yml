@@ -95,7 +95,7 @@ services:
     image: ghcr.io/bitnoize/avito-speculant-worker-business:latest
     build:
       context: .
-      dockerfile: ./apps/business/Dockerfile
+      dockerfile: ./apps/worker-business/Dockerfile
     environment:
       - UID=54730
       - GID=54730
