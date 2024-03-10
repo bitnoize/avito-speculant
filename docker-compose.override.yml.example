@@ -1,6 +1,7 @@
 services:
   manager:
     deploy:
+      replicas: 0
       resources:
         limits:
           cpus: "0.2"
