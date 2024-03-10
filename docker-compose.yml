@@ -11,20 +11,19 @@ services:
     environment:
       - UID=54210
       - GID=54210
-      - NODE_ENV=${NODE_ENV}
-      - LOG_LEVEL=${LOG_LEVEL}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_DATABASEL=${REDIS_DATABASE}
-      - REDIS_USERNAME=${REDIS_USERNAME}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
-      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - BOT_TOKEN=${BOT_TOKEN}
-    #command: ["npm", "-w", "@avito-speculant/bot", "run", "start"]
+      - NODE_ENV
+      - LOG_LEVEL
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_DATABASE
+      - POSTGRES_USERNAME
+      - POSTGRES_PASSWORD
+      - BOT_TOKEN
     networks:
       - avito-speculant-net
     depends_on:
@@ -40,19 +39,16 @@ services:
     environment:
       - UID=54220
       - GID=54220
-      - NODE_ENV=${NODE_ENV}
-      - LOG_LEVEL=${LOG_LEVEL}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_DATABASEL=${REDIS_DATABASE}
-      - REDIS_USERNAME=${REDIS_USERNAME}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
-      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    #command: ["npm", "-w", "@avito-speculant/bot", "run", "start"]
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_DATABASE
+      - POSTGRES_USERNAME
+      - POSTGRES_PASSWORD
     networks:
       - avito-speculant-net
     depends_on:

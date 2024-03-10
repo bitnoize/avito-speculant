@@ -9,13 +9,14 @@
 
 ```
 # Получить текущий статус
-npm -w @avito-speculant/manager run start -- system status | npx pino-pretty
+docker compose run manager -- system status | pino-pretty
 
 # Остановить кластер
-npm -w @avito-speculant/manager run start -- system stop | npx pino-pretty
+docker compose run manager -- system stop | pino-pretty
 
 # Запустить кластер
-npm -w @avito-speculant/manager run start -- system start | npx pino-pretty
+docker compose run manager -- system start | pino-pretty
+
 ```
 
 Команды **database**:
@@ -46,19 +47,19 @@ npm -w @avito-speculant/manager run start -- database create-plan \
     --price-rub 1000 \
     --duration-days 7 \
     --interval-sec 10 \
-    --analytics-on 1 | npx pino-pretty
+    --analytics-on 1 | pino-pretty
 
 # Создать подписку для пользователя в тестовых целях
 npm -w @avito-speculant/manager run start -- database create-subscription \
-    <USER_ID> <PLAN_ID> | npx pino-pretty
+    <USER_ID> <PLAN_ID> | pino-pretty
 
 # Активировать подписку для пользователя в тестовых целях
 npm -w @avito-speculant/manager run start -- database activate-subscription \
-    <SUBSCRIPTION_ID> | npx pino-pretty
+    <SUBSCRIPTION_ID> | pino-pretty
 
 # Список всех подписок пользователя
 npm -w @avito-speculant/manager run start -- database list-subscriptions \
-    <USER_ID> | npx pino-pretty
+    <USER_ID> | pino-pretty
 
 ...
 ```
@@ -72,6 +73,6 @@ npm -w @avito-speculant/manager run start -- database list-subscriptions \
 
 ```
 # Мониторинг состояния заданий в очереди **heartbeat** для отладки
-npm -w @avito-speculant/manager run start -- queue monitor-heartbeat | npx pino-pretty
+npm -w @avito-speculant/manager run start -- queue monitor-heartbeat | pino-pretty
 ```
 
