@@ -6,11 +6,7 @@ import {
   scrapersCacheKey
 } from './scraper-cache.js'
 import { REDIS_CACHE_TIMEOUT } from '../redis.js'
-import {
-  parseNumber,
-  parseString,
-  parseManyStrings,
-} from '../redis.utils.js'
+import { parseNumber, parseString, parseManyStrings } from '../redis.utils.js'
 
 export const fetchScraperCacheLua = `
 if redis.call('EXISTS', KEYS[1]) == 0 then

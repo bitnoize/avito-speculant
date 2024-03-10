@@ -2,6 +2,7 @@ import { command, positional, option, optional, number } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { databaseService, planService } from '@avito-speculant/database'
 import { redisService } from '@avito-speculant/redis'
+import { queueService, businessService } from '@avito-speculant/queue'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
@@ -34,12 +35,22 @@ export default (config: Config, logger: Logger) => {
         long: 'analytics-on'
       })
     },
-    handler: async ({ planId, categoriesMax, priceRub, durationDays, intervalSec, analyticsOn }) => {
+    handler: async ({
+      planId,
+      categoriesMax,
+      priceRub,
+      durationDays,
+      intervalSec,
+      analyticsOn
+    }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const pubSub = redisService.initPubSub(redisOptions, logger)
+
+      const queueConnection = queueService.getQueueConnection<Config>(config)
+      const businessQueue = businessService.initQueue(queueConnection, logger)
 
       const updatedPlan = await planService.updatePlan(db, {
         planId,
@@ -52,11 +63,15 @@ export default (config: Config, logger: Logger) => {
           message: `Plan updated via Manager`
         }
       })
-
       logger.info(updatedPlan)
 
-      await redisService.publishBackLog(pubSub, updatedPlan.backLog)
+      const { plan, backLog } = updatedPlan
 
+      await redisService.publishBackLog(pubSub, backLog)
+
+      await businessService.addJob(businessQueue, 'plan', plan.id)
+
+      await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)
       await databaseService.closeDatabase(db)
     }

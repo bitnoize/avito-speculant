@@ -22,7 +22,6 @@ export default (config: Config, logger: Logger) => {
       const listedUsers = await userService.listUsers(db, {
         all
       })
-
       logger.info(listedUsers)
 
       await databaseService.closeDatabase(db)

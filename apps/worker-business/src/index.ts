@@ -1,11 +1,6 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import {
-  BusinessJob,
-  BusinessResult,
-  queueService,
-  businessService
-} from '@avito-speculant/queue'
+import { BusinessJob, BusinessResult, queueService, businessService } from '@avito-speculant/queue'
 import { Config } from './worker-business.js'
 import { configSchema } from './worker-business.schema.js'
 import businessProcessor from './worker-business.processor.js'

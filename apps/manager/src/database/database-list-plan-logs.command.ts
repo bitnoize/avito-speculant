@@ -1,7 +1,7 @@
 import { command, positional, option, number } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { databaseService, planLogService } from '@avito-speculant/database'
-import { DEFAULT_LIMIT, Config } from '../manager.js'
+import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
@@ -14,9 +14,7 @@ export default (config: Config, logger: Logger) => {
       }),
       limit: option({
         type: number,
-        long: 'limit',
-        defaultValue: () => DEFAULT_LIMIT,
-        defaultValueIsSerializable: true
+        long: 'limit'
       })
     },
     handler: async ({ planId, limit }) => {
@@ -27,7 +25,6 @@ export default (config: Config, logger: Logger) => {
         planId,
         limit
       })
-
       logger.info(listedPlanLogs)
 
       await databaseService.closeDatabase(db)

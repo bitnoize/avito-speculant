@@ -11,6 +11,8 @@ services:
     environment:
       - UID=54720
       - GID=54720
+      - NODE_ENV
+      - LOG_LEVEL
       - REDIS_HOST
       - REDIS_PORT
       - REDIS_DATABASE
@@ -114,6 +116,66 @@ services:
       - BUSINESS_CONCURRENCY
       - BUSINESS_LIMITER_MAX
       - BUSINESS_LIMITER_DURATION
+    networks:
+      - avito-speculant-net
+    depends_on:
+      - connect-postgres
+      - connect-redis
+    restart: unless-stopped
+
+  worker-scraper:
+    image: ghcr.io/bitnoize/avito-speculant-worker-scraper:latest
+    build:
+      context: .
+      dockerfile: ./apps/worker-scraper/Dockerfile
+    environment:
+      - UID=54740
+      - GID=54740
+      - NODE_ENV
+      - LOG_LEVEL
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_DATABASE
+      - POSTGRES_USERNAME
+      - POSTGRES_PASSWORD
+      - SCRAPER_CONCURRENCY
+      - SCRAPER_LIMITER_MAX
+      - SCRAPER_LIMITER_DURATION
+    networks:
+      - avito-speculant-net
+    depends_on:
+      - connect-postgres
+      - connect-redis
+    restart: unless-stopped
+
+  worker-proxycheck:
+    image: ghcr.io/bitnoize/avito-speculant-worker-proxycheck:latest
+    build:
+      context: .
+      dockerfile: ./apps/worker-proxycheck/Dockerfile
+    environment:
+      - UID=54750
+      - GID=54750
+      - NODE_ENV
+      - LOG_LEVEL
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_DATABASE
+      - POSTGRES_USERNAME
+      - POSTGRES_PASSWORD
+      - PROXYCHECK_CONCURRENCY
+      - PROXYCHECK_LIMITER_MAX
+      - PROXYCHECK_LIMITER_DURATION
     networks:
       - avito-speculant-net
     depends_on:

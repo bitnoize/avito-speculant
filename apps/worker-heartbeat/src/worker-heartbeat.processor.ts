@@ -19,7 +19,6 @@ import {
   scraperCacheService
 } from '@avito-speculant/redis'
 import {
-  WaitingChildrenError,
   HeartbeatProcessor,
   BusinessJob,
   queueService,
@@ -47,7 +46,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
   const scraperQueue = scraperService.initQueue(queueConnection, logger)
 
   let step = heartbeatJob.data.step
-  const businessJobs: BusinessJob[] = []
 
   while (step !== 'complete') {
     switch (step) {
@@ -66,16 +64,13 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
         const businessUserJobs = await businessService.addJobs(
           businessQueue,
           'user',
-          users.map((user) => user.id),
-          heartbeatJob
+          users.map((user) => user.id)
         )
 
         step = 'queue-plans'
         await heartbeatJob.updateData({
           step
         })
-
-        businessJobs.concat(businessUserJobs)
 
         break
       }
@@ -95,16 +90,13 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
         const businessPlanJobs = await businessService.addJobs(
           businessQueue,
           'plan',
-          plans.map((plan) => plan.id),
-          heartbeatJob
+          plans.map((plan) => plan.id)
         )
 
         step = 'queue-subscriptions'
         await heartbeatJob.updateData({
           step
         })
-
-        businessJobs.concat(businessPlanJobs)
 
         break
       }
@@ -124,16 +116,13 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
         const businessSubscriptionJobs = await businessService.addJobs(
           businessQueue,
           'subscription',
-          subscriptions.map((subscription) => subscription.id),
-          heartbeatJob
+          subscriptions.map((subscription) => subscription.id)
         )
 
         step = 'queue-categories'
         await heartbeatJob.updateData({
           step
         })
-
-        businessJobs.concat(businessSubscriptionJobs)
 
         break
       }
@@ -153,16 +142,13 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
         const businessCategoryJobs = await businessService.addJobs(
           businessQueue,
           'category',
-          categories.map((category) => category.id),
-          heartbeatJob
+          categories.map((category) => category.id)
         )
 
         step = 'queue-proxies'
         await heartbeatJob.updateData({
           step
         })
-
-        businessJobs.concat(businessCategoryJobs)
 
         break
       }
@@ -182,35 +168,8 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
         const businessProxyJobs = await businessService.addJobs(
           businessQueue,
           'proxy',
-          proxies.map((proxy) => proxy.id),
-          heartbeatJob
+          proxies.map((proxy) => proxy.id)
         )
-
-        step = 'wait-results'
-        await heartbeatJob.updateData({
-          step
-        })
-
-        businessJobs.concat(businessProxyJobs)
-
-        break
-      }
-
-      case 'wait-results': {
-        //
-        // wait-results
-        //
-
-        if (token === undefined) {
-          throw new Error(`HeartbeatProcessor lost token`)
-        }
-
-        const shouldWait = await heartbeatJob.moveToWaitingChildren(token)
-
-        if (shouldWait) {
-          throw new WaitingChildrenError()
-        }
-        logger.info(`HeartbeatJob wait results done`)
 
         step = 'check-scrapers'
         await heartbeatJob.updateData({
@@ -373,9 +332,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob, token) => {
     }
   }
 
-  if (businessJobs.length > 0) {
-    logger.info(`HeartbeatQueue completed business jobs`)
-  }
+  logger.info(`HeartbeatJob complete processing`)
 
   await scraperService.closeQueue(scraperQueue)
   await businessService.closeQueue(businessQueue)

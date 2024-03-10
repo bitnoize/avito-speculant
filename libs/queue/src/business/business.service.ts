@@ -1,13 +1,5 @@
 import { Logger } from '@avito-speculant/logger'
-import {
-  ConnectionOptions,
-  RateLimiterOptions,
-  Queue,
-  BulkJobOptions,
-  Worker,
-  MetricsTime
-} from 'bullmq'
-import { HeartbeatJob } from '../heartbeat/heartbeat.js'
+import { ConnectionOptions, RateLimiterOptions, Queue, Worker, MetricsTime } from 'bullmq'
 import {
   BUSINESS_QUEUE_NAME,
   BusinessConfig,
@@ -35,32 +27,21 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Busine
 }
 
 /**
+ * Add Job
+ */
+export async function addJob(queue: BusinessQueue, name: string, id: number): Promise<BusinessJob> {
+  return await queue.add(name, { id })
+}
+
+/**
  * Add Jobs
  */
 export async function addJobs(
   queue: BusinessQueue,
   name: string,
-  ids: number[],
-  heartbeatJob: HeartbeatJob
+  ids: number[]
 ): Promise<BusinessJob[]> {
-  if (heartbeatJob.id === undefined) {
-    throw new Error(`HeartbeatJob lost id`)
-  }
-
-  const opts: BulkJobOptions = {
-    parent: {
-      id: heartbeatJob.id,
-      queue: heartbeatJob.queueQualifiedName
-    }
-  }
-
-  return await queue.addBulk(
-    ids.map((id) => ({
-      name,
-      data: { id },
-      opts
-    }))
-  )
+  return await queue.addBulk(ids.map((id) => ({ name, data: { id } })))
 }
 
 /**

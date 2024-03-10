@@ -7,7 +7,7 @@ import { Config } from '../manager.js'
 export default (config: Config, logger: Logger) => {
   return command({
     name: 'system-start',
-    description: 'Jump up to running state',
+    description: 'Start system',
     args: {},
     handler: async () => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
@@ -18,8 +18,8 @@ export default (config: Config, logger: Logger) => {
 
       const heartbeatJob = await heartbeatService.addJob(
         heartbeatQueue,
-        'root',
-        10_000,
+        'business_producer',
+        10_000
       )
 
       logger.info(`Heartbeat repeatable job added`)

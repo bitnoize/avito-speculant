@@ -14,7 +14,6 @@ export const HEARTBEAT_STEPS = [
   'queue-subscriptions',
   'queue-categories',
   'queue-proxies',
-  'wait-results',
   'check-scrapers',
   'check-reporters',
   'complete'

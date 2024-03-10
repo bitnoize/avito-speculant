@@ -16,7 +16,7 @@ import {
   subscriptionCacheService,
   categoryCacheService,
   proxyCacheService,
-  scraperCacheService,
+  scraperCacheService
 } from '@avito-speculant/redis'
 import {
   BusinessResult,
@@ -143,11 +143,14 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
         })
         logger.info(savedSubscriptionCache)
       } else {
-        const droppedSubscriptionCache = await subscriptionCacheService.dropSubscriptionCache(redis, {
-          subscriptionId: subscription.id,
-          userId: subscription.userId,
-          planId: subscription.planId
-        })
+        const droppedSubscriptionCache = await subscriptionCacheService.dropSubscriptionCache(
+          redis,
+          {
+            subscriptionId: subscription.id,
+            userId: subscription.userId,
+            planId: subscription.planId
+          }
+        )
         logger.info(droppedSubscriptionCache)
       }
 
@@ -169,7 +172,7 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
       })
       logger.info(businessCategory)
 
-      const { category, backLog } = businessCategory
+      const { category, subscription, backLog } = businessCategory
 
       const findedScraperCache = await scraperCacheService.findScraperCache(redis, {
         avitoUrl: category.avitoUrl
@@ -186,7 +189,7 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
             categoryId: category.id,
             userId: category.userId,
             scraperJobId: scraperCache.jobId,
-            avitoUrl: category.avitoUrl,
+            avitoUrl: category.avitoUrl
           })
           logger.info(savedCategoryCache)
         } else {
@@ -200,21 +203,21 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
       } else {
         // ScraperCache not exists yet
 
-        if (category.isEnabled) {
+        if (category.isEnabled && subscription !== undefined) {
           const scraperJobId = redisService.randomHash()
 
           const savedScraperCache = await scraperCacheService.saveScraperCache(redis, {
             scraperJobId,
             avitoUrl: category.avitoUrl,
-            intervalSec: category.intervalSec,
+            intervalSec: subscription.intervalSec
           })
           logger.info(savedScraperCache)
 
           const savedCategoryCache = await categoryCacheService.saveCategoryCache(redis, {
             categoryId: category.id,
             userId: category.userId,
-            avitoUrl: category.avitoUrl,
-            scraperJobId
+            scraperJobId,
+            avitoUrl: category.avitoUrl
           })
           logger.info(savedCategoryCache)
         }
@@ -244,12 +247,12 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
         const savedProxyCache = await proxyCacheService.saveProxyCache(redis, {
           proxyId: proxy.id,
           proxyUrl: proxy.proxyUrl,
-          isOnline: proxy.isOnline,
+          isOnline: proxy.isOnline
         })
         logger.info(savedProxyCache)
       } else {
-        const droppedProxyCache = await planCacheService.dropProxyCache(redis, {
-          planId: plan.id
+        const droppedProxyCache = await proxyCacheService.dropProxyCache(redis, {
+          proxyId: proxy.id
         })
         logger.info(droppedProxyCache)
       }

@@ -7,7 +7,7 @@ import { Config } from '../manager.js'
 export default (config: Config, logger: Logger) => {
   return command({
     name: 'system-stop',
-    description: 'Stop running state',
+    description: 'Stop system',
     args: {},
     handler: async () => {
       const redisOptions = redisService.getRedisOptions<Config>(config)

@@ -1,6 +1,11 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { ProxycheckJob, ProxycheckResult, queueService, proxycheckService } from '@avito-speculant/queue'
+import {
+  ProxycheckJob,
+  ProxycheckResult,
+  queueService,
+  proxycheckService
+} from '@avito-speculant/queue'
 import { Config } from './worker-proxycheck.js'
 import { configSchema } from './worker-scraper.schema.js'
 import { proxycheckProcessor } from './worker-proxycheck.processor.js'

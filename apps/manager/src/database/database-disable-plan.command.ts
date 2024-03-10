@@ -2,6 +2,7 @@ import { command, positional, number } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { databaseService, planService } from '@avito-speculant/database'
 import { redisService } from '@avito-speculant/redis'
+import { queueService, businessService } from '@avito-speculant/queue'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
@@ -21,17 +22,24 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const pubSub = redisService.initPubSub(redisOptions, logger)
 
+      const queueConnection = queueService.getQueueConnection<Config>(config)
+      const businessQueue = businessService.initQueue(queueConnection, logger)
+
       const disabledPlan = await planService.disablePlan(db, {
         planId,
         data: {
           message: `Plan disabled via Manager`
         }
       })
-
       logger.info(disabledPlan)
 
-      await redisService.publishBackLog(pubSub, disabledPlan.backLog)
+      const { plan, backLog } = disabledPlan
 
+      await redisService.publishBackLog(pubSub, backLog)
+
+      await businessService.addJob(businessQueue, 'plan', plan.id)
+
+      await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)
       await databaseService.closeDatabase(db)
     }

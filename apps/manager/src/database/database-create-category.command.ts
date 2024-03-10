@@ -2,6 +2,7 @@ import { command, positional, option, number, string } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { databaseService, categoryService } from '@avito-speculant/database'
 import { redisService } from '@avito-speculant/redis'
+import { queueService, businessService } from '@avito-speculant/queue'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
@@ -25,18 +26,25 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const pubSub = redisService.initPubSub(redisOptions, logger)
 
+      const queueConnection = queueService.getQueueConnection<Config>(config)
+      const businessQueue = businessService.initQueue(queueConnection, logger)
+
       const createdCategory = await categoryService.createCategory(db, {
         userId,
         avitoUrl,
         data: {
-          message: `Category created via Manager`,
+          message: `Category created via Manager`
         }
       })
-
       logger.info(createdCategory)
 
-      await redisService.publishBackLog(pubSub, createdCategory.backLog)
+      const { category, backLog } = createdCategory
 
+      await redisService.publishBackLog(pubSub, backLog)
+
+      await businessService.addJob(businessQueue, 'category', category.id)
+
+      await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)
       await databaseService.closeDatabase(db)
     }

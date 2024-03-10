@@ -1,11 +1,6 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import {
-  ScraperJob,
-  ScraperResult,
-  queueService,
-  scraperService
-} from '@avito-speculant/queue'
+import { ScraperJob, ScraperResult, queueService, scraperService } from '@avito-speculant/queue'
 import { Config } from './worker-scraper.js'
 import { configSchema } from './worker-scraper.schema.js'
 import scraperProcessor from './worker-scraper.processor.js'

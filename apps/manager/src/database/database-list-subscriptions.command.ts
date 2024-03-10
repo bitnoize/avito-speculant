@@ -1,7 +1,7 @@
-import { command, positional, option, flag, number, boolean } from 'cmd-ts'
+import { command, positional, flag, number, boolean } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { databaseService, subscriptionService } from '@avito-speculant/database'
-import { DEFAULT_LIMIT, Config } from '../manager.js'
+import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
@@ -15,7 +15,7 @@ export default (config: Config, logger: Logger) => {
       all: flag({
         type: boolean,
         long: 'all',
-        defaultValue: () => true
+        defaultValue: () => false
         //defaultValueIsSerializable: true
       })
     },
@@ -27,7 +27,6 @@ export default (config: Config, logger: Logger) => {
         userId,
         all
       })
-
       logger.info(listedSubscriptions)
 
       await databaseService.closeDatabase(db)

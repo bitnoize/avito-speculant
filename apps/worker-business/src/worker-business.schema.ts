@@ -8,7 +8,7 @@ import {
 import {
   DEFAULT_REDIS_HOST,
   DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE,
+  DEFAULT_REDIS_DATABASE
 } from '@avito-speculant/redis'
 import { Config } from './worker-business.js'
 
@@ -24,7 +24,7 @@ export const configSchema: JSONSchemaType<Config> = {
     'POSTGRES_DATABASE',
     'BUSINESS_CONCURRENCY',
     'BUSINESS_LIMITER_MAX',
-    'BUSINESS_LIMITER_DURATION',
+    'BUSINESS_LIMITER_DURATION'
   ],
   properties: {
     LOG_LEVEL: {

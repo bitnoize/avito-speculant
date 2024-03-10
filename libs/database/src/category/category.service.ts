@@ -327,6 +327,10 @@ export async function businessCategory(
         message: `Category successfully processed`,
         statusCode: 201,
         category: categoryRepository.buildModel(updatedCategoryRow),
+        subscription:
+          subscriptionRow !== undefined
+            ? subscriptionRepository.buildModel(subscriptionRow)
+            : undefined,
         backLog
       }
     }
@@ -335,6 +339,10 @@ export async function businessCategory(
       message: `Category successfully processed`,
       statusCode: 200,
       category: categoryRepository.buildModel(categoryRow),
+      subscription:
+        subscriptionRow !== undefined
+          ? subscriptionRepository.buildModel(subscriptionRow)
+          : undefined,
       backLog
     }
   })

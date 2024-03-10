@@ -2,11 +2,7 @@ import { Bot, GrammyError, HttpError, session } from 'grammy'
 import { RedisAdapter } from '@grammyjs/storage-redis'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import {
-  AuthorizeUserRequest,
-  databaseService,
-  userService
-} from '@avito-speculant/database'
+import { AuthorizeUserRequest, databaseService, userService } from '@avito-speculant/database'
 import { redisService } from '@avito-speculant/redis'
 import { Config } from './bot.js'
 import { configSchema } from './bot.schema.js'

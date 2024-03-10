@@ -22,7 +22,6 @@ export default (config: Config, logger: Logger) => {
       const listedPlans = await planService.listPlans(db, {
         all
       })
-
       logger.info(listedPlans)
 
       await databaseService.closeDatabase(db)

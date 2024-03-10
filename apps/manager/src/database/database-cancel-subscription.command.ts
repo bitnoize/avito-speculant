@@ -1,7 +1,8 @@
-import { command, positional, option, number } from 'cmd-ts'
+import { command, positional, number } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { databaseService, subscriptionService } from '@avito-speculant/database'
 import { redisService } from '@avito-speculant/redis'
+import { queueService, businessService } from '@avito-speculant/queue'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
@@ -21,17 +22,24 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const pubSub = redisService.initPubSub(redisOptions, logger)
 
+      const queueConnection = queueService.getQueueConnection<Config>(config)
+      const businessQueue = businessService.initQueue(queueConnection, logger)
+
       const cancelSubscription = await subscriptionService.cancelSubscription(db, {
         subscriptionId,
         data: {
-          message: `Cancel Subscription via Manager`,
+          message: `Cancel Subscription via Manager`
         }
       })
-
       logger.info(cancelSubscription)
 
-      await redisService.publishBackLog(pubSub, cancelSubscription.backLog)
+      const { subscription, backLog } = cancelSubscription
 
+      await redisService.publishBackLog(pubSub, backLog)
+
+      await businessService.addJob(businessQueue, 'subscription', subscription.id)
+
+      await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)
       await databaseService.closeDatabase(db)
     }
