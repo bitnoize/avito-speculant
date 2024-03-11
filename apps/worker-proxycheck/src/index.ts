@@ -7,7 +7,7 @@ import {
   proxycheckService
 } from '@avito-speculant/queue'
 import { Config } from './worker-proxycheck.js'
-import { configSchema } from './worker-scraper.schema.js'
+import { configSchema } from './worker-proxycheck.schema.js'
 import { proxycheckProcessor } from './worker-proxycheck.processor.js'
 
 async function bootstrap(): Promise<void> {
@@ -28,15 +28,7 @@ async function bootstrap(): Promise<void> {
     logger
   )
 
-  proxycheckWorker.on('completed', (job: ProxycheckJob, result: ProxycheckResult) => {
-    logger.info(result, `ProxycheckJob completed`)
-  })
-
-  proxycheckWorker.on('failed', (job: ProxycheckJob, error: Error) => {
-    logger.info(error, `ProxycheckJob failed`)
-  })
-
-  await proxycheckService.startWorker(proxycheckWorker, logger)
+  await proxycheckService.runWorker(proxycheckWorker)
 }
 
 bootstrap().catch((error) => {

@@ -1,4 +1,4 @@
-import got from 'got'
+import got, { Agents } from 'got'
 import { HttpsProxyAgent } from 'https-proxy-agent'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
@@ -25,9 +25,7 @@ const doRequest = async (
       retry: {
         limit: 0
       },
-      agents: {
-        https: agent
-      }
+      agent: agent as Agents,
     })
 
     if (statusCode === 200) {
@@ -59,12 +57,18 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
 
   if (result) {
     const onlinedProxy = await proxyService.onlineProxy(db, {
-      proxyId
+      proxyId,
+      data: {
+        proxycheckJobId: proxycheckJob.id
+      }
     })
     logger.debug(onlinedProxy)
   } else {
     const offlinedProxy = await proxyService.offlineProxy(db, {
-      proxyId
+      proxyId,
+      data: {
+        proxycheckJobId: proxycheckJob.id
+      }
     })
     logger.debug(offlinedProxy)
   }
@@ -72,7 +76,7 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
   logger.info({ id: proxycheckJob.id, result }, `ProxycheckJob complete`)
 
   await redisService.closePubSub(pubSub)
-  await redisService.closeRedis(redis, logger)
+  await redisService.closeRedis(redis)
   await databaseService.closeDatabase(db)
 
   return result
