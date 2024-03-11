@@ -8,36 +8,6 @@ import { ProxycheckProcessor } from '@avito-speculant/queue'
 import { Config } from './worker-proxycheck.js'
 import { configSchema } from './worker-proxycheck.schema.js'
 
-const doRequest = async (
-  proxyUrl: string,
-  checkUrl: string,
-  timeoutRequest: number
-): Promise<boolean> => {
-  try {
-    const agent = new HttpsProxyAgent(proxyUrl)
-
-    const { statusCode } = await got(checkUrl, {
-      followRedirect: false,
-      throwHttpErrors: false,
-      timeout: {
-        request: timeoutRequest
-      },
-      retry: {
-        limit: 0
-      },
-      agent: agent as Agents,
-    })
-
-    if (statusCode === 200) {
-      return true
-    }
-    
-    return false
-  } catch (error) {
-    return false
-  }
-}
-
 export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) => {
   const config = configService.initConfig<Config>(configSchema)
 
@@ -80,4 +50,39 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
   await databaseService.closeDatabase(db)
 
   return result
+}
+
+const doRequest = async (
+  proxyUrl: string,
+  checkUrl: string,
+  timeoutRequest: number
+): Promise<boolean> => {
+  try {
+    const agent = new HttpsProxyAgent(proxyUrl)
+
+    const { statusCode } = await got(checkUrl, {
+      followRedirect: false,
+      throwHttpErrors: false,
+      timeout: {
+        request: timeoutRequest
+      },
+      retry: {
+        limit: 0
+      },
+      agent: agent as Agents,
+    })
+
+    console.log(`done request`)
+
+    if (statusCode === 200) {
+      console.log(`proxy online`)
+
+      return true
+    }
+    
+    console.log(`proxy offline`)
+    return false
+  } catch (error) {
+    return false
+  }
 }

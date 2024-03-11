@@ -10,7 +10,6 @@ export type ProxycheckConfig = {
 
 export type ProxycheckData = {
   proxyId: number
-  proxyUrl: string
 }
 
 export type ProxycheckResult = boolean

@@ -23,7 +23,8 @@ import {
   BusinessJob,
   BusinessProcessor,
   queueService,
-  scraperService
+  scraperService,
+  proxycheckService,
 } from '@avito-speculant/queue'
 import { Config } from './worker-business.js'
 import { configSchema } from './worker-business.schema.js'
@@ -43,6 +44,7 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
   const scraperQueue = scraperService.initQueue(queueConnection, logger)
+  const proxycheckQueue = proxycheckService.initQueue(queueConnection, logger)
 
   switch (businessJob.name) {
     case 'user': {
@@ -250,6 +252,8 @@ const businessProcessor: BusinessProcessor = async (businessJob: BusinessJob) =>
           isOnline: proxy.isOnline
         })
         logger.debug(savedProxyCache)
+
+        await proxycheckService.addJob(proxycheckQueue, 'default', proxy.id)
       } else {
         const droppedProxyCache = await proxyCacheService.dropProxyCache(redis, {
           proxyId: proxy.id

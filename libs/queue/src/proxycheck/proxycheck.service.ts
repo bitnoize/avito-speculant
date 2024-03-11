@@ -27,6 +27,17 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Proxyc
 }
 
 /**
+ * Add Job
+ */
+export async function addJob(
+  queue: ProxycheckQueue,
+  name: string,
+  proxyId: number
+): Promise<ProxycheckJob> {
+  return await queue.add(name, { proxyId })
+}
+
+/**
  * Close Queue
  */
 export async function closeQueue(queue: ProxycheckQueue): Promise<void> {
