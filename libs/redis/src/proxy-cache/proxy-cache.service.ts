@@ -22,7 +22,6 @@ export async function fetchProxyCache(
 
   return {
     message: `ProxyCache successfully fetched`,
-    statusCode: 200,
     proxyCache
   }
 }
@@ -39,7 +38,6 @@ export async function listProxiesCache(
 
   return {
     message: `ProxiesCache successfully listed`,
-    statusCode: 200,
     proxiesCache
   }
 }
@@ -55,7 +53,6 @@ export async function saveProxyCache(
 
   return {
     message: `ProxyCache successfully saved`,
-    statusCode: 200
   }
 }
 
@@ -70,6 +67,5 @@ export async function dropProxyCache(
 
   return {
     message: `ProxyCache successfully dropped`,
-    statusCode: 200
   }
 }

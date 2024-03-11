@@ -9,7 +9,6 @@ export interface BusinessSubscriptionRequest {
 
 export interface BusinessSubscriptionResponse {
   message: string
-  statusCode: number
   subscription: Subscription
   backLog: Notify[]
 }

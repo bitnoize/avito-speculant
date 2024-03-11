@@ -9,7 +9,6 @@ export interface BusinessPlanRequest {
 
 export interface BusinessPlanResponse {
   message: string
-  statusCode: number
   plan: Plan
   backLog: Notify[]
 }

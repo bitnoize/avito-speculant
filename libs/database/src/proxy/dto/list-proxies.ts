@@ -6,7 +6,6 @@ export interface ListProxiesRequest {
 
 export interface ListProxiesResponse {
   message: string
-  statusCode: number
   proxies: Proxy[]
   all: boolean
 }

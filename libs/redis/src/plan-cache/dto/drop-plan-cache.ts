@@ -4,5 +4,4 @@ export interface DropPlanCacheRequest {
 
 export interface DropPlanCacheResponse {
   message: string
-  statusCode: number
 }

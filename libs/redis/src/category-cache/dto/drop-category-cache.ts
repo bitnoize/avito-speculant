@@ -6,5 +6,4 @@ export interface DropCategoryCacheRequest {
 
 export interface DropCategoryCacheResponse {
   message: string
-  statusCode: number
 }

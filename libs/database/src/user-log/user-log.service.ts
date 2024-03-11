@@ -27,7 +27,6 @@ export async function listUserLogs(
 
     return {
       message: `UserLogs successfully listed`,
-      statusCode: 200,
       userLogs: userLogRepository.buildCollection(userLogRows),
       limit: request.limit
     }

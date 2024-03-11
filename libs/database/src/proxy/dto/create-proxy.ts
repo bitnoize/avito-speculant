@@ -9,7 +9,6 @@ export interface CreateProxyRequest {
 
 export interface CreateProxyResponse {
   message: string
-  statusCode: number
   proxy: Proxy
   backLog: Notify[]
 }

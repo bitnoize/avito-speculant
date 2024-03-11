@@ -6,6 +6,5 @@ export interface ListProxiesCacheRequest {
 
 export interface ListProxiesCacheResponse {
   message: string
-  statusCode: number
   proxiesCache: ProxyCache[]
 }

@@ -62,7 +62,6 @@ export async function createCategory(
 
     return {
       message: `Category successfully created`,
-      statusCode: 201,
       category: categoryRepository.buildModel(insertedCategoryRow),
       backLog
     }
@@ -88,7 +87,6 @@ export async function enableCategory(
     if (categoryRow.is_enabled) {
       return {
         message: `Category allready enabled`,
-        statusCode: 200,
         category: categoryRepository.buildModel(categoryRow),
         backLog
       }
@@ -141,7 +139,6 @@ export async function enableCategory(
 
     return {
       message: `Category successfully enabled`,
-      statusCode: 201,
       category: categoryRepository.buildModel(updatedCategoryRow),
       backLog
     }
@@ -167,7 +164,6 @@ export async function disableCategory(
     if (!categoryRow.is_enabled) {
       return {
         message: `Category allready disabled`,
-        statusCode: 200,
         category: categoryRepository.buildModel(categoryRow),
         backLog
       }
@@ -194,7 +190,6 @@ export async function disableCategory(
 
     return {
       message: `Category successfully enabled`,
-      statusCode: 201,
       category: categoryRepository.buildModel(updatedCategoryRow),
       backLog
     }
@@ -229,7 +224,6 @@ export async function listCategories(
 
     return {
       message: `Categories successfully listed`,
-      statusCode: 200,
       categories: categoryRepository.buildCollection(categoryRows),
       all: request.all
     }
@@ -259,7 +253,6 @@ export async function queueCategories(
 
     return {
       message: `Categories successfully enqueued`,
-      statusCode: 200,
       categories,
       limit: request.limit
     }
@@ -325,7 +318,6 @@ export async function businessCategory(
 
       return {
         message: `Category successfully processed`,
-        statusCode: 201,
         category: categoryRepository.buildModel(updatedCategoryRow),
         subscription:
           subscriptionRow !== undefined
@@ -337,7 +329,6 @@ export async function businessCategory(
 
     return {
       message: `Category successfully processed`,
-      statusCode: 200,
       category: categoryRepository.buildModel(categoryRow),
       subscription:
         subscriptionRow !== undefined

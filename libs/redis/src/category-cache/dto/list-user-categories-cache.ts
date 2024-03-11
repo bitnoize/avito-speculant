@@ -6,6 +6,5 @@ export interface ListUserCategoriesCacheRequest {
 
 export interface ListUserCategoriesCacheResponse {
   message: string
-  statusCode: number
   categoriesCache: CategoryCache[]
 }

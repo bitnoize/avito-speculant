@@ -13,7 +13,6 @@ export interface CreatePlanRequest {
 
 export interface CreatePlanResponse {
   message: string
-  statusCode: number
   plan: Plan
   backLog: Notify[]
 }

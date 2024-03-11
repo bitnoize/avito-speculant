@@ -7,7 +7,6 @@ export interface ListUserLogsRequest {
 
 export interface ListUserLogsResponse {
   message: string
-  statusCode: number
   userLogs: UserLog[]
   limit: number
 }

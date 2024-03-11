@@ -7,7 +7,6 @@ export interface ListCategoriesRequest {
 
 export interface ListCategoriesResponse {
   message: string
-  statusCode: number
   categories: Category[]
   all: boolean
 }

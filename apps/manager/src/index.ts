@@ -24,6 +24,19 @@ import databaseEnableCategoryCommand from './database/database-enable-category.c
 import databaseDisableCategoryCommand from './database/database-disable-category.command.js'
 import databaseListCategoriesCommand from './database/database-list-categories.command.js'
 import databaseListCategoryLogsCommand from './database/database-list-category-logs.command.js'
+import databaseCreateProxyCommand from './database/database-create-proxy.command.js'
+import databaseEnableProxyCommand from './database/database-enable-proxy.command.js'
+import databaseDisableProxyCommand from './database/database-disable-proxy.command.js'
+import databaseListProxiesCommand from './database/database-list-proxies.command.js'
+import databaseListProxyLogsCommand from './database/database-list-proxy-logs.command.js'
+import redisListUsersCacheCommand from './redis/redis-list-users-cache.command.js'
+import redisListPlansCacheCommand from './redis/redis-list-plans-cache.command.js'
+import redisFetchUserSubscriptionCacheCommand from './redis/redis-fetch-user-subscription-cache.command.js'
+import redisListPlanSubscriptionsCacheCommand from './redis/redis-list-plan-subscriptions-cache.command.js'
+import redisListUserCategoriesCacheCommand from './redis/redis-list-user-categories-cache.command.js'
+import redisListScraperCategoriesCacheCommand from './redis/redis-list-scraper-categories-cache.command.js'
+import redisListProxiesCacheCommand from './redis/redis-list-proxies-cache.command.js'
+import redisListScrapersCacheCommand from './redis/redis-list-scrapers-cache.command.js'
 import queueMonitorHeartbeatCommand from './queue/queue-monitor-heartbeat.command.js'
 import queueMonitorBusinessCommand from './queue/queue-monitor-business.command.js'
 import queueMonitorScraperCommand from './queue/queue-monitor-scraper.command.js'
@@ -67,7 +80,26 @@ async function bootstrap(): Promise<void> {
       'enable-category': databaseEnableCategoryCommand(config, logger),
       'disable-category': databaseDisableCategoryCommand(config, logger),
       'list-categories': databaseListCategoriesCommand(config, logger),
-      'list-category-logs': databaseListCategoryLogsCommand(config, logger)
+      'list-category-logs': databaseListCategoryLogsCommand(config, logger),
+      'create-proxy': databaseCreateProxyCommand(config, logger),
+      'enable-proxy': databaseEnableProxyCommand(config, logger),
+      'disable-proxy': databaseDisableProxyCommand(config, logger),
+      'list-proxies': databaseListProxiesCommand(config, logger),
+      'list-proxy-logs': databaseListProxyLogsCommand(config, logger)
+    }
+  })
+
+  const redisCommand = subcommands({
+    name: 'redis',
+    cmds: {
+      'list-users-cache': redisListUsersCacheCommand(config, logger),
+      'list-plans-cache': redisListPlansCacheCommand(config, logger),
+      'fetch-user-subscription-cache': redisFetchUserSubscriptionCacheCommand(config, logger),
+      'list-plan-subscriptions-cache': redisListPlanSubscriptionsCacheCommand(config, logger),
+      'list-user-categories-cache': redisListUserCategoriesCacheCommand(config, logger),
+      'list-scraper-categories-cache': redisListScraperCategoriesCacheCommand(config, logger),
+      'list-proxies-cache': redisListProxiesCacheCommand(config, logger),
+      'list-scrapers-cache': redisListScrapersCacheCommand(config, logger),
     }
   })
 
@@ -86,6 +118,7 @@ async function bootstrap(): Promise<void> {
     cmds: {
       system: systemCommand,
       database: databaseCommand,
+      redis: redisCommand,
       queue: queueCommand
     }
   })

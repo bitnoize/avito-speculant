@@ -7,7 +7,6 @@ export interface ListPlanLogsRequest {
 
 export interface ListPlanLogsResponse {
   message: string
-  statusCode: number
   planLogs: PlanLog[]
   limit: number
 }

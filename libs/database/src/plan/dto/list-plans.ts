@@ -6,7 +6,6 @@ export interface ListPlansRequest {
 
 export interface ListPlansResponse {
   message: string
-  statusCode: number
   plans: Plan[]
   all: boolean
 }

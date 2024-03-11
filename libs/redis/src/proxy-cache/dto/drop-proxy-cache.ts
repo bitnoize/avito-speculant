@@ -4,5 +4,4 @@ export interface DropProxyCacheRequest {
 
 export interface DropProxyCacheResponse {
   message: string
-  statusCode: number
 }

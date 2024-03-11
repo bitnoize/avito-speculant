@@ -7,7 +7,6 @@ export interface ListSubscriptionLogsRequest {
 
 export interface ListSubscriptionLogsResponse {
   message: string
-  statusCode: number
   subscriptionLogs: SubscriptionLog[]
   limit: number
 }

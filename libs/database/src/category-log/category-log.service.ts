@@ -26,7 +26,6 @@ export async function listCategoryLogs(
 
     return {
       message: `CategoryLogs listed successfully`,
-      statusCode: 200,
       categoryLogs: categoryLogRepository.buildCollection(categoryLogRows),
       limit: request.limit
     }

@@ -21,7 +21,6 @@ export async function fetchUserCache(
 
   return {
     message: `UserCache successfully fetched`,
-    statusCode: 200,
     userCache
   }
 }
@@ -35,7 +34,6 @@ export async function listUsersCache(redis: Redis): Promise<ListUsersCacheRespon
 
   return {
     message: `UsersCache successfully listed`,
-    statusCode: 200,
     usersCache
   }
 }
@@ -51,7 +49,6 @@ export async function saveUserCache(
 
   return {
     message: `UserCache successfully saved`,
-    statusCode: 200
   }
 }
 
@@ -66,6 +63,5 @@ export async function dropUserCache(
 
   return {
     message: `UserCache successfully dropped`,
-    statusCode: 200
   }
 }

@@ -27,7 +27,6 @@ export async function fetchSubscriptionCache(
 
   return {
     message: `SubscriptionCache successfully fetched`,
-    statusCode: 200,
     subscriptionCache
   }
 }
@@ -44,7 +43,6 @@ export async function fetchUserSubscriptionCache(
 
   return {
     message: `SubscriptionCache successfully fetched`,
-    statusCode: 200,
     subscriptionCache
   }
 }
@@ -64,7 +62,6 @@ export async function listPlanSubscriptionsCache(
 
   return {
     message: `PlanSubscriptionsCache successfully listed`,
-    statusCode: 200,
     subscriptionsCache
   }
 }
@@ -90,7 +87,6 @@ export async function saveSubscriptionCache(
 
   return {
     message: `SubscriptionCache successfully saved`,
-    statusCode: 200
   }
 }
 
@@ -110,6 +106,5 @@ export async function dropSubscriptionCache(
 
   return {
     message: `SubscriptionCache successfully dropped`,
-    statusCode: 200
   }
 }

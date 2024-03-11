@@ -24,7 +24,6 @@ export async function fetchCategoryCache(
 
   return {
     message: `CategoryCache successfully fetched`,
-    statusCode: 200,
     categoryCache
   }
 }
@@ -41,7 +40,6 @@ export async function listUserCategoriesCache(
 
   return {
     message: `CategoriesCache successfully listed`,
-    statusCode: 200,
     categoriesCache
   }
 }
@@ -58,7 +56,6 @@ export async function listScraperCategoriesCache(
 
   return {
     message: `CategoriesCache successfully listed`,
-    statusCode: 200,
     categoriesCache
   }
 }
@@ -80,7 +77,6 @@ export async function saveCategoryCache(
 
   return {
     message: `CategoryCache successfully saved`,
-    statusCode: 200
   }
 }
 
@@ -100,6 +96,5 @@ export async function dropCategoryCache(
 
   return {
     message: `CategoryCache successfully dropped`,
-    statusCode: 200
   }
 }

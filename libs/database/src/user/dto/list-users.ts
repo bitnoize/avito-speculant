@@ -6,7 +6,6 @@ export interface ListUsersRequest {
 
 export interface ListUsersResponse {
   message: string
-  statusCode: number
   users: User[]
   all: boolean
 }

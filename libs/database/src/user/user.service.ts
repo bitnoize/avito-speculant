@@ -38,7 +38,6 @@ export async function authorizeUser(
 
       return {
         message: `User successfully authorized`,
-        statusCode: 200,
         user: userRepository.buildModel(existsUserRow),
         subscription:
           subscriptionRow !== undefined
@@ -66,7 +65,6 @@ export async function authorizeUser(
 
     return {
       message: `User successfully created`,
-      statusCode: 201,
       user: userRepository.buildModel(instertedUserRow),
       backLog
     }
@@ -90,7 +88,6 @@ export async function listUsers(
 
     return {
       message: `Users successfully listed`,
-      statusCode: 200,
       users: userRepository.buildCollection(userRows),
       all: request.all
     }
@@ -120,7 +117,6 @@ export async function queueUsers(
 
     return {
       message: `Users successfully enqueued`,
-      statusCode: 200,
       users,
       limit: request.limit
     }
@@ -169,7 +165,6 @@ export async function businessUser(
     if (!isChanged) {
       return {
         message: `User not changed`,
-        statusCode: 200,
         user: userRepository.buildModel(userRow),
         backLog
       }
@@ -197,7 +192,6 @@ export async function businessUser(
 
     return {
       message: `User successfully processed`,
-      statusCode: 201,
       user: userRepository.buildModel(updatedUserRow),
       backLog
     }

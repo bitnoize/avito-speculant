@@ -6,6 +6,5 @@ export interface ListPlanSubscriptionsCacheRequest {
 
 export interface ListPlanSubscriptionsCacheResponse {
   message: string
-  statusCode: number
   subscriptionsCache: SubscriptionCache[]
 }

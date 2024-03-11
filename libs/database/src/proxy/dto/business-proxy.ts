@@ -9,7 +9,6 @@ export interface BusinessProxyRequest {
 
 export interface BusinessProxyResponse {
   message: string
-  statusCode: number
   proxy: Proxy
   backLog: Notify[]
 }

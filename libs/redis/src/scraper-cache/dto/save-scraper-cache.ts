@@ -6,5 +6,4 @@ export interface SaveScraperCacheRequest {
 
 export interface SaveScraperCacheResponse {
   message: string
-  statusCode: number
 }

@@ -14,7 +14,6 @@ export interface UpdatePlanRequest {
 
 export interface UpdatePlanResponse {
   message: string
-  statusCode: number
   plan: Plan
   backLog: Notify[]
 }

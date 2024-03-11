@@ -9,7 +9,6 @@ export interface CancelSubscriptionRequest {
 
 export interface CancelSubscriptionResponse {
   message: string
-  statusCode: number
   subscription: Subscription
   backLog: Notify[]
 }

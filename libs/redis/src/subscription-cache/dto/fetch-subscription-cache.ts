@@ -6,6 +6,5 @@ export interface FetchSubscriptionCacheRequest {
 
 export interface FetchSubscriptionCacheResponse {
   message: string
-  statusCode: number
   subscriptionCache: SubscriptionCache
 }

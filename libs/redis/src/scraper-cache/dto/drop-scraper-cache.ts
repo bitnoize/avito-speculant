@@ -5,5 +5,4 @@ export interface DropScraperCacheRequest {
 
 export interface DropScraperCacheResponse {
   message: string
-  statusCode: number
 }

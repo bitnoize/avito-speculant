@@ -7,7 +7,6 @@ export interface ListSubscriptionsRequest {
 
 export interface ListSubscriptionsResponse {
   message: string
-  statusCode: number
   subscriptions: Subscription[]
   all: boolean
 }

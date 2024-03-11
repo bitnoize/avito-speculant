@@ -8,9 +8,12 @@ export type ProxycheckConfig = {
   PROXYCHECK_LIMITER_DURATION: number
 }
 
-export type ProxycheckData = void
+export type ProxycheckData = {
+  proxyId: number
+  proxyUrl: string
+}
 
-export type ProxycheckResult = void
+export type ProxycheckResult = boolean
 
 export type ProxycheckQueue = Queue<ProxycheckData, ProxycheckResult>
 export type ProxycheckJob = Job<ProxycheckData, ProxycheckResult>

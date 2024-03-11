@@ -30,7 +30,6 @@ export async function listSubscriptionLogs(
 
     return {
       message: `SubscriptionLogs successfully listed`,
-      statusCode: 200,
       subscriptionLogs: subscriptionLogRepository.buildCollection(subscriptionLogRows),
       limit: request.limit
     }

@@ -6,7 +6,6 @@ export interface QueueCategoriesRequest {
 
 export interface QueueCategoriesResponse {
   message: string
-  statusCode: number
   categories: Category[]
   limit: number
 }

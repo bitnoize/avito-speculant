@@ -6,5 +6,4 @@ export interface DropSubscriptionCacheRequest {
 
 export interface DropSubscriptionCacheResponse {
   message: string
-  statusCode: number
 }

@@ -20,6 +20,6 @@
     "@avito-speculant/logger": "*",
     "@avito-speculant/queue": "*",
     "@avito-speculant/redis": "*",
-    "got": "^14.2.0"
+    "got": "^14.2.1"
   }
 }

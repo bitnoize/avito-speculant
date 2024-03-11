@@ -10,7 +10,6 @@ export interface BusinessCategoryRequest {
 
 export interface BusinessCategoryResponse {
   message: string
-  statusCode: number
   category: Category
   subscription?: Subscription
   backLog: Notify[]

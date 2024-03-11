@@ -6,6 +6,5 @@ export interface FetchProxyCacheRequest {
 
 export interface FetchProxyCacheResponse {
   message: string
-  statusCode: number
   proxyCache: ProxyCache
 }

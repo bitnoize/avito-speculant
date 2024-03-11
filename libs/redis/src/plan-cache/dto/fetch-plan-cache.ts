@@ -6,6 +6,5 @@ export interface FetchPlanCacheRequest {
 
 export interface FetchPlanCacheResponse {
   message: string
-  statusCode: number
   planCache: PlanCache
 }

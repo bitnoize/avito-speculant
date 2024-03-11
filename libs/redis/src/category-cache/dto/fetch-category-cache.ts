@@ -6,6 +6,5 @@ export interface FetchCategoryCacheRequest {
 
 export interface FetchCategoryCacheResponse {
   message: string
-  statusCode: number
   categoryCache: CategoryCache
 }

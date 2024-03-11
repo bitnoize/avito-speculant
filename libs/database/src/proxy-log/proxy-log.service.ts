@@ -27,7 +27,6 @@ export async function listProxyLogs(
 
     return {
       message: `ProxyLogs successfully listed`,
-      statusCode: 200,
       proxyLogs: proxyLogRepository.buildCollection(proxyLogRows),
       limit: request.limit
     }

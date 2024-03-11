@@ -11,5 +11,4 @@ export interface SaveSubscriptionCacheRequest {
 
 export interface SaveSubscriptionCacheResponse {
   message: string
-  statusCode: number
 }

@@ -9,7 +9,6 @@ export interface BusinessUserRequest {
 
 export interface BusinessUserResponse {
   message: string
-  statusCode: number
   user: User
   backLog: Notify[]
 }

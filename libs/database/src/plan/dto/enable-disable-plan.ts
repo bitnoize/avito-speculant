@@ -9,7 +9,6 @@ export interface EnableDisablePlanRequest {
 
 export interface EnableDisablePlanResponse {
   message: string
-  statusCode: number
   plan: Plan
   backLog: Notify[]
 }

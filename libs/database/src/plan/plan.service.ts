@@ -59,7 +59,6 @@ export async function createPlan(
 
     return {
       message: `Plan successfully created`,
-      statusCode: 201,
       plan: planRepository.buildModel(insertedPlanRow),
       backLog
     }
@@ -99,7 +98,6 @@ export async function updatePlan(
     ) {
       return {
         message: `Plan no updates specified`,
-        statusCode: 200,
         plan: planRepository.buildModel(planRow),
         backLog
       }
@@ -133,7 +131,6 @@ export async function updatePlan(
 
     return {
       message: `Plan successfully updated`,
-      statusCode: 201,
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
     }
@@ -159,7 +156,6 @@ export async function enablePlan(
     if (planRow.is_enabled) {
       return {
         message: `Plan allready enabled`,
-        statusCode: 200,
         plan: planRepository.buildModel(planRow),
         backLog
       }
@@ -187,7 +183,6 @@ export async function enablePlan(
 
     return {
       message: `Plan successfully enabled`,
-      statusCode: 201,
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
     }
@@ -213,7 +208,6 @@ export async function disablePlan(
     if (!planRow.is_enabled) {
       return {
         message: `Plan allready disabled`,
-        statusCode: 200,
         plan: planRepository.buildModel(planRow),
         backLog
       }
@@ -241,7 +235,6 @@ export async function disablePlan(
 
     return {
       message: `Plan successfully disabled`,
-      statusCode: 201,
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
     }
@@ -263,7 +256,6 @@ export async function listPlans(
 
     return {
       message: `Plans successfully listed`,
-      statusCode: 200,
       plans: planRepository.buildCollection(planRows),
       all: request.all
     }
@@ -293,7 +285,6 @@ export async function queuePlans(
 
     return {
       message: `Plans successfully enqueued`,
-      statusCode: 200,
       plans,
       limit: request.limit
     }
@@ -334,7 +325,6 @@ export async function businessPlan(
     if (!isChanged) {
       return {
         message: `Plan not changed`,
-        statusCode: 200,
         plan: planRepository.buildModel(planRow),
         backLog
       }
@@ -365,7 +355,6 @@ export async function businessPlan(
 
     return {
       message: `Plan successfully processed`,
-      statusCode: 201,
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
     }

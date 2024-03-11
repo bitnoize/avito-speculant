@@ -4,5 +4,4 @@ export interface DropUserCacheRequest {
 
 export interface DropUserCacheResponse {
   message: string
-  statusCode: number
 }

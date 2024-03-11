@@ -23,7 +23,6 @@ export async function fetchScraperCache(
 
   return {
     message: `ScraperCache successfully fetched`,
-    statusCode: 200,
     scraperCache
   }
 }
@@ -40,7 +39,6 @@ export async function findScraperCache(
   if (scraperJobId === undefined) {
     return {
       message: `ScraperCache not found`,
-      statusCode: 404
     }
   }
 
@@ -48,7 +46,6 @@ export async function findScraperCache(
 
   return {
     message: `ScraperCache successfully found`,
-    statusCode: 200,
     scraperCache
   }
 }
@@ -62,7 +59,6 @@ export async function listScrapersCache(redis: Redis): Promise<ListScrapersCache
 
   return {
     message: `ScrapersCache successfully listed`,
-    statusCode: scrapersCache.length > 0 ? 200 : 204,
     scrapersCache
   }
 }
@@ -83,7 +79,6 @@ export async function saveScraperCache(
 
   return {
     message: `ScraperCache successfully saved`,
-    statusCode: 200
   }
 }
 
@@ -98,6 +93,5 @@ export async function dropScraperCache(
 
   return {
     message: `ScraperCache successfully dropped`,
-    statusCode: 200
   }
 }

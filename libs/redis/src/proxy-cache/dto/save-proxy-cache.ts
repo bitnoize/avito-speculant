@@ -6,5 +6,4 @@ export interface SaveProxyCacheRequest {
 
 export interface SaveProxyCacheResponse {
   message: string
-  statusCode: number
 }

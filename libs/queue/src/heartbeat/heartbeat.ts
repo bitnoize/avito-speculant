@@ -24,7 +24,15 @@ export type HeartbeatData = {
   step: HeartbeatStep
 }
 
-export type HeartbeatResult = void
+export type HeartbeatResult = {
+  users: number
+  plans: number
+  subscriptions: number
+  categories: number
+  proxies: number
+  scrapers: number
+  reporters: number
+}
 
 export type HeartbeatQueue = Queue<HeartbeatData, HeartbeatResult>
 export type HeartbeatJob = Job<HeartbeatData, HeartbeatResult>

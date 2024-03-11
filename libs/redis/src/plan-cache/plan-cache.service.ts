@@ -21,7 +21,6 @@ export async function fetchPlanCache(
 
   return {
     message: `PlanCache successfully fetched`,
-    statusCode: 200,
     planCache
   }
 }
@@ -35,7 +34,6 @@ export async function listPlansCache(redis: Redis): Promise<ListPlansCacheRespon
 
   return {
     message: `PlansCache successfully listed`,
-    statusCode: 200,
     plansCache
   }
 }
@@ -59,7 +57,6 @@ export async function savePlanCache(
 
   return {
     message: `PlanCache successfully saved`,
-    statusCode: 200
   }
 }
 
@@ -74,6 +71,5 @@ export async function dropPlanCache(
 
   return {
     message: `PlanCache successfully dropped`,
-    statusCode: 200
   }
 }

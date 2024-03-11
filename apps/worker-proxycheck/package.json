@@ -17,9 +17,11 @@
   },
   "dependencies": {
     "@avito-speculant/config": "*",
-    "@avito-speculant/logger": "*",
     "@avito-speculant/database": "*",
+    "@avito-speculant/logger": "*",
+    "@avito-speculant/queue": "*",
     "@avito-speculant/redis": "*",
-    "@avito-speculant/queue": "*"
+    "got": "^14.2.1",
+    "https-proxy-agent": "^7.0.4"
   }
 }

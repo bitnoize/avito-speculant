@@ -9,7 +9,6 @@ export interface EnableDisableProxyRequest {
 
 export interface EnableDisableProxyResponse {
   message: string
-  statusCode: number
   proxy: Proxy
   backLog: Notify[]
 }

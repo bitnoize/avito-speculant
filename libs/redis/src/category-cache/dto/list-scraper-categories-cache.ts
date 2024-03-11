@@ -6,6 +6,5 @@ export interface ListScraperCategoriesCacheRequest {
 
 export interface ListScraperCategoriesCacheResponse {
   message: string
-  statusCode: number
   categoriesCache: CategoryCache[]
 }

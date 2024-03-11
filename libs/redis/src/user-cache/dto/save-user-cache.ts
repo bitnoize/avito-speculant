@@ -5,5 +5,4 @@ export interface SaveUserCacheRequest {
 
 export interface SaveUserCacheResponse {
   message: string
-  statusCode: number
 }

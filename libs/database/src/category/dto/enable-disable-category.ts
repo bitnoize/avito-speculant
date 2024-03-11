@@ -9,7 +9,6 @@ export interface EnableDisableCategoryRequest {
 
 export interface EnableDisableCategoryResponse {
   message: string
-  statusCode: number
   category: Category
   backLog: Notify[]
 }

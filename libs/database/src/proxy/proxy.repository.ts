@@ -58,6 +58,22 @@ export async function updateRowIsEnabled(
     .executeTakeFirstOrThrow()
 }
 
+export async function updateRowIsOnline(
+  trx: TransactionDatabase,
+  proxy_id: number,
+  is_online: boolean
+): Promise<ProxyRow> {
+  return await trx
+    .updateTable('proxy')
+    .set(() => ({
+      is_online,
+      updated_at: sql<number>`now()`
+    }))
+    .where('id', '=', proxy_id)
+    .returningAll()
+    .executeTakeFirstOrThrow()
+}
+
 export async function selectRowsList(trx: TransactionDatabase, all: boolean): Promise<ProxyRow[]> {
   return await trx
     .selectFrom('proxy')

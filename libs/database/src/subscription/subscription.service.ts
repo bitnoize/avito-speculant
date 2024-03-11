@@ -107,7 +107,6 @@ export async function createSubscription(
 
     return {
       message: `Subscription successfully created`,
-      statusCode: 201,
       subscription: subscriptionRepository.buildModel(insertedSubscriptionRow),
       backLog
     }
@@ -181,7 +180,6 @@ export async function activateSubscription(
 
     return {
       message: `Subscription successfully activated`,
-      statusCode: 201,
       user: userRepository.buildModel(updatedUserRow),
       subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
       backLog
@@ -211,7 +209,6 @@ export async function cancelSubscription(
     if (subscriptionRow.status === 'cancel') {
       return {
         message: `Subscription allready canceled`,
-        statusCode: 200,
         subscription: subscriptionRepository.buildModel(subscriptionRow),
         backLog
       }
@@ -251,7 +248,6 @@ export async function cancelSubscription(
 
     return {
       message: `Subscription successfully canceled`,
-      statusCode: 201,
       subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
       backLog
     }
@@ -284,7 +280,6 @@ export async function listSubscriptions(
 
     return {
       message: `Subscriptions successfully listed`,
-      statusCode: 200,
       subscriptions: subscriptionRepository.buildCollection(subscriptionRows),
       all: request.all
     }
@@ -317,7 +312,6 @@ export async function queueSubscriptions(
 
     return {
       message: `Subscriptions successfully enqueued`,
-      statusCode: 200,
       subscriptions,
       limit: request.limit
     }
@@ -375,7 +369,6 @@ export async function businessSubscription(
     if (!isChanged) {
       return {
         message: `Subscription not changed`,
-        statusCode: 200,
         subscription: subscriptionRepository.buildModel(subscriptionRow),
         backLog
       }
@@ -399,7 +392,6 @@ export async function businessSubscription(
 
     return {
       message: `Subscription successfully processed`,
-      statusCode: 201,
       subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
       backLog
     }

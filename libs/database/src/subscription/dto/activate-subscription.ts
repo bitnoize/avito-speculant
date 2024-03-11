@@ -10,7 +10,6 @@ export interface ActivateSubscriptionRequest {
 
 export interface ActivateSubscriptionResponse {
   message: string
-  statusCode: number
   subscription: Subscription
   user: User
   backLog: Notify[]

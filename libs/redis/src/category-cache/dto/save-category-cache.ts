@@ -7,5 +7,4 @@ export interface SaveCategoryCacheRequest {
 
 export interface SaveCategoryCacheResponse {
   message: string
-  statusCode: number
 }

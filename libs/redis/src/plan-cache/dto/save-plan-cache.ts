@@ -9,5 +9,4 @@ export interface SavePlanCacheRequest {
 
 export interface SavePlanCacheResponse {
   message: string
-  statusCode: number
 }

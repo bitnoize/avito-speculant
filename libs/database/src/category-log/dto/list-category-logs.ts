@@ -7,7 +7,6 @@ export interface ListCategoryLogsRequest {
 
 export interface ListCategoryLogsResponse {
   message: string
-  statusCode: number
   categoryLogs: CategoryLog[]
   limit: number
 }

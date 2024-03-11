@@ -10,7 +10,6 @@ export interface AuthorizeUserRequest {
 
 export interface AuthorizeUserResponse {
   message: string
-  statusCode: number
   user: User
   subscription?: Subscription
   backLog: Notify[]

@@ -6,6 +6,5 @@ export interface FetchUserCacheRequest {
 
 export interface FetchUserCacheResponse {
   message: string
-  statusCode: number
   userCache: UserCache
 }

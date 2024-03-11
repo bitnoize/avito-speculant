@@ -6,6 +6,5 @@ export interface FindScraperCacheRequest {
 
 export interface FindScraperCacheResponse {
   message: string
-  statusCode: number
   scraperCache?: ScraperCache
 }
