@@ -1,13 +1,10 @@
+import { JSONSchemaType } from '@avito-speculant/config'
+import { DEFAULT_LOG_LEVEL } from '@avito-speculant/logger'
 import {
-  JSONSchemaType,
-  DEFAULT_LOG_LEVEL,
   DEFAULT_REDIS_HOST,
   DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE,
-  DEFAULT_POSTGRES_HOST,
-  DEFAULT_POSTGRES_PORT,
-  DEFAULT_POSTGRES_DATABASE
-} from '@avito-speculant/config'
+  DEFAULT_REDIS_DATABASE
+} from '@avito-speculant/redis'
 import { Config } from './worker-scraper.js'
 
 export const configSchema: JSONSchemaType<Config> = {
@@ -17,9 +14,6 @@ export const configSchema: JSONSchemaType<Config> = {
     'REDIS_HOST',
     'REDIS_PORT',
     'REDIS_DATABASE',
-    'POSTGRES_HOST',
-    'POSTGRES_PORT',
-    'POSTGRES_DATABASE',
     'SCRAPER_CONCURRENCY',
     'SCRAPER_LIMITER_MAX',
     'SCRAPER_LIMITER_DURATION'
@@ -46,26 +40,6 @@ export const configSchema: JSONSchemaType<Config> = {
       nullable: true
     },
     REDIS_PASSWORD: {
-      type: 'string',
-      nullable: true
-    },
-    POSTGRES_HOST: {
-      type: 'string',
-      default: DEFAULT_POSTGRES_HOST
-    },
-    POSTGRES_PORT: {
-      type: 'number',
-      default: DEFAULT_POSTGRES_PORT
-    },
-    POSTGRES_DATABASE: {
-      type: 'string',
-      default: DEFAULT_POSTGRES_DATABASE
-    },
-    POSTGRES_USERNAME: {
-      type: 'string',
-      nullable: true
-    },
-    POSTGRES_PASSWORD: {
       type: 'string',
       nullable: true
     },
