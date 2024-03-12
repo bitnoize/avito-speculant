@@ -200,16 +200,20 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         for (const scraperCache of scrapersCache) {
           let isChanged = false
 
-          const { categoriesCache } =
-            await categoryCacheService.fetchScraperCategoriesCache(redis, {
+          const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(
+            redis,
+            {
               scraperJobId: scraperCache.jobId
-            })
+            }
+          )
 
           for (const categoryCache of categoriesCache) {
-            const { subscriptionCache } =
-              await subscriptionCacheService.fetchUserSubscriptionCache(redis, {
+            const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(
+              redis,
+              {
                 userId: categoryCache.userId
-              })
+              }
+            )
 
             if (subscriptionCache.intervalSec < scraperCache.intervalSec) {
               isChanged = true

@@ -7,7 +7,7 @@ import {
   FetchScraperCategoriesCacheRequest,
   FetchScraperCategoriesCacheResponse,
   SaveCategoryCacheRequest,
-  DropCategoryCacheRequest,
+  DropCategoryCacheRequest
 } from './dto/index.js'
 import * as categoryCacheRepository from './category-cache.repository.js'
 

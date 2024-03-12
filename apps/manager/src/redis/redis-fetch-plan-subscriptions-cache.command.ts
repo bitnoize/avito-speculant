@@ -11,16 +11,18 @@ export default (config: Config, logger: Logger) => {
       planId: positional({
         type: number,
         displayName: 'planId'
-      }),
+      })
     },
     handler: async ({ planId }) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const { subscriptionsCache } =
-        await subscriptionCacheService.fetchPlanSubscriptionsCache(redis, {
+      const { subscriptionsCache } = await subscriptionCacheService.fetchPlanSubscriptionsCache(
+        redis,
+        {
           planId
-        })
+        }
+      )
 
       logger.info({ subscriptionsCache, planId }, `PlanSubscriptionsCache successfully fetched`)
 

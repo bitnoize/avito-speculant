@@ -17,10 +17,12 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const { subscriptionCache } =
-        await subscriptionCacheService.fetchUserSubscriptionCache(redis, {
+      const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(
+        redis,
+        {
           userId
-        })
+        }
+      )
 
       logger.info({ subscriptionCache, userId }, `SubscriptionCache successfully fetched`)
 

@@ -6,7 +6,7 @@ import {
   FindScraperCacheResponse,
   FetchScrapersCacheResponse,
   SaveScraperCacheRequest,
-  DropScraperCacheRequest,
+  DropScraperCacheRequest
 } from './dto/index.js'
 import * as scraperCacheRepository from './scraper-cache.repository.js'
 

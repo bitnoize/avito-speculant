@@ -1,10 +1,5 @@
 import { Redis } from 'ioredis'
-import {
-  ProxyCache,
-  proxyCacheKey,
-  proxiesCacheKey,
-  proxiesCacheOnlineKey
-} from './proxy-cache.js'
+import { ProxyCache, proxyCacheKey, proxiesCacheKey, proxiesCacheOnlineKey } from './proxy-cache.js'
 import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import { parseNumber, parseManyNumbers, parseString } from '../redis.utils.js'
 
@@ -102,11 +97,7 @@ redis.call('PEXPIRE', KEYS[2], ARGV[3])
 return redis.status_reply('OK')
 `
 
-export async function saveModel(
-  redis: Redis,
-  proxyId: number,
-  proxyUrl: string,
-): Promise<void> {
+export async function saveModel(redis: Redis, proxyId: number, proxyUrl: string): Promise<void> {
   await redis.saveProxyCache(
     proxyCacheKey(proxyId), // KEYS[1]
     proxiesCacheKey(), // KEYS[2]
@@ -154,10 +145,7 @@ redis.call('PEXPIRE', KEYS[2], ARGV[2])
 return redis.status_reply('OK')
 `
 
-export async function renewOnline(
-  redis: Redis,
-  proxyId: number
-): Promise<void> {
+export async function renewOnline(redis: Redis, proxyId: number): Promise<void> {
   await redis.renewProxyCacheOnline(
     proxyCacheKey(proxyId), // KEYS[1]
     proxiesCacheOnlineKey(), // KEYS[2]
@@ -181,10 +169,7 @@ redis.call('PEXPIRE', KEYS[2], ARGV[2])
 return redis.status_reply('OK')
 `
 
-export async function renewOffline(
-  redis: Redis,
-  proxyId: number
-): Promise<void> {
+export async function renewOffline(redis: Redis, proxyId: number): Promise<void> {
   await redis.renewProxyCacheOffline(
     proxyCacheKey(proxyId), // KEYS[1]
     proxiesCacheOnlineKey(), // KEYS[2]

@@ -7,7 +7,7 @@ import {
   FetchPlanSubscriptionsCacheRequest,
   FetchPlanSubscriptionsCacheResponse,
   SaveSubscriptionCacheRequest,
-  DropSubscriptionCacheRequest,
+  DropSubscriptionCacheRequest
 } from './dto/index.js'
 import * as subscriptionCacheRepository from './subscription-cache.repository.js'
 

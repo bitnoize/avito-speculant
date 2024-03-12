@@ -99,7 +99,7 @@ export async function updateRowQueuedAt(
 export async function updateRowBusiness(
   trx: TransactionDatabase,
   proxy_id: number,
-  is_enabled: boolean,
+  is_enabled: boolean
 ): Promise<ProxyRow> {
   return await trx
     .updateTable('proxy')

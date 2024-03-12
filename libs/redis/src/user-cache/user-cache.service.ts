@@ -4,7 +4,7 @@ import {
   FetchUserCacheResponse,
   FetchUsersCacheResponse,
   SaveUserCacheRequest,
-  DropUserCacheRequest,
+  DropUserCacheRequest
 } from './dto/index.js'
 import * as userCacheRepository from './user-cache.repository.js'
 
@@ -37,19 +37,13 @@ export async function fetchUsersCache(redis: Redis): Promise<FetchUsersCacheResp
 /*
  * Save UserCache
  */
-export async function saveUserCache(
-  redis: Redis,
-  request: SaveUserCacheRequest
-): Promise<void> {
+export async function saveUserCache(redis: Redis, request: SaveUserCacheRequest): Promise<void> {
   await userCacheRepository.saveModel(redis, request.userId, request.tgFromId)
 }
 
 /*
  * Drop UserCache
  */
-export async function dropUserCache(
-  redis: Redis,
-  request: DropUserCacheRequest
-): Promise<void> {
+export async function dropUserCache(redis: Redis, request: DropUserCacheRequest): Promise<void> {
   await userCacheRepository.dropModel(redis, request.userId)
 }

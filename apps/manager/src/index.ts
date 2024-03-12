@@ -101,7 +101,7 @@ async function bootstrap(): Promise<void> {
       'fetch-scraper-categories-cache': redisFetchScraperCategoriesCacheCommand(config, logger),
       'fetch-proxies-cache': redisFetchProxiesCacheCommand(config, logger),
       'fetch-proxies-cache-online': redisFetchProxiesCacheOnlineCommand(config, logger),
-      'fetch-scrapers-cache': redisFetchScrapersCacheCommand(config, logger),
+      'fetch-scrapers-cache': redisFetchScrapersCacheCommand(config, logger)
     }
   })
 

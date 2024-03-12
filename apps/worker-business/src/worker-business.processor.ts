@@ -22,7 +22,7 @@ import {
   BusinessProcessor,
   queueService,
   scraperService,
-  proxycheckService,
+  proxycheckService
 } from '@avito-speculant/queue'
 import { Config } from './worker-business.js'
 import { configSchema } from './worker-business.schema.js'
@@ -129,14 +129,11 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
           analyticsOn: subscription.analyticsOn
         })
       } else {
-        await subscriptionCacheService.dropSubscriptionCache(
-          redis,
-          {
-            subscriptionId: subscription.id,
-            userId: subscription.userId,
-            planId: subscription.planId
-          }
-        )
+        await subscriptionCacheService.dropSubscriptionCache(redis, {
+          subscriptionId: subscription.id,
+          userId: subscription.userId,
+          planId: subscription.planId
+        })
       }
 
       await redisService.publishBackLog(pubSub, backLog)
@@ -220,7 +217,7 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
       if (proxy.isEnabled) {
         await proxyCacheService.saveProxyCache(redis, {
           proxyId: proxy.id,
-          proxyUrl: proxy.proxyUrl,
+          proxyUrl: proxy.proxyUrl
         })
 
         await proxycheckService.addJob(proxycheckQueue, 'default', proxy.id)

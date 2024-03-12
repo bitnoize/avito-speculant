@@ -58,7 +58,7 @@ const proxycheckRequest = async (
       retry: {
         limit: 0
       },
-      agent: agent as Agents,
+      agent: agent as Agents
     })
 
     return statusCode === 200 ? true : false

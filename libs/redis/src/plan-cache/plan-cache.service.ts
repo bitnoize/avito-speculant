@@ -4,7 +4,7 @@ import {
   FetchPlanCacheResponse,
   FetchPlansCacheResponse,
   SavePlanCacheRequest,
-  DropPlanCacheRequest,
+  DropPlanCacheRequest
 } from './dto/index.js'
 import * as planCacheRepository from './plan-cache.repository.js'
 
@@ -37,10 +37,7 @@ export async function fetchPlansCache(redis: Redis): Promise<FetchPlansCacheResp
 /*
  * Save PlanCache
  */
-export async function savePlanCache(
-  redis: Redis,
-  request: SavePlanCacheRequest
-): Promise<void> {
+export async function savePlanCache(redis: Redis, request: SavePlanCacheRequest): Promise<void> {
   await planCacheRepository.saveModel(
     redis,
     request.planId,
@@ -55,9 +52,6 @@ export async function savePlanCache(
 /*
  * Drop PlanCache
  */
-export async function dropPlanCache(
-  redis: Redis,
-  request: DropPlanCacheRequest
-): Promise<void> {
+export async function dropPlanCache(redis: Redis, request: DropPlanCacheRequest): Promise<void> {
   await planCacheRepository.dropModel(redis, request.planId)
 }

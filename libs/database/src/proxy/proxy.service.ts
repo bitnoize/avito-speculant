@@ -217,7 +217,7 @@ export async function businessProxy(
     const updatedProxyRow = await proxyRepository.updateRowBusiness(
       trx,
       proxyRow.id,
-      proxyRow.is_enabled,
+      proxyRow.is_enabled
     )
 
     const proxyLogRow = await proxyLogRepository.insertRow(

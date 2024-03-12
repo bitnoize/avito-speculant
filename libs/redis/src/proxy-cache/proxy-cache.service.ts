@@ -6,7 +6,7 @@ import {
   RandomProxyCacheResponse,
   SaveProxyCacheRequest,
   DropProxyCacheRequest,
-  RenewProxyCacheRequest,
+  RenewProxyCacheRequest
 } from './dto/index.js'
 import * as proxyCacheRepository from './proxy-cache.repository.js'
 
@@ -45,9 +45,7 @@ export async function fetchProxiesCacheOnline(redis: Redis): Promise<FetchProxie
 /*
  * Random ProxyCache Online
  */
-export async function randomProxyCacheOnline(
-  redis: Redis
-): Promise<RandomProxyCacheResponse> {
+export async function randomProxyCacheOnline(redis: Redis): Promise<RandomProxyCacheResponse> {
   const proxyId = await proxyCacheRepository.randomOnlineIndex(redis)
 
   if (proxyId === undefined) {
@@ -62,20 +60,14 @@ export async function randomProxyCacheOnline(
 /*
  * Save ProxyCache
  */
-export async function saveProxyCache(
-  redis: Redis,
-  request: SaveProxyCacheRequest
-): Promise<void> {
+export async function saveProxyCache(redis: Redis, request: SaveProxyCacheRequest): Promise<void> {
   await proxyCacheRepository.saveModel(redis, request.proxyId, request.proxyUrl)
 }
 
 /*
  * Drop ProxyCache
  */
-export async function dropProxyCache(
-  redis: Redis,
-  request: DropProxyCacheRequest
-): Promise<void> {
+export async function dropProxyCache(redis: Redis, request: DropProxyCacheRequest): Promise<void> {
   await proxyCacheRepository.dropModel(redis, request.proxyId)
 }
 
