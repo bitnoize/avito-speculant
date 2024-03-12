@@ -65,6 +65,8 @@ const proxycheckRequest = async (
 
     return response.statusCode === 200 ? true : false
   } catch (error) {
+    console.error(error)
+
     return false
   }
 }
