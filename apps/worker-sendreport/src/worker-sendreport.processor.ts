@@ -1,4 +1,3 @@
-import { gotScraping } from 'got-scraping'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { redisService } from '@avito-speculant/redis'
