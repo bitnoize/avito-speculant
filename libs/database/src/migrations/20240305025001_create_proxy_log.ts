@@ -8,7 +8,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('proxy_id', 'integer', (col) => col.notNull().references('proxy.id'))
     .addColumn('action', 'varchar', (col) => col.notNull())
     .addColumn('is_enabled', 'boolean', (col) => col.notNull())
-    .addColumn('is_online', 'boolean', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .execute()

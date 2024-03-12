@@ -6,7 +6,6 @@ export interface ListSubscriptionLogsRequest {
 }
 
 export interface ListSubscriptionLogsResponse {
-  message: string
   subscriptionLogs: SubscriptionLog[]
   limit: number
 }

@@ -2,12 +2,11 @@ import { Redis } from 'ioredis'
 import {
   FetchProxyCacheRequest,
   FetchProxyCacheResponse,
-  ListProxiesCacheRequest,
-  ListProxiesCacheResponse,
+  FetchProxiesCacheResponse,
+  RandomProxyCacheResponse,
   SaveProxyCacheRequest,
-  SaveProxyCacheResponse,
   DropProxyCacheRequest,
-  DropProxyCacheResponse
+  RenewProxyCacheRequest,
 } from './dto/index.js'
 import * as proxyCacheRepository from './proxy-cache.repository.js'
 
@@ -20,26 +19,44 @@ export async function fetchProxyCache(
 ): Promise<FetchProxyCacheResponse> {
   const proxyCache = await proxyCacheRepository.fetchModel(redis, request.proxyId)
 
-  return {
-    message: `ProxyCache successfully fetched`,
-    proxyCache
-  }
+  return { proxyCache }
 }
 
 /*
- * List ProxyCache
+ * Fetch ProxiesCache
  */
-export async function listProxiesCache(
-  redis: Redis,
-  request: ListProxiesCacheRequest
-): Promise<ListProxiesCacheResponse> {
-  const proxyIds = await proxyCacheRepository.fetchIndex(redis, request.isOnline)
+export async function fetchProxiesCache(redis: Redis): Promise<FetchProxiesCacheResponse> {
+  const proxyIds = await proxyCacheRepository.fetchIndex(redis)
   const proxiesCache = await proxyCacheRepository.fetchCollection(redis, proxyIds)
 
-  return {
-    message: `ProxiesCache successfully listed`,
-    proxiesCache
+  return { proxiesCache }
+}
+
+/*
+ * Fetch ProxiesCache Online
+ */
+export async function fetchProxiesCacheOnline(redis: Redis): Promise<FetchProxiesCacheResponse> {
+  const proxyIds = await proxyCacheRepository.fetchOnlineIndex(redis)
+  const proxiesCache = await proxyCacheRepository.fetchCollection(redis, proxyIds)
+
+  return { proxiesCache }
+}
+
+/*
+ * Random ProxyCache Online
+ */
+export async function randomProxyCacheOnline(
+  redis: Redis
+): Promise<RandomProxyCacheResponse> {
+  const proxyId = await proxyCacheRepository.randomOnlineIndex(redis)
+
+  if (proxyId === undefined) {
+    return {}
   }
+
+  const proxyCache = await proxyCacheRepository.fetchModel(redis, proxyId)
+
+  return { proxyCache }
 }
 
 /*
@@ -48,12 +65,8 @@ export async function listProxiesCache(
 export async function saveProxyCache(
   redis: Redis,
   request: SaveProxyCacheRequest
-): Promise<SaveProxyCacheResponse> {
-  await proxyCacheRepository.saveModel(redis, request.proxyId, request.proxyUrl, request.isOnline)
-
-  return {
-    message: `ProxyCache successfully saved`,
-  }
+): Promise<void> {
+  await proxyCacheRepository.saveModel(redis, request.proxyId, request.proxyUrl)
 }
 
 /*
@@ -62,10 +75,26 @@ export async function saveProxyCache(
 export async function dropProxyCache(
   redis: Redis,
   request: DropProxyCacheRequest
-): Promise<DropProxyCacheResponse> {
+): Promise<void> {
   await proxyCacheRepository.dropModel(redis, request.proxyId)
+}
 
-  return {
-    message: `ProxyCache successfully dropped`,
-  }
+/*
+ * Renew ProxyCache Online
+ */
+export async function renewProxyCacheOnline(
+  redis: Redis,
+  request: RenewProxyCacheRequest
+): Promise<void> {
+  await proxyCacheRepository.renewOnline(redis, request.proxyId)
+}
+
+/*
+ * Renew ProxyCache Offline
+ */
+export async function renewProxyCacheOffline(
+  redis: Redis,
+  request: RenewProxyCacheRequest
+): Promise<void> {
+  await proxyCacheRepository.renewOffline(redis, request.proxyId)
 }

@@ -21,11 +21,12 @@ export default (config: Config, logger: Logger) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
-      const listedProxyLogs = await proxyLogService.listProxyLogs(db, {
+      const { proxyLogs } = await proxyLogService.listProxyLogs(db, {
         proxyId,
         limit
       })
-      logger.info(listedProxyLogs)
+
+      logger.info({ proxyLogs }, `ProxyLogs successfully listed`)
 
       await databaseService.closeDatabase(db)
     }

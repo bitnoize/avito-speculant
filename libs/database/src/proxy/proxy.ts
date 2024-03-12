@@ -5,7 +5,6 @@ export interface Proxy {
   id: number
   proxyUrl: string
   isEnabled: boolean
-  isOnline: boolean
   createdAt: number
   updatedAt: number
   queuedAt: number

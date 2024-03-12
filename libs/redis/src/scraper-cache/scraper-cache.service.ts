@@ -4,11 +4,9 @@ import {
   FetchScraperCacheResponse,
   FindScraperCacheRequest,
   FindScraperCacheResponse,
-  ListScrapersCacheResponse,
+  FetchScrapersCacheResponse,
   SaveScraperCacheRequest,
-  SaveScraperCacheResponse,
   DropScraperCacheRequest,
-  DropScraperCacheResponse
 } from './dto/index.js'
 import * as scraperCacheRepository from './scraper-cache.repository.js'
 
@@ -22,7 +20,6 @@ export async function fetchScraperCache(
   const scraperCache = await scraperCacheRepository.fetchModel(redis, request.scraperJobId)
 
   return {
-    message: `ScraperCache successfully fetched`,
     scraperCache
   }
 }
@@ -37,28 +34,24 @@ export async function findScraperCache(
   const scraperJobId = await scraperCacheRepository.findAvitoUrlIndex(redis, request.avitoUrl)
 
   if (scraperJobId === undefined) {
-    return {
-      message: `ScraperCache not found`,
-    }
+    return {}
   }
 
   const scraperCache = await scraperCacheRepository.fetchModel(redis, scraperJobId)
 
   return {
-    message: `ScraperCache successfully found`,
     scraperCache
   }
 }
 
 /*
- * List ScraperCache
+ * Fetch ScraperCache
  */
-export async function listScrapersCache(redis: Redis): Promise<ListScrapersCacheResponse> {
+export async function fetchScrapersCache(redis: Redis): Promise<FetchScrapersCacheResponse> {
   const scraperJobIds = await scraperCacheRepository.fetchIndex(redis)
   const scrapersCache = await scraperCacheRepository.fetchCollection(redis, scraperJobIds)
 
   return {
-    message: `ScrapersCache successfully listed`,
     scrapersCache
   }
 }
@@ -69,17 +62,13 @@ export async function listScrapersCache(redis: Redis): Promise<ListScrapersCache
 export async function saveScraperCache(
   redis: Redis,
   request: SaveScraperCacheRequest
-): Promise<SaveScraperCacheResponse> {
+): Promise<void> {
   await scraperCacheRepository.saveModel(
     redis,
     request.scraperJobId,
     request.avitoUrl,
     request.intervalSec
   )
-
-  return {
-    message: `ScraperCache successfully saved`,
-  }
 }
 
 /*
@@ -88,10 +77,6 @@ export async function saveScraperCache(
 export async function dropScraperCache(
   redis: Redis,
   request: DropScraperCacheRequest
-): Promise<DropScraperCacheResponse> {
+): Promise<void> {
   await scraperCacheRepository.dropModel(redis, request.scraperJobId, request.avitoUrl)
-
-  return {
-    message: `ScraperCache successfully dropped`,
-  }
 }

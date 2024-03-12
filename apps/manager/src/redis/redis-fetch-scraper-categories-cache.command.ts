@@ -5,8 +5,8 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-list-scraper-categories-cache',
-    description: 'Redis list scraper categories cache',
+    name: 'database-fetch-scraper-categories-cache',
+    description: 'Redis fetch scraper categories cache',
     args: {
       scraperJobId: positional({
         type: string,
@@ -17,10 +17,11 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const listedCategoriesCache = await categoryCacheService.listScraperCategoriesCache(redis, {
+      const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
         scraperJobId
       })
-      logger.info(listedCategoriesCache)
+
+      logger.info({ categoriesCache, scraperJobId }, `CategoriesCache successfully fetched`)
 
       await redisService.closeRedis(redis)
     }

@@ -5,6 +5,5 @@ export interface FetchSubscriptionCacheRequest {
 }
 
 export interface FetchSubscriptionCacheResponse {
-  message: string
   subscriptionCache: SubscriptionCache
 }

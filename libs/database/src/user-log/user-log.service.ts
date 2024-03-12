@@ -26,7 +26,6 @@ export async function listUserLogs(
     )
 
     return {
-      message: `UserLogs successfully listed`,
       userLogs: userLogRepository.buildCollection(userLogRows),
       limit: request.limit
     }

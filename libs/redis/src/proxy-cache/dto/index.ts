@@ -1,4 +1,6 @@
 export * from './fetch-proxy-cache.js'
+export * from './fetch-proxies-cache.js'
+export * from './random-proxy-cache.js'
 export * from './save-proxy-cache.js'
 export * from './drop-proxy-cache.js'
-export * from './list-proxies-cache.js'
+export * from './renew-proxy-cache.js'

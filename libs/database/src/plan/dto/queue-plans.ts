@@ -5,7 +5,6 @@ export interface QueuePlansRequest {
 }
 
 export interface QueuePlansResponse {
-  message: string
   plans: Plan[]
   limit: number
 }

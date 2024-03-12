@@ -171,21 +171,40 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
+    randomProxyCacheIndex(
+      proxiesCacheKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
     saveProxyCache(
       proxyCacheKey: string,
-      onlineProxiesCacheKey: string,
-      offlineProxiesCacheKey: string,
+      proxiesCacheKey: string,
       proxyId: number,
       proxyUrl: string,
-      isOnline: number,
       timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
     dropProxyCache(
       proxyCacheKey: string,
-      onlineProxiesCacheKey: string,
-      offlineProxiesCacheKey: string,
+      proxiesCacheKey: string,
+      proxiesCacheOnlineKey: string,
+      proxyId: number,
+      timeout: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    renewProxyCacheOnline(
+      proxyCacheKey: string,
+      proxiesCacheOnlineKey: string,
+      proxyId: number,
+      timeout: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    renewProxyCacheOffline(
+      proxyCacheKey: string,
+      proxiesCacheOnlineKey: string,
       proxyId: number,
       timeout: number,
       callback?: Callback<string>

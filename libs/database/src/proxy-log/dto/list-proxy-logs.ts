@@ -6,7 +6,6 @@ export interface ListProxyLogsRequest {
 }
 
 export interface ListProxyLogsResponse {
-  message: string
   proxyLogs: ProxyLog[]
   limit: number
 }

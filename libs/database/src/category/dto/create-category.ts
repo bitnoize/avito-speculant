@@ -9,7 +9,6 @@ export interface CreateCategoryRequest {
 }
 
 export interface CreateCategoryResponse {
-  message: string
   category: Category
   backLog: Notify[]
 }

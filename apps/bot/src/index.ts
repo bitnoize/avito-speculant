@@ -33,19 +33,16 @@ async function bootstrap(): Promise<void> {
 
   bot.use(async (ctx, next) => {
     if (ctx.from) {
-      const authorizedUser = await userService.authorizeUser(db, {
+      const { user, subscription, backLog } = await userService.authorizeUser(db, {
         tgFromId: ctx.from.id.toString(),
         data: {
           from: ctx.from,
-          message: `Authorize user in Bot`
+          message: `Authorize user via Bot`
         }
       })
 
-      logger.info(authorizedUser)
-
-      const { user, backLog } = authorizedUser
-
       ctx.user = user
+      ctx.subscription = subscription
 
       await redisService.publishBackLog(pubSub, backLog)
 

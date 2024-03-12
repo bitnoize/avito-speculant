@@ -54,6 +54,11 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: userCacheRepository.fetchUserCacheLua
   })
 
+  redis.defineCommand('fetchUsersCacheIndex', {
+    numberOfKeys: 1,
+    lua: userCacheRepository.fetchUsersCacheIndexLua
+  })
+
   redis.defineCommand('saveUserCache', {
     numberOfKeys: 2,
     lua: userCacheRepository.saveUserCacheLua
@@ -64,11 +69,6 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: userCacheRepository.dropUserCacheLua
   })
 
-  redis.defineCommand('fetchUsersCacheIndex', {
-    numberOfKeys: 1,
-    lua: userCacheRepository.fetchUsersCacheIndexLua
-  })
-
   //
   // PlanCache
   //
@@ -76,6 +76,11 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
   redis.defineCommand('fetchPlanCache', {
     numberOfKeys: 1,
     lua: planCacheRepository.fetchPlanCacheLua
+  })
+
+  redis.defineCommand('fetchPlansCacheIndex', {
+    numberOfKeys: 1,
+    lua: planCacheRepository.fetchPlansCacheIndexLua
   })
 
   redis.defineCommand('savePlanCache', {
@@ -88,11 +93,6 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: planCacheRepository.dropPlanCacheLua
   })
 
-  redis.defineCommand('fetchPlansCacheIndex', {
-    numberOfKeys: 1,
-    lua: planCacheRepository.fetchPlansCacheIndexLua
-  })
-
   //
   // SubscriptionCache
   //
@@ -100,16 +100,6 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
   redis.defineCommand('fetchSubscriptionCache', {
     numberOfKeys: 1,
     lua: subscriptionCacheRepository.fetchSubscriptionCacheLua
-  })
-
-  redis.defineCommand('saveSubscriptionCache', {
-    numberOfKeys: 3,
-    lua: subscriptionCacheRepository.saveSubscriptionCacheLua
-  })
-
-  redis.defineCommand('dropSubscriptionCache', {
-    numberOfKeys: 3,
-    lua: subscriptionCacheRepository.dropSubscriptionCacheLua
   })
 
   redis.defineCommand('fetchUserSubscriptionCacheIndex', {
@@ -122,6 +112,16 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: subscriptionCacheRepository.fetchPlanSubscriptionsCacheIndexLua
   })
 
+  redis.defineCommand('saveSubscriptionCache', {
+    numberOfKeys: 3,
+    lua: subscriptionCacheRepository.saveSubscriptionCacheLua
+  })
+
+  redis.defineCommand('dropSubscriptionCache', {
+    numberOfKeys: 3,
+    lua: subscriptionCacheRepository.dropSubscriptionCacheLua
+  })
+
   //
   // CategoryCache
   //
@@ -129,16 +129,6 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
   redis.defineCommand('fetchCategoryCache', {
     numberOfKeys: 1,
     lua: categoryCacheRepository.fetchCategoryCacheLua
-  })
-
-  redis.defineCommand('saveCategoryCache', {
-    numberOfKeys: 3,
-    lua: categoryCacheRepository.saveCategoryCacheLua
-  })
-
-  redis.defineCommand('dropCategoryCache', {
-    numberOfKeys: 3,
-    lua: categoryCacheRepository.dropCategoryCacheLua
   })
 
   redis.defineCommand('fetchUserCategoriesCacheIndex', {
@@ -151,6 +141,16 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: categoryCacheRepository.fetchScraperCategoriesCacheIndexLua
   })
 
+  redis.defineCommand('saveCategoryCache', {
+    numberOfKeys: 3,
+    lua: categoryCacheRepository.saveCategoryCacheLua
+  })
+
+  redis.defineCommand('dropCategoryCache', {
+    numberOfKeys: 3,
+    lua: categoryCacheRepository.dropCategoryCacheLua
+  })
+
   //
   // ProxyCache
   //
@@ -160,8 +160,18 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: proxyCacheRepository.fetchProxyCacheLua
   })
 
+  redis.defineCommand('fetchProxiesCacheIndex', {
+    numberOfKeys: 1,
+    lua: proxyCacheRepository.fetchProxiesCacheIndexLua
+  })
+
+  redis.defineCommand('randomProxyCacheIndex', {
+    numberOfKeys: 1,
+    lua: proxyCacheRepository.randomProxyCacheIndexLua
+  })
+
   redis.defineCommand('saveProxyCache', {
-    numberOfKeys: 3,
+    numberOfKeys: 2,
     lua: proxyCacheRepository.saveProxyCacheLua
   })
 
@@ -170,9 +180,14 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: proxyCacheRepository.dropProxyCacheLua
   })
 
-  redis.defineCommand('fetchProxiesCacheIndex', {
-    numberOfKeys: 1,
-    lua: proxyCacheRepository.fetchProxiesCacheIndexLua
+  redis.defineCommand('renewProxyCacheOnline', {
+    numberOfKeys: 2,
+    lua: proxyCacheRepository.renewProxyCacheOnlineLua
+  })
+
+  redis.defineCommand('renewProxyCacheOffline', {
+    numberOfKeys: 2,
+    lua: proxyCacheRepository.renewProxyCacheOfflineLua
   })
 
   //

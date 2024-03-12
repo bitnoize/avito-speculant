@@ -9,7 +9,6 @@ export interface CreateSubscriptionRequest {
 }
 
 export interface CreateSubscriptionResponse {
-  message: string
   subscription: Subscription
   backLog: Notify[]
 }

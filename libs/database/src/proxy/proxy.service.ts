@@ -4,8 +4,6 @@ import {
   CreateProxyResponse,
   EnableDisableProxyRequest,
   EnableDisableProxyResponse,
-  OnlineOfflineProxyRequest,
-  OnlineOfflineProxyResponse,
   ListProxiesRequest,
   ListProxiesResponse,
   QueueProxiesRequest,
@@ -38,14 +36,12 @@ export async function createProxy(
       insertedProxyRow.id,
       'create_proxy',
       insertedProxyRow.is_enabled,
-      insertedProxyRow.is_online,
       request.data
     )
 
     backLog.push(proxyLogRepository.buildNotify(proxyLogRow))
 
     return {
-      message: `Proxy successfully created`,
       proxy: proxyRepository.buildModel(insertedProxyRow),
       backLog
     }
@@ -70,7 +66,6 @@ export async function enableProxy(
 
     if (proxyRow.is_enabled) {
       return {
-        message: `Proxy allready enabled`,
         proxy: proxyRepository.buildModel(proxyRow),
         backLog
       }
@@ -85,14 +80,12 @@ export async function enableProxy(
       updatedProxyRow.id,
       'enable_proxy',
       updatedProxyRow.is_enabled,
-      updatedProxyRow.is_online,
       request.data
     )
 
     backLog.push(proxyLogRepository.buildNotify(proxyLogRow))
 
     return {
-      message: `Proxy successfully enabled`,
       proxy: proxyRepository.buildModel(updatedProxyRow),
       backLog
     }
@@ -117,7 +110,6 @@ export async function disableProxy(
 
     if (!proxyRow.is_enabled) {
       return {
-        message: `Proxy allready disabled`,
         proxy: proxyRepository.buildModel(proxyRow),
         backLog
       }
@@ -132,108 +124,12 @@ export async function disableProxy(
       updatedProxyRow.id,
       'disable_proxy',
       updatedProxyRow.is_enabled,
-      updatedProxyRow.is_online,
       request.data
     )
 
     backLog.push(proxyLogRepository.buildNotify(proxyLogRow))
 
     return {
-      message: `Proxy successfully disabled`,
-      proxy: proxyRepository.buildModel(updatedProxyRow),
-      backLog
-    }
-  })
-}
-
-/**
- * Online Proxy
- */
-export async function onlineProxy(
-  db: KyselyDatabase,
-  request: OnlineOfflineProxyRequest
-): Promise<OnlineOfflineProxyResponse> {
-  return await db.transaction().execute(async (trx) => {
-    const backLog: Notify[] = []
-
-    const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
-
-    if (proxyRow === undefined) {
-      throw new ProxyNotFoundError<OnlineOfflineProxyRequest>(request)
-    }
-
-    if (proxyRow.is_online) {
-      return {
-        message: `Proxy allready online`,
-        proxy: proxyRepository.buildModel(proxyRow),
-        backLog
-      }
-    }
-
-    // ...
-
-    const updatedProxyRow = await proxyRepository.updateRowIsOnline(trx, proxyRow.id, true)
-
-    const proxyLogRow = await proxyLogRepository.insertRow(
-      trx,
-      updatedProxyRow.id,
-      'online_proxy',
-      updatedProxyRow.is_enabled,
-      updatedProxyRow.is_online,
-      request.data
-    )
-
-    backLog.push(proxyLogRepository.buildNotify(proxyLogRow))
-
-    return {
-      message: `Proxy updated as online`,
-      proxy: proxyRepository.buildModel(updatedProxyRow),
-      backLog
-    }
-  })
-}
-
-/**
- * Offline Proxy
- */
-export async function offlineProxy(
-  db: KyselyDatabase,
-  request: OnlineOfflineProxyRequest
-): Promise<OnlineOfflineProxyResponse> {
-  return await db.transaction().execute(async (trx) => {
-    const backLog: Notify[] = []
-
-    const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
-
-    if (proxyRow === undefined) {
-      throw new ProxyNotFoundError<OnlineOfflineProxyRequest>(request)
-    }
-
-    if (!proxyRow.is_online) {
-      return {
-        message: `Proxy allready offline`,
-        proxy: proxyRepository.buildModel(proxyRow),
-        backLog
-      }
-    }
-
-    // ...
-
-    const updatedProxyRow = await proxyRepository.updateRowIsOnline(trx, proxyRow.id, false)
-
-    const proxyLogRow = await proxyLogRepository.insertRow(
-      trx,
-      updatedProxyRow.id,
-      'offline_proxy',
-      updatedProxyRow.is_enabled,
-      updatedProxyRow.is_online,
-      request.data
-    )
-
-    backLog.push(proxyLogRepository.buildNotify(proxyLogRow))
-
-    return {
-      message: `Proxy updated as offline`,
       proxy: proxyRepository.buildModel(updatedProxyRow),
       backLog
     }
@@ -254,7 +150,6 @@ export async function listProxies(
     )
 
     return {
-      message: `Proxies successfully listed`,
       proxies: proxyRepository.buildCollection(proxyRows),
       all: request.all
     }
@@ -283,7 +178,6 @@ export async function queueProxies(
     }
 
     return {
-      message: `Proxies successfully enqueued`,
       proxies,
       limit: request.limit
     }
@@ -315,7 +209,6 @@ export async function businessProxy(
 
     if (!isChanged) {
       return {
-        message: `Proxy not changed`,
         proxy: proxyRepository.buildModel(proxyRow),
         backLog
       }
@@ -325,7 +218,6 @@ export async function businessProxy(
       trx,
       proxyRow.id,
       proxyRow.is_enabled,
-      proxyRow.is_online
     )
 
     const proxyLogRow = await proxyLogRepository.insertRow(
@@ -333,14 +225,12 @@ export async function businessProxy(
       updatedProxyRow.id,
       'business_proxy',
       updatedProxyRow.is_enabled,
-      updatedProxyRow.is_online,
       request.data
     )
 
     backLog.push(proxyLogRepository.buildNotify(proxyLogRow))
 
     return {
-      message: `Proxy successfully processed`,
       proxy: proxyRepository.buildModel(updatedProxyRow),
       backLog
     }

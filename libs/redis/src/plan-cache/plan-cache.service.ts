@@ -2,11 +2,9 @@ import { Redis } from 'ioredis'
 import {
   FetchPlanCacheRequest,
   FetchPlanCacheResponse,
-  ListPlansCacheResponse,
+  FetchPlansCacheResponse,
   SavePlanCacheRequest,
-  SavePlanCacheResponse,
   DropPlanCacheRequest,
-  DropPlanCacheResponse
 } from './dto/index.js'
 import * as planCacheRepository from './plan-cache.repository.js'
 
@@ -20,20 +18,18 @@ export async function fetchPlanCache(
   const planCache = await planCacheRepository.fetchModel(redis, request.planId)
 
   return {
-    message: `PlanCache successfully fetched`,
     planCache
   }
 }
 
 /*
- * List PlanCache
+ * Fetch PlanCache
  */
-export async function listPlansCache(redis: Redis): Promise<ListPlansCacheResponse> {
+export async function fetchPlansCache(redis: Redis): Promise<FetchPlansCacheResponse> {
   const planIds = await planCacheRepository.fetchIndex(redis)
   const plansCache = await planCacheRepository.fetchCollection(redis, planIds)
 
   return {
-    message: `PlansCache successfully listed`,
     plansCache
   }
 }
@@ -44,7 +40,7 @@ export async function listPlansCache(redis: Redis): Promise<ListPlansCacheRespon
 export async function savePlanCache(
   redis: Redis,
   request: SavePlanCacheRequest
-): Promise<SavePlanCacheResponse> {
+): Promise<void> {
   await planCacheRepository.saveModel(
     redis,
     request.planId,
@@ -54,10 +50,6 @@ export async function savePlanCache(
     request.intervalSec,
     request.analyticsOn
   )
-
-  return {
-    message: `PlanCache successfully saved`,
-  }
 }
 
 /*
@@ -66,10 +58,6 @@ export async function savePlanCache(
 export async function dropPlanCache(
   redis: Redis,
   request: DropPlanCacheRequest
-): Promise<DropPlanCacheResponse> {
+): Promise<void> {
   await planCacheRepository.dropModel(redis, request.planId)
-
-  return {
-    message: `PlanCache successfully dropped`,
-  }
 }

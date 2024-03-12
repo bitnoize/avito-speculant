@@ -6,7 +6,3 @@ export interface SavePlanCacheRequest {
   intervalSec: number
   analyticsOn: boolean
 }
-
-export interface SavePlanCacheResponse {
-  message: string
-}

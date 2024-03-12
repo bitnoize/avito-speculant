@@ -29,14 +29,15 @@ import databaseEnableProxyCommand from './database/database-enable-proxy.command
 import databaseDisableProxyCommand from './database/database-disable-proxy.command.js'
 import databaseListProxiesCommand from './database/database-list-proxies.command.js'
 import databaseListProxyLogsCommand from './database/database-list-proxy-logs.command.js'
-import redisListUsersCacheCommand from './redis/redis-list-users-cache.command.js'
-import redisListPlansCacheCommand from './redis/redis-list-plans-cache.command.js'
+import redisFetchUsersCacheCommand from './redis/redis-fetch-users-cache.command.js'
+import redisFetchPlansCacheCommand from './redis/redis-fetch-plans-cache.command.js'
 import redisFetchUserSubscriptionCacheCommand from './redis/redis-fetch-user-subscription-cache.command.js'
-import redisListPlanSubscriptionsCacheCommand from './redis/redis-list-plan-subscriptions-cache.command.js'
-import redisListUserCategoriesCacheCommand from './redis/redis-list-user-categories-cache.command.js'
-import redisListScraperCategoriesCacheCommand from './redis/redis-list-scraper-categories-cache.command.js'
-import redisListProxiesCacheCommand from './redis/redis-list-proxies-cache.command.js'
-import redisListScrapersCacheCommand from './redis/redis-list-scrapers-cache.command.js'
+import redisFetchPlanSubscriptionsCacheCommand from './redis/redis-fetch-plan-subscriptions-cache.command.js'
+import redisFetchUserCategoriesCacheCommand from './redis/redis-fetch-user-categories-cache.command.js'
+import redisFetchScraperCategoriesCacheCommand from './redis/redis-fetch-scraper-categories-cache.command.js'
+import redisFetchProxiesCacheCommand from './redis/redis-fetch-proxies-cache.command.js'
+import redisFetchProxiesCacheOnlineCommand from './redis/redis-fetch-proxies-cache-online.command.js'
+import redisFetchScrapersCacheCommand from './redis/redis-fetch-scrapers-cache.command.js'
 import queueMonitorHeartbeatCommand from './queue/queue-monitor-heartbeat.command.js'
 import queueMonitorBusinessCommand from './queue/queue-monitor-business.command.js'
 import queueMonitorScraperCommand from './queue/queue-monitor-scraper.command.js'
@@ -92,14 +93,15 @@ async function bootstrap(): Promise<void> {
   const redisCommand = subcommands({
     name: 'redis',
     cmds: {
-      'list-users-cache': redisListUsersCacheCommand(config, logger),
-      'list-plans-cache': redisListPlansCacheCommand(config, logger),
+      'fetch-users-cache': redisFetchUsersCacheCommand(config, logger),
+      'fetch-plans-cache': redisFetchPlansCacheCommand(config, logger),
       'fetch-user-subscription-cache': redisFetchUserSubscriptionCacheCommand(config, logger),
-      'list-plan-subscriptions-cache': redisListPlanSubscriptionsCacheCommand(config, logger),
-      'list-user-categories-cache': redisListUserCategoriesCacheCommand(config, logger),
-      'list-scraper-categories-cache': redisListScraperCategoriesCacheCommand(config, logger),
-      'list-proxies-cache': redisListProxiesCacheCommand(config, logger),
-      'list-scrapers-cache': redisListScrapersCacheCommand(config, logger),
+      'fetch-plan-subscriptions-cache': redisFetchPlanSubscriptionsCacheCommand(config, logger),
+      'fetch-user-categories-cache': redisFetchUserCategoriesCacheCommand(config, logger),
+      'fetch-scraper-categories-cache': redisFetchScraperCategoriesCacheCommand(config, logger),
+      'fetch-proxies-cache': redisFetchProxiesCacheCommand(config, logger),
+      'fetch-proxies-cache-online': redisFetchProxiesCacheOnlineCommand(config, logger),
+      'fetch-scrapers-cache': redisFetchScrapersCacheCommand(config, logger),
     }
   })
 

@@ -25,19 +25,18 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const businessQueue = businessService.initQueue(queueConnection, logger)
 
-      const disabledPlan = await planService.disablePlan(db, {
+      const { plan, backLog } = await planService.disablePlan(db, {
         planId,
         data: {
           message: `Plan disabled via Manager`
         }
       })
-      logger.info(disabledPlan)
-
-      const { plan, backLog } = disabledPlan
 
       await redisService.publishBackLog(pubSub, backLog)
 
       await businessService.addJob(businessQueue, 'plan', plan.id)
+
+      logger.info({ plan, backLog }, `Plan successfully disabled`)
 
       await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)

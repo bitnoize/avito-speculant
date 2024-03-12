@@ -25,19 +25,18 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const businessQueue = businessService.initQueue(queueConnection, logger)
 
-      const createdProxy = await proxyService.createProxy(db, {
+      const { proxy, backLog } = await proxyService.createProxy(db, {
         proxyUrl,
         data: {
           message: `Proxy created via Manager`
         }
       })
-      logger.info(createdProxy)
-
-      const { proxy, backLog } = createdProxy
 
       await redisService.publishBackLog(pubSub, backLog)
 
       await businessService.addJob(businessQueue, 'proxy', proxy.id)
+
+      logger.info({ proxy, backLog }, `Proxy successfully created`)
 
       await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)

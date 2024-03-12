@@ -6,7 +6,6 @@ export interface ListSubscriptionsRequest {
 }
 
 export interface ListSubscriptionsResponse {
-  message: string
   subscriptions: Subscription[]
   all: boolean
 }

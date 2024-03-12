@@ -29,7 +29,6 @@ export async function listSubscriptionLogs(
     )
 
     return {
-      message: `SubscriptionLogs successfully listed`,
       subscriptionLogs: subscriptionLogRepository.buildCollection(subscriptionLogRows),
       limit: request.limit
     }

@@ -12,7 +12,7 @@ export type ProxycheckData = {
   proxyId: number
 }
 
-export type ProxycheckResult = boolean
+export type ProxycheckResult = void
 
 export type ProxycheckQueue = Queue<ProxycheckData, ProxycheckResult>
 export type ProxycheckJob = Job<ProxycheckData, ProxycheckResult>

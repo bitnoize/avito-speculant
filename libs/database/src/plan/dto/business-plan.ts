@@ -8,7 +8,6 @@ export interface BusinessPlanRequest {
 }
 
 export interface BusinessPlanResponse {
-  message: string
   plan: Plan
   backLog: Notify[]
 }

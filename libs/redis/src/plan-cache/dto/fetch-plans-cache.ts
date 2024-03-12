@@ -1,6 +1,5 @@
 import { PlanCache } from '../plan-cache.js'
 
-export interface ListPlansCacheResponse {
-  message: string
+export interface FetchPlansCacheResponse {
   plansCache: PlanCache[]
 }

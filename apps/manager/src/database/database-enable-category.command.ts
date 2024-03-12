@@ -25,19 +25,18 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const businessQueue = businessService.initQueue(queueConnection, logger)
 
-      const enabledCategory = await categoryService.enableCategory(db, {
+      const { category, backLog } = await categoryService.enableCategory(db, {
         categoryId,
         data: {
           message: `Category enabled via Manager`
         }
       })
-      logger.info(enabledCategory)
-
-      const { category, backLog } = enabledCategory
 
       await redisService.publishBackLog(pubSub, backLog)
 
       await businessService.addJob(businessQueue, 'category', category.id)
+
+      logger.info({ category, backLog }, `Category successfully enabled`)
 
       await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)

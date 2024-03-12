@@ -8,7 +8,6 @@ export interface BusinessProxyRequest {
 }
 
 export interface BusinessProxyResponse {
-  message: string
   proxy: Proxy
   backLog: Notify[]
 }

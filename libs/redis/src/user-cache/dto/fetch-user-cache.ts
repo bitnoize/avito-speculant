@@ -5,6 +5,5 @@ export interface FetchUserCacheRequest {
 }
 
 export interface FetchUserCacheResponse {
-  message: string
   userCache: UserCache
 }

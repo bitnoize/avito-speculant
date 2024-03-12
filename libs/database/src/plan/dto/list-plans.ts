@@ -5,7 +5,6 @@ export interface ListPlansRequest {
 }
 
 export interface ListPlansResponse {
-  message: string
   plans: Plan[]
   all: boolean
 }

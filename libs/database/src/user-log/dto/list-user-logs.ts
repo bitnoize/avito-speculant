@@ -6,7 +6,6 @@ export interface ListUserLogsRequest {
 }
 
 export interface ListUserLogsResponse {
-  message: string
   userLogs: UserLog[]
   limit: number
 }

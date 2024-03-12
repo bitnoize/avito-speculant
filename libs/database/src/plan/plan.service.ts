@@ -58,7 +58,6 @@ export async function createPlan(
     backLog.push(planLogRepository.buildNotify(planLogRow))
 
     return {
-      message: `Plan successfully created`,
       plan: planRepository.buildModel(insertedPlanRow),
       backLog
     }
@@ -97,7 +96,6 @@ export async function updatePlan(
       )
     ) {
       return {
-        message: `Plan no updates specified`,
         plan: planRepository.buildModel(planRow),
         backLog
       }
@@ -130,7 +128,6 @@ export async function updatePlan(
     backLog.push(planLogRepository.buildNotify(planLogRow))
 
     return {
-      message: `Plan successfully updated`,
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
     }
@@ -155,7 +152,6 @@ export async function enablePlan(
 
     if (planRow.is_enabled) {
       return {
-        message: `Plan allready enabled`,
         plan: planRepository.buildModel(planRow),
         backLog
       }
@@ -182,7 +178,6 @@ export async function enablePlan(
     backLog.push(planLogRepository.buildNotify(planLogRow))
 
     return {
-      message: `Plan successfully enabled`,
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
     }
@@ -207,7 +202,6 @@ export async function disablePlan(
 
     if (!planRow.is_enabled) {
       return {
-        message: `Plan allready disabled`,
         plan: planRepository.buildModel(planRow),
         backLog
       }
@@ -234,7 +228,6 @@ export async function disablePlan(
     backLog.push(planLogRepository.buildNotify(planLogRow))
 
     return {
-      message: `Plan successfully disabled`,
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
     }
@@ -255,7 +248,6 @@ export async function listPlans(
     )
 
     return {
-      message: `Plans successfully listed`,
       plans: planRepository.buildCollection(planRows),
       all: request.all
     }
@@ -284,7 +276,6 @@ export async function queuePlans(
     }
 
     return {
-      message: `Plans successfully enqueued`,
       plans,
       limit: request.limit
     }
@@ -324,7 +315,6 @@ export async function businessPlan(
 
     if (!isChanged) {
       return {
-        message: `Plan not changed`,
         plan: planRepository.buildModel(planRow),
         backLog
       }
@@ -354,7 +344,6 @@ export async function businessPlan(
     backLog.push(planLogRepository.buildNotify(planLogRow))
 
     return {
-      message: `Plan successfully processed`,
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
     }

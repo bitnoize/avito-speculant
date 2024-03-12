@@ -9,7 +9,6 @@ export async function insertRow(
   proxy_id: number,
   action: string,
   is_enabled: boolean,
-  is_online: boolean,
   data: ProxyLogData
 ): Promise<ProxyLogRow> {
   return await trx
@@ -18,7 +17,6 @@ export async function insertRow(
       proxy_id,
       action,
       is_enabled,
-      is_online,
       data,
       created_at: sql<number>`now()`
     }))
@@ -46,7 +44,6 @@ export const buildModel = (row: ProxyLogRow): ProxyLog => {
     proxyId: row.proxy_id,
     action: row.action,
     isEnabled: row.is_enabled,
-    isOnline: row.is_online,
     data: row.data,
     createdAt: row.created_at
   }

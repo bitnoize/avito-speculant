@@ -8,7 +8,6 @@ export interface CancelSubscriptionRequest {
 }
 
 export interface CancelSubscriptionResponse {
-  message: string
   subscription: Subscription
   backLog: Notify[]
 }

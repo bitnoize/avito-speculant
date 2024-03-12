@@ -8,7 +8,6 @@ export interface BusinessUserRequest {
 }
 
 export interface BusinessUserResponse {
-  message: string
   user: User
   backLog: Notify[]
 }

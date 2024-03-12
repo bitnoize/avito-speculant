@@ -6,7 +6,6 @@ export interface ProxyLogTable {
   proxy_id: ColumnType<number, number, never>
   action: ColumnType<string, string, never>
   is_enabled: ColumnType<boolean, boolean, never>
-  is_online: ColumnType<boolean, boolean, never>
   data: ColumnType<ProxyLogData, ProxyLogData, never>
   created_at: ColumnType<number, number, never>
 }

@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@avito-speculant/config": "*",
-    "@avito-speculant/database": "*",
     "@avito-speculant/logger": "*",
     "@avito-speculant/queue": "*",
     "@avito-speculant/redis": "*",

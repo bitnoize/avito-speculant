@@ -8,7 +8,6 @@ export interface EnableDisablePlanRequest {
 }
 
 export interface EnableDisablePlanResponse {
-  message: string
   plan: Plan
   backLog: Notify[]
 }

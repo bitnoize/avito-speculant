@@ -25,19 +25,18 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const businessQueue = businessService.initQueue(queueConnection, logger)
 
-      const cancelSubscription = await subscriptionService.cancelSubscription(db, {
+      const { subscription, backLog } = await subscriptionService.cancelSubscription(db, {
         subscriptionId,
         data: {
           message: `Cancel Subscription via Manager`
         }
       })
-      logger.info(cancelSubscription)
-
-      const { subscription, backLog } = cancelSubscription
 
       await redisService.publishBackLog(pubSub, backLog)
 
       await businessService.addJob(businessQueue, 'subscription', subscription.id)
+
+      logger.info({ subscription, backLog }, `Subscription successfully canceled`)
 
       await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)

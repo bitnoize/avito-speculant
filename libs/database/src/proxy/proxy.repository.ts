@@ -33,7 +33,6 @@ export async function insertRow(trx: TransactionDatabase, proxy_url: string): Pr
     .values(() => ({
       proxy_url,
       is_enabled: false,
-      is_online: false,
       created_at: sql<number>`now()`,
       updated_at: sql<number>`now()`,
       queued_at: sql<number>`now()`
@@ -51,22 +50,6 @@ export async function updateRowIsEnabled(
     .updateTable('proxy')
     .set(() => ({
       is_enabled,
-      updated_at: sql<number>`now()`
-    }))
-    .where('id', '=', proxy_id)
-    .returningAll()
-    .executeTakeFirstOrThrow()
-}
-
-export async function updateRowIsOnline(
-  trx: TransactionDatabase,
-  proxy_id: number,
-  is_online: boolean
-): Promise<ProxyRow> {
-  return await trx
-    .updateTable('proxy')
-    .set(() => ({
-      is_online,
       updated_at: sql<number>`now()`
     }))
     .where('id', '=', proxy_id)
@@ -117,13 +100,11 @@ export async function updateRowBusiness(
   trx: TransactionDatabase,
   proxy_id: number,
   is_enabled: boolean,
-  is_online: boolean
 ): Promise<ProxyRow> {
   return await trx
     .updateTable('proxy')
     .set(() => ({
       is_enabled,
-      is_online,
       updated_at: sql<number>`now()`
     }))
     .where('id', '=', proxy_id)
@@ -136,7 +117,6 @@ export const buildModel = (row: ProxyRow): Proxy => {
     id: row.id,
     proxyUrl: row.proxy_url,
     isEnabled: row.is_enabled,
-    isOnline: row.is_online,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     queuedAt: row.queued_at

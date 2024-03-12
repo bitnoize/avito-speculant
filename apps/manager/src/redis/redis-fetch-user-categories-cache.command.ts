@@ -5,8 +5,8 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-list-user-categories-cache',
-    description: 'Redis list user categories cache',
+    name: 'database-fetch-user-categories-cache',
+    description: 'Redis fetch user categories cache',
     args: {
       userId: positional({
         type: number,
@@ -17,10 +17,11 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const listedCategoriesCache = await categoryCacheService.listUserCategoriesCache(redis, {
+      const { categoriesCache } = await categoryCacheService.fetchUserCategoriesCache(redis, {
         userId
       })
-      logger.info(listedCategoriesCache)
+
+      logger.info({ categoriesCache, userId }, `CategoriesCache successfully fetched`)
 
       await redisService.closeRedis(redis)
     }

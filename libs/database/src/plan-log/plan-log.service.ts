@@ -26,7 +26,6 @@ export async function listPlanLogs(
     )
 
     return {
-      message: `PlanLogs successfully listed`,
       planLogs: planLogRepository.buildCollection(planLogRows),
       limit: request.limit
     }

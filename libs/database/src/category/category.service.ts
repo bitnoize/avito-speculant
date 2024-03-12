@@ -61,7 +61,6 @@ export async function createCategory(
     backLog.push(categoryLogRepository.buildNotify(categoryLogRow))
 
     return {
-      message: `Category successfully created`,
       category: categoryRepository.buildModel(insertedCategoryRow),
       backLog
     }
@@ -86,7 +85,6 @@ export async function enableCategory(
 
     if (categoryRow.is_enabled) {
       return {
-        message: `Category allready enabled`,
         category: categoryRepository.buildModel(categoryRow),
         backLog
       }
@@ -138,7 +136,6 @@ export async function enableCategory(
     backLog.push(categoryLogRepository.buildNotify(categoryLogRow))
 
     return {
-      message: `Category successfully enabled`,
       category: categoryRepository.buildModel(updatedCategoryRow),
       backLog
     }
@@ -163,7 +160,6 @@ export async function disableCategory(
 
     if (!categoryRow.is_enabled) {
       return {
-        message: `Category allready disabled`,
         category: categoryRepository.buildModel(categoryRow),
         backLog
       }
@@ -189,7 +185,6 @@ export async function disableCategory(
     backLog.push(categoryLogRepository.buildNotify(categoryLogRow))
 
     return {
-      message: `Category successfully enabled`,
       category: categoryRepository.buildModel(updatedCategoryRow),
       backLog
     }
@@ -223,7 +218,6 @@ export async function listCategories(
     )
 
     return {
-      message: `Categories successfully listed`,
       categories: categoryRepository.buildCollection(categoryRows),
       all: request.all
     }
@@ -252,7 +246,6 @@ export async function queueCategories(
     }
 
     return {
-      message: `Categories successfully enqueued`,
       categories,
       limit: request.limit
     }
@@ -317,7 +310,6 @@ export async function businessCategory(
       backLog.push(categoryLogRepository.buildNotify(categoryLogRow))
 
       return {
-        message: `Category successfully processed`,
         category: categoryRepository.buildModel(updatedCategoryRow),
         subscription:
           subscriptionRow !== undefined
@@ -328,7 +320,6 @@ export async function businessCategory(
     }
 
     return {
-      message: `Category successfully processed`,
       category: categoryRepository.buildModel(categoryRow),
       subscription:
         subscriptionRow !== undefined

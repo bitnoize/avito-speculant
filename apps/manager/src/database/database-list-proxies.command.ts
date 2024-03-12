@@ -19,10 +19,9 @@ export default (config: Config, logger: Logger) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
-      const listedProxies = await proxyService.listProxies(db, {
-        all
-      })
-      logger.info(listedProxies)
+      const { proxies } = await proxyService.listProxies(db, { all })
+
+      logger.info({ proxies }, `Proxies successfully listed`)
 
       await databaseService.closeDatabase(db)
     }

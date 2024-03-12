@@ -25,19 +25,18 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const businessQueue = businessService.initQueue(queueConnection, logger)
 
-      const disabledProxy = await proxyService.disableProxy(db, {
+      const { proxy, backLog } = await proxyService.disableProxy(db, {
         proxyId,
         data: {
           message: `Proxy disabled via Manager`
         }
       })
-      logger.info(disabledProxy)
-
-      const { proxy, backLog } = disabledProxy
 
       await redisService.publishBackLog(pubSub, backLog)
 
       await businessService.addJob(businessQueue, 'proxy', proxy.id)
+
+      logger.info({ proxy, backLog }, `Proxy successfully disabled`)
 
       await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)

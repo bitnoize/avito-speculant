@@ -8,7 +8,6 @@ export interface BusinessSubscriptionRequest {
 }
 
 export interface BusinessSubscriptionResponse {
-  message: string
   subscription: Subscription
   backLog: Notify[]
 }

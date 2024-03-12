@@ -10,7 +10,14 @@ import {
   DEFAULT_REDIS_PORT,
   DEFAULT_REDIS_DATABASE
 } from '@avito-speculant/redis'
-import { Config } from './worker-proxycheck.js'
+import {
+  DEFAULT_PROXYCHECK_CONCURRENCY,
+  DEFAULT_PROXYCHECK_LIMITER_MAX,
+  DEFAULT_PROXYCHECK_LIMITER_DURATION,
+  DEFAULT_PROXYCHECK_TEST_URL,
+  DEFAULT_PROXYCHECK_TEST_TIMEOUT,
+  Config
+} from './worker-proxycheck.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
@@ -24,7 +31,9 @@ export const configSchema: JSONSchemaType<Config> = {
     'POSTGRES_DATABASE',
     'PROXYCHECK_CONCURRENCY',
     'PROXYCHECK_LIMITER_MAX',
-    'PROXYCHECK_LIMITER_DURATION'
+    'PROXYCHECK_LIMITER_DURATION',
+    'PROXYCHECK_TEST_URL',
+    'PROXYCHECK_TEST_TIMEOUT'
   ],
   properties: {
     LOG_LEVEL: {
@@ -73,15 +82,23 @@ export const configSchema: JSONSchemaType<Config> = {
     },
     PROXYCHECK_CONCURRENCY: {
       type: 'number',
-      default: 2
+      default: DEFAULT_PROXYCHECK_CONCURRENCY
     },
     PROXYCHECK_LIMITER_MAX: {
       type: 'number',
-      default: 60
+      default: DEFAULT_PROXYCHECK_LIMITER_MAX
     },
     PROXYCHECK_LIMITER_DURATION: {
       type: 'number',
-      default: 60_000
+      default: DEFAULT_PROXYCHECK_LIMITER_DURATION
+    },
+    PROXYCHECK_TEST_URL: {
+      type: 'string',
+      default: DEFAULT_PROXYCHECK_TEST_URL
+    },
+    PROXYCHECK_TEST_TIMEOUT: {
+      type: 'number',
+      default: DEFAULT_PROXYCHECK_TEST_TIMEOUT
     }
   }
 }

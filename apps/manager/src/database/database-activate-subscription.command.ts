@@ -25,20 +25,19 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const businessQueue = businessService.initQueue(queueConnection, logger)
 
-      const activatedSubscription = await subscriptionService.activateSubscription(db, {
+      const { subscription, user, backLog } = await subscriptionService.activateSubscription(db, {
         subscriptionId,
         data: {
-          message: `Activate Subscription and User via Manager`
+          message: `Activate Subscription via Manager`
         }
       })
-      logger.info(activatedSubscription)
-
-      const { subscription, user, backLog } = activatedSubscription
 
       await redisService.publishBackLog(pubSub, backLog)
 
       await businessService.addJob(businessQueue, 'subscription', subscription.id)
       await businessService.addJob(businessQueue, 'user', user.id)
+
+      logger.info({ subscription, user, backLog }, `Subscription successfully activated`)
 
       await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)

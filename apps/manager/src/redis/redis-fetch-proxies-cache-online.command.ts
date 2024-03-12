@@ -1,19 +1,20 @@
 import { command } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
-import { redisService, planCacheService } from '@avito-speculant/redis'
+import { redisService, proxyCacheService } from '@avito-speculant/redis'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-list-plans-cache',
-    description: 'Redis list plans cache',
+    name: 'database-fetch-proxies-cache-online',
+    description: 'Redis fetch proxies cache online',
     args: {},
     handler: async () => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const listedPlansCache = await planCacheService.listPlansCache(redis)
-      logger.info(listedPlansCache)
+      const { proxiesCache } = await proxyCacheService.fetchProxiesCacheOnline(redis)
+
+      logger.info({ proxiesCache }, `ProxiesCache successfully fetched`)
 
       await redisService.closeRedis(redis)
     }

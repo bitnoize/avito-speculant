@@ -2,8 +2,7 @@ import got, { Agents } from 'got'
 import { HttpsProxyAgent } from 'https-proxy-agent'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { databaseService, proxyService } from '@avito-speculant/database'
-import { redisService } from '@avito-speculant/redis'
+import { redisService, proxyCacheService } from '@avito-speculant/redis'
 import { ProxycheckProcessor } from '@avito-speculant/queue'
 import { Config } from './worker-proxycheck.js'
 import { configSchema } from './worker-proxycheck.schema.js'
@@ -14,48 +13,38 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
   const logger = loggerService.initLogger(loggerOptions)
 
-  const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
-  const db = databaseService.initDatabase(databaseConfig, logger)
-
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
-  const pubSub = redisService.initPubSub(redisOptions, logger)
 
-  const { proxyId, proxyUrl } = proxycheckJob.data
+  const { proxyCache } = await proxyCacheService.fetchProxyCache(redis, {
+    proxyId: proxycheckJob.data.proxyId
+  })
 
-  let result = await doRequest(proxyUrl, 'https://www.avito.ru', 10_000)
+  const isOnline = await proxycheckRequest(
+    proxyCache.proxyUrl,
+    config.PROXYCHECK_TEST_URL,
+    config.PROXYCHECK_TEST_TIMEOUT
+  )
 
-  if (result) {
-    const onlinedProxy = await proxyService.onlineProxy(db, {
-      proxyId,
-      data: {
-        proxycheckJobId: proxycheckJob.id
-      }
+  if (isOnline) {
+    await proxyCacheService.renewProxyCacheOnline(redis, {
+      proxyId: proxyCache.id
     })
-    logger.debug(onlinedProxy)
   } else {
-    const offlinedProxy = await proxyService.offlineProxy(db, {
-      proxyId,
-      data: {
-        proxycheckJobId: proxycheckJob.id
-      }
+    await proxyCacheService.renewProxyCacheOffline(redis, {
+      proxyId: proxyCache.id
     })
-    logger.debug(offlinedProxy)
   }
 
-  logger.info({ id: proxycheckJob.id, result }, `ProxycheckJob complete`)
+  logger.info(`ProxycheckJob complete`)
 
-  await redisService.closePubSub(pubSub)
   await redisService.closeRedis(redis)
-  await databaseService.closeDatabase(db)
-
-  return result
 }
 
-const doRequest = async (
+const proxycheckRequest = async (
   proxyUrl: string,
   checkUrl: string,
-  timeoutRequest: number
+  timeout: number
 ): Promise<boolean> => {
   try {
     const agent = new HttpsProxyAgent(proxyUrl)
@@ -64,7 +53,7 @@ const doRequest = async (
       followRedirect: false,
       throwHttpErrors: false,
       timeout: {
-        request: timeoutRequest
+        request: timeout
       },
       retry: {
         limit: 0
@@ -72,16 +61,7 @@ const doRequest = async (
       agent: agent as Agents,
     })
 
-    console.log(`done request`)
-
-    if (statusCode === 200) {
-      console.log(`proxy online`)
-
-      return true
-    }
-    
-    console.log(`proxy offline`)
-    return false
+    return statusCode === 200 ? true : false
   } catch (error) {
     return false
   }

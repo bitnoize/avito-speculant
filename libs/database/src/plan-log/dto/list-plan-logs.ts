@@ -6,7 +6,6 @@ export interface ListPlanLogsRequest {
 }
 
 export interface ListPlanLogsResponse {
-  message: string
   planLogs: PlanLog[]
   limit: number
 }

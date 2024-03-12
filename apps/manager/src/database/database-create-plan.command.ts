@@ -41,7 +41,7 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const businessQueue = businessService.initQueue(queueConnection, logger)
 
-      const createdPlan = await planService.createPlan(db, {
+      const { plan, backLog } = await planService.createPlan(db, {
         categoriesMax,
         priceRub,
         durationDays,
@@ -51,13 +51,12 @@ export default (config: Config, logger: Logger) => {
           message: `Plan created via Manager`
         }
       })
-      logger.info(createdPlan)
-
-      const { plan, backLog } = createdPlan
 
       await redisService.publishBackLog(pubSub, backLog)
 
       await businessService.addJob(businessQueue, 'plan', plan.id)
+
+      logger.info({ plan, backLog }, `Plan successfully created`)
 
       await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)

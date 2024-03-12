@@ -7,7 +7,6 @@ export interface ProxyLog {
   proxyId: number
   action: string
   isEnabled: boolean
-  isOnline: boolean
   data: ProxyLogData
   createdAt: number
 }

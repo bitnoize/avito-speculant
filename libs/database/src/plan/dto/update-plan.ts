@@ -13,7 +13,6 @@ export interface UpdatePlanRequest {
 }
 
 export interface UpdatePlanResponse {
-  message: string
   plan: Plan
   backLog: Notify[]
 }

@@ -5,6 +5,5 @@ export interface FetchPlanCacheRequest {
 }
 
 export interface FetchPlanCacheResponse {
-  message: string
   planCache: PlanCache
 }

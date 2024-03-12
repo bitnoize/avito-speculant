@@ -37,7 +37,6 @@ export async function authorizeUser(
       )
 
       return {
-        message: `User successfully authorized`,
         user: userRepository.buildModel(existsUserRow),
         subscription:
           subscriptionRow !== undefined
@@ -64,7 +63,6 @@ export async function authorizeUser(
     backLog.push(userLogRepository.buildNotify(userLogRow))
 
     return {
-      message: `User successfully created`,
       user: userRepository.buildModel(instertedUserRow),
       backLog
     }
@@ -87,7 +85,6 @@ export async function listUsers(
     )
 
     return {
-      message: `Users successfully listed`,
       users: userRepository.buildCollection(userRows),
       all: request.all
     }
@@ -116,7 +113,6 @@ export async function queueUsers(
     }
 
     return {
-      message: `Users successfully enqueued`,
       users,
       limit: request.limit
     }
@@ -164,7 +160,6 @@ export async function businessUser(
 
     if (!isChanged) {
       return {
-        message: `User not changed`,
         user: userRepository.buildModel(userRow),
         backLog
       }
@@ -191,7 +186,6 @@ export async function businessUser(
     backLog.push(userLogRepository.buildNotify(userLogRow))
 
     return {
-      message: `User successfully processed`,
       user: userRepository.buildModel(updatedUserRow),
       backLog
     }

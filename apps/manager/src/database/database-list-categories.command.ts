@@ -23,11 +23,12 @@ export default (config: Config, logger: Logger) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
-      const listedCategories = await categoryService.listCategories(db, {
+      const { categories } = await categoryService.listCategories(db, {
         userId,
         all
       })
-      logger.info(listedCategories)
+
+      logger.info({ categories }, `Categories successfully listed`)
 
       await databaseService.closeDatabase(db)
     }

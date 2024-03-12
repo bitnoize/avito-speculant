@@ -3,7 +3,3 @@ export interface DropCategoryCacheRequest {
   userId: number
   scraperJobId: string
 }
-
-export interface DropCategoryCacheResponse {
-  message: string
-}

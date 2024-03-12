@@ -5,7 +5,6 @@ export interface QueueUsersRequest {
 }
 
 export interface QueueUsersResponse {
-  message: string
   users: User[]
   limit: number
 }

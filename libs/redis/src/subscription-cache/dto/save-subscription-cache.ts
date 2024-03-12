@@ -8,7 +8,3 @@ export interface SaveSubscriptionCacheRequest {
   intervalSec: number
   analyticsOn: boolean
 }
-
-export interface SaveSubscriptionCacheResponse {
-  message: string
-}

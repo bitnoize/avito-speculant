@@ -2,14 +2,12 @@ import { Redis } from 'ioredis'
 import {
   FetchCategoryCacheRequest,
   FetchCategoryCacheResponse,
-  ListUserCategoriesCacheRequest,
-  ListUserCategoriesCacheResponse,
-  ListScraperCategoriesCacheRequest,
-  ListScraperCategoriesCacheResponse,
+  FetchUserCategoriesCacheRequest,
+  FetchUserCategoriesCacheResponse,
+  FetchScraperCategoriesCacheRequest,
+  FetchScraperCategoriesCacheResponse,
   SaveCategoryCacheRequest,
-  SaveCategoryCacheResponse,
   DropCategoryCacheRequest,
-  DropCategoryCacheResponse
 } from './dto/index.js'
 import * as categoryCacheRepository from './category-cache.repository.js'
 
@@ -23,39 +21,36 @@ export async function fetchCategoryCache(
   const categoryCache = await categoryCacheRepository.fetchModel(redis, request.categoryId)
 
   return {
-    message: `CategoryCache successfully fetched`,
     categoryCache
   }
 }
 
 /*
- * List User CategoryCache
+ * Fetch User CategoryCache
  */
-export async function listUserCategoriesCache(
+export async function fetchUserCategoriesCache(
   redis: Redis,
-  request: ListUserCategoriesCacheRequest
-): Promise<ListUserCategoriesCacheResponse> {
+  request: FetchUserCategoriesCacheRequest
+): Promise<FetchUserCategoriesCacheResponse> {
   const categoryIds = await categoryCacheRepository.fetchUserIndex(redis, request.userId)
   const categoriesCache = await categoryCacheRepository.fetchCollection(redis, categoryIds)
 
   return {
-    message: `CategoriesCache successfully listed`,
     categoriesCache
   }
 }
 
 /*
- * List Scraper CategoryCache
+ * Fetch Scraper CategoryCache
  */
-export async function listScraperCategoriesCache(
+export async function fetchScraperCategoriesCache(
   redis: Redis,
-  request: ListScraperCategoriesCacheRequest
-): Promise<ListScraperCategoriesCacheResponse> {
+  request: FetchScraperCategoriesCacheRequest
+): Promise<FetchScraperCategoriesCacheResponse> {
   const categoryIds = await categoryCacheRepository.fetchScraperIndex(redis, request.scraperJobId)
   const categoriesCache = await categoryCacheRepository.fetchCollection(redis, categoryIds)
 
   return {
-    message: `CategoriesCache successfully listed`,
     categoriesCache
   }
 }
@@ -66,7 +61,7 @@ export async function listScraperCategoriesCache(
 export async function saveCategoryCache(
   redis: Redis,
   request: SaveCategoryCacheRequest
-): Promise<SaveCategoryCacheResponse> {
+): Promise<void> {
   await categoryCacheRepository.saveModel(
     redis,
     request.categoryId,
@@ -74,10 +69,6 @@ export async function saveCategoryCache(
     request.scraperJobId,
     request.avitoUrl
   )
-
-  return {
-    message: `CategoryCache successfully saved`,
-  }
 }
 
 /*
@@ -86,15 +77,11 @@ export async function saveCategoryCache(
 export async function dropCategoryCache(
   redis: Redis,
   request: DropCategoryCacheRequest
-): Promise<DropCategoryCacheResponse> {
+): Promise<void> {
   await categoryCacheRepository.dropModel(
     redis,
     request.categoryId,
     request.userId,
     request.scraperJobId
   )
-
-  return {
-    message: `CategoryCache successfully dropped`,
-  }
 }

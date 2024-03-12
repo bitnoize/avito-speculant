@@ -8,7 +8,6 @@ export interface EnableDisableCategoryRequest {
 }
 
 export interface EnableDisableCategoryResponse {
-  message: string
   category: Category
   backLog: Notify[]
 }

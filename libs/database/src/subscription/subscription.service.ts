@@ -106,7 +106,6 @@ export async function createSubscription(
     backLog.push(subscriptionLogRepository.buildNotify(subscriptionLogRow))
 
     return {
-      message: `Subscription successfully created`,
       subscription: subscriptionRepository.buildModel(insertedSubscriptionRow),
       backLog
     }
@@ -179,7 +178,6 @@ export async function activateSubscription(
     backLog.push(userLogRepository.buildNotify(userLogRow))
 
     return {
-      message: `Subscription successfully activated`,
       user: userRepository.buildModel(updatedUserRow),
       subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
       backLog
@@ -208,7 +206,6 @@ export async function cancelSubscription(
 
     if (subscriptionRow.status === 'cancel') {
       return {
-        message: `Subscription allready canceled`,
         subscription: subscriptionRepository.buildModel(subscriptionRow),
         backLog
       }
@@ -247,7 +244,6 @@ export async function cancelSubscription(
     backLog.push(subscriptionLogRepository.buildNotify(subscriptionLogRow))
 
     return {
-      message: `Subscription successfully canceled`,
       subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
       backLog
     }
@@ -279,7 +275,6 @@ export async function listSubscriptions(
     )
 
     return {
-      message: `Subscriptions successfully listed`,
       subscriptions: subscriptionRepository.buildCollection(subscriptionRows),
       all: request.all
     }
@@ -311,7 +306,6 @@ export async function queueSubscriptions(
     }
 
     return {
-      message: `Subscriptions successfully enqueued`,
       subscriptions,
       limit: request.limit
     }
@@ -368,7 +362,6 @@ export async function businessSubscription(
 
     if (!isChanged) {
       return {
-        message: `Subscription not changed`,
         subscription: subscriptionRepository.buildModel(subscriptionRow),
         backLog
       }
@@ -391,7 +384,6 @@ export async function businessSubscription(
     backLog.push(subscriptionLogRepository.buildNotify(subscriptionLogRow))
 
     return {
-      message: `Subscription successfully processed`,
       subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
       backLog
     }

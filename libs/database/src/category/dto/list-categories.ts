@@ -6,7 +6,6 @@ export interface ListCategoriesRequest {
 }
 
 export interface ListCategoriesResponse {
-  message: string
   categories: Category[]
   all: boolean
 }

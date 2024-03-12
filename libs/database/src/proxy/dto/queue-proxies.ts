@@ -5,7 +5,6 @@ export interface QueueProxiesRequest {
 }
 
 export interface QueueProxiesResponse {
-  message: string
   proxies: Proxy[]
   limit: number
 }

@@ -3,7 +3,3 @@ export interface DropSubscriptionCacheRequest {
   userId: number
   planId: number
 }
-
-export interface DropSubscriptionCacheResponse {
-  message: string
-}

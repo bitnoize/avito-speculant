@@ -5,7 +5,6 @@ export interface QueueSubscriptionsRequest {
 }
 
 export interface QueueSubscriptionsResponse {
-  message: string
   subscriptions: Subscription[]
   limit: number
 }

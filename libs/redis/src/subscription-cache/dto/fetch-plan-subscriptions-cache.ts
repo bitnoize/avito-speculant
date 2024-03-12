@@ -1,10 +1,9 @@
 import { SubscriptionCache } from '../subscription-cache.js'
 
-export interface ListPlanSubscriptionsCacheRequest {
+export interface FetchPlanSubscriptionsCacheRequest {
   planId: number
 }
 
-export interface ListPlanSubscriptionsCacheResponse {
-  message: string
+export interface FetchPlanSubscriptionsCacheResponse {
   subscriptionsCache: SubscriptionCache[]
 }

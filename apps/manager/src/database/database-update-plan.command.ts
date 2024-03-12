@@ -52,7 +52,7 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const businessQueue = businessService.initQueue(queueConnection, logger)
 
-      const updatedPlan = await planService.updatePlan(db, {
+      const { plan, backLog } = await planService.updatePlan(db, {
         planId,
         categoriesMax,
         priceRub,
@@ -63,13 +63,12 @@ export default (config: Config, logger: Logger) => {
           message: `Plan updated via Manager`
         }
       })
-      logger.info(updatedPlan)
-
-      const { plan, backLog } = updatedPlan
 
       await redisService.publishBackLog(pubSub, backLog)
 
       await businessService.addJob(businessQueue, 'plan', plan.id)
+
+      logger.info({ plan, backLog }, `Plan successfully updated`)
 
       await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)

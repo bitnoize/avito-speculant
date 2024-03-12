@@ -1,5 +1,10 @@
 import { Redis } from 'ioredis'
-import { ProxyCache, proxyCacheKey, proxiesCacheKey } from './proxy-cache.js'
+import {
+  ProxyCache,
+  proxyCacheKey,
+  proxiesCacheKey,
+  proxiesCacheOnlineKey
+} from './proxy-cache.js'
 import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import { parseNumber, parseManyNumbers, parseString } from '../redis.utils.js'
 
@@ -34,12 +39,36 @@ export const fetchProxiesCacheIndexLua = `
 return redis.call('SMEMBERS', KEYS[1])
 `
 
-export async function fetchIndex(redis: Redis, isOnline: boolean): Promise<number[]> {
+export async function fetchIndex(redis: Redis): Promise<number[]> {
   const results = await redis.fetchProxiesCacheIndex(
-    proxiesCacheKey(isOnline) // KEYS[1]
+    proxiesCacheKey() // KEYS[1]
   )
 
   return parseManyNumbers(results)
+}
+
+export async function fetchOnlineIndex(redis: Redis): Promise<number[]> {
+  const results = await redis.fetchProxiesCacheIndex(
+    proxiesCacheOnlineKey() // KEYS[1]
+  )
+
+  return parseManyNumbers(results)
+}
+
+export const randomProxyCacheIndexLua = `
+return redis.call('SRANDMEMBER', KEYS[1])
+`
+
+export async function randomOnlineIndex(redis: Redis): Promise<number | undefined> {
+  const result = await redis.randomProxyCacheIndex(
+    proxiesCacheOnlineKey() // KEYS[1]
+  )
+
+  if (result == null) {
+    return undefined
+  }
+
+  return parseNumber(result)
 }
 
 export async function fetchCollection(redis: Redis, proxyIds: number[]): Promise<ProxyCache[]> {
@@ -61,16 +90,14 @@ export async function fetchCollection(redis: Redis, proxyIds: number[]): Promise
 }
 
 export const saveProxyCacheLua = `
-redis.call('HSET', KEYS[1], 'id', ARGV[1], 'proxy_url', ARGV[2], 'is_online', ARGV[3])
+redis.call('HSET', KEYS[1], 'id', ARGV[1], 'proxy_url', ARGV[2])
+redis.call('HSETNX', KEYS[1], 'is_online', 0)
 redis.call('HSETNX', KEYS[1], 'total_count', 0)
 redis.call('HSETNX', KEYS[1], 'success_count', 0)
-redis.call('PEXPIRE', KEYS[1], ARGV[4])
+redis.call('PEXPIRE', KEYS[1], ARGV[3])
 
 redis.call('SADD', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[4])
-
-redis.call('SREM', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[4])
+redis.call('PEXPIRE', KEYS[2], ARGV[3])
 
 return redis.status_reply('OK')
 `
@@ -79,16 +106,13 @@ export async function saveModel(
   redis: Redis,
   proxyId: number,
   proxyUrl: string,
-  isOnline: boolean
 ): Promise<void> {
   await redis.saveProxyCache(
     proxyCacheKey(proxyId), // KEYS[1]
-    proxiesCacheKey(isOnline), // KEYS[2]
-    proxiesCacheKey(!isOnline), // KEYS[3]
+    proxiesCacheKey(), // KEYS[2]
     proxyId, // ARGV[1]
     proxyUrl, // ARGV[2]
-    isOnline ? 1 : 0, // ARGV[3]
-    REDIS_CACHE_TIMEOUT // ARGV[4]
+    REDIS_CACHE_TIMEOUT // ARGV[3]
   )
 }
 
@@ -107,8 +131,63 @@ return redis.status_reply('OK')
 export async function dropModel(redis: Redis, proxyId: number): Promise<void> {
   await redis.dropProxyCache(
     proxyCacheKey(proxyId), // KEYS[1]
-    proxiesCacheKey(true), // KEYS[2]
-    proxiesCacheKey(false), // KEYS[3]
+    proxiesCacheKey(), // KEYS[2]
+    proxiesCacheOnlineKey(), // KEYS[3]
+    proxyId, // ARGV[1]
+    REDIS_CACHE_TIMEOUT // ARGV[2]
+  )
+}
+
+export const renewProxyCacheOnlineLua = `
+if redis.call('EXISTS', KEYS[1]) == 0 then
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
+end
+
+redis.call('HSET', KEYS[1], 'is_online', 1)
+redis.call('HINCRBY', KEYS[1], 'total_count', 1)
+redis.call('HINCRBY', KEYS[1], 'success_count', 1)
+redis.call('PEXPIRE', KEYS[1], ARGV[2])
+
+redis.call('SADD', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[2])
+
+return redis.status_reply('OK')
+`
+
+export async function renewOnline(
+  redis: Redis,
+  proxyId: number
+): Promise<void> {
+  await redis.renewProxyCacheOnline(
+    proxyCacheKey(proxyId), // KEYS[1]
+    proxiesCacheOnlineKey(), // KEYS[2]
+    proxyId, // ARGV[1]
+    REDIS_CACHE_TIMEOUT // ARGV[2]
+  )
+}
+
+export const renewProxyCacheOfflineLua = `
+if redis.call('EXISTS', KEYS[1]) == 0 then
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
+end
+
+redis.call('HSET', KEYS[1], 'is_online', 0)
+redis.call('HINCRBY', KEYS[1], 'total_count', 1)
+redis.call('PEXPIRE', KEYS[1], ARGV[2])
+
+redis.call('SREM', KEYS[2], ARGV[1])
+redis.call('PEXPIRE', KEYS[2], ARGV[2])
+
+return redis.status_reply('OK')
+`
+
+export async function renewOffline(
+  redis: Redis,
+  proxyId: number
+): Promise<void> {
+  await redis.renewProxyCacheOffline(
+    proxyCacheKey(proxyId), // KEYS[1]
+    proxiesCacheOnlineKey(), // KEYS[2]
     proxyId, // ARGV[1]
     REDIS_CACHE_TIMEOUT // ARGV[2]
   )

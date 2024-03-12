@@ -21,11 +21,12 @@ export default (config: Config, logger: Logger) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
-      const listedSubscriptionLogs = await subscriptionLogService.listSubscriptionLogs(db, {
+      const { subscriptionLogs } = await subscriptionLogService.listSubscriptionLogs(db, {
         subscriptionId,
         limit
       })
-      logger.info(listedSubscriptionLogs)
+
+      logger.info({ subscriptionLogs }, `SubscriptionLogs successfully listed`)
 
       await databaseService.closeDatabase(db)
     }

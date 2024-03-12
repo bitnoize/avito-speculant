@@ -9,7 +9,6 @@ export interface AuthorizeUserRequest {
 }
 
 export interface AuthorizeUserResponse {
-  message: string
   user: User
   subscription?: Subscription
   backLog: Notify[]

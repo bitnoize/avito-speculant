@@ -5,6 +5,5 @@ export interface FindScraperCacheRequest {
 }
 
 export interface FindScraperCacheResponse {
-  message: string
   scraperCache?: ScraperCache
 }

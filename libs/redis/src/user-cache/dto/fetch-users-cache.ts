@@ -1,6 +1,5 @@
 import { UserCache } from '../user-cache.js'
 
-export interface ListUsersCacheResponse {
-  message: string
+export interface FetchUsersCacheResponse {
   usersCache: UserCache[]
 }

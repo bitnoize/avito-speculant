@@ -1,3 +1,9 @@
+export const DEFAULT_PROXYCHECK_CONCURRENCY = 2
+export const DEFAULT_PROXYCHECK_LIMITER_MAX = 60
+export const DEFAULT_PROXYCHECK_LIMITER_DURATION = 60_000
+export const DEFAULT_PROXYCHECK_TEST_URL = 'https://www.google.com'
+export const DEFAULT_PROXYCHECK_TEST_TIMEOUT = 10_000
+
 export interface Config {
   LOG_LEVEL: string
   REDIS_HOST: string
@@ -13,4 +19,6 @@ export interface Config {
   PROXYCHECK_CONCURRENCY: number
   PROXYCHECK_LIMITER_MAX: number
   PROXYCHECK_LIMITER_DURATION: number
+  PROXYCHECK_TEST_URL: string
+  PROXYCHECK_TEST_TIMEOUT: number
 }

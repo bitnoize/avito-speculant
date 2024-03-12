@@ -4,12 +4,10 @@ import {
   FetchSubscriptionCacheResponse,
   FetchUserSubscriptionCacheRequest,
   FetchUserSubscriptionCacheResponse,
-  ListPlanSubscriptionsCacheRequest,
-  ListPlanSubscriptionsCacheResponse,
+  FetchPlanSubscriptionsCacheRequest,
+  FetchPlanSubscriptionsCacheResponse,
   SaveSubscriptionCacheRequest,
-  SaveSubscriptionCacheResponse,
   DropSubscriptionCacheRequest,
-  DropSubscriptionCacheResponse
 } from './dto/index.js'
 import * as subscriptionCacheRepository from './subscription-cache.repository.js'
 
@@ -26,7 +24,6 @@ export async function fetchSubscriptionCache(
   )
 
   return {
-    message: `SubscriptionCache successfully fetched`,
     subscriptionCache
   }
 }
@@ -42,18 +39,17 @@ export async function fetchUserSubscriptionCache(
   const subscriptionCache = await subscriptionCacheRepository.fetchModel(redis, subscriptionId)
 
   return {
-    message: `SubscriptionCache successfully fetched`,
     subscriptionCache
   }
 }
 
 /*
- * List Plan SubscriptionsCache
+ * Fetch Plan SubscriptionsCache
  */
-export async function listPlanSubscriptionsCache(
+export async function fetchPlanSubscriptionsCache(
   redis: Redis,
-  request: ListPlanSubscriptionsCacheRequest
-): Promise<ListPlanSubscriptionsCacheResponse> {
+  request: FetchPlanSubscriptionsCacheRequest
+): Promise<FetchPlanSubscriptionsCacheResponse> {
   const subscriptionIds = await subscriptionCacheRepository.fetchPlanIndex(redis, request.planId)
   const subscriptionsCache = await subscriptionCacheRepository.fetchCollection(
     redis,
@@ -61,7 +57,6 @@ export async function listPlanSubscriptionsCache(
   )
 
   return {
-    message: `PlanSubscriptionsCache successfully listed`,
     subscriptionsCache
   }
 }
@@ -72,7 +67,7 @@ export async function listPlanSubscriptionsCache(
 export async function saveSubscriptionCache(
   redis: Redis,
   request: SaveSubscriptionCacheRequest
-): Promise<SaveSubscriptionCacheResponse> {
+): Promise<void> {
   await subscriptionCacheRepository.saveModel(
     redis,
     request.subscriptionId,
@@ -84,10 +79,6 @@ export async function saveSubscriptionCache(
     request.intervalSec,
     request.analyticsOn
   )
-
-  return {
-    message: `SubscriptionCache successfully saved`,
-  }
 }
 
 /*
@@ -96,15 +87,11 @@ export async function saveSubscriptionCache(
 export async function dropSubscriptionCache(
   redis: Redis,
   request: DropSubscriptionCacheRequest
-): Promise<DropSubscriptionCacheResponse> {
+): Promise<void> {
   await subscriptionCacheRepository.dropModel(
     redis,
     request.subscriptionId,
     request.userId,
     request.planId
   )
-
-  return {
-    message: `SubscriptionCache successfully dropped`,
-  }
 }

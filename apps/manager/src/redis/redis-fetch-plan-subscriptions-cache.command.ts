@@ -5,8 +5,8 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-list-plan-subscriptions-cache',
-    description: 'Redis list plan subscriptions cache',
+    name: 'database-fetch-plan-subscriptions-cache',
+    description: 'Redis fetch plan subscriptions cache',
     args: {
       planId: positional({
         type: number,
@@ -17,11 +17,12 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const listedSubscriptionsCache =
-        await subscriptionCacheService.listPlanSubscriptionsCache(redis, {
+      const { subscriptionsCache } =
+        await subscriptionCacheService.fetchPlanSubscriptionsCache(redis, {
           planId
         })
-      logger.info(listedSubscriptionsCache)
+
+      logger.info({ subscriptionsCache, planId }, `PlanSubscriptionsCache successfully fetched`)
 
       await redisService.closeRedis(redis)
     }

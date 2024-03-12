@@ -41,7 +41,7 @@ services:
 
   worker-proxycheck:
     deploy:
-      replicas: 0
+      replicas: 2
       resources:
         limits:
           cpus: "0.2"

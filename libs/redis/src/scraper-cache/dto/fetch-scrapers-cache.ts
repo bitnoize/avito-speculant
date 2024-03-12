@@ -1,6 +1,5 @@
 import { ScraperCache } from '../scraper-cache.js'
 
-export interface ListScrapersCacheResponse {
-  message: string
+export interface FetchScrapersCacheResponse {
   scrapersCache: ScraperCache[]
 }

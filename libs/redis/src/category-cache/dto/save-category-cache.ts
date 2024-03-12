@@ -4,7 +4,3 @@ export interface SaveCategoryCacheRequest {
   scraperJobId: string
   avitoUrl: string
 }
-
-export interface SaveCategoryCacheResponse {
-  message: string
-}

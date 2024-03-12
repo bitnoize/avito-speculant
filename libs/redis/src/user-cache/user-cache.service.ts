@@ -2,11 +2,9 @@ import { Redis } from 'ioredis'
 import {
   FetchUserCacheRequest,
   FetchUserCacheResponse,
-  ListUsersCacheResponse,
+  FetchUsersCacheResponse,
   SaveUserCacheRequest,
-  SaveUserCacheResponse,
   DropUserCacheRequest,
-  DropUserCacheResponse
 } from './dto/index.js'
 import * as userCacheRepository from './user-cache.repository.js'
 
@@ -20,20 +18,18 @@ export async function fetchUserCache(
   const userCache = await userCacheRepository.fetchModel(redis, request.userId)
 
   return {
-    message: `UserCache successfully fetched`,
     userCache
   }
 }
 
 /*
- * List UserCache
+ * Fetch UserCache
  */
-export async function listUsersCache(redis: Redis): Promise<ListUsersCacheResponse> {
+export async function fetchUsersCache(redis: Redis): Promise<FetchUsersCacheResponse> {
   const userIds = await userCacheRepository.fetchIndex(redis)
   const usersCache = await userCacheRepository.fetchCollection(redis, userIds)
 
   return {
-    message: `UsersCache successfully listed`,
     usersCache
   }
 }
@@ -44,12 +40,8 @@ export async function listUsersCache(redis: Redis): Promise<ListUsersCacheRespon
 export async function saveUserCache(
   redis: Redis,
   request: SaveUserCacheRequest
-): Promise<SaveUserCacheResponse> {
+): Promise<void> {
   await userCacheRepository.saveModel(redis, request.userId, request.tgFromId)
-
-  return {
-    message: `UserCache successfully saved`,
-  }
 }
 
 /*
@@ -58,10 +50,6 @@ export async function saveUserCache(
 export async function dropUserCache(
   redis: Redis,
   request: DropUserCacheRequest
-): Promise<DropUserCacheResponse> {
+): Promise<void> {
   await userCacheRepository.dropModel(redis, request.userId)
-
-  return {
-    message: `UserCache successfully dropped`,
-  }
 }

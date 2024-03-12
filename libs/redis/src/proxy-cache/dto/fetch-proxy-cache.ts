@@ -5,6 +5,5 @@ export interface FetchProxyCacheRequest {
 }
 
 export interface FetchProxyCacheResponse {
-  message: string
   proxyCache: ProxyCache
 }

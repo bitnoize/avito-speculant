@@ -29,20 +29,19 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const businessQueue = businessService.initQueue(queueConnection, logger)
 
-      const createdCategory = await categoryService.createCategory(db, {
+      const { category, backLog } = await categoryService.createCategory(db, {
         userId,
         avitoUrl,
         data: {
           message: `Category created via Manager`
         }
       })
-      logger.info(createdCategory)
-
-      const { category, backLog } = createdCategory
 
       await redisService.publishBackLog(pubSub, backLog)
 
       await businessService.addJob(businessQueue, 'category', category.id)
+
+      logger.info({ category, backLog }, `Category successfully created`)
 
       await businessService.closeQueue(businessQueue)
       await redisService.closePubSub(pubSub)
