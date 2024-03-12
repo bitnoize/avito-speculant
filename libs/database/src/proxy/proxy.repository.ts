@@ -27,6 +27,18 @@ export async function selectRowByIdForUpdate(
     .executeTakeFirst()
 }
 
+export async function selectRowByProxyUrlForShare(
+  trx: TransactionDatabase,
+  proxy_url: string
+): Promise<ProxyRow | undefined> {
+  return await trx
+    .selectFrom('proxy')
+    .selectAll()
+    .where('proxy_url', '=', proxy_url)
+    .forShare()
+    .executeTakeFirst()
+}
+
 export async function insertRow(trx: TransactionDatabase, proxy_url: string): Promise<ProxyRow> {
   return await trx
     .insertInto('proxy')

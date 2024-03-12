@@ -10,7 +10,19 @@ import {
   DEFAULT_REDIS_PORT,
   DEFAULT_REDIS_DATABASE
 } from '@avito-speculant/redis'
-import { Config } from './worker-heartbeat.js'
+import {
+  DEFAULT_HEARTBEAT_CONCURRENCY,
+  DEFAULT_HEARTBEAT_LIMITER_MAX,
+  DEFAULT_HEARTBEAT_LIMITER_DURATION
+} from '@avito-speculant/queue'
+import {
+  DEFAULT_HEARTBEAT_QUEUE_USERS_LIMIT,
+  DEFAULT_HEARTBEAT_QUEUE_PLANS_LIMIT,
+  DEFAULT_HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT,
+  DEFAULT_HEARTBEAT_QUEUE_CATEGORIES_LIMIT,
+  DEFAULT_HEARTBEAT_QUEUE_PROXIES_LIMIT,
+  Config
+} from './worker-heartbeat.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
@@ -36,26 +48,6 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'string',
       default: DEFAULT_LOG_LEVEL
     },
-    REDIS_HOST: {
-      type: 'string',
-      default: DEFAULT_REDIS_HOST
-    },
-    REDIS_PORT: {
-      type: 'number',
-      default: DEFAULT_REDIS_PORT
-    },
-    REDIS_DATABASE: {
-      type: 'number',
-      default: DEFAULT_REDIS_DATABASE
-    },
-    REDIS_USERNAME: {
-      type: 'string',
-      nullable: true
-    },
-    REDIS_PASSWORD: {
-      type: 'string',
-      nullable: true
-    },
     POSTGRES_HOST: {
       type: 'string',
       default: DEFAULT_POSTGRES_HOST
@@ -76,37 +68,57 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'string',
       nullable: true
     },
+    REDIS_HOST: {
+      type: 'string',
+      default: DEFAULT_REDIS_HOST
+    },
+    REDIS_PORT: {
+      type: 'number',
+      default: DEFAULT_REDIS_PORT
+    },
+    REDIS_DATABASE: {
+      type: 'number',
+      default: DEFAULT_REDIS_DATABASE
+    },
+    REDIS_USERNAME: {
+      type: 'string',
+      nullable: true
+    },
+    REDIS_PASSWORD: {
+      type: 'string',
+      nullable: true
+    },
     HEARTBEAT_CONCURRENCY: {
       type: 'number',
-      default: 1
+      default: DEFAULT_HEARTBEAT_CONCURRENCY
     },
     HEARTBEAT_LIMITER_MAX: {
       type: 'number',
-      default: 10
+      default: DEFAULT_HEARTBEAT_LIMITER_MAX
     },
     HEARTBEAT_LIMITER_DURATION: {
       type: 'number',
-      default: 60_000
+      default: DEFAULT_HEARTBEAT_LIMITER_DURATION
     },
     HEARTBEAT_QUEUE_USERS_LIMIT: {
       type: 'number',
-      default: 10
+      default: DEFAULT_HEARTBEAT_QUEUE_USERS_LIMIT
     },
     HEARTBEAT_QUEUE_PLANS_LIMIT: {
       type: 'number',
-      default: 1
+      default: DEFAULT_HEARTBEAT_QUEUE_PLANS_LIMIT
     },
     HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT: {
       type: 'number',
-      default: 10
+      default: DEFAULT_HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT
     },
     HEARTBEAT_QUEUE_CATEGORIES_LIMIT: {
       type: 'number',
-      default: 10
+      default: DEFAULT_HEARTBEAT_QUEUE_CATEGORIES_LIMIT
     },
     HEARTBEAT_QUEUE_PROXIES_LIMIT: {
       type: 'number',
-      default: 10
+      default: DEFAULT_HEARTBEAT_QUEUE_PROXIES_LIMIT
     }
   }
 }

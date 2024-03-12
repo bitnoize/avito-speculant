@@ -1,19 +1,11 @@
-export const DEFAULT_PROXYCHECK_CONCURRENCY = 2
-export const DEFAULT_PROXYCHECK_LIMITER_MAX = 60
-export const DEFAULT_PROXYCHECK_LIMITER_DURATION = 60_000
+import { LoggerConfig } from '@avito-speculant/logger'
+import { RedisConfig } from '@avito-speculant/redis'
+import { ProxycheckConfig } from '@avito-speculant/queue'
+
 export const DEFAULT_PROXYCHECK_CHECK_URL = 'https://www.google.com'
 export const DEFAULT_PROXYCHECK_CHECK_TIMEOUT = 10_000
 
-export interface Config {
-  LOG_LEVEL: string
-  REDIS_HOST: string
-  REDIS_PORT: number
-  REDIS_DATABASE: number
-  REDIS_USERNAME?: string
-  REDIS_PASSWORD?: string
-  PROXYCHECK_CONCURRENCY: number
-  PROXYCHECK_LIMITER_MAX: number
-  PROXYCHECK_LIMITER_DURATION: number
+export type Config = LoggerConfig & RedisConfig & ProxycheckConfig & {
   PROXYCHECK_CHECK_URL: string
   PROXYCHECK_CHECK_TIMEOUT: number
 }

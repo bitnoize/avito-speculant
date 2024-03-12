@@ -6,6 +6,7 @@ export class ProxyNotFoundError<T> extends HighDatabaseError<T> {
   }
 }
 
+/*
 export class ProxyIsEnabledError<T> extends HighDatabaseError<T> {
   constructor(request: T, statusCode = 403, message = `Proxy is enabled`) {
     super(request, statusCode, message)
@@ -14,6 +15,13 @@ export class ProxyIsEnabledError<T> extends HighDatabaseError<T> {
 
 export class ProxyIsDisabledError<T> extends HighDatabaseError<T> {
   constructor(request: T, statusCode = 403, message = `Proxy is disabled`) {
+    super(request, statusCode, message)
+  }
+}
+*/
+
+export class ProxyAllreadyExistsError<T> extends HighDatabaseError<T> {
+  constructor(request: T, statusCode = 403, message = `Proxy allready exists`) {
     super(request, statusCode, message)
   }
 }

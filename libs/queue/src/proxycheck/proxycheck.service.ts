@@ -4,7 +4,6 @@ import {
   PROXYCHECK_QUEUE_NAME,
   ProxycheckConfig,
   ProxycheckData,
-  ProxycheckResult,
   ProxycheckQueue,
   ProxycheckJob,
   ProxycheckWorker,
@@ -15,7 +14,7 @@ import {
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): ProxycheckQueue {
-  const queue = new Queue<ProxycheckData, ProxycheckResult>(PROXYCHECK_QUEUE_NAME, {
+  const queue = new Queue<ProxycheckData>(PROXYCHECK_QUEUE_NAME, {
     connection
   })
 
@@ -71,7 +70,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): ProxycheckWorker {
-  const worker = new Worker<ProxycheckData, ProxycheckResult>(PROXYCHECK_QUEUE_NAME, processor, {
+  const worker = new Worker<ProxycheckData>(PROXYCHECK_QUEUE_NAME, processor, {
     connection,
     concurrency,
     limiter,

@@ -1,8 +1,8 @@
 {
-  "name": "@avito-speculant/worker-scraper",
+  "name": "@avito-speculant/worker-sendreport",
   "type": "module",
-  "version": "0.0.3",
-  "description": "Avito-Speculant WorkerScraper application",
+  "version": "0.0.1",
+  "description": "Avito-Speculant WorkerSendreport application",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,7 +20,6 @@
     "@avito-speculant/logger": "*",
     "@avito-speculant/queue": "*",
     "@avito-speculant/redis": "*",
-    "cheerio": "^1.0.0-rc.12",
-    "got-scraping": "^4.0.4"
+    "grammy": "^1.20.3"
   }
 }

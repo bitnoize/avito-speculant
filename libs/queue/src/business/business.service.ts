@@ -4,7 +4,6 @@ import {
   BUSINESS_QUEUE_NAME,
   BusinessConfig,
   BusinessData,
-  BusinessResult,
   BusinessQueue,
   BusinessJob,
   BusinessWorker,
@@ -15,7 +14,7 @@ import {
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): BusinessQueue {
-  const queue = new Queue<BusinessData, BusinessResult>(BUSINESS_QUEUE_NAME, {
+  const queue = new Queue<BusinessData>(BUSINESS_QUEUE_NAME, {
     connection
   })
 
@@ -78,7 +77,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): BusinessWorker {
-  const worker = new Worker<BusinessData, BusinessResult>(BUSINESS_QUEUE_NAME, processor, {
+  const worker = new Worker<BusinessData>(BUSINESS_QUEUE_NAME, processor, {
     connection,
     concurrency,
     limiter,

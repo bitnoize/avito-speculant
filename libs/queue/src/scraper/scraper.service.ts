@@ -4,7 +4,6 @@ import {
   SCRAPER_QUEUE_NAME,
   ScraperConfig,
   ScraperData,
-  ScraperResult,
   ScraperQueue,
   ScraperJob,
   ScraperWorker,
@@ -15,7 +14,7 @@ import {
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): ScraperQueue {
-  const queue = new Queue<ScraperData, ScraperResult>(SCRAPER_QUEUE_NAME, {
+  const queue = new Queue<ScraperData>(SCRAPER_QUEUE_NAME, {
     connection
   })
 
@@ -35,12 +34,18 @@ export async function addJob(
   every: number,
   jobId: string
 ): Promise<ScraperJob> {
-  const job = await queue.add(name, undefined, {
-    jobId,
-    repeat: {
-      every
+  const job = await queue.add(
+    name,
+    {
+      scraperJobId: jobId
+    },
+    {
+      jobId,
+      repeat: {
+        every
+      }
     }
-  })
+  )
 
   return job
 }
@@ -79,7 +84,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): ScraperWorker {
-  const worker = new Worker<ScraperData, ScraperResult>(SCRAPER_QUEUE_NAME, processor, {
+  const worker = new Worker<ScraperData>(SCRAPER_QUEUE_NAME, processor, {
     connection,
     concurrency,
     limiter,

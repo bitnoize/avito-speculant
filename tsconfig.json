@@ -11,8 +11,8 @@
     { "path": "apps/bot" },
     { "path": "apps/worker-heartbeat" },
     { "path": "apps/worker-business" },
-    { "path": "apps/worker-scraper" },
     { "path": "apps/worker-proxycheck" },
-    { "path": "apps/worker-report" }
+    { "path": "apps/worker-scraper" },
+    { "path": "apps/worker-sendreport" }
   ]
 }

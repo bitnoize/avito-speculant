@@ -2,17 +2,21 @@ import { Queue, Job, Worker, Processor } from 'bullmq'
 
 export const SCRAPER_QUEUE_NAME = `scraper`
 
+export const DEFAULT_SCRAPER_CONCURRENCY = 10
+export const DEFAULT_SCRAPER_LIMITER_MAX = 10
+export const DEFAULT_SCRAPER_LIMITER_DURATION = 1_000
+
 export type ScraperConfig = {
   SCRAPER_CONCURRENCY: number
   SCRAPER_LIMITER_MAX: number
   SCRAPER_LIMITER_DURATION: number
 }
 
-export type ScraperData = void
+export type ScraperData = {
+  scraperJobId: string
+}
 
-export type ScraperResult = void
-
-export type ScraperQueue = Queue<ScraperData, ScraperResult>
-export type ScraperJob = Job<ScraperData, ScraperResult>
-export type ScraperWorker = Worker<ScraperData, ScraperResult>
-export type ScraperProcessor = Processor<ScraperData, ScraperResult>
+export type ScraperQueue = Queue<ScraperData, void>
+export type ScraperJob = Job<ScraperData, void>
+export type ScraperWorker = Worker<ScraperData, void>
+export type ScraperProcessor = Processor<ScraperData, void>

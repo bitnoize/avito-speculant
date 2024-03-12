@@ -4,7 +4,6 @@ import {
   HEARTBEAT_QUEUE_NAME,
   HeartbeatConfig,
   HeartbeatData,
-  HeartbeatResult,
   HeartbeatQueue,
   HeartbeatJob,
   HeartbeatWorker,
@@ -15,7 +14,7 @@ import {
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): HeartbeatQueue {
-  const queue = new Queue<HeartbeatData, HeartbeatResult>(HEARTBEAT_QUEUE_NAME, {
+  const queue = new Queue<HeartbeatData>(HEARTBEAT_QUEUE_NAME, {
     connection
   })
 
@@ -24,13 +23,6 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Heartb
   })
 
   return queue
-}
-
-/**
- * Close Queue
- */
-export async function closeQueue(queue: HeartbeatQueue): Promise<void> {
-  await queue.close()
 }
 
 /**
@@ -52,6 +44,13 @@ export async function addJob(
       }
     }
   )
+}
+
+/**
+ * Close Queue
+ */
+export async function closeQueue(queue: HeartbeatQueue): Promise<void> {
+  await queue.close()
 }
 
 /**
@@ -81,7 +80,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): HeartbeatWorker {
-  const worker = new Worker<HeartbeatData, HeartbeatResult>(HEARTBEAT_QUEUE_NAME, processor, {
+  const worker = new Worker<HeartbeatData>(HEARTBEAT_QUEUE_NAME, processor, {
     connection,
     concurrency,
     limiter,

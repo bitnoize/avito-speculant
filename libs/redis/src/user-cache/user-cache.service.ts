@@ -17,9 +17,7 @@ export async function fetchUserCache(
 ): Promise<FetchUserCacheResponse> {
   const userCache = await userCacheRepository.fetchModel(redis, request.userId)
 
-  return {
-    userCache
-  }
+  return { userCache }
 }
 
 /*
@@ -29,9 +27,7 @@ export async function fetchUsersCache(redis: Redis): Promise<FetchUsersCacheResp
   const userIds = await userCacheRepository.fetchIndex(redis)
   const usersCache = await userCacheRepository.fetchCollection(redis, userIds)
 
-  return {
-    usersCache
-  }
+  return { usersCache }
 }
 
 /*

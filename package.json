@@ -15,9 +15,9 @@
     "apps/bot",
     "apps/worker-heartbeat",
     "apps/worker-business",
-    "apps/worker-scraper",
     "apps/worker-proxycheck",
-    "apps/worker-report"
+    "apps/worker-scraper",
+    "apps/worker-sendreport"
   ],
   "engines": {
     "npm": ">=9.8.0",

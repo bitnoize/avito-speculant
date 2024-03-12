@@ -2,6 +2,10 @@ import { Queue, Job, Worker, Processor } from 'bullmq'
 
 export const HEARTBEAT_QUEUE_NAME = `heartbeat`
 
+export const DEFAULT_HEARTBEAT_CONCURRENCY = 1
+export const DEFAULT_HEARTBEAT_LIMITER_MAX = 1
+export const DEFAULT_HEARTBEAT_LIMITER_DURATION = 1_000
+
 export type HeartbeatConfig = {
   HEARTBEAT_CONCURRENCY: number
   HEARTBEAT_LIMITER_MAX: number
@@ -24,9 +28,7 @@ export type HeartbeatData = {
   step: HeartbeatStep
 }
 
-export type HeartbeatResult = void
-
-export type HeartbeatQueue = Queue<HeartbeatData, HeartbeatResult>
-export type HeartbeatJob = Job<HeartbeatData, HeartbeatResult>
-export type HeartbeatWorker = Worker<HeartbeatData, HeartbeatResult>
-export type HeartbeatProcessor = Processor<HeartbeatData, HeartbeatResult>
+export type HeartbeatQueue = Queue<HeartbeatData, void>
+export type HeartbeatJob = Job<HeartbeatData, void>
+export type HeartbeatWorker = Worker<HeartbeatData, void>
+export type HeartbeatProcessor = Processor<HeartbeatData, void>

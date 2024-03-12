@@ -47,6 +47,14 @@ services:
           cpus: "0.2"
           memory: 256Mb
 
+  worker-sendreport:
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: 256Mb
+
   connect-postgres:
     command: "TCP4-LISTEN:5432,reuseaddr,fork UNIX-CLIENT:/tmp/sandbox/krusty-postgres.sock"
     volumes:

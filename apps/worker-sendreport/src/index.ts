@@ -1,9 +1,9 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { queueService, heartbeatService } from '@avito-speculant/queue'
-import { Config } from './worker-heartbeat.js'
-import { configSchema } from './worker-heartbeat.schema.js'
-import heartbeatProcessor from './worker-heartbeat.processor.js'
+import { queueService, sendreportService } from '@avito-speculant/queue'
+import { Config } from './worker-sendreport.js'
+import { configSchema } from './worker-sendreport.schema.js'
+import sendreportProcessor from './worker-sendreport.processor.js'
 
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
@@ -12,18 +12,18 @@ async function bootstrap(): Promise<void> {
   const logger = loggerService.initLogger(loggerOptions)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
-  const concurrency = heartbeatService.getWorkerConcurrency<Config>(config)
-  const limiter = heartbeatService.getWorkerLimiter<Config>(config)
+  const concurrency = sendreportService.getWorkerConcurrency<Config>(config)
+  const limiter = sendreportService.getWorkerLimiter<Config>(config)
 
-  const heartbeatWorker = heartbeatService.initWorker(
-    heartbeatProcessor,
+  const sendreportWorker = sendreportService.initWorker(
+    sendreportProcessor,
     queueConnection,
     concurrency,
     limiter,
     logger
   )
 
-  await heartbeatService.runWorker(heartbeatWorker)
+  await sendreportWorker.run()
 }
 
 bootstrap().catch((error) => {

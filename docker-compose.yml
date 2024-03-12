@@ -13,16 +13,16 @@ services:
       - GID=54720
       - NODE_ENV
       - LOG_LEVEL
-      - REDIS_HOST
-      - REDIS_PORT
-      - REDIS_DATABASE
-      - REDIS_USERNAME
-      - REDIS_PASSWORD
       - POSTGRES_HOST
       - POSTGRES_PORT
       - POSTGRES_DATABASE
       - POSTGRES_USERNAME
       - POSTGRES_PASSWORD
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
     networks:
       - avito-speculant-net
     depends_on:
@@ -40,16 +40,16 @@ services:
       - GID=54710
       - NODE_ENV
       - LOG_LEVEL
-      - REDIS_HOST
-      - REDIS_PORT
-      - REDIS_DATABASE
-      - REDIS_USERNAME
-      - REDIS_PASSWORD
       - POSTGRES_HOST
       - POSTGRES_PORT
       - POSTGRES_DATABASE
       - POSTGRES_USERNAME
       - POSTGRES_PASSWORD
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
       - BOT_TOKEN
     networks:
       - avito-speculant-net
@@ -68,16 +68,16 @@ services:
       - GID=54730
       - NODE_ENV
       - LOG_LEVEL
-      - REDIS_HOST
-      - REDIS_PORT
-      - REDIS_DATABASE
-      - REDIS_USERNAME
-      - REDIS_PASSWORD
       - POSTGRES_HOST
       - POSTGRES_PORT
       - POSTGRES_DATABASE
       - POSTGRES_USERNAME
       - POSTGRES_PASSWORD
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
       - HEARTBEAT_CONCURRENCY
       - HEARTBEAT_LIMITER_MAX
       - HEARTBEAT_LIMITER_DURATION
@@ -103,16 +103,16 @@ services:
       - GID=54730
       - NODE_ENV
       - LOG_LEVEL
-      - REDIS_HOST
-      - REDIS_PORT
-      - REDIS_DATABASE
-      - REDIS_USERNAME
-      - REDIS_PASSWORD
       - POSTGRES_HOST
       - POSTGRES_PORT
       - POSTGRES_DATABASE
       - POSTGRES_USERNAME
       - POSTGRES_PASSWORD
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
       - BUSINESS_CONCURRENCY
       - BUSINESS_LIMITER_MAX
       - BUSINESS_LIMITER_DURATION
@@ -163,14 +163,34 @@ services:
       - REDIS_DATABASE
       - REDIS_USERNAME
       - REDIS_PASSWORD
-      - POSTGRES_HOST
-      - POSTGRES_PORT
-      - POSTGRES_DATABASE
-      - POSTGRES_USERNAME
-      - POSTGRES_PASSWORD
       - PROXYCHECK_CONCURRENCY
       - PROXYCHECK_LIMITER_MAX
       - PROXYCHECK_LIMITER_DURATION
+    networks:
+      - avito-speculant-net
+    depends_on:
+      - connect-postgres
+      - connect-redis
+    restart: unless-stopped
+
+  worker-sendreport:
+    image: ghcr.io/bitnoize/avito-speculant-worker-sendreport:latest
+    build:
+      context: .
+      dockerfile: ./apps/worker-sendreport/Dockerfile
+    environment:
+      - UID=54760
+      - GID=54760
+      - NODE_ENV
+      - LOG_LEVEL
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_DATABASE
+      - REDIS_USERNAME
+      - REDIS_PASSWORD
+      - SENDREPORT_CONCURRENCY
+      - SENDREPORT_LIMITER_MAX
+      - SENDREPORT_LIMITER_DURATION
     networks:
       - avito-speculant-net
     depends_on:

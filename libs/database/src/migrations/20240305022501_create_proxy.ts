@@ -12,6 +12,13 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('queued_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
+  await db.schema
+    .createIndex('proxy_proxy_url_key')
+    .on('proxy')
+    .column('proxy_url')
+    .unique()
+    .execute()
+
   await db.schema.createIndex('proxy_is_enabled_key').on('proxy').column('is_enabled').execute()
 
   await db.schema.createIndex('proxy_created_at_key').on('proxy').column('created_at').execute()

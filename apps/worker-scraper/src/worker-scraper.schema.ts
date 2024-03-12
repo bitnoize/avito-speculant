@@ -5,6 +5,11 @@ import {
   DEFAULT_REDIS_PORT,
   DEFAULT_REDIS_DATABASE
 } from '@avito-speculant/redis'
+import {
+  DEFAULT_SCRAPER_CONCURRENCY,
+  DEFAULT_SCRAPER_LIMITER_MAX,
+  DEFAULT_SCRAPER_LIMITER_DURATION
+} from '@avito-speculant/queue'
 import { Config } from './worker-scraper.js'
 
 export const configSchema: JSONSchemaType<Config> = {
@@ -45,15 +50,15 @@ export const configSchema: JSONSchemaType<Config> = {
     },
     SCRAPER_CONCURRENCY: {
       type: 'number',
-      default: 2
+      default: DEFAULT_SCRAPER_CONCURRENCY
     },
     SCRAPER_LIMITER_MAX: {
       type: 'number',
-      default: 60
+      default: DEFAULT_SCRAPER_LIMITER_MAX
     },
     SCRAPER_LIMITER_DURATION: {
       type: 'number',
-      default: 60_000
+      default: DEFAULT_SCRAPER_LIMITER_DURATION
     }
   }
 }

@@ -12,7 +12,7 @@ import {
   BusinessProxyResponse
 } from './dto/index.js'
 import { DEFAULT_PROXY_LIST_ALL, DEFAULT_PROXY_QUEUE_LIMIT, Proxy } from './proxy.js'
-import { ProxyNotFoundError } from './proxy.errors.js'
+import { ProxyNotFoundError, ProxyAllreadyExistsError } from './proxy.errors.js'
 import * as proxyRepository from './proxy.repository.js'
 import * as proxyLogRepository from '../proxy-log/proxy-log.repository.js'
 import { KyselyDatabase } from '../database.js'
@@ -26,6 +26,13 @@ export async function createProxy(
 ): Promise<CreateProxyResponse> {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
+
+    const existsProxyRow =
+      await proxyRepository.selectRowByProxyUrlForShare(trx, request.proxyUrl)
+
+    if (existsProxyRow !== undefined) {
+      throw new ProxyAllreadyExistsError<CreateProxyRequest>(request)
+    }
 
     // ...
 
