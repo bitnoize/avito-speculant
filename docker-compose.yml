@@ -191,6 +191,7 @@ services:
       - SENDREPORT_CONCURRENCY
       - SENDREPORT_LIMITER_MAX
       - SENDREPORT_LIMITER_DURATION
+      - BOT_TOKEN
     networks:
       - avito-speculant-net
     depends_on:
