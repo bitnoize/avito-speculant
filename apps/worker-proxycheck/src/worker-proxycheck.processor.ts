@@ -49,7 +49,7 @@ const proxycheckRequest = async (
   try {
     const agent = new HttpsProxyAgent(proxyUrl)
 
-    const { statusCode } = await got(checkUrl, {
+    const response = await got(checkUrl, {
       followRedirect: false,
       throwHttpErrors: false,
       timeout: {
@@ -61,7 +61,9 @@ const proxycheckRequest = async (
       agent: agent as Agents
     })
 
-    return statusCode === 200 ? true : false
+    console.dir(response)
+
+    return response.statusCode === 200 ? true : false
   } catch (error) {
     return false
   }
