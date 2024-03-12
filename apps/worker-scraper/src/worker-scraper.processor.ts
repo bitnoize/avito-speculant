@@ -1,5 +1,4 @@
-import got, { Got, Method, Agents, RequestError } from 'got'
-import { HttpsProxyAgent } from 'https-proxy-agent'
+import { gotScraping } from 'got-scraping'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { redisService, proxyCacheService, scraperCacheService } from '@avito-speculant/redis'
@@ -41,9 +40,9 @@ const scraperRequest = async (
   timeout: number
 ): Promise<boolean> => {
   try {
-    const agent = new HttpsProxyAgent(proxyUrl)
-
-    const { statusCode } = await got(avitoUrl, {
+    const response = await gotScraping.get({
+      proxyUrl,
+      url: avitoUrl,
       followRedirect: false,
       throwHttpErrors: false,
       timeout: {
@@ -52,11 +51,12 @@ const scraperRequest = async (
       retry: {
         limit: 0
       },
-      agent: agent as Agents
     })
 
-    return statusCode === 200 ? true : false
+    return response.statusCode === 200 ? true : false
   } catch (error) {
+    console.error(error)
+
     return false
   }
 }

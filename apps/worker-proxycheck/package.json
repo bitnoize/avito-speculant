@@ -20,7 +20,6 @@
     "@avito-speculant/logger": "*",
     "@avito-speculant/queue": "*",
     "@avito-speculant/redis": "*",
-    "got": "^14.2.1",
-    "https-proxy-agent": "^7.0.4"
+    "got-scraping": "^4.0.4"
   }
 }
