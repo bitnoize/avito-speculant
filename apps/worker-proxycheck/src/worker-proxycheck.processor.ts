@@ -22,8 +22,8 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
 
   const isOnline = await proxycheckRequest(
     proxyCache.proxyUrl,
-    config.PROXYCHECK_TEST_URL,
-    config.PROXYCHECK_TEST_TIMEOUT
+    config.PROXYCHECK_CHECK_URL,
+    config.PROXYCHECK_CHECK_TIMEOUT
   )
 
   if (isOnline) {
