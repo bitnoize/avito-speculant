@@ -74,18 +74,17 @@ const scraperRequest = async (
     const { statusCode, body } = await gotScraping.get({
       proxyUrl,
       url: avitoUrl,
-      headers: {
-          "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-          "accept-language": "ru,en;q=0.9",
-          "cache-control": "max-age=0",
-          "sec-ch-ua": "\"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"114\", \"YaBrowser\";v=\"23\"",
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": "\"Windows\"",
-          "sec-fetch-dest": "document",
-          "sec-fetch-mode": "navigate",
-          "sec-fetch-site": "none",
-          "sec-fetch-user": "?1",
-          "upgrade-insecure-requests": "1"
+      headerGeneratorOptions: {
+        browsers: [
+          {
+            name: 'firefox',
+            minVersion: 100,
+            maxVersion: 122
+          }
+        ],
+        devices: ['desktop'],
+        locales: ['ru-RU'],
+        operatingSystems: ['windows']
       },
       responseType: 'buffer',
       followRedirect: false,
@@ -93,10 +92,6 @@ const scraperRequest = async (
         request: timeout
       },
     })
-
-    if (statusCode !== 200) {
-      console.error(`Scraper response not success: ${statusCode} via proxy ${proxyUrl}`)
-    }
 
     return statusCode === 200 ? body : undefined
   } catch (error) {
@@ -110,7 +105,8 @@ const parseResponse = (body: Buffer, selector: string): void => {
 
     const initialData = decodeURI($('body > script:nth-child(5)').text())
 
-    console.dir(initialData)
+    console.log(`Success`)
+    console.log(initialData)
   } catch (error) {
     return
   }
