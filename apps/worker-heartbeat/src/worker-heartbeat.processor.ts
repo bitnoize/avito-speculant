@@ -59,6 +59,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-users
         //
 
+        logger.info('Debug users 001')
         const { users } = await userService.queueUsers(db, {
           limit: config.HEARTBEAT_QUEUE_USERS_LIMIT
         })
@@ -76,6 +77,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
+        logger.info('Debug users 002')
         break
       }
 
@@ -84,6 +86,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-plans
         //
 
+        logger.info('Debug plans 001')
         const { plans } = await planService.queuePlans(db, {
           limit: config.HEARTBEAT_QUEUE_PLANS_LIMIT
         })
@@ -101,6 +104,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
+        logger.info('Debug plans 002')
         break
       }
 
@@ -109,6 +113,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-subscriptions
         //
 
+        logger.info('Debug subscriptions 001')
         const { subscriptions } = await subscriptionService.queueSubscriptions(db, {
           limit: config.HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT
         })
@@ -126,6 +131,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
+        logger.info('Debug subscriptions 001')
         break
       }
 
@@ -134,6 +140,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-categories
         //
 
+        logger.info('Debug categories 001')
         const { categories } = await categoryService.queueCategories(db, {
           limit: config.HEARTBEAT_QUEUE_CATEGORIES_LIMIT
         })
@@ -151,6 +158,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
+        logger.info('Debug categories 002')
         break
       }
 
@@ -159,6 +167,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-proxies
         //
 
+        logger.info('Debug proxies 001')
         const { proxies } = await proxyService.queueProxies(db, {
           limit: config.HEARTBEAT_QUEUE_PROXIES_LIMIT
         })
@@ -176,6 +185,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
+        logger.info('Debug proxies 002')
         break
       }
 
@@ -184,6 +194,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // check-scrapers
         //
 
+        logger.info('Debug scrapers 001')
         const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis)
 
         const repeatableJobs = await scraperQueue.getRepeatableJobs()
@@ -296,6 +307,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
+        logger.info('Debug scrapers 100')
         break
       }
 
