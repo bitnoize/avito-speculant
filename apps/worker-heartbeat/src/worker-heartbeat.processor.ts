@@ -255,7 +255,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
                 await scraperService.addJob(
                   scraperQueue,
                   'default',
-                  scraperCache.intervalSec,
+                  scraperCache.intervalSec * 1000,
                   scraperCache.jobId
                 )
               }
@@ -282,7 +282,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
               await scraperService.addJob(
                 scraperQueue,
                 'default',
-                scraperCache.intervalSec,
+                scraperCache.intervalSec * 1000,
                 scraperCache.jobId
               )
             }

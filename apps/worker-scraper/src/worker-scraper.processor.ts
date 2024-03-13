@@ -87,6 +87,7 @@ const scraperRequest = async (
 
     if (statusCode !== 200) {
       console.error(`Scraper response not success`)
+      console.dir(body)
     }
 
     return statusCode === 200 ? body : undefined
