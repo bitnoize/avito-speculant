@@ -77,7 +77,13 @@ const scraperRequest = async (
       proxyUrl,
       url: avitoUrl,
       headerGeneratorOptions: {
-        browsers: ['firefox'],
+        browsers: [
+          {
+            name: 'firefox',
+            minVersion: 91,
+            maxVersion: 91
+          }
+        ],
         devices: ['desktop'],
         locales: ['ru-RU'],
         operatingSystems: ['linux']
