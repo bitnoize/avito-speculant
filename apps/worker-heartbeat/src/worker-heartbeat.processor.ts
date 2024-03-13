@@ -59,7 +59,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-users
         //
 
-        logger.info('Debug users 001')
         const { users } = await userService.queueUsers(db, {
           limit: config.HEARTBEAT_QUEUE_USERS_LIMIT
         })
@@ -77,7 +76,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
-        logger.info('Debug users 002')
         break
       }
 
@@ -86,7 +84,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-plans
         //
 
-        logger.info('Debug plans 001')
         const { plans } = await planService.queuePlans(db, {
           limit: config.HEARTBEAT_QUEUE_PLANS_LIMIT
         })
@@ -104,7 +101,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
-        logger.info('Debug plans 002')
         break
       }
 
@@ -113,7 +109,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-subscriptions
         //
 
-        logger.info('Debug subscriptions 001')
         const { subscriptions } = await subscriptionService.queueSubscriptions(db, {
           limit: config.HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT
         })
@@ -131,7 +126,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
-        logger.info('Debug subscriptions 001')
         break
       }
 
@@ -140,7 +134,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-categories
         //
 
-        logger.info('Debug categories 001')
         const { categories } = await categoryService.queueCategories(db, {
           limit: config.HEARTBEAT_QUEUE_CATEGORIES_LIMIT
         })
@@ -158,7 +151,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
-        logger.info('Debug categories 002')
         break
       }
 
@@ -167,7 +159,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-proxies
         //
 
-        logger.info('Debug proxies 001')
         const { proxies } = await proxyService.queueProxies(db, {
           limit: config.HEARTBEAT_QUEUE_PROXIES_LIMIT
         })
@@ -185,7 +176,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
-        logger.info('Debug proxies 002')
         break
       }
 
@@ -194,28 +184,22 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // check-scrapers
         //
 
-        logger.info('Debug scrapers 001')
         const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis)
 
-        logger.info('Debug scrapers 002')
         const repeatableJobs = await scraperQueue.getRepeatableJobs()
 
-        logger.info('Debug scrapers 003')
         const scraperJobIds = scrapersCache.map((scraperCache) => scraperCache.jobId)
         const orphanScraperJobs = repeatableJobs.filter(
           (repeatableJob) => repeatableJob.id != null && !scraperJobIds.includes(repeatableJob.id)
         )
 
-        logger.info('Debug scrapers 004')
         for (const orphanScraperJob of orphanScraperJobs) {
           await scraperQueue.removeRepeatableByKey(orphanScraperJob.key)
         }
 
-        logger.info('Debug scrapers 005')
         for (const scraperCache of scrapersCache) {
           let isChanged = false
 
-        logger.info('Debug scrapers 006')
           const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(
             redis,
             {
@@ -223,9 +207,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
             }
           )
 
-        logger.info('Debug scrapers 0017')
           for (const categoryCache of categoriesCache) {
-            logger.info('Debug scrapers 008')
             const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(
               redis,
               {
@@ -240,13 +222,11 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
             }
           }
 
-          logger.info('Debug scrapers 009')
           const scraperJob = await scraperQueue.getJob(scraperCache.jobId)
 
           if (scraperJob !== undefined) {
             // ScraperJob allready running
 
-            logger.info('Debug scrapers 010')
             if (scraperJob.repeatJobKey === undefined) {
               throw new Error(`ScraperJob lost repeatJobKey`)
             }
@@ -254,7 +234,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
             if (categoriesCache.length === 0) {
               // There are no categories attached to scraper, clear cache and stop job
 
-              logger.info('Debug scrapers 011')
               await scraperCacheService.dropScraperCache(redis, {
                 scraperJobId: scraperCache.jobId,
                 avitoUrl: scraperCache.avitoUrl
@@ -264,7 +243,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
             } else {
               // Categories exists, save cache and restart job if scraper changed
 
-              logger.info('Debug scrapers 012')
               await scraperCacheService.saveScraperCache(redis, {
                 scraperJobId: scraperCache.jobId,
                 avitoUrl: scraperCache.avitoUrl,
@@ -272,10 +250,8 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
               })
 
               if (isChanged) {
-                logger.info('Debug scrapers 013')
                 await scraperQueue.removeRepeatableByKey(scraperJob.repeatJobKey)
 
-                logger.info('Debug scrapers 014')
                 await scraperService.addJob(
                   scraperQueue,
                   'default',
@@ -290,7 +266,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
             if (categoriesCache.length === 0) {
               // There are no categories attached to scraper, clear cache
 
-                logger.info('Debug scrapers 015')
               await scraperCacheService.dropScraperCache(redis, {
                 scraperJobId: scraperCache.jobId,
                 avitoUrl: scraperCache.avitoUrl
@@ -298,14 +273,12 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
             } else {
               // Categories attached, save cache and start job
 
-                logger.info('Debug scrapers 016')
               await scraperCacheService.saveScraperCache(redis, {
                 scraperJobId: scraperCache.jobId,
                 avitoUrl: scraperCache.avitoUrl,
                 intervalSec: scraperCache.intervalSec
               })
 
-                logger.info('Debug scrapers 017')
               await scraperService.addJob(
                 scraperQueue,
                 'default',
@@ -323,7 +296,6 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
           step
         })
 
-        logger.info('Debug scrapers 100')
         break
       }
 
