@@ -47,8 +47,11 @@ export async function fetchScraperCategoriesCache(
   redis: Redis,
   request: FetchScraperCategoriesCacheRequest
 ): Promise<FetchScraperCategoriesCacheResponse> {
+  console.log(`BLA ONE`)
   const categoryIds = await categoryCacheRepository.fetchScraperIndex(redis, request.scraperJobId)
+  console.log(`BLA TWO`)
   const categoriesCache = await categoryCacheRepository.fetchCollection(redis, categoryIds)
+  console.log(`BLA THREE`)
 
   return {
     categoriesCache
