@@ -76,14 +76,9 @@ const scraperRequest = async (
     const { statusCode, body } = await gotScraping.get({
       proxyUrl,
       url: avitoUrl,
+      http2: false,
       headerGeneratorOptions: {
-        browsers: [
-          {
-            name: 'firefox',
-            minVersion: 91,
-            maxVersion: 91
-          }
-        ],
+        browsers: ['firefox],
         devices: ['desktop'],
         locales: ['ru-RU'],
         operatingSystems: ['linux']
