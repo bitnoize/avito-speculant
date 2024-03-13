@@ -34,6 +34,8 @@ const scraperProcessor: ScraperProcessor = async (scraperJob) => {
     return
   }
 
+  logger.info({ proxyCache }, `ProxyCahe random online`)
+
   const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
     scraperJobId: scraperCache.jobId
   })
@@ -74,7 +76,6 @@ const scraperRequest = async (
     const { statusCode, body } = await gotScraping.get({
       proxyUrl,
       url: avitoUrl,
-      http2: false,
       headers: {
         "Host": "avito.ru",
         "Connection": "keep-alive",
