@@ -179,6 +179,7 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
 
         if (category.isEnabled && subscription !== undefined) {
           // FIXME
+          console.log(`Scraper does not exists YET`)
 
           const scraperJobId = redisService.randomHash()
 
