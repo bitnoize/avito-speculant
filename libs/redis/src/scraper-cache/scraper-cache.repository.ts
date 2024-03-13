@@ -104,7 +104,7 @@ redis.call(
   'HSET', KEYS[1],
   'job_id', ARGV[1],
   'avito_url', ARGV[2],
-  'interval_sec', ARGV[3],
+  'interval_sec', ARGV[3]
 )
 redis.call('HSETNX', KEYS[1], 'total_count', 0)
 redis.call('HSETNX', KEYS[1], 'success_count', 0)
