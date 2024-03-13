@@ -78,7 +78,7 @@ const scraperRequest = async (
       url: avitoUrl,
       http2: false,
       headerGeneratorOptions: {
-        browsers: ['firefox],
+        browsers: ['firefox'],
         devices: ['desktop'],
         locales: ['ru-RU'],
         operatingSystems: ['linux']
