@@ -210,12 +210,12 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
   })
 
   redis.defineCommand('saveScraperCache', {
-    numberOfKeys: 2,
+    numberOfKeys: 3,
     lua: scraperCacheRepository.saveScraperCacheLua
   })
 
   redis.defineCommand('dropScraperCache', {
-    numberOfKeys: 2,
+    numberOfKeys: 3,
     lua: scraperCacheRepository.dropScraperCacheLua
   })
 

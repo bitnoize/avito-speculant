@@ -182,8 +182,7 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
 
           const scraperJobId = redisService.randomHash()
 
-          console.log(`TEST_MARK_002: ${scraperJobId}`)
-
+          console.log(`TEST_MARK_002`)
           await scraperCacheService.saveScraperCache(redis, {
             scraperJobId,
             avitoUrl: category.avitoUrl,
