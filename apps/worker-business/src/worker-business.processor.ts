@@ -182,13 +182,15 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
 
           const scraperJobId = redisService.randomHash()
 
+          console.log(`TEST_MARK_002: ${scraperJobId}`)
+
           await scraperCacheService.saveScraperCache(redis, {
             scraperJobId,
             avitoUrl: category.avitoUrl,
             intervalSec: subscription.intervalSec
           })
 
-          console.log(`TEST_MARK_002`)
+          console.log(`TEST_MARK_003`)
 
           await categoryCacheService.saveCategoryCache(redis, {
             categoryId: category.id,
@@ -197,7 +199,7 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
             avitoUrl: category.avitoUrl
           })
 
-          console.log(`TEST_MARK_003`)
+          console.log(`TEST_MARK_004`)
         }
       }
 
