@@ -25,9 +25,9 @@ services:
       - REDIS_PASSWORD
     networks:
       - avito-speculant-net
-    depends_on:
-      - connect-postgres
-      - connect-redis
+#   depends_on:
+#     - connect-postgres
+#     - connect-redis
     restart: no
 
   bot:
@@ -53,9 +53,9 @@ services:
       - BOT_TOKEN
     networks:
       - avito-speculant-net
-    depends_on:
-      - connect-postgres
-      - connect-redis
+#   depends_on:
+#     - connect-postgres
+#     - connect-redis
     restart: unless-stopped
 
   worker-heartbeat:
@@ -88,9 +88,9 @@ services:
       - HEARTBEAT_QUEUE_PROXIES_LIMIT
     networks:
       - avito-speculant-net
-    depends_on:
-      - connect-postgres
-      - connect-redis
+#   depends_on:
+#     - connect-postgres
+#     - connect-redis
     restart: unless-stopped
 
   worker-business:
@@ -118,9 +118,9 @@ services:
       - BUSINESS_LIMITER_DURATION
     networks:
       - avito-speculant-net
-    depends_on:
-      - connect-postgres
-      - connect-redis
+#   depends_on:
+#     - connect-postgres
+#     - connect-redis
     restart: unless-stopped
 
   worker-scraper:
@@ -143,9 +143,9 @@ services:
       - SCRAPER_LIMITER_DURATION
     networks:
       - avito-speculant-net
-    depends_on:
-      - connect-postgres
-      - connect-redis
+#   depends_on:
+#     - connect-postgres
+#     - connect-redis
     restart: unless-stopped
 
   worker-proxycheck:
@@ -168,9 +168,9 @@ services:
       - PROXYCHECK_LIMITER_DURATION
     networks:
       - avito-speculant-net
-    depends_on:
-      - connect-postgres
-      - connect-redis
+#   depends_on:
+#     - connect-postgres
+#     - connect-redis
     restart: unless-stopped
 
   worker-sendreport:
@@ -194,24 +194,24 @@ services:
       - BOT_TOKEN
     networks:
       - avito-speculant-net
-    depends_on:
-      - connect-postgres
-      - connect-redis
+#   depends_on:
+#     - connect-postgres
+#     - connect-redis
     restart: unless-stopped
 
-  connect-postgres:
-    image: alpine/socat
-    networks:
-      - avito-speculant-net
-    restart: unless-stopped
-    deploy:
-      mode: global
+# connect-postgres:
+#   image: alpine/socat
+#   networks:
+#     - avito-speculant-net
+#   restart: unless-stopped
+#   deploy:
+#     mode: global
 
-  connect-redis:
-    image: alpine/socat
-    networks:
-      - avito-speculant-net
-    restart: unless-stopped
-    deploy:
-      mode: global
+# connect-redis:
+#   image: alpine/socat
+#   networks:
+#     - avito-speculant-net
+#   restart: unless-stopped
+#   deploy:
+#     mode: global
 
