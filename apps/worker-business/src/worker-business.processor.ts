@@ -178,8 +178,7 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
         // ScraperCache not exists yet
 
         if (category.isEnabled && subscription !== undefined) {
-          // FIXME
-          console.log(`Scraper does not exists YET`)
+          console.log(`TEST_MARK_001`)
 
           const scraperJobId = redisService.randomHash()
 
@@ -189,12 +188,16 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
             intervalSec: subscription.intervalSec
           })
 
+          console.log(`TEST_MARK_002`)
+
           await categoryCacheService.saveCategoryCache(redis, {
             categoryId: category.id,
             userId: category.userId,
             scraperJobId,
             avitoUrl: category.avitoUrl
           })
+
+          console.log(`TEST_MARK_003`)
         }
       }
 
