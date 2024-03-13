@@ -43,7 +43,7 @@ const scraperProcessor: ScraperProcessor = async (scraperJob) => {
   const body = await scraperRequest(
     proxyCache.proxyUrl,
     scraperCache.avitoUrl,
-    10_000,
+    10_000, // FIXME
   )
 
   if (body === undefined) {
@@ -76,15 +76,11 @@ const scraperRequest = async (
     const { statusCode, body } = await gotScraping.get({
       proxyUrl,
       url: avitoUrl,
-      headers: {
-        "Host": "avito.ru",
-        "Connection": "keep-alive",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.124 Safari/537.36",
-        "sec-ch-ua": 'Chromium";v="104", " Not A;Brand";v="99", "Yandex";v="22',
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-Mode": "navigate",
-        "sec-ch-ua-platform": "Windows",
+      headerGeneratorOptions: {
+        browsers: ['firefox'],
+        devices: ['desktop'],
+        locales: ['ru-RU'],
+        operatingSystems: ['linux']
       },
       responseType: 'buffer',
       followRedirect: false,
@@ -101,12 +97,11 @@ const scraperRequest = async (
 
 const parseResponse = (body: Buffer, selector: string): void => {
   try {
-    const $ = cheerio.load(body.toString('utf8'))
+    //const $ = cheerio.load(body.toString('utf8'))
 
-    const initialData = decodeURI($('body > script:nth-child(5)').text())
+    //const initialData = decodeURI($('body > script:nth-child(5)').text())
 
-    console.log(`Success`)
-    console.log(initialData)
+    console.log(body.toString('utf8'))
   } catch (error) {
     return
   }
