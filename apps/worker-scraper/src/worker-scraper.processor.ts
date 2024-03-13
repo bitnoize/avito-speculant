@@ -74,6 +74,18 @@ const scraperRequest = async (
     const { statusCode, body } = await gotScraping.get({
       proxyUrl,
       url: avitoUrl,
+      headerGeneratorOptions: {
+        browsers: [
+          {
+            name: 'chrome',
+            minVersion: 87,
+            maxVersion: 89
+          }
+        ],
+        devices: ['desktop'],
+        locales: ['ru-RU'],
+        operatingSystems: ['windows'],
+      },
       responseType: 'buffer',
       followRedirect: false,
       throwHttpErrors: false,
@@ -87,7 +99,6 @@ const scraperRequest = async (
 
     if (statusCode !== 200) {
       console.error(`Scraper response not success`)
-      console.dir(body.toString('utf8'))
     }
 
     return statusCode === 200 ? body : undefined
