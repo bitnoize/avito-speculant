@@ -62,20 +62,26 @@ export async function fetchCollection(
   redis: Redis,
   categoryIds: number[]
 ): Promise<CategoryCache[]> {
+  console.log(`BLA ONE`)
   if (categoryIds.length === 0) {
     return []
   }
 
   const pipeline = redis.pipeline()
 
+  console.log(`BLA TWO`)
   categoryIds.forEach((categoryId) => {
+    console.log(`BLA FOUR`)
     pipeline.fetchCategoryCache(
       categoryCacheKey(categoryId) // KEYS[1]
     )
+    console.log(`BLA FIVE`)
   })
 
+  console.log(`BLA SIX`)
   const results = await pipeline.exec()
 
+  console.log(`BLA SEVEN`)
   return parseCollection(results)
 }
 
