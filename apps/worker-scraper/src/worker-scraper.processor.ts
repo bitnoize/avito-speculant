@@ -74,6 +74,7 @@ const scraperRequest = async (
     const { statusCode, body } = await gotScraping.get({
       proxyUrl,
       url: avitoUrl,
+      http2: false,
       headers: {
         "Host": "avito.ru",
         "Connection": "keep-alive",
