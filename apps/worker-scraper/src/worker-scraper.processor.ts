@@ -77,28 +77,24 @@ const scraperRequest = async (
       headerGeneratorOptions: {
         browsers: [
           {
-            name: 'chrome',
-            minVersion: 87,
-            maxVersion: 89
+            name: 'firefox',
+            minVersion: 120,
+            maxVersion: 123
           }
         ],
         devices: ['desktop'],
         locales: ['ru-RU'],
-        operatingSystems: ['windows'],
+        operatingSystems: ['windows']
       },
       responseType: 'buffer',
       followRedirect: false,
-      throwHttpErrors: false,
       timeout: {
         request: timeout
-      },
-      retry: {
-        limit: 0
       },
     })
 
     if (statusCode !== 200) {
-      console.error(`Scraper response not success`)
+      console.error(`Scraper response not success: ${statusCode}`)
     }
 
     return statusCode === 200 ? body : undefined
