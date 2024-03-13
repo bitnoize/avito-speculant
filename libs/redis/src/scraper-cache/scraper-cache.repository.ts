@@ -110,8 +110,8 @@ redis.call('HSETNX', KEYS[1], 'total_count', 0)
 redis.call('HSETNX', KEYS[1], 'success_count', 0)
 redis.call('PEXPIRE', KEYS[1], ARGV[4])
 
-redis.call('SET', KEYS[3], ARGV[2])
-redis.call('PEXPIRE', KEYS[3], ARGV[4])
+redis.call('SET', KEYS[2], ARGV[2])
+redis.call('PEXPIRE', KEYS[2], ARGV[4])
 
 redis.call('SADD', KEYS[3], ARGV[1])
 redis.call('PEXPIRE', KEYS[3], ARGV[4])
