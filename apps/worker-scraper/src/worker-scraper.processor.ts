@@ -74,15 +74,15 @@ const scraperRequest = async (
     const { statusCode, body } = await gotScraping.get({
       proxyUrl,
       url: avitoUrl,
-      headerGeneratorOptions: {
-        browsers: ['firefox'],
-        devices: ['desktop'],
-        locales: ['ru-RU'],
-        operatingSystems: ['windows']
-      },
       headers: {
-        Host: "avito.ru",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Host": "avito.ru",
+        "Connection": "keep-alive",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.124 Safari/537.36",
+        "sec-ch-ua": 'Chromium";v="104", " Not A;Brand";v="99", "Yandex";v="22',
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-Mode": "navigate",
+        "sec-ch-ua-platform": "Windows",
       },
       responseType: 'buffer',
       followRedirect: false,
