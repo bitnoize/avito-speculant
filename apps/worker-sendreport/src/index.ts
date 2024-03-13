@@ -23,7 +23,7 @@ async function bootstrap(): Promise<void> {
     logger
   )
 
-  await sendreportWorker.run()
+  await sendreportService.runWorker(sendreportWorker)
 }
 
 bootstrap().catch((error) => {

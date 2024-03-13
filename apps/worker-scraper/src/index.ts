@@ -23,7 +23,7 @@ async function bootstrap(): Promise<void> {
     logger
   )
 
-  await scraperWorker.run()
+  await scraperService.runWorker(scraperWorker)
 }
 
 bootstrap().catch((error) => {

@@ -33,7 +33,7 @@ services:
 
   worker-scraper:
     deploy:
-      replicas: 0
+      replicas: 2
       resources:
         limits:
           cpus: "0.2"
@@ -55,22 +55,3 @@ services:
           cpus: "0.2"
           memory: 256Mb
 
-# connect-postgres:
-#   command: "TCP4-LISTEN:5432,reuseaddr,fork UNIX-CLIENT:/tmp/sandbox/krusty-postgres.sock"
-#   volumes:
-#     - "/tmp/sandbox/krusty-postgres.sock:/tmp/sandbox/krusty-postgres.sock:ro"
-#   deploy:
-#     resources:
-#       limits:
-#         cpus: "0.05"
-#         memory: 10m
-
-# connect-redis:
-#   command: "TCP4-LISTEN:6379,reuseaddr,fork UNIX-CLIENT:/tmp/sandbox/krusty-redis.sock"
-#   volumes:
-#     - "/tmp/sandbox/krusty-redis.sock:/tmp/sandbox/krusty-redis.sock:ro"
-#   deploy:
-#     resources:
-#       limits:
-#         cpus: "0.05"
-#         memory: 10m

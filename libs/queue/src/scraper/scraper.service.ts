@@ -88,6 +88,7 @@ export function initWorker(
     connection,
     concurrency,
     limiter,
+    autorun: false,
     removeOnComplete: {
       count: 0
     },
