@@ -39,7 +39,7 @@ export async function addJob(
   return await queue.add(
     name,
     {
-      step: 'queue-users'
+      step: 'produce-users'
     },
     {
       repeat: {
