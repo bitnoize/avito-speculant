@@ -3,9 +3,7 @@ import { Config } from './bot.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
-  required: [
-    'BOT_TOKEN'
-  ],
+  required: ['BOT_TOKEN'],
   properties: {
     LOG_LEVEL: {
       type: 'string',

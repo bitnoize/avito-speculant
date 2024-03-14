@@ -79,10 +79,7 @@ export async function listUsers(
   return await db.transaction().execute(async (trx) => {
     // ...
 
-    const userRows = await userRepository.selectRowsList(
-      trx,
-      (request.all ??= DEFAULT_USER_LIST_ALL)
-    )
+    const userRows = await userRepository.selectRowsList(trx, request.all ?? DEFAULT_USER_LIST_ALL)
 
     return {
       users: userRepository.buildCollection(userRows)
@@ -102,7 +99,7 @@ export async function produceUsers(
 
     const userRows = await userRepository.selectRowsSkipLockedForUpdate(
       trx,
-      (request.limit ??= DEFAULT_USER_PRODUCE_LIMIT)
+      request.limit ?? DEFAULT_USER_PRODUCE_LIMIT
     )
 
     for (const userRow of userRows) {

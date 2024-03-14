@@ -3,7 +3,11 @@ import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { redisService, proxyCacheService } from '@avito-speculant/redis'
 import { ProxycheckProcessor } from '@avito-speculant/queue'
-import { Config } from './worker-proxycheck.js'
+import {
+  DEFAULT_PROXYCHECK_CHECK_URL,
+  DEFAULT_PROXYCHECK_CHECK_TIMEOUT,
+  Config
+} from './worker-proxycheck.js'
 import { configSchema } from './worker-proxycheck.schema.js'
 
 export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) => {
@@ -15,14 +19,16 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
 
+  const { proxyId } = proxycheckJob.data
+
   const { proxyCache } = await proxyCacheService.fetchProxyCache(redis, {
-    proxyId: proxycheckJob.data.proxyId
+    proxyId
   })
 
   const isOnline = await proxycheckRequest(
     proxyCache.proxyUrl,
-    config.PROXYCHECK_CHECK_URL,
-    config.PROXYCHECK_CHECK_TIMEOUT
+    config.PROXYCHECK_CHECK_URL ?? DEFAULT_PROXYCHECK_CHECK_URL,
+    config.PROXYCHECK_CHECK_TIMEOUT ?? DEFAULT_PROXYCHECK_CHECK_TIMEOUT
   )
 
   if (isOnline) {
@@ -35,7 +41,7 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
     })
   }
 
-  logger.info(`ProxycheckJob complete`)
+  logger.info({ proxyId, isOnline }, `ProxycheckJob complete`)
 
   await redisService.closeRedis(redis)
 }
@@ -46,7 +52,7 @@ const proxycheckRequest = async (
   timeout: number
 ): Promise<boolean> => {
   try {
-    const response = await gotScraping.get({
+    const { statusCode } = await gotScraping.get({
       proxyUrl,
       url: checkUrl,
       followRedirect: false,
@@ -56,13 +62,11 @@ const proxycheckRequest = async (
       },
       retry: {
         limit: 0
-      },
+      }
     })
 
-    return response.statusCode === 200 ? true : false
+    return statusCode === 200 ? true : false
   } catch (error) {
-    console.error(error)
-
     return false
   }
 }

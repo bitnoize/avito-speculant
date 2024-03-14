@@ -68,6 +68,6 @@ export const configSchema: JSONSchemaType<Config> = {
     QUEUE_REDIS_PASSWORD: {
       type: 'string',
       nullable: true
-    },
+    }
   }
 }

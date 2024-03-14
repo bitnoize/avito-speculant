@@ -2,7 +2,7 @@
   "name": "@avito-speculant/worker-scraper",
   "type": "module",
   "version": "0.0.3",
-  "description": "Avito-Speculant WorkerScraper application",
+  "description": "Avito-Speculant worker-scraper application",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

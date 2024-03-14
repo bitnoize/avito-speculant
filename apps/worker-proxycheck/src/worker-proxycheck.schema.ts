@@ -1,50 +1,25 @@
 import { JSONSchemaType } from '@avito-speculant/config'
-import { DEFAULT_LOG_LEVEL } from '@avito-speculant/logger'
-import {
-  DEFAULT_REDIS_HOST,
-  DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE
-} from '@avito-speculant/redis'
-import {
-  DEFAULT_PROXYCHECK_CONCURRENCY,
-  DEFAULT_PROXYCHECK_LIMITER_MAX,
-  DEFAULT_PROXYCHECK_LIMITER_DURATION
-} from '@avito-speculant/queue'
-import {
-  DEFAULT_PROXYCHECK_CHECK_URL,
-  DEFAULT_PROXYCHECK_CHECK_TIMEOUT,
-  Config
-} from './worker-proxycheck.js'
+import { Config } from './worker-proxycheck.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
-  required: [
-    'LOG_LEVEL',
-    'REDIS_HOST',
-    'REDIS_PORT',
-    'REDIS_DATABASE',
-    'PROXYCHECK_CONCURRENCY',
-    'PROXYCHECK_LIMITER_MAX',
-    'PROXYCHECK_LIMITER_DURATION',
-    'PROXYCHECK_CHECK_URL',
-    'PROXYCHECK_CHECK_TIMEOUT'
-  ],
+  required: [],
   properties: {
     LOG_LEVEL: {
       type: 'string',
-      default: DEFAULT_LOG_LEVEL
+      nullable: true
     },
     REDIS_HOST: {
       type: 'string',
-      default: DEFAULT_REDIS_HOST
+      nullable: true
     },
     REDIS_PORT: {
       type: 'number',
-      default: DEFAULT_REDIS_PORT
+      nullable: true
     },
     REDIS_DATABASE: {
       type: 'number',
-      default: DEFAULT_REDIS_DATABASE
+      nullable: true
     },
     REDIS_USERNAME: {
       type: 'string',
@@ -54,25 +29,45 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'string',
       nullable: true
     },
+    QUEUE_REDIS_HOST: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PORT: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_DATABASE: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_USERNAME: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PASSWORD: {
+      type: 'string',
+      nullable: true
+    },
     PROXYCHECK_CONCURRENCY: {
       type: 'number',
-      default: DEFAULT_PROXYCHECK_CONCURRENCY
+      nullable: true
     },
     PROXYCHECK_LIMITER_MAX: {
       type: 'number',
-      default: DEFAULT_PROXYCHECK_LIMITER_MAX
+      nullable: true
     },
     PROXYCHECK_LIMITER_DURATION: {
       type: 'number',
-      default: DEFAULT_PROXYCHECK_LIMITER_DURATION
+      nullable: true
     },
     PROXYCHECK_CHECK_URL: {
       type: 'string',
-      default: DEFAULT_PROXYCHECK_CHECK_URL
+      nullable: true
     },
     PROXYCHECK_CHECK_TIMEOUT: {
       type: 'number',
-      default: DEFAULT_PROXYCHECK_CHECK_TIMEOUT
+      nullable: true
     }
   }
 }

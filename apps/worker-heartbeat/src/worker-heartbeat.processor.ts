@@ -40,27 +40,19 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
   const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
   const scraperQueue = scraperService.initQueue(queueConnection, logger)
 
-  let { step } = heartbeatJob.data
+  let step = heartbeatJob.data.step
 
-  const counters = {
-    users: 0,
-    plans: 0,
-    subscriptions: 0,
-    categories: 0,
-    proxies: 0,
-    scrapers: 0,
-    reporters: 0
-  }
+  const counters: Record<string, number> = {}
 
   while (step !== 'complete') {
     switch (step) {
-      case 'queue-users': {
+      case 'produce-users': {
         //
-        // queue-users
+        // produce-users
         //
 
         const { users } = await userService.produceUsers(db, {
-          limit: config.HEARTBEAT_QUEUE_USERS_LIMIT
+          limit: config.HEARTBEAT_PRODUCE_USERS_LIMIT
         })
 
         await treatmentService.addJobs(
@@ -71,21 +63,19 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
 
         counters.users = users.length
 
-        step = 'queue-plans'
-        await heartbeatJob.updateData({
-          step
-        })
+        step = 'produce-plans'
+        await heartbeatJob.updateData({ step })
 
         break
       }
 
-      case 'queue-plans': {
+      case 'produce-plans': {
         //
-        // queue-plans
+        // produce-plans
         //
 
         const { plans } = await planService.producePlans(db, {
-          limit: config.HEARTBEAT_QUEUE_PLANS_LIMIT
+          limit: config.HEARTBEAT_PRODUCE_PLANS_LIMIT
         })
 
         await treatmentService.addJobs(
@@ -96,21 +86,19 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
 
         counters.plans = plans.length
 
-        step = 'queue-subscriptions'
-        await heartbeatJob.updateData({
-          step
-        })
+        step = 'produce-subscriptions'
+        await heartbeatJob.updateData({ step })
 
         break
       }
 
-      case 'queue-subscriptions': {
+      case 'produce-subscriptions': {
         //
-        // queue-subscriptions
+        // produce-subscriptions
         //
 
         const { subscriptions } = await subscriptionService.produceSubscriptions(db, {
-          limit: config.HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT
+          limit: config.HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT
         })
 
         await treatmentService.addJobs(
@@ -121,21 +109,19 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
 
         counters.subscriptions = subscriptions.length
 
-        step = 'queue-categories'
-        await heartbeatJob.updateData({
-          step
-        })
+        step = 'produce-categories'
+        await heartbeatJob.updateData({ step })
 
         break
       }
 
-      case 'queue-categories': {
+      case 'produce-categories': {
         //
-        // queue-categories
+        // produce-categories
         //
 
         const { categories } = await categoryService.produceCategories(db, {
-          limit: config.HEARTBEAT_QUEUE_CATEGORIES_LIMIT
+          limit: config.HEARTBEAT_PRODUCE_CATEGORIES_LIMIT
         })
 
         await treatmentService.addJobs(
@@ -146,21 +132,19 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
 
         counters.categories = categories.length
 
-        step = 'queue-proxies'
-        await heartbeatJob.updateData({
-          step
-        })
+        step = 'produce-proxies'
+        await heartbeatJob.updateData({ step })
 
         break
       }
 
-      case 'queue-proxies': {
+      case 'produce-proxies': {
         //
-        // queue-proxies
+        // produce-proxies
         //
 
         const { proxies } = await proxyService.produceProxies(db, {
-          limit: config.HEARTBEAT_QUEUE_PROXIES_LIMIT
+          limit: config.HEARTBEAT_PRODUCE_PROXIES_LIMIT
         })
 
         await treatmentService.addJobs(
@@ -172,9 +156,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         counters.proxies = proxies.length
 
         step = 'check-scrapers'
-        await heartbeatJob.updateData({
-          step
-        })
+        await heartbeatJob.updateData({ step })
 
         break
       }
@@ -291,23 +273,8 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
 
         counters.scrapers = scrapersCache.length
 
-        step = 'check-reporters'
-        await heartbeatJob.updateData({
-          step
-        })
-
-        break
-      }
-
-      case 'check-reporters': {
-        //
-        // check-reporters
-        //
-
         step = 'complete'
-        await heartbeatJob.updateData({
-          step
-        })
+        await heartbeatJob.updateData({ step })
 
         break
       }

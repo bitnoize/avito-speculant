@@ -81,23 +81,23 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'number',
       nullable: true
     },
-    HEARTBEAT_QUEUE_USERS_LIMIT: {
+    HEARTBEAT_PRODUCE_USERS_LIMIT: {
       type: 'number',
       nullable: true
     },
-    HEARTBEAT_QUEUE_PLANS_LIMIT: {
+    HEARTBEAT_PRODUCE_PLANS_LIMIT: {
       type: 'number',
       nullable: true
     },
-    HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT: {
+    HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT: {
       type: 'number',
       nullable: true
     },
-    HEARTBEAT_QUEUE_CATEGORIES_LIMIT: {
+    HEARTBEAT_PRODUCE_CATEGORIES_LIMIT: {
       type: 'number',
       nullable: true
     },
-    HEARTBEAT_QUEUE_PROXIES_LIMIT: {
+    HEARTBEAT_PRODUCE_PROXIES_LIMIT: {
       type: 'number',
       nullable: true
     }

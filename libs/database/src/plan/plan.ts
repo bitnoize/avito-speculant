@@ -1,5 +1,5 @@
 export const DEFAULT_PLAN_LIST_ALL = false
-export const DEFAULT_PLAN_QUEUE_LIMIT = 5
+export const DEFAULT_PLAN_PRODUCE_LIMIT = 1
 
 export interface Plan {
   id: number

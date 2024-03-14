@@ -1,44 +1,25 @@
 import { JSONSchemaType } from '@avito-speculant/config'
-import { DEFAULT_LOG_LEVEL } from '@avito-speculant/logger'
-import {
-  DEFAULT_REDIS_HOST,
-  DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE
-} from '@avito-speculant/redis'
-import {
-  DEFAULT_SCRAPER_CONCURRENCY,
-  DEFAULT_SCRAPER_LIMITER_MAX,
-  DEFAULT_SCRAPER_LIMITER_DURATION
-} from '@avito-speculant/queue'
 import { Config } from './worker-scraper.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
-  required: [
-    'LOG_LEVEL',
-    'REDIS_HOST',
-    'REDIS_PORT',
-    'REDIS_DATABASE',
-    'SCRAPER_CONCURRENCY',
-    'SCRAPER_LIMITER_MAX',
-    'SCRAPER_LIMITER_DURATION'
-  ],
+  required: [],
   properties: {
     LOG_LEVEL: {
       type: 'string',
-      default: DEFAULT_LOG_LEVEL
+      nullable: true
     },
     REDIS_HOST: {
       type: 'string',
-      default: DEFAULT_REDIS_HOST
+      nullable: true
     },
     REDIS_PORT: {
       type: 'number',
-      default: DEFAULT_REDIS_PORT
+      nullable: true
     },
     REDIS_DATABASE: {
       type: 'number',
-      default: DEFAULT_REDIS_DATABASE
+      nullable: true
     },
     REDIS_USERNAME: {
       type: 'string',
@@ -48,17 +29,37 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'string',
       nullable: true
     },
+    QUEUE_REDIS_HOST: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PORT: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_DATABASE: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_USERNAME: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PASSWORD: {
+      type: 'string',
+      nullable: true
+    },
     SCRAPER_CONCURRENCY: {
       type: 'number',
-      default: DEFAULT_SCRAPER_CONCURRENCY
+      nullable: true
     },
     SCRAPER_LIMITER_MAX: {
       type: 'number',
-      default: DEFAULT_SCRAPER_LIMITER_MAX
+      nullable: true
     },
     SCRAPER_LIMITER_DURATION: {
       type: 'number',
-      default: DEFAULT_SCRAPER_LIMITER_DURATION
+      nullable: true
     }
   }
 }

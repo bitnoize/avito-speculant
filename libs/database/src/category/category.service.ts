@@ -11,7 +11,7 @@ import {
   ConsumeCategoryRequest,
   ConsumeCategoryResponse
 } from './dto/index.js'
-import { DEFAULT_CATEGORY_LIST_ALL, DEFAULT_CATEGORY_QUEUE_LIMIT, Category } from './category.js'
+import { DEFAULT_CATEGORY_LIST_ALL, DEFAULT_CATEGORY_PRODUCE_LIMIT, Category } from './category.js'
 import { CategoryNotFoundError, CategoriesLimitExceedError } from './category.errors.js'
 import * as categoryRepository from './category.repository.js'
 import * as categoryLogRepository from '../category-log/category-log.repository.js'
@@ -214,7 +214,7 @@ export async function listCategories(
     const categoryRows = await categoryRepository.selectRowsList(
       trx,
       userRow.id,
-      (request.all ??= DEFAULT_CATEGORY_LIST_ALL)
+      request.all ?? DEFAULT_CATEGORY_LIST_ALL
     )
 
     return {
@@ -235,7 +235,7 @@ export async function produceCategories(
 
     const categoryRows = await categoryRepository.selectRowsSkipLockedForUpdate(
       trx,
-      (request.limit ??= DEFAULT_CATEGORY_QUEUE_LIMIT)
+      request.limit ?? DEFAULT_CATEGORY_PRODUCE_LIMIT
     )
 
     for (const categoryRow of categoryRows) {

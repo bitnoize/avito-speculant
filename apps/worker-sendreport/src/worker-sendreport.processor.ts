@@ -1,3 +1,4 @@
+import { Bot, GrammyError, HttpError } from 'grammy'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { redisService } from '@avito-speculant/redis'
@@ -13,6 +14,10 @@ const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
 
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
+
+  const bot = new Bot(config.BOT_TOKEN)
+
+  //await bot.api.sendMessage(12345, "Hi!")
 
   logger.info(`SendreportJob complete`)
 

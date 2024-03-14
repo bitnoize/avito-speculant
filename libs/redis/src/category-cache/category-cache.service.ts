@@ -20,9 +20,7 @@ export async function fetchCategoryCache(
 ): Promise<FetchCategoryCacheResponse> {
   const categoryCache = await categoryCacheRepository.fetchModel(redis, request.categoryId)
 
-  return {
-    categoryCache
-  }
+  return { categoryCache }
 }
 
 /*
@@ -35,9 +33,7 @@ export async function fetchUserCategoriesCache(
   const categoryIds = await categoryCacheRepository.fetchUserIndex(redis, request.userId)
   const categoriesCache = await categoryCacheRepository.fetchCollection(redis, categoryIds)
 
-  return {
-    categoriesCache
-  }
+  return { categoriesCache }
 }
 
 /*
@@ -50,9 +46,7 @@ export async function fetchScraperCategoriesCache(
   const categoryIds = await categoryCacheRepository.fetchScraperIndex(redis, request.scraperJobId)
   const categoriesCache = await categoryCacheRepository.fetchCollection(redis, categoryIds)
 
-  return {
-    categoriesCache
-  }
+  return { categoriesCache }
 }
 
 /*

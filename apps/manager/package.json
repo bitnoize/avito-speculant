@@ -2,7 +2,7 @@
   "name": "@avito-speculant/manager",
   "type": "module",
   "version": "0.0.8",
-  "description": "Avito-Speculant Manager application",
+  "description": "Avito-Speculant manager application",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

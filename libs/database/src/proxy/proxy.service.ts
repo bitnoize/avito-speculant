@@ -11,7 +11,7 @@ import {
   ConsumeProxyRequest,
   ConsumeProxyResponse
 } from './dto/index.js'
-import { DEFAULT_PROXY_LIST_ALL, DEFAULT_PROXY_QUEUE_LIMIT, Proxy } from './proxy.js'
+import { DEFAULT_PROXY_LIST_ALL, DEFAULT_PROXY_PRODUCE_LIMIT, Proxy } from './proxy.js'
 import { ProxyNotFoundError, ProxyAllreadyExistsError } from './proxy.errors.js'
 import * as proxyRepository from './proxy.repository.js'
 import * as proxyLogRepository from '../proxy-log/proxy-log.repository.js'
@@ -152,12 +152,11 @@ export async function listProxies(
   return await db.transaction().execute(async (trx) => {
     const proxyRows = await proxyRepository.selectRowsList(
       trx,
-      (request.all ??= DEFAULT_PROXY_LIST_ALL)
+      request.all ?? DEFAULT_PROXY_LIST_ALL
     )
 
     return {
-      proxies: proxyRepository.buildCollection(proxyRows),
-      all: request.all
+      proxies: proxyRepository.buildCollection(proxyRows)
     }
   })
 }
@@ -174,7 +173,7 @@ export async function produceProxies(
 
     const proxyRows = await proxyRepository.selectRowsSkipLockedForUpdate(
       trx,
-      (request.limit ??= DEFAULT_PROXY_QUEUE_LIMIT)
+      request.limit ?? DEFAULT_PROXY_PRODUCE_LIMIT
     )
 
     for (const proxyRow of proxyRows) {

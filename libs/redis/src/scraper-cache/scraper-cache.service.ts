@@ -19,9 +19,7 @@ export async function fetchScraperCache(
 ): Promise<FetchScraperCacheResponse> {
   const scraperCache = await scraperCacheRepository.fetchModel(redis, request.scraperJobId)
 
-  return {
-    scraperCache
-  }
+  return { scraperCache }
 }
 
 /*
@@ -39,9 +37,7 @@ export async function findScraperCache(
 
   const scraperCache = await scraperCacheRepository.fetchModel(redis, scraperJobId)
 
-  return {
-    scraperCache
-  }
+  return { scraperCache }
 }
 
 /*
@@ -51,9 +47,7 @@ export async function fetchScrapersCache(redis: Redis): Promise<FetchScrapersCac
   const scraperJobIds = await scraperCacheRepository.fetchIndex(redis)
   const scrapersCache = await scraperCacheRepository.fetchCollection(redis, scraperJobIds)
 
-  return {
-    scrapersCache
-  }
+  return { scrapersCache }
 }
 
 /*

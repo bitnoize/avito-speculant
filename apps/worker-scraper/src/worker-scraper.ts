@@ -1,5 +1,5 @@
 import { LoggerConfig } from '@avito-speculant/logger'
 import { RedisConfig } from '@avito-speculant/redis'
-import { ScraperConfig } from '@avito-speculant/queue'
+import { QueueConfig, ScraperConfig } from '@avito-speculant/queue'
 
-export type Config = LoggerConfig & RedisConfig & ScraperConfig
+export type Config = LoggerConfig & RedisConfig & QueueConfig & ScraperConfig

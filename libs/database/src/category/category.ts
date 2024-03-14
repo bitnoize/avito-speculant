@@ -1,5 +1,5 @@
 export const DEFAULT_CATEGORY_LIST_ALL = false
-export const DEFAULT_CATEGORY_QUEUE_LIMIT = 100
+export const DEFAULT_CATEGORY_PRODUCE_LIMIT = 10
 
 export interface Category {
   id: number

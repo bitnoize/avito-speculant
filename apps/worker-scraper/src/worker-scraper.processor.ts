@@ -22,8 +22,10 @@ const scraperProcessor: ScraperProcessor = async (scraperJob) => {
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
 
+  const { scraperJobId } = scraperJob.data
+
   const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
-    scraperJobId: scraperJob.data.scraperJobId
+    scraperJobId
   })
 
   const { proxyCache } = await proxyCacheService.randomProxyCacheOnline(redis)
@@ -34,16 +36,10 @@ const scraperProcessor: ScraperProcessor = async (scraperJob) => {
     return
   }
 
-  logger.info({ proxyCache }, `ProxyCahe random online`)
-
-  const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
-    scraperJobId: scraperCache.jobId
-  })
-
   const body = await scraperRequest(
     proxyCache.proxyUrl,
     scraperCache.avitoUrl,
-    10_000, // FIXME
+    10_000 // FIXME
   )
 
   if (body === undefined) {
@@ -54,12 +50,16 @@ const scraperProcessor: ScraperProcessor = async (scraperJob) => {
 
   parseResponse(body, 'body > script:nth-child(5)')
 
+  const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
+    scraperJobId: scraperCache.jobId
+  })
+
   for (const categoryCache of categoriesCache) {
     const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(redis, {
       userId: categoryCache.userId
     })
 
-    logger.info({ subscriptionCache }, `SubscriptionCache dump`)
+    // ...
   }
 
   logger.info(`ScraperJob complete`)
@@ -70,13 +70,12 @@ const scraperProcessor: ScraperProcessor = async (scraperJob) => {
 const scraperRequest = async (
   proxyUrl: string,
   avitoUrl: string,
-  timeout: number,
+  timeout: number
 ): Promise<Buffer | undefined> => {
   try {
     const { statusCode, body } = await gotScraping.get({
       proxyUrl,
       url: avitoUrl,
-      http2: false,
       headerGeneratorOptions: {
         browsers: ['firefox'],
         devices: ['desktop'],
@@ -87,7 +86,7 @@ const scraperRequest = async (
       followRedirect: false,
       timeout: {
         request: timeout
-      },
+      }
     })
 
     return statusCode === 200 ? body : undefined

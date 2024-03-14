@@ -2,7 +2,7 @@
   "name": "@avito-speculant/worker-proxycheck",
   "type": "module",
   "version": "0.0.2",
-  "description": "Avito-Speculant WorkerProxycheck application",
+  "description": "Avito-Speculant worker-proxycheck application",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

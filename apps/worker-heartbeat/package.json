@@ -2,7 +2,7 @@
   "name": "@avito-speculant/worker-heartbeat",
   "type": "module",
   "version": "0.0.8",
-  "description": "Avito-Speculant WorkerHeartbeat application",
+  "description": "Avito-Speculant worker-heartbeat application",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

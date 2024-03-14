@@ -23,9 +23,7 @@ export async function fetchSubscriptionCache(
     request.subscriptionId
   )
 
-  return {
-    subscriptionCache
-  }
+  return { subscriptionCache }
 }
 
 /*
@@ -38,9 +36,7 @@ export async function fetchUserSubscriptionCache(
   const subscriptionId = await subscriptionCacheRepository.fetchUserIndex(redis, request.userId)
   const subscriptionCache = await subscriptionCacheRepository.fetchModel(redis, subscriptionId)
 
-  return {
-    subscriptionCache
-  }
+  return { subscriptionCache }
 }
 
 /*
@@ -56,9 +52,7 @@ export async function fetchPlanSubscriptionsCache(
     subscriptionIds
   )
 
-  return {
-    subscriptionsCache
-  }
+  return { subscriptionsCache }
 }
 
 /*

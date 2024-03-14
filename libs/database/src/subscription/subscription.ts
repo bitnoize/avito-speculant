@@ -2,7 +2,7 @@ export const SUBSCRIPTION_STATUSES = ['wait', 'cancel', 'active', 'finish']
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number]
 
 export const DEFAULT_SUBSCRIPTION_LIST_ALL = false
-export const DEFAULT_SUBSCRIPTION_QUEUE_LIMIT = 100
+export const DEFAULT_SUBSCRIPTION_PRODUCE_LIMIT = 10
 
 export interface Subscription {
   id: number

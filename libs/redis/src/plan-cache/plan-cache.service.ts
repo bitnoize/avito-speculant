@@ -17,9 +17,7 @@ export async function fetchPlanCache(
 ): Promise<FetchPlanCacheResponse> {
   const planCache = await planCacheRepository.fetchModel(redis, request.planId)
 
-  return {
-    planCache
-  }
+  return { planCache }
 }
 
 /*
@@ -29,9 +27,7 @@ export async function fetchPlansCache(redis: Redis): Promise<FetchPlansCacheResp
   const planIds = await planCacheRepository.fetchIndex(redis)
   const plansCache = await planCacheRepository.fetchCollection(redis, planIds)
 
-  return {
-    plansCache
-  }
+  return { plansCache }
 }
 
 /*

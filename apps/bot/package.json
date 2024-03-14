@@ -2,7 +2,7 @@
   "name": "@avito-speculant/bot",
   "type": "module",
   "version": "0.0.3",
-  "description": "Avito-Speculant Bot application",
+  "description": "Avito-Speculant bot application",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
