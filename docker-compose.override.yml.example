@@ -23,7 +23,7 @@ services:
           cpus: "0.2"
           memory: 256Mb
 
-  worker-business:
+  worker-treatment:
     deploy:
       replicas: 2
       resources:

@@ -23,6 +23,11 @@ services:
       - REDIS_DATABASE
       - REDIS_USERNAME
       - REDIS_PASSWORD
+      - QUEUE_REDIS_HOST
+      - QUEUE_REDIS_PORT
+      - QUEUE_REDIS_DATABASE
+      - QUEUE_REDIS_USERNAME
+      - QUEUE_REDIS_PASSWORD
     networks:
       - avito-speculant-net
     extra_hosts:
@@ -76,25 +81,30 @@ services:
       - REDIS_DATABASE
       - REDIS_USERNAME
       - REDIS_PASSWORD
+      - QUEUE_REDIS_HOST
+      - QUEUE_REDIS_PORT
+      - QUEUE_REDIS_DATABASE
+      - QUEUE_REDIS_USERNAME
+      - QUEUE_REDIS_PASSWORD
       - HEARTBEAT_CONCURRENCY
       - HEARTBEAT_LIMITER_MAX
       - HEARTBEAT_LIMITER_DURATION
-      - HEARTBEAT_QUEUE_USERS_LIMIT
-      - HEARTBEAT_QUEUE_PLANS_LIMIT
-      - HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT
-      - HEARTBEAT_QUEUE_CATEGORIES_LIMIT
-      - HEARTBEAT_QUEUE_PROXIES_LIMIT
+      - HEARTBEAT_PRODUCE_USERS_LIMIT
+      - HEARTBEAT_PRODUCE_PLANS_LIMIT
+      - HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT
+      - HEARTBEAT_PRODUCE_CATEGORIES_LIMIT
+      - HEARTBEAT_PRODUCE_PROXIES_LIMIT
     networks:
       - avito-speculant-net
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
-  worker-business:
-    image: ghcr.io/bitnoize/avito-speculant-worker-business:latest
+  worker-treatment:
+    image: ghcr.io/bitnoize/avito-speculant-worker-treatment:latest
     build:
       context: .
-      dockerfile: ./apps/worker-business/Dockerfile
+      dockerfile: ./apps/worker-treatment/Dockerfile
     environment:
       - UID=54730
       - GID=54730
@@ -110,9 +120,14 @@ services:
       - REDIS_DATABASE
       - REDIS_USERNAME
       - REDIS_PASSWORD
-      - BUSINESS_CONCURRENCY
-      - BUSINESS_LIMITER_MAX
-      - BUSINESS_LIMITER_DURATION
+      - QUEUE_REDIS_HOST
+      - QUEUE_REDIS_PORT
+      - QUEUE_REDIS_DATABASE
+      - QUEUE_REDIS_USERNAME
+      - QUEUE_REDIS_PASSWORD
+      - TREATMENT_CONCURRENCY
+      - TREATMENT_LIMITER_MAX
+      - TREATMENT_LIMITER_DURATION
     networks:
       - avito-speculant-net
     extra_hosts:
@@ -134,6 +149,11 @@ services:
       - REDIS_DATABASE
       - REDIS_USERNAME
       - REDIS_PASSWORD
+      - QUEUE_REDIS_HOST
+      - QUEUE_REDIS_PORT
+      - QUEUE_REDIS_DATABASE
+      - QUEUE_REDIS_USERNAME
+      - QUEUE_REDIS_PASSWORD
       - SCRAPER_CONCURRENCY
       - SCRAPER_LIMITER_MAX
       - SCRAPER_LIMITER_DURATION
@@ -158,9 +178,16 @@ services:
       - REDIS_DATABASE
       - REDIS_USERNAME
       - REDIS_PASSWORD
+      - QUEUE_REDIS_HOST
+      - QUEUE_REDIS_PORT
+      - QUEUE_REDIS_DATABASE
+      - QUEUE_REDIS_USERNAME
+      - QUEUE_REDIS_PASSWORD
       - PROXYCHECK_CONCURRENCY
       - PROXYCHECK_LIMITER_MAX
       - PROXYCHECK_LIMITER_DURATION
+      - PROXYCHECK_CHECK_URL
+      - PROXYCHECK_CHECK_TIMEOUT
     networks:
       - avito-speculant-net
     extra_hosts:
@@ -182,6 +209,11 @@ services:
       - REDIS_DATABASE
       - REDIS_USERNAME
       - REDIS_PASSWORD
+      - QUEUE_REDIS_HOST
+      - QUEUE_REDIS_PORT
+      - QUEUE_REDIS_DATABASE
+      - QUEUE_REDIS_USERNAME
+      - QUEUE_REDIS_PASSWORD
       - SENDREPORT_CONCURRENCY
       - SENDREPORT_LIMITER_MAX
       - SENDREPORT_LIMITER_DURATION
