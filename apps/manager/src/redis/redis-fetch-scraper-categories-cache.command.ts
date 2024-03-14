@@ -21,7 +21,7 @@ export default (config: Config, logger: Logger) => {
         scraperJobId
       })
 
-      logger.info({ categoriesCache, scraperJobId }, `CategoriesCache successfully fetched`)
+      logger.info({ categoriesCache }, `CategoriesCache successfully fetched`)
 
       await redisService.closeRedis(redis)
     }

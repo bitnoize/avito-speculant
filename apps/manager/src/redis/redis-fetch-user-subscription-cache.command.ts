@@ -24,7 +24,7 @@ export default (config: Config, logger: Logger) => {
         }
       )
 
-      logger.info({ subscriptionCache, userId }, `SubscriptionCache successfully fetched`)
+      logger.info({ subscriptionCache }, `SubscriptionCache successfully fetched`)
 
       await redisService.closeRedis(redis)
     }

@@ -2,7 +2,7 @@ import { command, option, number } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { databaseService, planService } from '@avito-speculant/database'
 import { redisService } from '@avito-speculant/redis'
-import { queueService, businessService } from '@avito-speculant/queue'
+import { queueService, treatmentService } from '@avito-speculant/queue'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
@@ -39,7 +39,7 @@ export default (config: Config, logger: Logger) => {
       const pubSub = redisService.initPubSub(redisOptions, logger)
 
       const queueConnection = queueService.getQueueConnection<Config>(config)
-      const businessQueue = businessService.initQueue(queueConnection, logger)
+      const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
       const { plan, backLog } = await planService.createPlan(db, {
         categoriesMax,
@@ -54,11 +54,11 @@ export default (config: Config, logger: Logger) => {
 
       await redisService.publishBackLog(pubSub, backLog)
 
-      await businessService.addJob(businessQueue, 'plan', plan.id)
+      await treatmentService.addJob(treatmentQueue, 'plan', plan.id)
 
       logger.info({ plan, backLog }, `Plan successfully created`)
 
-      await businessService.closeQueue(businessQueue)
+      await treatmentService.closeQueue(treatmentQueue)
       await redisService.closePubSub(pubSub)
       await databaseService.closeDatabase(db)
     }
