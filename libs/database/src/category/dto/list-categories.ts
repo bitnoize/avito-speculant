@@ -7,5 +7,4 @@ export interface ListCategoriesRequest {
 
 export interface ListCategoriesResponse {
   categories: Category[]
-  all: boolean
 }

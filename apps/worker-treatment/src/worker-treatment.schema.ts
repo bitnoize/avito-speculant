@@ -1,11 +1,9 @@
 import { JSONSchemaType } from '@avito-speculant/config'
-import { Config } from './bot.js'
+import { Config } from './worker-treatment.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
-  required: [
-    'BOT_TOKEN'
-  ],
+  required: [],
   properties: {
     LOG_LEVEL: {
       type: 'string',
@@ -51,8 +49,37 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'string',
       nullable: true
     },
-    BOT_TOKEN: {
-      type: 'string'
+    QUEUE_REDIS_HOST: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PORT: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_DATABASE: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_USERNAME: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PASSWORD: {
+      type: 'string',
+      nullable: true
+    },
+    TREATMENT_CONCURRENCY: {
+      type: 'number',
+      nullable: true
+    },
+    TREATMENT_LIMITER_MAX: {
+      type: 'number',
+      nullable: true
+    },
+    TREATMENT_LIMITER_DURATION: {
+      type: 'number',
+      nullable: true
     }
   }
 }

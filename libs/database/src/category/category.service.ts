@@ -6,10 +6,10 @@ import {
   EnableDisableCategoryResponse,
   ListCategoriesRequest,
   ListCategoriesResponse,
-  QueueCategoriesRequest,
-  QueueCategoriesResponse,
-  BusinessCategoryRequest,
-  BusinessCategoryResponse
+  ProduceCategoriesRequest,
+  ProduceCategoriesResponse,
+  ConsumeCategoryRequest,
+  ConsumeCategoryResponse
 } from './dto/index.js'
 import { DEFAULT_CATEGORY_LIST_ALL, DEFAULT_CATEGORY_QUEUE_LIMIT, Category } from './category.js'
 import { CategoryNotFoundError, CategoriesLimitExceedError } from './category.errors.js'
@@ -218,19 +218,18 @@ export async function listCategories(
     )
 
     return {
-      categories: categoryRepository.buildCollection(categoryRows),
-      all: request.all
+      categories: categoryRepository.buildCollection(categoryRows)
     }
   })
 }
 
 /**
- * Queue Categories
+ * Produce Categories
  */
-export async function queueCategories(
+export async function produceCategories(
   db: KyselyDatabase,
-  request: QueueCategoriesRequest
-): Promise<QueueCategoriesResponse> {
+  request: ProduceCategoriesRequest
+): Promise<ProduceCategoriesResponse> {
   return await db.transaction().execute(async (trx) => {
     const categories: Category[] = []
 
@@ -240,25 +239,22 @@ export async function queueCategories(
     )
 
     for (const categoryRow of categoryRows) {
-      const updatedCategoryRow = await categoryRepository.updateRowQueuedAt(trx, categoryRow.id)
+      const updatedCategoryRow = await categoryRepository.updateRowProduce(trx, categoryRow.id)
 
       categories.push(categoryRepository.buildModel(updatedCategoryRow))
     }
 
-    return {
-      categories,
-      limit: request.limit
-    }
+    return { categories }
   })
 }
 
 /**
- * Business Category
+ * Consume Category
  */
-export async function businessCategory(
+export async function consumeCategory(
   db: KyselyDatabase,
-  request: BusinessCategoryRequest
-): Promise<BusinessCategoryResponse> {
+  request: ConsumeCategoryRequest
+): Promise<ConsumeCategoryResponse> {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false
@@ -266,13 +262,13 @@ export async function businessCategory(
     const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
-      throw new CategoryNotFoundError<BusinessCategoryRequest>(request)
+      throw new CategoryNotFoundError<ConsumeCategoryRequest>(request)
     }
 
     const userRow = await userRepository.selectRowByIdForShare(trx, categoryRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<BusinessCategoryRequest>(request, 500)
+      throw new UserNotFoundError<ConsumeCategoryRequest>(request, 500)
     }
 
     const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
@@ -292,7 +288,7 @@ export async function businessCategory(
     }
 
     if (isChanged) {
-      const updatedCategoryRow = await categoryRepository.updateRowBusiness(
+      const updatedCategoryRow = await categoryRepository.updateRowConsume(
         trx,
         categoryRow.id,
         categoryRow.is_enabled
@@ -301,7 +297,7 @@ export async function businessCategory(
       const categoryLogRow = await categoryLogRepository.insertRow(
         trx,
         updatedCategoryRow.id,
-        'business_category',
+        'consume_category',
         updatedCategoryRow.avito_url,
         updatedCategoryRow.is_enabled,
         request.data

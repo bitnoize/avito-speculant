@@ -1,15 +1,15 @@
 import { Queue, Job, Worker, Processor } from 'bullmq'
 
-export const SCRAPER_QUEUE_NAME = `scraper`
-
 export const DEFAULT_SCRAPER_CONCURRENCY = 10
 export const DEFAULT_SCRAPER_LIMITER_MAX = 10
 export const DEFAULT_SCRAPER_LIMITER_DURATION = 1_000
 
+export const SCRAPER_QUEUE_NAME = `scraper`
+
 export type ScraperConfig = {
-  SCRAPER_CONCURRENCY: number
-  SCRAPER_LIMITER_MAX: number
-  SCRAPER_LIMITER_DURATION: number
+  SCRAPER_CONCURRENCY?: number
+  SCRAPER_LIMITER_MAX?: number
+  SCRAPER_LIMITER_DURATION?: number
 }
 
 export type ScraperData = {

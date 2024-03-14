@@ -14,7 +14,7 @@
     "apps/manager",
     "apps/bot",
     "apps/worker-heartbeat",
-    "apps/worker-business",
+    "apps/worker-treatment",
     "apps/worker-proxycheck",
     "apps/worker-scraper",
     "apps/worker-sendreport"

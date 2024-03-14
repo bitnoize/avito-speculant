@@ -1,64 +1,25 @@
 import { JSONSchemaType } from '@avito-speculant/config'
-import { DEFAULT_LOG_LEVEL } from '@avito-speculant/logger'
-import {
-  DEFAULT_POSTGRES_HOST,
-  DEFAULT_POSTGRES_PORT,
-  DEFAULT_POSTGRES_DATABASE
-} from '@avito-speculant/database'
-import {
-  DEFAULT_REDIS_HOST,
-  DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE
-} from '@avito-speculant/redis'
-import {
-  DEFAULT_HEARTBEAT_CONCURRENCY,
-  DEFAULT_HEARTBEAT_LIMITER_MAX,
-  DEFAULT_HEARTBEAT_LIMITER_DURATION
-} from '@avito-speculant/queue'
-import {
-  DEFAULT_HEARTBEAT_QUEUE_USERS_LIMIT,
-  DEFAULT_HEARTBEAT_QUEUE_PLANS_LIMIT,
-  DEFAULT_HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT,
-  DEFAULT_HEARTBEAT_QUEUE_CATEGORIES_LIMIT,
-  DEFAULT_HEARTBEAT_QUEUE_PROXIES_LIMIT,
-  Config
-} from './worker-heartbeat.js'
+import { Config } from './worker-heartbeat.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
-  required: [
-    'LOG_LEVEL',
-    'REDIS_HOST',
-    'REDIS_PORT',
-    'REDIS_DATABASE',
-    'POSTGRES_HOST',
-    'POSTGRES_PORT',
-    'POSTGRES_DATABASE',
-    'HEARTBEAT_CONCURRENCY',
-    'HEARTBEAT_LIMITER_MAX',
-    'HEARTBEAT_LIMITER_DURATION',
-    'HEARTBEAT_QUEUE_USERS_LIMIT',
-    'HEARTBEAT_QUEUE_PLANS_LIMIT',
-    'HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT',
-    'HEARTBEAT_QUEUE_CATEGORIES_LIMIT',
-    'HEARTBEAT_QUEUE_PROXIES_LIMIT'
-  ],
+  required: [],
   properties: {
     LOG_LEVEL: {
       type: 'string',
-      default: DEFAULT_LOG_LEVEL
+      nullable: true
     },
     POSTGRES_HOST: {
       type: 'string',
-      default: DEFAULT_POSTGRES_HOST
+      nullable: true
     },
     POSTGRES_PORT: {
       type: 'number',
-      default: DEFAULT_POSTGRES_PORT
+      nullable: true
     },
     POSTGRES_DATABASE: {
       type: 'string',
-      default: DEFAULT_POSTGRES_DATABASE
+      nullable: true
     },
     POSTGRES_USERNAME: {
       type: 'string',
@@ -70,15 +31,15 @@ export const configSchema: JSONSchemaType<Config> = {
     },
     REDIS_HOST: {
       type: 'string',
-      default: DEFAULT_REDIS_HOST
+      nullable: true
     },
     REDIS_PORT: {
       type: 'number',
-      default: DEFAULT_REDIS_PORT
+      nullable: true
     },
     REDIS_DATABASE: {
       type: 'number',
-      default: DEFAULT_REDIS_DATABASE
+      nullable: true
     },
     REDIS_USERNAME: {
       type: 'string',
@@ -88,37 +49,57 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'string',
       nullable: true
     },
+    QUEUE_REDIS_HOST: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PORT: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_DATABASE: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_USERNAME: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PASSWORD: {
+      type: 'string',
+      nullable: true
+    },
     HEARTBEAT_CONCURRENCY: {
       type: 'number',
-      default: DEFAULT_HEARTBEAT_CONCURRENCY
+      nullable: true
     },
     HEARTBEAT_LIMITER_MAX: {
       type: 'number',
-      default: DEFAULT_HEARTBEAT_LIMITER_MAX
+      nullable: true
     },
     HEARTBEAT_LIMITER_DURATION: {
       type: 'number',
-      default: DEFAULT_HEARTBEAT_LIMITER_DURATION
+      nullable: true
     },
     HEARTBEAT_QUEUE_USERS_LIMIT: {
       type: 'number',
-      default: DEFAULT_HEARTBEAT_QUEUE_USERS_LIMIT
+      nullable: true
     },
     HEARTBEAT_QUEUE_PLANS_LIMIT: {
       type: 'number',
-      default: DEFAULT_HEARTBEAT_QUEUE_PLANS_LIMIT
+      nullable: true
     },
     HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT: {
       type: 'number',
-      default: DEFAULT_HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT
+      nullable: true
     },
     HEARTBEAT_QUEUE_CATEGORIES_LIMIT: {
       type: 'number',
-      default: DEFAULT_HEARTBEAT_QUEUE_CATEGORIES_LIMIT
+      nullable: true
     },
     HEARTBEAT_QUEUE_PROXIES_LIMIT: {
       type: 'number',
-      default: DEFAULT_HEARTBEAT_QUEUE_PROXIES_LIMIT
+      nullable: true
     }
   }
 }

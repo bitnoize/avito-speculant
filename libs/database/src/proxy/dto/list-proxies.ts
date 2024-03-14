@@ -6,5 +6,4 @@ export interface ListProxiesRequest {
 
 export interface ListProxiesResponse {
   proxies: Proxy[]
-  all: boolean
 }

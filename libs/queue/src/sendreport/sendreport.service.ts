@@ -2,6 +2,9 @@ import { Logger } from '@avito-speculant/logger'
 import { ConnectionOptions, RateLimiterOptions, Queue, Worker, MetricsTime } from 'bullmq'
 import {
   SENDREPORT_QUEUE_NAME,
+  DEFAULT_SENDREPORT_CONCURRENCY,
+  DEFAULT_SENDREPORT_LIMITER_MAX,
+  DEFAULT_SENDREPORT_LIMITER_DURATION,
   SendreportConfig,
   SendreportData,
   SendreportQueue,
@@ -48,7 +51,7 @@ export async function closeQueue(queue: SendreportQueue): Promise<void> {
  * Get Worker concurrency from config
  */
 export function getWorkerConcurrency<T extends SendreportConfig>(config: T): number {
-  return config.SENDREPORT_CONCURRENCY
+  return config.SENDREPORT_CONCURRENCY ?? DEFAULT_SENDREPORT_CONCURRENCY
 }
 
 /**
@@ -56,8 +59,8 @@ export function getWorkerConcurrency<T extends SendreportConfig>(config: T): num
  */
 export function getWorkerLimiter<T extends SendreportConfig>(config: T): RateLimiterOptions {
   return {
-    max: config.SENDREPORT_LIMITER_MAX,
-    duration: config.SENDREPORT_LIMITER_DURATION
+    max: config.SENDREPORT_LIMITER_MAX ?? DEFAULT_SENDREPORT_LIMITER_MAX,
+    duration: config.SENDREPORT_LIMITER_DURATION ?? DEFAULT_SENDREPORT_LIMITER_DURATION
   }
 }
 

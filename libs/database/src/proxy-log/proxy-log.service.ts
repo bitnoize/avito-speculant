@@ -1,9 +1,8 @@
 import { ListProxyLogsRequest, ListProxyLogsResponse } from './dto/index.js'
-import { DEFAULT_PROXY_LOG_LIST_LIMIT } from './proxy-log.js'
 import { ProxyNotFoundError } from '../proxy/proxy.errors.js'
 import * as proxyLogRepository from './proxy-log.repository.js'
 import * as proxyRepository from '../proxy/proxy.repository.js'
-import { KyselyDatabase } from '../database.js'
+import { DEFAULT_LIST_LIMIT, KyselyDatabase } from '../database.js'
 
 /*
  * List ProxyLogs
@@ -22,12 +21,11 @@ export async function listProxyLogs(
     const proxyLogRows = await proxyLogRepository.selectRowsList(
       trx,
       proxyRow.id,
-      (request.limit ??= DEFAULT_PROXY_LOG_LIST_LIMIT)
+      request.limit ?? DEFAULT_LIST_LIMIT
     )
 
     return {
-      proxyLogs: proxyLogRepository.buildCollection(proxyLogRows),
-      limit: request.limit
+      proxyLogs: proxyLogRepository.buildCollection(proxyLogRows)
     }
   })
 }

@@ -122,7 +122,7 @@ export async function selectRowsSkipLockedForUpdate(
     .execute()
 }
 
-export async function updateRowQueuedAt(
+export async function updateRowProduce(
   trx: TransactionDatabase,
   category_id: number
 ): Promise<CategoryRow> {
@@ -136,7 +136,7 @@ export async function updateRowQueuedAt(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowBusiness(
+export async function updateRowConsume(
   trx: TransactionDatabase,
   category_id: number,
   is_enabled: boolean

@@ -1,17 +1,22 @@
-import { ConnectionOptions, QueueBaseOptions, FlowProducer, QueueEvents } from 'bullmq'
+import { ConnectionOptions, FlowProducer, QueueEvents } from 'bullmq'
 import { Logger } from '@avito-speculant/logger'
-import { QueueConfig } from './queue.js'
+import {
+  DEFAULT_QUEUE_REDIS_HOST,
+  DEFAULT_QUEUE_REDIS_PORT,
+  DEFAULT_QUEUE_REDIS_DATABASE,
+  QueueConfig
+} from './queue.js'
 
 /**
  * Get QueueConnection from config
  */
 export function getQueueConnection<T extends QueueConfig>(config: T): ConnectionOptions {
   const connection: ConnectionOptions = {
-    host: config.REDIS_HOST,
-    port: config.REDIS_PORT,
-    db: config.REDIS_DATABASE,
-    username: config.REDIS_USERNAME,
-    password: config.REDIS_PASSWORD
+    host: config.QUEUE_REDIS_HOST ?? DEFAULT_QUEUE_REDIS_HOST,
+    port: config.QUEUE_REDIS_PORT ?? DEFAULT_QUEUE_REDIS_PORT,
+    db: config.QUEUE_REDIS_DATABASE ?? DEFAULT_QUEUE_REDIS_DATABASE,
+    username: config.QUEUE_REDIS_USERNAME,
+    password: config.QUEUE_REDIS_PASSWORD
   }
 
   return connection
@@ -21,11 +26,9 @@ export function getQueueConnection<T extends QueueConfig>(config: T): Connection
  * Initialize FlowProducer
  */
 export function initFlowProducer(connection: ConnectionOptions, logger: Logger): FlowProducer {
-  const queueOptions: QueueBaseOptions = {
+  const flowProducer = new FlowProducer({
     connection
-  }
-
-  const flowProducer = new FlowProducer(queueOptions)
+  })
 
   flowProducer.on('error', (error) => {
     logger.error(error, `There was an error in the FlowProducer`)

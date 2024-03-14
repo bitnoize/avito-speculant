@@ -21,7 +21,7 @@ COPY libs/database/package*.json libs/database/tsconfig*.json libs/database/
 COPY libs/redis/package*.json libs/redis/tsconfig*.json libs/redis/
 COPY libs/queue/package*.json libs/queue/tsconfig*.json libs/queue/
 
-COPY apps/worker-business/package*.json apps/worker-business/tsconfig*.json apps/worker-business/
+COPY apps/worker-treatment/package*.json apps/worker-treatment/tsconfig*.json apps/worker-treatment/
 
 RUN npm install
 
@@ -32,7 +32,7 @@ COPY libs/database/ libs/database/
 COPY libs/redis/ libs/redis/
 COPY libs/queue/ libs/queue/
 
-COPY apps/worker-business/ apps/worker-business/
+COPY apps/worker-treatment/ apps/worker-treatment/
 
 RUN npm run -w @avito-speculant/config build
 RUN npm run -w @avito-speculant/logger build
@@ -41,9 +41,9 @@ RUN npm run -w @avito-speculant/database build
 RUN npm run -w @avito-speculant/redis build
 RUN npm run -w @avito-speculant/queue build
 
-RUN npm run -w @avito-speculant/worker-business build
+RUN npm run -w @avito-speculant/worker-treatment build
 
 COPY docker-entrypoint/ /lib/entrypoint/
 
-CMD ["npm", "-w", "@avito-speculant/worker-business", "run", "start"]
+CMD ["npm", "-w", "@avito-speculant/worker-treatment", "run", "start"]
 

@@ -7,5 +7,4 @@ export interface ListPlanLogsRequest {
 
 export interface ListPlanLogsResponse {
   planLogs: PlanLog[]
-  limit: number
 }

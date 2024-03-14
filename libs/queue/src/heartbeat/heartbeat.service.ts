@@ -2,6 +2,9 @@ import { Logger } from '@avito-speculant/logger'
 import { ConnectionOptions, RateLimiterOptions, Queue, Worker, MetricsTime } from 'bullmq'
 import {
   HEARTBEAT_QUEUE_NAME,
+  DEFAULT_HEARTBEAT_CONCURRENCY,
+  DEFAULT_HEARTBEAT_LIMITER_MAX,
+  DEFAULT_HEARTBEAT_LIMITER_DURATION,
   HeartbeatConfig,
   HeartbeatData,
   HeartbeatQueue,
@@ -57,7 +60,7 @@ export async function closeQueue(queue: HeartbeatQueue): Promise<void> {
  * Get Worker concurrency from config
  */
 export function getWorkerConcurrency<T extends HeartbeatConfig>(config: T): number {
-  return config.HEARTBEAT_CONCURRENCY
+  return config.HEARTBEAT_CONCURRENCY ?? DEFAULT_HEARTBEAT_CONCURRENCY
 }
 
 /**
@@ -65,8 +68,8 @@ export function getWorkerConcurrency<T extends HeartbeatConfig>(config: T): numb
  */
 export function getWorkerLimiter<T extends HeartbeatConfig>(config: T): RateLimiterOptions {
   return {
-    max: config.HEARTBEAT_LIMITER_MAX,
-    duration: config.HEARTBEAT_LIMITER_DURATION
+    max: config.HEARTBEAT_LIMITER_MAX ?? DEFAULT_HEARTBEAT_LIMITER_MAX,
+    duration: config.HEARTBEAT_LIMITER_DURATION ?? DEFAULT_HEARTBEAT_LIMITER_DURATION
   }
 }
 

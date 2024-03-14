@@ -1,5 +1,3 @@
-export const DEFAULT_PLAN_LOG_LIST_LIMIT = 100
-
 export type PlanLogData = Record<string, unknown>
 
 export interface PlanLog {

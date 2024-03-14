@@ -7,5 +7,4 @@ export interface ListProxyLogsRequest {
 
 export interface ListProxyLogsResponse {
   proxyLogs: ProxyLog[]
-  limit: number
 }

@@ -11,7 +11,7 @@
 
 * queueService - Общий сервис для всех очередей
 * heartbeatService
-* businessService
+* treatmentService
 * proxycheckService
 * scraperService
 

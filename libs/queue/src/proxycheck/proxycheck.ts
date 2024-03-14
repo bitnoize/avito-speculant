@@ -7,9 +7,9 @@ export const DEFAULT_PROXYCHECK_LIMITER_MAX = 2
 export const DEFAULT_PROXYCHECK_LIMITER_DURATION = 1_000
 
 export type ProxycheckConfig = {
-  PROXYCHECK_CONCURRENCY: number
-  PROXYCHECK_LIMITER_MAX: number
-  PROXYCHECK_LIMITER_DURATION: number
+  PROXYCHECK_CONCURRENCY?: number
+  PROXYCHECK_LIMITER_MAX?: number
+  PROXYCHECK_LIMITER_DURATION?: number
 }
 
 export type ProxycheckData = {

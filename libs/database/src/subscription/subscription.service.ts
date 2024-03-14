@@ -8,10 +8,10 @@ import {
   CancelSubscriptionResponse,
   ListSubscriptionsRequest,
   ListSubscriptionsResponse,
-  QueueSubscriptionsRequest,
-  QueueSubscriptionsResponse,
-  BusinessSubscriptionRequest,
-  BusinessSubscriptionResponse
+  ProduceSubscriptionsRequest,
+  ProduceSubscriptionsResponse,
+  ConsumeSubscriptionRequest,
+  ConsumeSubscriptionResponse
 } from './dto/index.js'
 import {
   DEFAULT_SUBSCRIPTION_LIST_ALL,
@@ -275,19 +275,18 @@ export async function listSubscriptions(
     )
 
     return {
-      subscriptions: subscriptionRepository.buildCollection(subscriptionRows),
-      all: request.all
+      subscriptions: subscriptionRepository.buildCollection(subscriptionRows)
     }
   })
 }
 
 /**
- * Queue Subscriptions
+ * Produce Subscriptions
  */
-export async function queueSubscriptions(
+export async function produceSubscriptions(
   db: KyselyDatabase,
-  request: QueueSubscriptionsRequest
-): Promise<QueueSubscriptionsResponse> {
+  request: ProduceSubscriptionsRequest
+): Promise<ProduceSubscriptionsResponse> {
   return await db.transaction().execute(async (trx) => {
     const subscriptions: Subscription[] = []
 
@@ -297,7 +296,7 @@ export async function queueSubscriptions(
     )
 
     for (const subscriptionRow of subscriptionRows) {
-      const updatedSubscriptionRow = await subscriptionRepository.updateRowQueuedAt(
+      const updatedSubscriptionRow = await subscriptionRepository.updateRowProduce(
         trx,
         subscriptionRow.id
       )
@@ -305,20 +304,17 @@ export async function queueSubscriptions(
       subscriptions.push(subscriptionRepository.buildModel(updatedSubscriptionRow))
     }
 
-    return {
-      subscriptions,
-      limit: request.limit
-    }
+    return { subscriptions }
   })
 }
 
 /**
- * Business Subscription
+ * Consume Subscription
  */
-export async function businessSubscription(
+export async function consumeSubscription(
   db: KyselyDatabase,
-  request: BusinessSubscriptionRequest
-): Promise<BusinessSubscriptionResponse> {
+  request: ConsumeSubscriptionRequest
+): Promise<ConsumeSubscriptionResponse> {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false
@@ -329,19 +325,19 @@ export async function businessSubscription(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError<BusinessSubscriptionRequest>(request)
+      throw new SubscriptionNotFoundError<ConsumeSubscriptionRequest>(request)
     }
 
     const userRow = await userRepository.selectRowByIdForShare(trx, subscriptionRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<BusinessSubscriptionRequest>(request, 500)
+      throw new UserNotFoundError<ConsumeSubscriptionRequest>(request, 500)
     }
 
     const planRow = await planRepository.selectRowByIdForShare(trx, subscriptionRow.plan_id)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError<BusinessSubscriptionRequest>(request, 500)
+      throw new PlanNotFoundError<ConsumeSubscriptionRequest>(request, 500)
     }
 
     if (subscriptionRow.status === 'wait') {
@@ -367,7 +363,7 @@ export async function businessSubscription(
       }
     }
 
-    const updatedSubscriptionRow = await subscriptionRepository.updateRowBusiness(
+    const updatedSubscriptionRow = await subscriptionRepository.updateRowConsume(
       trx,
       subscriptionRow.id,
       subscriptionRow.status
@@ -376,7 +372,7 @@ export async function businessSubscription(
     const subscriptionLogRow = await subscriptionLogRepository.insertRow(
       trx,
       updatedSubscriptionRow.id,
-      'business_subscription',
+      'consume_subscription',
       updatedSubscriptionRow.status,
       request.data
     )

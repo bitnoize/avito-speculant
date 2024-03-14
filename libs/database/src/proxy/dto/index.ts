@@ -1,5 +1,5 @@
 export * from './create-proxy.js'
 export * from './enable-disable-proxy.js'
 export * from './list-proxies.js'
-export * from './queue-proxies.js'
-export * from './business-proxy.js'
+export * from './produce-proxies.js'
+export * from './consume-proxy.js'

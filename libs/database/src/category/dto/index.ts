@@ -1,5 +1,5 @@
 export * from './create-category.js'
 export * from './enable-disable-category.js'
 export * from './list-categories.js'
-export * from './queue-categories.js'
-export * from './business-category.js'
+export * from './produce-categories.js'
+export * from './consume-category.js'

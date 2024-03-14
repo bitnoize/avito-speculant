@@ -1,44 +1,25 @@
 import { JSONSchemaType } from '@avito-speculant/config'
-import { DEFAULT_LOG_LEVEL } from '@avito-speculant/logger'
-import {
-  DEFAULT_POSTGRES_HOST,
-  DEFAULT_POSTGRES_PORT,
-  DEFAULT_POSTGRES_DATABASE
-} from '@avito-speculant/database'
-import {
-  DEFAULT_REDIS_HOST,
-  DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE
-} from '@avito-speculant/redis'
 import { Config } from './manager.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
-  required: [
-    'LOG_LEVEL',
-    'REDIS_HOST',
-    'REDIS_PORT',
-    'REDIS_DATABASE',
-    'POSTGRES_HOST',
-    'POSTGRES_PORT',
-    'POSTGRES_DATABASE'
-  ],
+  required: [],
   properties: {
     LOG_LEVEL: {
       type: 'string',
-      default: DEFAULT_LOG_LEVEL
+      nullable: true
     },
     POSTGRES_HOST: {
       type: 'string',
-      default: DEFAULT_POSTGRES_HOST
+      nullable: true
     },
     POSTGRES_PORT: {
       type: 'number',
-      default: DEFAULT_POSTGRES_PORT
+      nullable: true
     },
     POSTGRES_DATABASE: {
       type: 'string',
-      default: DEFAULT_POSTGRES_DATABASE
+      nullable: true
     },
     POSTGRES_USERNAME: {
       type: 'string',
@@ -50,21 +31,41 @@ export const configSchema: JSONSchemaType<Config> = {
     },
     REDIS_HOST: {
       type: 'string',
-      default: DEFAULT_REDIS_HOST
+      nullable: true
     },
     REDIS_PORT: {
       type: 'number',
-      default: DEFAULT_REDIS_PORT
+      nullable: true
     },
     REDIS_DATABASE: {
       type: 'number',
-      default: DEFAULT_REDIS_DATABASE
+      nullable: true
     },
     REDIS_USERNAME: {
       type: 'string',
       nullable: true
     },
     REDIS_PASSWORD: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_HOST: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PORT: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_DATABASE: {
+      type: 'number',
+      nullable: true
+    },
+    QUEUE_REDIS_USERNAME: {
+      type: 'string',
+      nullable: true
+    },
+    QUEUE_REDIS_PASSWORD: {
       type: 'string',
       nullable: true
     },

@@ -14,10 +14,12 @@ export const DEFAULT_POSTGRES_HOST = 'localhost'
 export const DEFAULT_POSTGRES_PORT = 5432
 export const DEFAULT_POSTGRES_DATABASE = 'avito_speculant'
 
+export const DEFAULT_LIST_LIMIT = 100
+
 export type DatabaseConfig = {
-  POSTGRES_HOST: string
-  POSTGRES_PORT: number
-  POSTGRES_DATABASE: string
+  POSTGRES_HOST?: string
+  POSTGRES_PORT?: number
+  POSTGRES_DATABASE?: string
   POSTGRES_USERNAME?: string
   POSTGRES_PASSWORD?: string
 }

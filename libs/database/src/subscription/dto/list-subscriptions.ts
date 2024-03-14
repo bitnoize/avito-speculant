@@ -7,5 +7,4 @@ export interface ListSubscriptionsRequest {
 
 export interface ListSubscriptionsResponse {
   subscriptions: Subscription[]
-  all: boolean
 }

@@ -18,7 +18,7 @@ import {
 import {
   HeartbeatProcessor,
   queueService,
-  businessService,
+  treatmentService,
   scraperService
 } from '@avito-speculant/queue'
 import { Config } from './worker-heartbeat.js'
@@ -37,10 +37,10 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
   const redis = redisService.initRedis(redisOptions, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
-  const businessQueue = businessService.initQueue(queueConnection, logger)
+  const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
   const scraperQueue = scraperService.initQueue(queueConnection, logger)
 
-  let step = heartbeatJob.data.step
+  let { step } = heartbeatJob.data
 
   const counters = {
     users: 0,
@@ -59,12 +59,12 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-users
         //
 
-        const { users } = await userService.queueUsers(db, {
+        const { users } = await userService.produceUsers(db, {
           limit: config.HEARTBEAT_QUEUE_USERS_LIMIT
         })
 
-        await businessService.addJobs(
-          businessQueue,
+        await treatmentService.addJobs(
+          treatmentQueue,
           'user',
           users.map((user) => user.id)
         )
@@ -84,12 +84,12 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-plans
         //
 
-        const { plans } = await planService.queuePlans(db, {
+        const { plans } = await planService.producePlans(db, {
           limit: config.HEARTBEAT_QUEUE_PLANS_LIMIT
         })
 
-        await businessService.addJobs(
-          businessQueue,
+        await treatmentService.addJobs(
+          treatmentQueue,
           'plan',
           plans.map((plan) => plan.id)
         )
@@ -109,12 +109,12 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-subscriptions
         //
 
-        const { subscriptions } = await subscriptionService.queueSubscriptions(db, {
+        const { subscriptions } = await subscriptionService.produceSubscriptions(db, {
           limit: config.HEARTBEAT_QUEUE_SUBSCRIPTIONS_LIMIT
         })
 
-        await businessService.addJobs(
-          businessQueue,
+        await treatmentService.addJobs(
+          treatmentQueue,
           'subscription',
           subscriptions.map((subscription) => subscription.id)
         )
@@ -134,12 +134,12 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-categories
         //
 
-        const { categories } = await categoryService.queueCategories(db, {
+        const { categories } = await categoryService.produceCategories(db, {
           limit: config.HEARTBEAT_QUEUE_CATEGORIES_LIMIT
         })
 
-        await businessService.addJobs(
-          businessQueue,
+        await treatmentService.addJobs(
+          treatmentQueue,
           'category',
           categories.map((category) => category.id)
         )
@@ -159,12 +159,12 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         // queue-proxies
         //
 
-        const { proxies } = await proxyService.queueProxies(db, {
+        const { proxies } = await proxyService.produceProxies(db, {
           limit: config.HEARTBEAT_QUEUE_PROXIES_LIMIT
         })
 
-        await businessService.addJobs(
-          businessQueue,
+        await treatmentService.addJobs(
+          treatmentQueue,
           'proxy',
           proxies.map((proxy) => proxy.id)
         )
@@ -321,7 +321,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
   logger.info({ counters }, `HeartbeatJob complete`)
 
   await scraperService.closeQueue(scraperQueue)
-  await businessService.closeQueue(businessQueue)
+  await treatmentService.closeQueue(treatmentQueue)
   await redisService.closeRedis(redis)
   await databaseService.closeDatabase(db)
 }

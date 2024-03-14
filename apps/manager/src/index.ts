@@ -39,7 +39,7 @@ import redisFetchProxiesCacheCommand from './redis/redis-fetch-proxies-cache.com
 import redisFetchProxiesCacheOnlineCommand from './redis/redis-fetch-proxies-cache-online.command.js'
 import redisFetchScrapersCacheCommand from './redis/redis-fetch-scrapers-cache.command.js'
 import queueMonitorHeartbeatCommand from './queue/queue-monitor-heartbeat.command.js'
-import queueMonitorBusinessCommand from './queue/queue-monitor-business.command.js'
+import queueMonitorTreatmentCommand from './queue/queue-monitor-treatment.command.js'
 import queueMonitorScraperCommand from './queue/queue-monitor-scraper.command.js'
 import queueMonitorProxycheckCommand from './queue/queue-monitor-proxycheck.command.js'
 import { Config } from './manager.js'
@@ -109,7 +109,7 @@ async function bootstrap(): Promise<void> {
     name: 'queue',
     cmds: {
       'monitor-heartbeat': queueMonitorHeartbeatCommand(config, logger),
-      'monitor-business': queueMonitorBusinessCommand(config, logger),
+      'monitor-treatment': queueMonitorTreatmentCommand(config, logger),
       'monitor-scraper': queueMonitorScraperCommand(config, logger),
       'monitor-proxycheck': queueMonitorProxycheckCommand(config, logger)
     }

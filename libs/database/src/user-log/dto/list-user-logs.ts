@@ -7,5 +7,4 @@ export interface ListUserLogsRequest {
 
 export interface ListUserLogsResponse {
   userLogs: UserLog[]
-  limit: number
 }

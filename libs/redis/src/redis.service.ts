@@ -9,21 +9,21 @@ import * as subscriptionCacheRepository from './subscription-cache/subscription-
 import * as categoryCacheRepository from './category-cache/category-cache.repository.js'
 import * as proxyCacheRepository from './proxy-cache/proxy-cache.repository.js'
 import * as scraperCacheRepository from './scraper-cache/scraper-cache.repository.js'
-import { RedisConfig } from './redis.js'
-
-/*
- * Generate random identifier
- */
-export const randomHash = (): string => uuidv4().replaceAll('-', '')
+import {
+  DEFAULT_REDIS_HOST,
+  DEFAULT_REDIS_PORT,
+  DEFAULT_REDIS_DATABASE,
+  RedisConfig
+} from './redis.js'
 
 /**
  * Get RedisOptions from config
  */
 export function getRedisOptions<T extends RedisConfig>(config: T): RedisOptions {
   const redisOptions: RedisOptions = {
-    host: config.REDIS_HOST,
-    port: config.REDIS_PORT,
-    db: config.REDIS_DATABASE,
+    host: config.REDIS_HOST ?? DEFAULT_REDIS_HOST,
+    port: config.REDIS_PORT ?? DEFAULT_REDIS_PORT,
+    db: config.REDIS_DATABASE ?? DEFAULT_REDIS_DATABASE,
     username: config.REDIS_USERNAME,
     password: config.REDIS_PASSWORD
   }
@@ -258,3 +258,8 @@ export async function publishBackLog(pubSub: Redis, backLog: Notify[]): Promise<
 export async function closePubSub(pubSub: Redis): Promise<void> {
   await pubSub.disconnect()
 }
+
+/*
+ * Generate random identifier
+ */
+export const randomHash = (): string => uuidv4().replaceAll('-', '')

@@ -4,12 +4,12 @@ import {
   AuthorizeUserResponse,
   ListUsersRequest,
   ListUsersResponse,
-  QueueUsersRequest,
-  QueueUsersResponse,
-  BusinessUserRequest,
-  BusinessUserResponse
+  ProduceUsersRequest,
+  ProduceUsersResponse,
+  ConsumeUserRequest,
+  ConsumeUserResponse
 } from './dto/index.js'
-import { DEFAULT_USER_LIST_ALL, DEFAULT_USER_QUEUE_LIMIT, User } from './user.js'
+import { DEFAULT_USER_LIST_ALL, DEFAULT_USER_PRODUCE_LIMIT, User } from './user.js'
 import { UserNotFoundError } from './user.errors.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
@@ -85,47 +85,43 @@ export async function listUsers(
     )
 
     return {
-      users: userRepository.buildCollection(userRows),
-      all: request.all
+      users: userRepository.buildCollection(userRows)
     }
   })
 }
 
 /**
- * Queue Users
+ * Produce Users
  */
-export async function queueUsers(
+export async function produceUsers(
   db: KyselyDatabase,
-  request: QueueUsersRequest
-): Promise<QueueUsersResponse> {
+  request: ProduceUsersRequest
+): Promise<ProduceUsersResponse> {
   return await db.transaction().execute(async (trx) => {
     const users: User[] = []
 
     const userRows = await userRepository.selectRowsSkipLockedForUpdate(
       trx,
-      (request.limit ??= DEFAULT_USER_QUEUE_LIMIT)
+      (request.limit ??= DEFAULT_USER_PRODUCE_LIMIT)
     )
 
     for (const userRow of userRows) {
-      const updatedUserRow = await userRepository.updateRowQueuedId(trx, userRow.id)
+      const updatedUserRow = await userRepository.updateRowProduce(trx, userRow.id)
 
       users.push(userRepository.buildModel(updatedUserRow))
     }
 
-    return {
-      users,
-      limit: request.limit
-    }
+    return { users }
   })
 }
 
 /**
- * Business User
+ * Consume User
  */
-export async function businessUser(
+export async function consumeUser(
   db: KyselyDatabase,
-  request: BusinessUserRequest
-): Promise<BusinessUserResponse> {
+  request: ConsumeUserRequest
+): Promise<ConsumeUserResponse> {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false
@@ -133,7 +129,7 @@ export async function businessUser(
     const userRow = await userRepository.selectRowByIdForUpdate(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<BusinessUserRequest>(request)
+      throw new UserNotFoundError<ConsumeUserRequest>(request)
     }
 
     if (userRow.status === 'paid') {
@@ -165,7 +161,7 @@ export async function businessUser(
       }
     }
 
-    const updatedUserRow = await userRepository.updateRowBusiness(
+    const updatedUserRow = await userRepository.updateRowConsume(
       trx,
       userRow.id,
       userRow.status,
@@ -176,7 +172,7 @@ export async function businessUser(
     const userLogRow = await userLogRepository.insertRow(
       trx,
       updatedUserRow.id,
-      'business_user',
+      'consume_user',
       updatedUserRow.status,
       updatedUserRow.subscriptions,
       updatedUserRow.categories,

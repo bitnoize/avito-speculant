@@ -98,7 +98,7 @@ export async function selectRowsSkipLockedForUpdate(
     .execute()
 }
 
-export async function updateRowQueuedId(
+export async function updateRowProduce(
   trx: TransactionDatabase,
   user_id: number
 ): Promise<UserRow> {
@@ -112,7 +112,7 @@ export async function updateRowQueuedId(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowBusiness(
+export async function updateRowConsume(
   trx: TransactionDatabase,
   user_id: number,
   status: UserStatus,

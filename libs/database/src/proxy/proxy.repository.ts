@@ -94,7 +94,7 @@ export async function selectRowsSkipLockedForUpdate(
     .execute()
 }
 
-export async function updateRowQueuedAt(
+export async function updateRowProduce(
   trx: TransactionDatabase,
   proxy_id: number
 ): Promise<ProxyRow> {
@@ -108,7 +108,7 @@ export async function updateRowQueuedAt(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowBusiness(
+export async function updateRowConsume(
   trx: TransactionDatabase,
   proxy_id: number,
   is_enabled: boolean

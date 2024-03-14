@@ -9,7 +9,13 @@ import {
   FileMigrationProvider
 } from 'kysely'
 import { Logger } from '@avito-speculant/logger'
-import { DatabaseConfig, Database } from './database.js'
+import {
+  DEFAULT_POSTGRES_HOST,
+  DEFAULT_POSTGRES_PORT,
+  DEFAULT_POSTGRES_DATABASE,
+  DatabaseConfig,
+  Database
+} from './database.js'
 
 pg.types.setTypeParser(pg.types.builtins.INT8, (value: string): number => parseInt(value, 10))
 
@@ -22,9 +28,9 @@ pg.types.setTypeParser(pg.types.builtins.TIMESTAMPTZ, (value: string): number =>
  */
 export function getDatabaseConfig<T extends DatabaseConfig>(config: T): pg.ClientConfig {
   return {
-    host: config.POSTGRES_HOST,
-    port: config.POSTGRES_PORT,
-    database: config.POSTGRES_DATABASE,
+    host: config.POSTGRES_HOST ?? DEFAULT_POSTGRES_HOST,
+    port: config.POSTGRES_PORT ?? DEFAULT_POSTGRES_PORT,
+    database: config.POSTGRES_DATABASE ?? DEFAULT_POSTGRES_DATABASE,
     user: config.POSTGRES_USERNAME,
     password: config.POSTGRES_PASSWORD
   }

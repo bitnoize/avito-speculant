@@ -10,7 +10,7 @@
     { "path": "apps/manager" },
     { "path": "apps/bot" },
     { "path": "apps/worker-heartbeat" },
-    { "path": "apps/worker-business" },
+    { "path": "apps/worker-treatment" },
     { "path": "apps/worker-proxycheck" },
     { "path": "apps/worker-scraper" },
     { "path": "apps/worker-sendreport" }

@@ -8,10 +8,10 @@ import {
   EnableDisablePlanResponse,
   ListPlansRequest,
   ListPlansResponse,
-  QueuePlansRequest,
-  QueuePlansResponse,
-  BusinessPlanRequest,
-  BusinessPlanResponse
+  ProducePlansRequest,
+  ProducePlansResponse,
+  ConsumePlanRequest,
+  ConsumePlanResponse
 } from './dto/index.js'
 import { DEFAULT_PLAN_LIST_ALL, DEFAULT_PLAN_QUEUE_LIMIT, Plan } from './plan.js'
 import { PlanNotFoundError, PlanIsEnabledError } from './plan.errors.js'
@@ -248,19 +248,18 @@ export async function listPlans(
     )
 
     return {
-      plans: planRepository.buildCollection(planRows),
-      all: request.all
+      plans: planRepository.buildCollection(planRows)
     }
   })
 }
 
 /**
- * Queue Plans
+ * Produce Plans
  */
-export async function queuePlans(
+export async function producePlans(
   db: KyselyDatabase,
-  request: QueuePlansRequest
-): Promise<QueuePlansResponse> {
+  request: ProducePlansRequest
+): Promise<ProducePlansResponse> {
   return await db.transaction().execute(async (trx) => {
     const plans: Plan[] = []
 
@@ -270,25 +269,22 @@ export async function queuePlans(
     )
 
     for (const planRow of planRows) {
-      const updatedPlanRow = await planRepository.updateRowQueuedAt(trx, planRow.id)
+      const updatedPlanRow = await planRepository.updateRowProduce(trx, planRow.id)
 
       plans.push(planRepository.buildModel(updatedPlanRow))
     }
 
-    return {
-      plans,
-      limit: request.limit
-    }
+    return { plans }
   })
 }
 
 /**
- * Business Plan
+ * Consume Plan
  */
-export async function businessPlan(
+export async function consumePlan(
   db: KyselyDatabase,
-  request: BusinessPlanRequest
-): Promise<BusinessPlanResponse> {
+  request: ConsumePlanRequest
+): Promise<ConsumePlanResponse> {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false
@@ -296,7 +292,7 @@ export async function businessPlan(
     const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError<BusinessPlanRequest>(request)
+      throw new PlanNotFoundError<ConsumePlanRequest>(request)
     }
 
     if (planRow.is_enabled) {
@@ -320,7 +316,7 @@ export async function businessPlan(
       }
     }
 
-    const updatedPlanRow = await planRepository.updateRowBusiness(
+    const updatedPlanRow = await planRepository.updateRowConsume(
       trx,
       planRow.id,
       planRow.is_enabled,
@@ -330,7 +326,7 @@ export async function businessPlan(
     const planLogRow = await planLogRepository.insertRow(
       trx,
       updatedPlanRow.id,
-      'business_plan',
+      'consume_plan',
       updatedPlanRow.categories_max,
       updatedPlanRow.price_rub,
       updatedPlanRow.duration_days,

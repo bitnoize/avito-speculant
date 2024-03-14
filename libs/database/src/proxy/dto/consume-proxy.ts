@@ -2,12 +2,12 @@ import { Notify } from '@avito-speculant/notify'
 import { Proxy } from '../proxy.js'
 import { ProxyLogData } from '../../proxy-log/proxy-log.js'
 
-export interface BusinessProxyRequest {
+export interface ConsumeProxyRequest {
   proxyId: number
   data: ProxyLogData
 }
 
-export interface BusinessProxyResponse {
+export interface ConsumeProxyResponse {
   proxy: Proxy
   backLog: Notify[]
 }

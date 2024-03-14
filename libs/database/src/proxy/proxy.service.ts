@@ -6,10 +6,10 @@ import {
   EnableDisableProxyResponse,
   ListProxiesRequest,
   ListProxiesResponse,
-  QueueProxiesRequest,
-  QueueProxiesResponse,
-  BusinessProxyRequest,
-  BusinessProxyResponse
+  ProduceProxiesRequest,
+  ProduceProxiesResponse,
+  ConsumeProxyRequest,
+  ConsumeProxyResponse
 } from './dto/index.js'
 import { DEFAULT_PROXY_LIST_ALL, DEFAULT_PROXY_QUEUE_LIMIT, Proxy } from './proxy.js'
 import { ProxyNotFoundError, ProxyAllreadyExistsError } from './proxy.errors.js'
@@ -27,8 +27,7 @@ export async function createProxy(
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const existsProxyRow =
-      await proxyRepository.selectRowByProxyUrlForShare(trx, request.proxyUrl)
+    const existsProxyRow = await proxyRepository.selectRowByProxyUrlForShare(trx, request.proxyUrl)
 
     if (existsProxyRow !== undefined) {
       throw new ProxyAllreadyExistsError<CreateProxyRequest>(request)
@@ -164,12 +163,12 @@ export async function listProxies(
 }
 
 /**
- * Queue Proxies
+ * Produce Proxies
  */
-export async function queueProxies(
+export async function produceProxies(
   db: KyselyDatabase,
-  request: QueueProxiesRequest
-): Promise<QueueProxiesResponse> {
+  request: ProduceProxiesRequest
+): Promise<ProduceProxiesResponse> {
   return await db.transaction().execute(async (trx) => {
     const proxies: Proxy[] = []
 
@@ -179,25 +178,22 @@ export async function queueProxies(
     )
 
     for (const proxyRow of proxyRows) {
-      const updatedProxyRow = await proxyRepository.updateRowQueuedAt(trx, proxyRow.id)
+      const updatedProxyRow = await proxyRepository.updateRowProduce(trx, proxyRow.id)
 
       proxies.push(proxyRepository.buildModel(updatedProxyRow))
     }
 
-    return {
-      proxies,
-      limit: request.limit
-    }
+    return { proxies }
   })
 }
 
 /**
- * Business Proxy
+ * Consume Proxy
  */
-export async function businessProxy(
+export async function consumeProxy(
   db: KyselyDatabase,
-  request: BusinessProxyRequest
-): Promise<BusinessProxyResponse> {
+  request: ConsumeProxyRequest
+): Promise<ConsumeProxyResponse> {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false
@@ -205,7 +201,7 @@ export async function businessProxy(
     const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
 
     if (proxyRow === undefined) {
-      throw new ProxyNotFoundError<BusinessProxyRequest>(request)
+      throw new ProxyNotFoundError<ConsumeProxyRequest>(request)
     }
 
     if (proxyRow.is_enabled) {
@@ -221,7 +217,7 @@ export async function businessProxy(
       }
     }
 
-    const updatedProxyRow = await proxyRepository.updateRowBusiness(
+    const updatedProxyRow = await proxyRepository.updateRowConsume(
       trx,
       proxyRow.id,
       proxyRow.is_enabled
@@ -230,7 +226,7 @@ export async function businessProxy(
     const proxyLogRow = await proxyLogRepository.insertRow(
       trx,
       updatedProxyRow.id,
-      'business_proxy',
+      'consume_proxy',
       updatedProxyRow.is_enabled,
       request.data
     )

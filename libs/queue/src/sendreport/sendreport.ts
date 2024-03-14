@@ -7,9 +7,9 @@ export const DEFAULT_SENDREPORT_LIMITER_MAX = 2
 export const DEFAULT_SENDREPORT_LIMITER_DURATION = 1_000
 
 export type SendreportConfig = {
-  SENDREPORT_CONCURRENCY: number
-  SENDREPORT_LIMITER_MAX: number
-  SENDREPORT_LIMITER_DURATION: number
+  SENDREPORT_CONCURRENCY?: number
+  SENDREPORT_LIMITER_MAX?: number
+  SENDREPORT_LIMITER_DURATION?: number
 }
 
 export type SendreportData = {

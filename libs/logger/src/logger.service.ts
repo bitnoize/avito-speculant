@@ -1,12 +1,12 @@
 import { pino, LoggerOptions, Logger } from 'pino'
-import { LoggerConfig } from './logger.js'
+import { DEFAULT_LOG_LEVEL, LoggerConfig } from './logger.js'
 
 /*
  * Get LoggerOptions from config
  */
 export function getLoggerOptions<T extends LoggerConfig>(config: T): LoggerOptions {
   const loggerOptions: LoggerOptions = {
-    level: config.LOG_LEVEL
+    level: config.LOG_LEVEL ?? DEFAULT_LOG_LEVEL
   }
 
   return loggerOptions
@@ -18,7 +18,7 @@ export function getLoggerOptions<T extends LoggerConfig>(config: T): LoggerOptio
 export function initLogger(options: LoggerOptions): Logger {
   const logger = pino(options)
 
-  logger.debug(`Logger initialized with '${logger.level}' level`)
+  logger.info(`Logger initialized with '${logger.level}' level`)
 
   return logger
 }

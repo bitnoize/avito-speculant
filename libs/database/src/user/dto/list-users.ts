@@ -6,5 +6,4 @@ export interface ListUsersRequest {
 
 export interface ListUsersResponse {
   users: User[]
-  all: boolean
 }

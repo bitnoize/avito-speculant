@@ -3,12 +3,12 @@ import { Category } from '../category.js'
 import { CategoryLogData } from '../../category-log/category-log.js'
 import { Subscription } from '../../subscription/subscription.js'
 
-export interface BusinessCategoryRequest {
+export interface ConsumeCategoryRequest {
   categoryId: number
   data: CategoryLogData
 }
 
-export interface BusinessCategoryResponse {
+export interface ConsumeCategoryResponse {
   category: Category
   subscription?: Subscription
   backLog: Notify[]

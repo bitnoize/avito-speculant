@@ -19,15 +19,15 @@ import {
   scraperCacheService
 } from '@avito-speculant/redis'
 import {
-  BusinessProcessor,
+  TreatmentProcessor,
   queueService,
   scraperService,
   proxycheckService
 } from '@avito-speculant/queue'
-import { Config } from './worker-business.js'
-import { configSchema } from './worker-business.schema.js'
+import { Config } from './worker-treatment.js'
+import { configSchema } from './worker-treatment.schema.js'
 
-const businessProcessor: BusinessProcessor = async (businessJob) => {
+const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
@@ -44,16 +44,18 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
   const scraperQueue = scraperService.initQueue(queueConnection, logger)
   const proxycheckQueue = proxycheckService.initQueue(queueConnection, logger)
 
-  switch (businessJob.name) {
+  const { entityId } = treatmentJob.data
+
+  switch (treatmentJob.name) {
     case 'user': {
       //
       // user
       //
 
-      const { user, backLog } = await userService.businessUser(db, {
-        userId: businessJob.data.id,
+      const { user, backLog } = await userService.consumeUser(db, {
+        userId: entityId,
         data: {
-          businessJobId: businessJob.id
+          treatmentJobId: treatmentJob.id
         }
       })
 
@@ -78,10 +80,10 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
       // plan
       //
 
-      const { plan, backLog } = await planService.businessPlan(db, {
-        planId: businessJob.data.id,
+      const { plan, backLog } = await planService.consumePlan(db, {
+        planId: entityId,
         data: {
-          businessJobId: businessJob.id
+          treatmentJobId: treatmentJob.id
         }
       })
 
@@ -110,10 +112,10 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
       // subscription
       //
 
-      const { subscription, backLog } = await subscriptionService.businessSubscription(db, {
-        subscriptionId: businessJob.data.id,
+      const { subscription, backLog } = await subscriptionService.consumeSubscription(db, {
+        subscriptionId: entityId,
         data: {
-          businessJobId: businessJob.id
+          treatmentJobId: treatmentJob.id
         }
       })
 
@@ -146,10 +148,10 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
       // category
       //
 
-      const { category, subscription, backLog } = await categoryService.businessCategory(db, {
-        categoryId: businessJob.data.id,
+      const { category, subscription, backLog } = await categoryService.consumeCategory(db, {
+        categoryId: entityId,
         data: {
-          businessJobId: businessJob.id
+          treatmentJobId: treatmentJob.id
         }
       })
 
@@ -178,7 +180,6 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
         // ScraperCache not exists yet
 
         if (category.isEnabled && subscription !== undefined) {
-
           const scraperJobId = redisService.randomHash()
 
           await scraperCacheService.saveScraperCache(redis, {
@@ -206,10 +207,10 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
       // proxy
       //
 
-      const { proxy, backLog } = await proxyService.businessProxy(db, {
-        proxyId: businessJob.data.id,
+      const { proxy, backLog } = await proxyService.consumeProxy(db, {
+        proxyId: entityId,
         data: {
-          businessJobId: businessJob.id
+          treatmentJobId: treatmentJob.id
         }
       })
 
@@ -232,16 +233,17 @@ const businessProcessor: BusinessProcessor = async (businessJob) => {
     }
 
     default: {
-      throw new Error(`BusinessJob unknown name '${businessJob.name}'`)
+      throw new Error(`TreatmentJob unknown name '${treatmentJob.name}'`)
     }
   }
 
-  logger.info({ name: businessJob.name, data: businessJob.data }, `BusinessJob complete`)
+  logger.info({ name: treatmentJob.name, data: treatmentJob.data }, `TreatmentJob complete`)
 
+  await proxycheckService.closeQueue(proxycheckQueue)
   await scraperService.closeQueue(scraperQueue)
   await redisService.closePubSub(pubSub)
   await redisService.closeRedis(redis)
   await databaseService.closeDatabase(db)
 }
 
-export default businessProcessor
+export default treatmentProcessor
