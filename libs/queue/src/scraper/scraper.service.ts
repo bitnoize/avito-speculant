@@ -64,7 +64,7 @@ export async function closeQueue(queue: ScraperQueue): Promise<void> {
  * Get Worker concurrency from config
  */
 export function getWorkerConcurrency<T extends ScraperConfig>(config: T): number {
-  return config.SCRAPER_CONCURRENCY ?? DEFAULT_SCRAPER_CONCURRENCY
+  return config.SCRAPER_CONCURRENCY
 }
 
 /**
@@ -72,8 +72,8 @@ export function getWorkerConcurrency<T extends ScraperConfig>(config: T): number
  */
 export function getWorkerLimiter<T extends ScraperConfig>(config: T): RateLimiterOptions {
   return {
-    max: config.SCRAPER_LIMITER_MAX ?? DEFAULT_SCRAPER_LIMITER_MAX,
-    duration: config.SCRAPER_LIMITER_DURATION ?? DEFAULT_SCRAPER_LIMITER_DURATION
+    max: config.SCRAPER_LIMITER_MAX,
+    duration: config.SCRAPER_LIMITER_DURATION
   }
 }
 

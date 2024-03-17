@@ -2,9 +2,6 @@ import { Logger } from '@avito-speculant/logger'
 import { ConnectionOptions, RateLimiterOptions, Queue, Worker, MetricsTime } from 'bullmq'
 import {
   PROXYCHECK_QUEUE_NAME,
-  DEFAULT_PROXYCHECK_CONCURRENCY,
-  DEFAULT_PROXYCHECK_LIMITER_MAX,
-  DEFAULT_PROXYCHECK_LIMITER_DURATION,
   ProxycheckConfig,
   ProxycheckData,
   ProxycheckQueue,
@@ -50,7 +47,7 @@ export async function closeQueue(queue: ProxycheckQueue): Promise<void> {
  * Get Worker concurrency from config
  */
 export function getWorkerConcurrency<T extends ProxycheckConfig>(config: T): number {
-  return config.PROXYCHECK_CONCURRENCY ?? DEFAULT_PROXYCHECK_CONCURRENCY
+  return config.PROXYCHECK_CONCURRENCY
 }
 
 /**
@@ -58,8 +55,8 @@ export function getWorkerConcurrency<T extends ProxycheckConfig>(config: T): num
  */
 export function getWorkerLimiter<T extends ProxycheckConfig>(config: T): RateLimiterOptions {
   return {
-    max: config.PROXYCHECK_LIMITER_MAX ?? DEFAULT_PROXYCHECK_LIMITER_MAX,
-    duration: config.PROXYCHECK_LIMITER_DURATION ?? DEFAULT_PROXYCHECK_LIMITER_DURATION
+    max: config.PROXYCHECK_LIMITER_MAX,
+    duration: config.PROXYCHECK_LIMITER_DURATION
   }
 }
 

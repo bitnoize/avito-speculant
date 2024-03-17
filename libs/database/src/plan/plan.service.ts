@@ -13,7 +13,7 @@ import {
   ConsumePlanRequest,
   ConsumePlanResponse
 } from './dto/index.js'
-import { DEFAULT_PLAN_LIST_ALL, DEFAULT_PLAN_PRODUCE_LIMIT, Plan } from './plan.js'
+import { Plan } from './plan.js'
 import { PlanNotFoundError, PlanIsEnabledError } from './plan.errors.js'
 import * as planRepository from './plan.repository.js'
 import * as planLogRepository from '../plan-log/plan-log.repository.js'
@@ -242,7 +242,7 @@ export async function listPlans(
   request: ListPlansRequest
 ): Promise<ListPlansResponse> {
   return await db.transaction().execute(async (trx) => {
-    const planRows = await planRepository.selectRowsList(trx, request.all ?? DEFAULT_PLAN_LIST_ALL)
+    const planRows = await planRepository.selectRowsList(trx, request.all ?? false)
 
     return {
       plans: planRepository.buildCollection(planRows)
@@ -260,10 +260,7 @@ export async function producePlans(
   return await db.transaction().execute(async (trx) => {
     const plans: Plan[] = []
 
-    const planRows = await planRepository.selectRowsSkipLockedForUpdate(
-      trx,
-      request.limit ?? DEFAULT_PLAN_PRODUCE_LIMIT
-    )
+    const planRows = await planRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
 
     for (const planRow of planRows) {
       const updatedPlanRow = await planRepository.updateRowProduce(trx, planRow.id)

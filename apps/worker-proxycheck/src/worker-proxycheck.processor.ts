@@ -3,11 +3,7 @@ import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { redisService, proxyCacheService } from '@avito-speculant/redis'
 import { ProxycheckProcessor } from '@avito-speculant/queue'
-import {
-  DEFAULT_PROXYCHECK_CHECK_URL,
-  DEFAULT_PROXYCHECK_CHECK_TIMEOUT,
-  Config
-} from './worker-proxycheck.js'
+import { Config } from './worker-proxycheck.js'
 import { configSchema } from './worker-proxycheck.schema.js'
 
 export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) => {
@@ -27,8 +23,8 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
 
   const isOnline = await proxycheckRequest(
     proxyCache.proxyUrl,
-    config.PROXYCHECK_CHECK_URL ?? DEFAULT_PROXYCHECK_CHECK_URL,
-    config.PROXYCHECK_CHECK_TIMEOUT ?? DEFAULT_PROXYCHECK_CHECK_TIMEOUT
+    config.PROXYCHECK_CHECK_URL,
+    config.PROXYCHECK_CHECK_TIMEOUT
   )
 
   if (isOnline) {

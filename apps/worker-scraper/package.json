@@ -21,6 +21,7 @@
     "@avito-speculant/queue": "*",
     "@avito-speculant/redis": "*",
     "cheerio": "^1.0.0-rc.12",
-    "got-scraping": "^4.0.4"
+    "got-scraping": "^4.0.4",
+    "node-curl-impersonate": "^1.4.2"
   }
 }

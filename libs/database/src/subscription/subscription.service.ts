@@ -13,11 +13,7 @@ import {
   ConsumeSubscriptionRequest,
   ConsumeSubscriptionResponse
 } from './dto/index.js'
-import {
-  DEFAULT_SUBSCRIPTION_LIST_ALL,
-  DEFAULT_SUBSCRIPTION_PRODUCE_LIMIT,
-  Subscription
-} from './subscription.js'
+import { Subscription } from './subscription.js'
 import {
   SubscriptionNotFoundError,
   SubscriptionExistsError,
@@ -271,7 +267,7 @@ export async function listSubscriptions(
     const subscriptionRows = await subscriptionRepository.selectRowsList(
       trx,
       request.userId,
-      request.all ?? DEFAULT_SUBSCRIPTION_LIST_ALL
+      request.all ?? false
     )
 
     return {
@@ -292,7 +288,7 @@ export async function produceSubscriptions(
 
     const subscriptionRows = await subscriptionRepository.selectRowsSkipLockedForUpdate(
       trx,
-      request.limit ?? DEFAULT_SUBSCRIPTION_PRODUCE_LIMIT
+      request.limit
     )
 
     for (const subscriptionRow of subscriptionRows) {

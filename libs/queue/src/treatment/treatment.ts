@@ -7,9 +7,9 @@ export const DEFAULT_TREATMENT_LIMITER_MAX = 2
 export const DEFAULT_TREATMENT_LIMITER_DURATION = 1_000
 
 export type TreatmentConfig = {
-  TREATMENT_CONCURRENCY?: number
-  TREATMENT_LIMITER_MAX?: number
-  TREATMENT_LIMITER_DURATION?: number
+  TREATMENT_CONCURRENCY: number
+  TREATMENT_LIMITER_MAX: number
+  TREATMENT_LIMITER_DURATION: number
 }
 
 export type TreatmentData = {

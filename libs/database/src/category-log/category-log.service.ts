@@ -2,7 +2,7 @@ import { ListCategoryLogsRequest, ListCategoryLogsResponse } from './dto/list-ca
 import * as categoryLogRepository from './category-log.repository.js'
 import { CategoryNotFoundError } from '../category/category.errors.js'
 import * as categoryRepository from '../category/category.repository.js'
-import { DEFAULT_LIST_LIMIT, KyselyDatabase } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /*
  * List CategoryLogs
@@ -21,7 +21,7 @@ export async function listCategoryLogs(
     const categoryLogRows = await categoryLogRepository.selectRowsList(
       trx,
       categoryRow.id,
-      request.limit ?? DEFAULT_LIST_LIMIT
+      request.limit
     )
 
     return {

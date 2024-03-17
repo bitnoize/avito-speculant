@@ -1,7 +1,7 @@
 import { Proxy } from '../proxy.js'
 
 export interface ProduceProxiesRequest {
-  limit?: number
+  limit: number
 }
 
 export interface ProduceProxiesResponse {

@@ -11,7 +11,7 @@ import {
   ConsumeProxyRequest,
   ConsumeProxyResponse
 } from './dto/index.js'
-import { DEFAULT_PROXY_LIST_ALL, DEFAULT_PROXY_PRODUCE_LIMIT, Proxy } from './proxy.js'
+import { Proxy } from './proxy.js'
 import { ProxyNotFoundError, ProxyAllreadyExistsError } from './proxy.errors.js'
 import * as proxyRepository from './proxy.repository.js'
 import * as proxyLogRepository from '../proxy-log/proxy-log.repository.js'
@@ -150,10 +150,7 @@ export async function listProxies(
   request: ListProxiesRequest
 ): Promise<ListProxiesResponse> {
   return await db.transaction().execute(async (trx) => {
-    const proxyRows = await proxyRepository.selectRowsList(
-      trx,
-      request.all ?? DEFAULT_PROXY_LIST_ALL
-    )
+    const proxyRows = await proxyRepository.selectRowsList(trx, request.all ?? false)
 
     return {
       proxies: proxyRepository.buildCollection(proxyRows)
@@ -171,10 +168,7 @@ export async function produceProxies(
   return await db.transaction().execute(async (trx) => {
     const proxies: Proxy[] = []
 
-    const proxyRows = await proxyRepository.selectRowsSkipLockedForUpdate(
-      trx,
-      request.limit ?? DEFAULT_PROXY_PRODUCE_LIMIT
-    )
+    const proxyRows = await proxyRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
 
     for (const proxyRow of proxyRows) {
       const updatedProxyRow = await proxyRepository.updateRowProduce(trx, proxyRow.id)

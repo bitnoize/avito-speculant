@@ -2,7 +2,7 @@ import { ListUserLogsRequest, ListUserLogsResponse } from './dto/index.js'
 import * as userLogRepository from './user-log.repository.js'
 import { UserNotFoundError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
-import { DEFAULT_LIST_LIMIT, KyselyDatabase } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /*
  * List UserLogs
@@ -18,11 +18,7 @@ export async function listUserLogs(
       throw new UserNotFoundError<ListUserLogsRequest>(request)
     }
 
-    const userLogRows = await userLogRepository.selectRowsList(
-      trx,
-      userRow.id,
-      request.limit ?? DEFAULT_LIST_LIMIT
-    )
+    const userLogRows = await userLogRepository.selectRowsList(trx, userRow.id, request.limit)
 
     return {
       userLogs: userLogRepository.buildCollection(userLogRows)

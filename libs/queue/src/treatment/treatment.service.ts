@@ -61,7 +61,7 @@ export async function closeQueue(queue: TreatmentQueue): Promise<void> {
  * Get Worker concurrency from config
  */
 export function getWorkerConcurrency<T extends TreatmentConfig>(config: T): number {
-  return config.TREATMENT_CONCURRENCY ?? DEFAULT_TREATMENT_CONCURRENCY
+  return config.TREATMENT_CONCURRENCY
 }
 
 /**
@@ -69,8 +69,8 @@ export function getWorkerConcurrency<T extends TreatmentConfig>(config: T): numb
  */
 export function getWorkerLimiter<T extends TreatmentConfig>(config: T): RateLimiterOptions {
   return {
-    max: config.TREATMENT_LIMITER_MAX ?? DEFAULT_TREATMENT_LIMITER_MAX,
-    duration: config.TREATMENT_LIMITER_DURATION ?? DEFAULT_TREATMENT_LIMITER_DURATION
+    max: config.TREATMENT_LIMITER_MAX,
+    duration: config.TREATMENT_LIMITER_DURATION
   }
 }
 

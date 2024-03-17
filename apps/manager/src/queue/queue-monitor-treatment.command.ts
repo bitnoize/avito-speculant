@@ -10,7 +10,11 @@ export default (config: Config, logger: Logger) => {
     args: {},
     handler: async () => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
-      const queueEvents = queueService.initQueueEvents(queueConnection, TREATMENT_QUEUE_NAME, logger)
+      const queueEvents = queueService.initQueueEvents(
+        queueConnection,
+        TREATMENT_QUEUE_NAME,
+        logger
+      )
 
       queueService.listenMonitor(queueEvents, logger)
 

@@ -1,7 +1,7 @@
 import { Category } from '../category.js'
 
 export interface ProduceCategoriesRequest {
-  limit?: number
+  limit: number
 }
 
 export interface ProduceCategoriesResponse {

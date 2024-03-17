@@ -2,7 +2,7 @@ import { ListPlanLogsRequest, ListPlanLogsResponse } from './dto/index.js'
 import { PlanNotFoundError } from '../plan/plan.errors.js'
 import * as planLogRepository from './plan-log.repository.js'
 import * as planRepository from '../plan/plan.repository.js'
-import { DEFAULT_LIST_LIMIT, KyselyDatabase } from '../database.js'
+import { KyselyDatabase } from '../database.js'
 
 /*
  * List PlanLogs
@@ -18,11 +18,7 @@ export async function listPlanLogs(
       throw new PlanNotFoundError<ListPlanLogsRequest>(request)
     }
 
-    const planLogRows = await planLogRepository.selectRowsList(
-      trx,
-      planRow.id,
-      request.limit ?? DEFAULT_LIST_LIMIT
-    )
+    const planLogRows = await planLogRepository.selectRowsList(trx, planRow.id, request.limit)
 
     return {
       planLogs: planLogRepository.buildCollection(planLogRows)

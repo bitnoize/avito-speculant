@@ -1,7 +1,7 @@
 import { Subscription } from '../subscription.js'
 
 export interface ProduceSubscriptionsRequest {
-  limit?: number
+  limit: number
 }
 
 export interface ProduceSubscriptionsResponse {

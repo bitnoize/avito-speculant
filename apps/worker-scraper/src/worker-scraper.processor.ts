@@ -1,4 +1,4 @@
-import { gotScraping } from 'got-scraping'
+import { CurlImpersonate } from 'node-curl-impersonate'
 import * as cheerio from 'cheerio'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
@@ -36,19 +36,19 @@ const scraperProcessor: ScraperProcessor = async (scraperJob) => {
     return
   }
 
-  const body = await scraperRequest(
-    proxyCache.proxyUrl,
+  const response = await scraperRequest(
     scraperCache.avitoUrl,
+    proxyCache.proxyUrl,
     10_000 // FIXME
   )
 
-  if (body === undefined) {
+  if (response === undefined) {
     logger.warn(`Scraper request failed`)
 
     return
   }
 
-  parseResponse(body, 'body > script:nth-child(5)')
+  parseResponse(response, 'body > script:nth-child(5)')
 
   const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
     scraperJobId: scraperCache.jobId
@@ -68,40 +68,34 @@ const scraperProcessor: ScraperProcessor = async (scraperJob) => {
 }
 
 const scraperRequest = async (
+  url: string,
   proxyUrl: string,
-  avitoUrl: string,
   timeout: number
-): Promise<Buffer | undefined> => {
+): Promise<string | undefined> => {
   try {
-    const { statusCode, body } = await gotScraping.get({
-      proxyUrl,
-      url: avitoUrl,
-      headerGeneratorOptions: {
-        browsers: ['firefox'],
-        devices: ['desktop'],
-        locales: ['ru-RU'],
-        operatingSystems: ['linux']
-      },
-      responseType: 'buffer',
-      followRedirect: false,
-      timeout: {
-        request: timeout
-      }
+    const curl = new CurlImpersonate(url, {
+      method: 'GET',
+      verbose: true,
+      headers: [],
+      impersonate: 'firefox-117',
+      followRedirects: false,
+      timeout,
     })
+    const { statusCode, response } = await curl.makeRequest()
 
-    return statusCode === 200 ? body : undefined
+    return statusCode === 200 ? response : undefined
   } catch (error) {
     return undefined
   }
 }
 
-const parseResponse = (body: Buffer, selector: string): void => {
+const parseResponse = (response: string, selector: string): void => {
   try {
     //const $ = cheerio.load(body.toString('utf8'))
 
     //const initialData = decodeURI($('body > script:nth-child(5)').text())
 
-    console.log(body.toString('utf8'))
+    console.log(response)
   } catch (error) {
     return
   }

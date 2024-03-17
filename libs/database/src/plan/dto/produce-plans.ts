@@ -1,7 +1,7 @@
 import { Plan } from '../plan.js'
 
 export interface ProducePlansRequest {
-  limit?: number
+  limit: number
 }
 
 export interface ProducePlansResponse {

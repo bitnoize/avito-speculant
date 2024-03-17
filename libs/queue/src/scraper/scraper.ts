@@ -7,9 +7,9 @@ export const DEFAULT_SCRAPER_LIMITER_MAX = 10
 export const DEFAULT_SCRAPER_LIMITER_DURATION = 1_000
 
 export type ScraperConfig = {
-  SCRAPER_CONCURRENCY?: number
-  SCRAPER_LIMITER_MAX?: number
-  SCRAPER_LIMITER_DURATION?: number
+  SCRAPER_CONCURRENCY: number
+  SCRAPER_LIMITER_MAX: number
+  SCRAPER_LIMITER_DURATION: number
 }
 
 export type ScraperData = {

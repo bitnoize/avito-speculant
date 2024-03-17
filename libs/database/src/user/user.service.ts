@@ -9,7 +9,7 @@ import {
   ConsumeUserRequest,
   ConsumeUserResponse
 } from './dto/index.js'
-import { DEFAULT_USER_LIST_ALL, DEFAULT_USER_PRODUCE_LIMIT, User } from './user.js'
+import { User } from './user.js'
 import { UserNotFoundError } from './user.errors.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
@@ -79,7 +79,7 @@ export async function listUsers(
   return await db.transaction().execute(async (trx) => {
     // ...
 
-    const userRows = await userRepository.selectRowsList(trx, request.all ?? DEFAULT_USER_LIST_ALL)
+    const userRows = await userRepository.selectRowsList(trx, request.all ?? false)
 
     return {
       users: userRepository.buildCollection(userRows)
@@ -97,10 +97,7 @@ export async function produceUsers(
   return await db.transaction().execute(async (trx) => {
     const users: User[] = []
 
-    const userRows = await userRepository.selectRowsSkipLockedForUpdate(
-      trx,
-      request.limit ?? DEFAULT_USER_PRODUCE_LIMIT
-    )
+    const userRows = await userRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
 
     for (const userRow of userRows) {
       const updatedUserRow = await userRepository.updateRowProduce(trx, userRow.id)
