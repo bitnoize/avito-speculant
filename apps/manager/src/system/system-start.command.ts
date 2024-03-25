@@ -18,7 +18,7 @@ export default (config: Config, logger: Logger) => {
 
       const heartbeatJob = await heartbeatService.addJob(
         heartbeatQueue,
-        'business_producer',
+        'singleton',
         10_000
       )
 

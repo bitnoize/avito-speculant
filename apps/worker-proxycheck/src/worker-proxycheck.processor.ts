@@ -1,9 +1,18 @@
-import { gotScraping } from 'got-scraping'
+import { CurlImpersonate } from 'node-curl-impersonate'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
+import { DomainError } from '@avito-speculant/common'
 import { redisService, proxyCacheService } from '@avito-speculant/redis'
-import { ProxycheckProcessor } from '@avito-speculant/queue'
-import { Config } from './worker-proxycheck.js'
+import {
+  ProcessUnknownNameError,
+  ProxycheckResult,
+  ProxycheckProcessor
+} from '@avito-speculant/queue'
+import {
+  Config,
+  ProxycheckCurlImpersonateRequest,
+  Process
+} from './worker-proxycheck.js'
 import { configSchema } from './worker-proxycheck.schema.js'
 
 export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) => {
@@ -15,54 +24,119 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
 
-  const { proxyId } = proxycheckJob.data
+  const result: ProxycheckResult = {}
 
-  const { proxyCache } = await proxyCacheService.fetchProxyCache(redis, {
-    proxyId
-  })
+  try {
+    const name = proxycheckJob.name
 
-  const isOnline = await proxycheckRequest(
-    proxyCache.proxyUrl,
-    config.PROXYCHECK_CHECK_URL,
-    config.PROXYCHECK_CHECK_TIMEOUT
-  )
+    switch (name) {
+      case 'curl-impersonate': {
+        result[name] = await processCurlImpersonate(config, logger, redis, proxycheckJob)
 
-  if (isOnline) {
-    await proxyCacheService.renewProxyCacheOnline(redis, {
-      proxyId: proxyCache.id
-    })
-  } else {
-    await proxyCacheService.renewProxyCacheOffline(redis, {
-      proxyId: proxyCache.id
-    })
+        break
+      }
+
+      default: {
+        throw new ProcessUnknownNameError({ name })
+      }
+    }
+  } catch (error) {
+    if (error instanceof DomainError) {
+      if (error.isEmergency()) {
+        // ...
+
+        logger.fatal(`ProxycheckWorker emergency shutdown`)
+      }
+    }
+
+    throw error
+  } finally {
+    await redisService.closeRedis(redis)
   }
 
-  logger.info({ proxyId, isOnline }, `ProxycheckJob complete`)
-
-  await redisService.closeRedis(redis)
+  return result
 }
 
-const proxycheckRequest = async (
-  proxyUrl: string,
-  checkUrl: string,
-  timeout: number
-): Promise<boolean> => {
+const processCurlImpersonate: Process = async (config, logger, redis, proxycheckJob) => {
   try {
-    const { statusCode } = await gotScraping.get({
-      proxyUrl,
-      url: checkUrl,
-      followRedirect: false,
-      throwHttpErrors: false,
-      timeout: {
-        request: timeout
-      },
-      retry: {
-        limit: 0
-      }
+    const { proxyCache } = await proxyCacheService.fetchProxyCache(redis, {
+      proxyId: proxycheckJob.data.proxyId
     })
 
-    return statusCode === 200 ? true : false
+    const proxycheckCurlImpersonateResponse = await proxycheckCurlImpersonateRequest(
+      config.PROXYCHECK_CHECK_URL,
+      proxyCache.proxyUrl,
+      config.PROXYCHECK_CHECK_TIMEOUT,
+      true
+    )
+
+    if (proxycheckCurlImpersonateResponse !== undefined) {
+      if (proxycheckCurlImpersonateResponse.statusCode === 200) {
+        await proxyCacheService.renewProxyCacheOnline(redis, {
+          proxyId: proxyCache.id
+        })
+
+        return {
+          id: proxyCache.id,
+          statusCode: proxycheckCurlImpersonateResponse.statusCode,
+          isOnline: true,
+        }
+      } else {
+        await proxyCacheService.renewProxyCacheOffline(redis, {
+          proxyId: proxyCache.id
+        })
+
+        return {
+          id: proxyCache.id,
+          statusCode: proxycheckCurlImpersonateResponse.statusCode,
+          isOnline: false,
+        }
+      }
+    } else {
+      await proxyCacheService.renewProxyCacheOffline(redis, {
+        proxyId: proxyCache.id
+      })
+
+      return {
+        id: proxyCache.id,
+        isOnline: false,
+        statusCode: 0
+      }
+    }
   } catch (error) {
-    return false
+    logger.error(`ProxycheckProcessor processCurlImpersonate exception`)
+
+    throw error.setEmergency()
+  }
+}
+
+const proxycheckCurlImpersonateRequest: ProxycheckCurlImpersonateRequest = async (
+  checkUrl,
+  proxyUrl,
+  timeout,
+  verbose
+) => {
+  try {
+    const curlImpersonate = new CurlImpersonate(checkUrl, {
+      method: 'GET',
+      impersonate: 'firefox-117',
+      headers: [],
+      timeout,
+      verbose,
+      followRedirects: false,
+      flags: [
+        '--insecure',
+        `--proxy ${proxyUrl}`
+      ]
+    })
+
+    const curlResponse = await curlImpersonate.makeRequest()
+
+    return {
+      statusCode: curlResponse.statusCode ?? 0,
+      body: curlResponse.response
+    }
+  } catch (error) {
+    return undefined
   }
 }

@@ -1,7 +1,7 @@
 import { binary, subcommands, run } from 'cmd-ts'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { HighDatabaseError } from '@avito-speculant/database'
+import { DomainError } from '@avito-speculant/common'
 import systemStartCommand from './system/system-start.command.js'
 import systemStopCommand from './system/system-stop.command.js'
 import systemStatusCommand from './system/system-status.command.js'
@@ -40,7 +40,7 @@ import redisFetchProxiesCacheOnlineCommand from './redis/redis-fetch-proxies-cac
 import redisFetchScrapersCacheCommand from './redis/redis-fetch-scrapers-cache.command.js'
 import queueMonitorHeartbeatCommand from './queue/queue-monitor-heartbeat.command.js'
 import queueMonitorTreatmentCommand from './queue/queue-monitor-treatment.command.js'
-import queueMonitorScraperCommand from './queue/queue-monitor-scraper.command.js'
+import queueMonitorScrapingCommand from './queue/queue-monitor-scraping.command.js'
 import queueMonitorProxycheckCommand from './queue/queue-monitor-proxycheck.command.js'
 import { Config } from './manager.js'
 import { configSchema } from './manager.schema.js'
@@ -110,7 +110,7 @@ async function bootstrap(): Promise<void> {
     cmds: {
       'monitor-heartbeat': queueMonitorHeartbeatCommand(config, logger),
       'monitor-treatment': queueMonitorTreatmentCommand(config, logger),
-      'monitor-scraper': queueMonitorScraperCommand(config, logger),
+      'monitor-scraping': queueMonitorScrapingCommand(config, logger),
       'monitor-proxycheck': queueMonitorProxycheckCommand(config, logger)
     }
   })
@@ -130,19 +130,13 @@ async function bootstrap(): Promise<void> {
 
     await run(binaryApp, process.argv)
   } catch (error) {
-    if (error instanceof HighDatabaseError) {
-      logger.error(
-        {
-          request: error.request,
-          statusCode: error.statusCode
-        },
-        error.message
-      )
+    if (error instanceof DomainError) {
+      logger.error(error)
     } else {
       logger.fatal(error.stack ?? error.message)
     }
 
-    process.exit(1)
+    //process.exit(1)
   }
 }
 

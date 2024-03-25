@@ -8,17 +8,17 @@ export default (config: Config, logger: Logger) => {
     name: 'database-fetch-scraper-categories-cache',
     description: 'Redis fetch scraper categories cache',
     args: {
-      scraperJobId: positional({
+      scraperId: positional({
         type: string,
-        displayName: 'scraperJobId'
+        displayName: 'scraperId'
       })
     },
-    handler: async ({ scraperJobId }) => {
+    handler: async ({ scraperId }) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
       const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
-        scraperJobId
+        scraperId
       })
 
       logger.info({ categoriesCache }, `CategoriesCache successfully fetched`)

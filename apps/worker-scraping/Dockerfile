@@ -16,31 +16,31 @@ COPY package.json package*.json tsconfig*.json .
 
 COPY libs/config/package*.json libs/config/tsconfig*.json libs/config/
 COPY libs/logger/package*.json libs/logger/tsconfig*.json libs/logger/
-COPY libs/notify/package*.json libs/notify/tsconfig*.json libs/notify/
+COPY libs/common/package*.json libs/common/tsconfig*.json libs/common/
 COPY libs/redis/package*.json libs/redis/tsconfig*.json libs/redis/
 COPY libs/queue/package*.json libs/queue/tsconfig*.json libs/queue/
 
-COPY apps/worker-scraper/package*.json apps/worker-scraper/tsconfig*.json apps/worker-scraper/
+COPY apps/worker-scraping/package*.json apps/worker-scraping/tsconfig*.json apps/worker-scraping/
 
 RUN npm install
 
 COPY libs/config/ libs/config/
 COPY libs/logger/ libs/logger/
-COPY libs/notify/ libs/notify/
+COPY libs/common/ libs/common/
 COPY libs/redis/ libs/redis/
 COPY libs/queue/ libs/queue/
 
-COPY apps/worker-scraper/ apps/worker-scraper/
+COPY apps/worker-scraping/ apps/worker-scraping/
 
 RUN npm run -w @avito-speculant/config build
 RUN npm run -w @avito-speculant/logger build
-RUN npm run -w @avito-speculant/notify build
+RUN npm run -w @avito-speculant/common build
 RUN npm run -w @avito-speculant/redis build
 RUN npm run -w @avito-speculant/queue build
 
-RUN npm run -w @avito-speculant/worker-scraper build
+RUN npm run -w @avito-speculant/worker-scraping build
 
 COPY docker-entrypoint/ /lib/entrypoint/
 
-CMD ["npm", "-w", "@avito-speculant/worker-scraper", "run", "start"]
+CMD ["npm", "-w", "@avito-speculant/worker-scraping", "run", "start"]
 

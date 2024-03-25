@@ -8,7 +8,7 @@
 npm -w @avito-speculant/worker-heartbeat run build
 
 # Запустить в окружении разработчика
-npm -w @avito-speculant/worker-heartbeat run start | npx pino-pretty
+npm -w @avito-speculant/worker-heartbeat run start | pino-pretty
 
 # Отформатировать код
 npm -w @avito-speculant/worker-heartbeat run format

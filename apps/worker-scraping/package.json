@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/worker-scraper",
   "type": "module",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Avito-Speculant worker-scraper application",
   "private": true,
   "main": "dist/index.js",
@@ -18,10 +18,10 @@
   "dependencies": {
     "@avito-speculant/config": "*",
     "@avito-speculant/logger": "*",
-    "@avito-speculant/queue": "*",
+    "@avito-speculant/common": "*",
     "@avito-speculant/redis": "*",
+    "@avito-speculant/queue": "*",
     "cheerio": "^1.0.0-rc.12",
-    "got-scraping": "^4.0.4",
     "node-curl-impersonate": "^1.4.2"
   }
 }

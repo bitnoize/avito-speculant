@@ -1,5 +1,6 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
+import { DomainError } from '@avito-speculant/common'
 import {
   databaseService,
   userService,
@@ -16,12 +17,14 @@ import {
   scraperCacheService
 } from '@avito-speculant/redis'
 import {
+  ProcessUnknownStepError,
+  HeartbeatResult,
   HeartbeatProcessor,
   queueService,
   treatmentService,
-  scraperService
+  scrapingService
 } from '@avito-speculant/queue'
-import { Config } from './worker-heartbeat.js'
+import { Config, ProcessTreatment, ProcessScraping } from './worker-heartbeat.js'
 import { configSchema } from './worker-heartbeat.schema.js'
 
 const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
@@ -37,260 +40,324 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
   const redis = redisService.initRedis(redisOptions, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
-  const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
-  const scraperQueue = scraperService.initQueue(queueConnection, logger)
 
-  let step = heartbeatJob.data.step
+  const result: HeartbeatResult = {}
 
-  const counters: Record<string, number> = {}
+  try {
+    let { step } = heartbeatJob.data
 
-  while (step !== 'complete') {
-    switch (step) {
-      case 'produce-users': {
-        //
-        // produce-users
-        //
+    while (step !== 'complete') {
+      switch (step) {
+        case 'users': {
+          const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-        const { users } = await userService.produceUsers(db, {
-          limit: config.HEARTBEAT_PRODUCE_USERS_LIMIT
-        })
+          result[step] = await processUsers(config, logger, db, treatmentQueue)
 
-        await treatmentService.addJobs(
-          treatmentQueue,
-          'user',
-          users.map((user) => user.id)
-        )
+          step = 'plans'
+          await heartbeatJob.updateData({ step })
 
-        counters.users = users.length
-
-        step = 'produce-plans'
-        await heartbeatJob.updateData({ step })
-
-        break
-      }
-
-      case 'produce-plans': {
-        //
-        // produce-plans
-        //
-
-        const { plans } = await planService.producePlans(db, {
-          limit: config.HEARTBEAT_PRODUCE_PLANS_LIMIT
-        })
-
-        await treatmentService.addJobs(
-          treatmentQueue,
-          'plan',
-          plans.map((plan) => plan.id)
-        )
-
-        counters.plans = plans.length
-
-        step = 'produce-subscriptions'
-        await heartbeatJob.updateData({ step })
-
-        break
-      }
-
-      case 'produce-subscriptions': {
-        //
-        // produce-subscriptions
-        //
-
-        const { subscriptions } = await subscriptionService.produceSubscriptions(db, {
-          limit: config.HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT
-        })
-
-        await treatmentService.addJobs(
-          treatmentQueue,
-          'subscription',
-          subscriptions.map((subscription) => subscription.id)
-        )
-
-        counters.subscriptions = subscriptions.length
-
-        step = 'produce-categories'
-        await heartbeatJob.updateData({ step })
-
-        break
-      }
-
-      case 'produce-categories': {
-        //
-        // produce-categories
-        //
-
-        const { categories } = await categoryService.produceCategories(db, {
-          limit: config.HEARTBEAT_PRODUCE_CATEGORIES_LIMIT
-        })
-
-        await treatmentService.addJobs(
-          treatmentQueue,
-          'category',
-          categories.map((category) => category.id)
-        )
-
-        counters.categories = categories.length
-
-        step = 'produce-proxies'
-        await heartbeatJob.updateData({ step })
-
-        break
-      }
-
-      case 'produce-proxies': {
-        //
-        // produce-proxies
-        //
-
-        const { proxies } = await proxyService.produceProxies(db, {
-          limit: config.HEARTBEAT_PRODUCE_PROXIES_LIMIT
-        })
-
-        await treatmentService.addJobs(
-          treatmentQueue,
-          'proxy',
-          proxies.map((proxy) => proxy.id)
-        )
-
-        counters.proxies = proxies.length
-
-        step = 'check-scrapers'
-        await heartbeatJob.updateData({ step })
-
-        break
-      }
-
-      case 'check-scrapers': {
-        //
-        // check-scrapers
-        //
-
-        const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis)
-
-        const repeatableJobs = await scraperQueue.getRepeatableJobs()
-
-        const scraperJobIds = scrapersCache.map((scraperCache) => scraperCache.jobId)
-        const orphanScraperJobs = repeatableJobs.filter(
-          (repeatableJob) => repeatableJob.id != null && !scraperJobIds.includes(repeatableJob.id)
-        )
-
-        for (const orphanScraperJob of orphanScraperJobs) {
-          await scraperQueue.removeRepeatableByKey(orphanScraperJob.key)
+          break
         }
 
-        for (const scraperCache of scrapersCache) {
-          let isChanged = false
+        case 'plans': {
+          const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-          const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(
-            redis,
-            {
-              scraperJobId: scraperCache.jobId
-            }
-          )
+          result[step] = await processPlans(config, logger, db, treatmentQueue)
 
-          for (const categoryCache of categoriesCache) {
-            const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(
-              redis,
-              {
-                userId: categoryCache.userId
-              }
-            )
+          step = 'subscriptions'
+          await heartbeatJob.updateData({ step })
 
-            if (subscriptionCache.intervalSec < scraperCache.intervalSec) {
-              isChanged = true
-
-              scraperCache.intervalSec = subscriptionCache.intervalSec
-            }
-          }
-
-          const scraperJob = await scraperQueue.getJob(scraperCache.jobId)
-
-          if (scraperJob !== undefined) {
-            // ScraperJob allready running
-
-            if (scraperJob.repeatJobKey === undefined) {
-              throw new Error(`ScraperJob lost repeatJobKey`)
-            }
-
-            if (categoriesCache.length === 0) {
-              // There are no categories attached to scraper, clear cache and stop job
-
-              await scraperCacheService.dropScraperCache(redis, {
-                scraperJobId: scraperCache.jobId,
-                avitoUrl: scraperCache.avitoUrl
-              })
-
-              await scraperQueue.removeRepeatableByKey(scraperJob.repeatJobKey)
-            } else {
-              // Categories exists, save cache and restart job if scraper changed
-
-              await scraperCacheService.saveScraperCache(redis, {
-                scraperJobId: scraperCache.jobId,
-                avitoUrl: scraperCache.avitoUrl,
-                intervalSec: scraperCache.intervalSec
-              })
-
-              if (isChanged) {
-                await scraperQueue.removeRepeatableByKey(scraperJob.repeatJobKey)
-
-                await scraperService.addJob(
-                  scraperQueue,
-                  'default',
-                  scraperCache.intervalSec * 1000,
-                  scraperCache.jobId
-                )
-              }
-            }
-          } else {
-            // There is no scraper job running yet
-
-            if (categoriesCache.length === 0) {
-              // There are no categories attached to scraper, clear cache
-
-              await scraperCacheService.dropScraperCache(redis, {
-                scraperJobId: scraperCache.jobId,
-                avitoUrl: scraperCache.avitoUrl
-              })
-            } else {
-              // Categories attached, save cache and start job
-
-              await scraperCacheService.saveScraperCache(redis, {
-                scraperJobId: scraperCache.jobId,
-                avitoUrl: scraperCache.avitoUrl,
-                intervalSec: scraperCache.intervalSec
-              })
-
-              await scraperService.addJob(
-                scraperQueue,
-                'default',
-                scraperCache.intervalSec * 1000,
-                scraperCache.jobId
-              )
-            }
-          }
+          break
         }
 
-        counters.scrapers = scrapersCache.length
+        case 'subscriptions': {
+          const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-        step = 'complete'
-        await heartbeatJob.updateData({ step })
+          result[step] = await processSubscriptions(config, logger, db, treatmentQueue)
 
-        break
-      }
+          step = 'categories'
+          await heartbeatJob.updateData({ step })
 
-      default: {
-        throw new Error(`Unknown heartbeat step '${step}'`)
+          break
+        }
+
+        case 'categories': {
+          const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
+
+          result[step] = await processCategories(config, logger, db, treatmentQueue)
+
+          step = 'proxies'
+          await heartbeatJob.updateData({ step })
+
+          break
+        }
+
+        case 'proxies': {
+          const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
+
+          result[step] = await processProxies(config, logger, db, treatmentQueue)
+
+          step = 'scrapers'
+          await heartbeatJob.updateData({ step })
+
+          break
+        }
+
+        case 'scrapers': {
+          const scrapingQueue = scrapingService.initQueue(queueConnection, logger)
+
+          result[step] = await processScrapers(config, logger, redis, scrapingQueue)
+
+          step = 'complete'
+          await heartbeatJob.updateData({ step })
+
+          break
+        }
+
+        default: {
+          throw new ProcessUnknownStepError({ step })
+        }
       }
     }
+  } catch (error) {
+    if (error instanceof DomainError) {
+      // stop system...
+    }
+
+    throw error
+  } finally {
+    await redisService.closeRedis(redis)
+    await databaseService.closeDatabase(db)
   }
 
-  logger.info({ counters }, `HeartbeatJob complete`)
+  return result
+}
 
-  await scraperService.closeQueue(scraperQueue)
-  await treatmentService.closeQueue(treatmentQueue)
-  await redisService.closeRedis(redis)
-  await databaseService.closeDatabase(db)
+const processUsers: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+  try {
+    const { users } = await userService.produceUsers(db, {
+      limit: config.HEARTBEAT_PRODUCE_USERS_LIMIT
+    })
+
+    await treatmentService.addJobs(
+      treatmentQueue,
+      'user',
+      users.map((user) => user.id)
+    )
+
+    return { count: users.length }
+  } catch (error) {
+    logger.error(`HeartbeatProcessor processUsers exception`)
+
+    throw error
+  } finally {
+    await treatmentService.closeQueue(treatmentQueue)
+  }
+}
+
+const processPlans: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+  try {
+    const { plans } = await planService.producePlans(db, {
+      limit: config.HEARTBEAT_PRODUCE_PLANS_LIMIT
+    })
+
+    await treatmentService.addJobs(
+      treatmentQueue,
+      'plan',
+      plans.map((plan) => plan.id)
+    )
+
+    return { count: plans.length }
+  } catch (error) {
+    logger.error(`HeartbeatProcessor processPlans exception`)
+
+    throw error
+  } finally {
+    await treatmentService.closeQueue(treatmentQueue)
+  }
+}
+
+const processSubscriptions: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+  try {
+    const { subscriptions } = await subscriptionService.produceSubscriptions(db, {
+      limit: config.HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT
+    })
+
+    await treatmentService.addJobs(
+      treatmentQueue,
+      'subscription',
+      subscriptions.map((subscription) => subscription.id)
+    )
+
+    return { count: subscriptions.length }
+  } catch (error) {
+    logger.error(`HeartbeatProcessor processSubscriptions exception`)
+
+    throw error
+  } finally {
+    await treatmentService.closeQueue(treatmentQueue)
+  }
+}
+
+const processCategories: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+  try {
+    const { categories } = await categoryService.produceCategories(db, {
+      limit: config.HEARTBEAT_PRODUCE_CATEGORIES_LIMIT
+    })
+
+    await treatmentService.addJobs(
+      treatmentQueue,
+      'category',
+      categories.map((category) => category.id)
+    )
+
+    return { count: categories.length }
+  } catch (error) {
+    logger.error(`HeartbeatProcessor processCategories exception`)
+
+    throw error
+  } finally {
+    await treatmentService.closeQueue(treatmentQueue)
+  }
+}
+
+const processProxies: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+  try {
+    const { proxies } = await proxyService.produceProxies(db, {
+      limit: config.HEARTBEAT_PRODUCE_PROXIES_LIMIT
+    })
+
+    await treatmentService.addJobs(
+      treatmentQueue,
+      'proxy',
+      proxies.map((proxy) => proxy.id)
+    )
+
+    return { count: proxies.length }
+  } catch (error) {
+    logger.error(`HeartbeatProcessor processProxies exception`)
+
+    throw error
+  } finally {
+    await treatmentService.closeQueue(treatmentQueue)
+  }
+}
+
+const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQueue) => {
+  try {
+    const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis)
+
+    const repeatableJobs = await scrapingQueue.getRepeatableJobs()
+
+    const scraperIds = scrapersCache.map((scraperCache) => scraperCache.id)
+    const orphanScrapingJobs = repeatableJobs.filter(
+      (repeatableJob) => repeatableJob.id != null && !scraperIds.includes(repeatableJob.id)
+    )
+
+    for (const orphanScrapingJob of orphanScrapingJobs) {
+      await scrapingQueue.removeRepeatableByKey(orphanScrapingJob.key)
+    }
+
+    for (const scraperCache of scrapersCache) {
+      let isChanged = false
+
+      const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(
+        redis,
+        {
+          scraperId: scraperCache.id
+        }
+      )
+
+      for (const categoryCache of categoriesCache) {
+        const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(
+          redis,
+          {
+            userId: categoryCache.userId
+          }
+        )
+
+        if (subscriptionCache.intervalSec < scraperCache.intervalSec) {
+          isChanged = true
+
+          scraperCache.intervalSec = subscriptionCache.intervalSec
+        }
+      }
+
+      const scrapingJob = await scrapingQueue.getJob(scraperCache.id)
+
+      if (scrapingJob !== undefined) {
+        // ScrapingJob allready running
+
+        if (categoriesCache.length === 0) {
+          // There are no categories attached to scraper, clear cache and stop job
+
+          await scraperCacheService.dropScraperCache(redis, {
+            scraperId: scraperCache.id,
+            avitoUrl: scraperCache.avitoUrl
+          })
+
+          if (scrapingJob.repeatJobKey !== undefined) {
+            await scrapingQueue.removeRepeatableByKey(scrapingJob.repeatJobKey)
+          }
+        } else {
+          // Categories exists, save cache and restart job if scraper changed
+
+          await scraperCacheService.saveScraperCache(redis, {
+            scraperId: scraperCache.id,
+            avitoUrl: scraperCache.avitoUrl,
+            intervalSec: scraperCache.intervalSec
+          })
+
+          if (isChanged) {
+            if (scrapingJob.repeatJobKey !== undefined) {
+              await scrapingQueue.removeRepeatableByKey(scrapingJob.repeatJobKey)
+            }
+
+            await scrapingService.addJob(
+              scrapingQueue,
+              'default',
+              scraperCache.intervalSec * 1000,
+              scraperCache.id
+            )
+          }
+        }
+      } else {
+        // There is no scraping job running yet
+
+        if (categoriesCache.length === 0) {
+          // There are no categories attached to scraper, clear cache
+
+          await scraperCacheService.dropScraperCache(redis, {
+            scraperId: scraperCache.id,
+            avitoUrl: scraperCache.avitoUrl
+          })
+        } else {
+          // Categories attached, save cache and start job
+
+          await scraperCacheService.saveScraperCache(redis, {
+            scraperId: scraperCache.id,
+            avitoUrl: scraperCache.avitoUrl,
+            intervalSec: scraperCache.intervalSec
+          })
+
+          await scrapingService.addJob(
+            scrapingQueue,
+            'default',
+            scraperCache.intervalSec * 1000,
+            scraperCache.id
+          )
+        }
+      }
+    }
+
+    return { count: scrapersCache.length }
+  } catch (error) {
+    logger.error(`HeartbeatProcessor processScrapers exception`)
+
+    throw error
+  } finally {
+    await scrapingService.closeQueue(scrapingQueue)
+  }
 }
 
 export default heartbeatProcessor

@@ -9,6 +9,7 @@
   "references": [
     { "path": "../../libs/config" },
     { "path": "../../libs/logger" },
+    { "path": "../../libs/common" },
     { "path": "../../libs/database" },
     { "path": "../../libs/redis" },
     { "path": "../../libs/queue" }

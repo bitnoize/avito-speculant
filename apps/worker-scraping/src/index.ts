@@ -1,9 +1,9 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { queueService, scraperService } from '@avito-speculant/queue'
-import { Config } from './worker-scraper.js'
-import { configSchema } from './worker-scraper.schema.js'
-import scraperProcessor from './worker-scraper.processor.js'
+import { queueService, scrapingService } from '@avito-speculant/queue'
+import { Config } from './worker-scraping.js'
+import { configSchema } from './worker-scraping.schema.js'
+import scrapingProcessor from './worker-scraping.processor.js'
 
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
@@ -12,18 +12,18 @@ async function bootstrap(): Promise<void> {
   const logger = loggerService.initLogger(loggerOptions)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
-  const concurrency = scraperService.getWorkerConcurrency<Config>(config)
-  const limiter = scraperService.getWorkerLimiter<Config>(config)
+  const concurrency = scrapingService.getWorkerConcurrency<Config>(config)
+  const limiter = scrapingService.getWorkerLimiter<Config>(config)
 
-  const scraperWorker = scraperService.initWorker(
-    scraperProcessor,
+  const scrapingWorker = scrapingService.initWorker(
+    scrapingProcessor,
     queueConnection,
     concurrency,
     limiter,
     logger
   )
 
-  await scraperService.runWorker(scraperWorker)
+  await scrapingService.runWorker(scrapingWorker)
 }
 
 bootstrap().catch((error) => {

@@ -32,6 +32,13 @@ export default (config: Config, logger: Logger) => {
       })
     },
     handler: async ({ categoriesMax, priceRub, durationDays, intervalSec, analyticsOn }) => {
+      //if (
+      //  categoriesMax < MINIMUM_PLAN_CATEGORIES_MAX ||
+      //  categoriesMax > MAXIMUM_PLAN_CATEGORIES_MAX ||
+      //) {
+      // ...
+      //}
+
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
