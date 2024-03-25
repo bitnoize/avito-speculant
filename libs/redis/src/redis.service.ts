@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { RedisOptions, Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import * as systemRepository from './system/system.repository.js'
 import * as userCacheRepository from './user-cache/user-cache.repository.js'
 import * as planCacheRepository from './plan-cache/plan-cache.repository.js'
@@ -247,8 +247,8 @@ export function initPubSub(options: RedisOptions, logger: Logger): Redis {
  */
 export async function publishBackLog(pubSub: Redis, backLog: Notify[]): Promise<void> {
   for (const notify of backLog) {
-    const [channel, logId, id, action] = notify
-    await pubSub.publish(channel, `${logId}\t${id}\t${action}`)
+    const [entityName, logId, entityId, action] = notify
+    await pubSub.publish(entityName, [logId, entityId, action].join(`\t`))
   }
 }
 

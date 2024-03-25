@@ -15,7 +15,7 @@ export async function listProxyLogs(
     const proxyRow = await proxyRepository.selectRowByIdForShare(trx, request.proxyId)
 
     if (proxyRow === undefined) {
-      throw new ProxyNotFoundError<ListProxyLogsRequest>(request)
+      throw new ProxyNotFoundError(request)
     }
 
     const proxyLogRows = await proxyLogRepository.selectRowsList(trx, proxyRow.id, request.limit)

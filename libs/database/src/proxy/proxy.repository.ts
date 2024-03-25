@@ -79,7 +79,7 @@ export async function selectRowsList(trx: TransactionDatabase, all: boolean): Pr
     .execute()
 }
 
-export async function selectRowsSkipLockedForUpdate(
+export async function selectRowsProduce(
   trx: TransactionDatabase,
   limit: number
 ): Promise<ProxyRow[]> {

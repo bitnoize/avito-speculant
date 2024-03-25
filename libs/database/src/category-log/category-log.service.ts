@@ -15,7 +15,7 @@ export async function listCategoryLogs(
     const categoryRow = await categoryRepository.selectRowByIdForShare(trx, request.categoryId)
 
     if (categoryRow === undefined) {
-      throw new CategoryNotFoundError<ListCategoryLogsRequest>(request)
+      throw new CategoryNotFoundError(request)
     }
 
     const categoryLogRows = await categoryLogRepository.selectRowsList(

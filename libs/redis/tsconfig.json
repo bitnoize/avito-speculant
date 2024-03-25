@@ -8,6 +8,6 @@
   },
   "references": [
     { "path": "../logger" },
-    { "path": "../notify" }
+    { "path": "../common" }
   ]
 }

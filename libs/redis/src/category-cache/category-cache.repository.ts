@@ -6,18 +6,25 @@ import {
   scraperCategoriesCacheKey
 } from './category-cache.js'
 import { REDIS_CACHE_TIMEOUT } from '../redis.js'
-import { parseNumber, parseManyNumbers, parseString } from '../redis.utils.js'
+import {
+  parseNumber,
+  parseManyNumbers,
+  parseString,
+  parseHash,
+  parsePipeline,
+  parseCommand
+} from '../redis.utils.js'
 
 export const fetchCategoryCacheLua = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
-  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
+  return nil 
 end
 
 local category_cache = redis.call(
   'HMGET', KEYS[1],
   'id',
   'user_id',
-  'scraper_job_id',
+  'scraper_id',
   'avito_url'
 )
 
@@ -31,7 +38,7 @@ export async function fetchModel(redis: Redis, categoryId: number): Promise<Cate
     categoryCacheKey(categoryId) // KEYS[1]
   )
 
-  return parseModel(result)
+  return parseModel(result, `CategoryCache fetchModel malformed result`)
 }
 
 export const fetchUserCategoriesCacheIndexLua = `
@@ -39,23 +46,23 @@ return redis.call('SMEMBERS', KEYS[1])
 `
 
 export async function fetchUserIndex(redis: Redis, userId: number): Promise<number[]> {
-  const results = await redis.fetchUserCategoriesCacheIndex(
+  const result = await redis.fetchUserCategoriesCacheIndex(
     userCategoriesCacheKey(userId) // KEYS[1]
   )
 
-  return parseManyNumbers(results)
+  return parseManyNumbers(result, `CategoryCache fetchPlanIndex malformed result`)
 }
 
 export const fetchScraperCategoriesCacheIndexLua = `
 return redis.call('SMEMBERS', KEYS[1])
 `
 
-export async function fetchScraperIndex(redis: Redis, scraperJobId: string): Promise<number[]> {
-  const results = await redis.fetchScraperCategoriesCacheIndex(
-    scraperCategoriesCacheKey(scraperJobId) // KEYS[1]
+export async function fetchScraperIndex(redis: Redis, scraperId: string): Promise<number[]> {
+  const result = await redis.fetchScraperCategoriesCacheIndex(
+    scraperCategoriesCacheKey(scraperId) // KEYS[1]
   )
 
-  return parseManyNumbers(results)
+  return parseManyNumbers(result, `CategoryCache fetchScraperIndex malformed result`)
 }
 
 export async function fetchCollection(
@@ -74,9 +81,9 @@ export async function fetchCollection(
     )
   })
 
-  const results = await pipeline.exec()
+  const result = await pipeline.exec()
 
-  return parseCollection(results)
+  return parseCollection(result, `CategoryCache fetchCollection malformed result`)
 }
 
 export const saveCategoryCacheLua = `
@@ -84,7 +91,7 @@ redis.call(
   'HSET', KEYS[1],
   'id', ARGV[1],
   'user_id', ARGV[2],
-  'scraper_job_id', ARGV[3],
+  'scraper_id', ARGV[3],
   'avito_url', ARGV[4]
 )
 redis.call('PEXPIRE', KEYS[1], ARGV[5])
@@ -102,16 +109,16 @@ export async function saveModel(
   redis: Redis,
   categoryId: number,
   userId: number,
-  scraperJobId: string,
+  scraperId: string,
   avitoUrl: string
 ): Promise<void> {
   await redis.saveCategoryCache(
     categoryCacheKey(categoryId), // KEYS[1]
     userCategoriesCacheKey(userId), // KEYS[2]
-    scraperCategoriesCacheKey(scraperJobId), // KEYS[3]
+    scraperCategoriesCacheKey(scraperId), // KEYS[3]
     categoryId, // ARGV[1]
     userId, // ARGV[2]
-    scraperJobId, // ARGV[3]
+    scraperId, // ARGV[3]
     avitoUrl, // ARGV[4]
     REDIS_CACHE_TIMEOUT // ARGV[5]
   )
@@ -133,40 +140,33 @@ export async function dropModel(
   redis: Redis,
   categoryId: number,
   userId: number,
-  scraperJobId: string
+  scraperId: string
 ): Promise<void> {
   await redis.dropCategoryCache(
     categoryCacheKey(categoryId), // KEYS[1]
     userCategoriesCacheKey(userId), // KEYS[2]
-    scraperCategoriesCacheKey(scraperJobId), // KEYS[3]
+    scraperCategoriesCacheKey(scraperId), // KEYS[3]
     categoryId, // ARGV[1]
     REDIS_CACHE_TIMEOUT // ARGV[2]
   )
 }
 
-const parseModel = (result: unknown): CategoryCache => {
-  if (!(Array.isArray(result) && result.length === 4)) {
-    throw new TypeError(`Redis malformed result`)
-  }
+const parseModel = (result: unknown, message: string): CategoryCache => {
+  const hash = parseHash(result, 4, message)
 
   return {
-    id: parseNumber(result[0]),
-    userId: parseNumber(result[1]),
-    scraperJobId: parseString(result[2]),
-    avitoUrl: parseString(result[3])
+    id: parseNumber(hash[0], message),
+    userId: parseNumber(hash[1], message),
+    scraperId: parseString(hash[2], message),
+    avitoUrl: parseString(hash[3], message)
   }
 }
 
-const parseCollection = (results: unknown): CategoryCache[] => {
-  if (!Array.isArray(results)) {
-    throw new TypeError(`Redis malformed results`)
-  }
+const parseCollection = (result: unknown, message: string): CategoryCache[] => {
+  const pipeline = parsePipeline(result, message)
 
-  return results.map((result) => {
-    if (!Array.isArray(result)) {
-      throw new TypeError(`Redis malformed result`)
-    }
-
-    return parseModel(result[1])
+  return pipeline.map((pl) => {
+    const command = parseCommand(pl, message)
+    return parseModel(command, message)
   })
 }

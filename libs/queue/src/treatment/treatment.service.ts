@@ -1,31 +1,27 @@
 import { Logger } from '@avito-speculant/logger'
-import { ConnectionOptions, RateLimiterOptions, Queue, Worker, MetricsTime } from 'bullmq'
+import { ConnectionOptions, RateLimiterOptions } from 'bullmq'
 import {
   TREATMENT_QUEUE_NAME,
-  DEFAULT_TREATMENT_CONCURRENCY,
-  DEFAULT_TREATMENT_LIMITER_MAX,
-  DEFAULT_TREATMENT_LIMITER_DURATION,
   TreatmentConfig,
+  TreatmentName,
   TreatmentData,
+  TreatmentResult,
   TreatmentQueue,
   TreatmentJob,
   TreatmentWorker,
   TreatmentProcessor
 } from './treatment.js'
+import { initBaseQueue, initBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): TreatmentQueue {
-  const queue = new Queue<TreatmentData>(TREATMENT_QUEUE_NAME, {
-    connection
-  })
-
-  queue.on('error', (error) => {
-    logger.error(error, `There was an error in the TreatmentQueue`)
-  })
-
-  return queue
+  return initBaseQueue<TreatmentData, TreatmentResult, TreatmentName>(
+    TREATMENT_QUEUE_NAME,
+    connection,
+    logger
+  )
 }
 
 /**
@@ -33,7 +29,7 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Treatm
  */
 export async function addJob(
   queue: TreatmentQueue,
-  name: string,
+  name: TreatmentName,
   entityId: number
 ): Promise<TreatmentJob> {
   return await queue.add(name, { entityId })
@@ -44,7 +40,7 @@ export async function addJob(
  */
 export async function addJobs(
   queue: TreatmentQueue,
-  name: string,
+  name: TreatmentName,
   entityIds: number[]
 ): Promise<TreatmentJob[]> {
   return await queue.addBulk(entityIds.map((entityId) => ({ name, data: { entityId } })))
@@ -84,27 +80,14 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): TreatmentWorker {
-  const worker = new Worker<TreatmentData>(TREATMENT_QUEUE_NAME, processor, {
+  return initBaseWorker<TreatmentData, TreatmentResult, TreatmentName>(
+    TREATMENT_QUEUE_NAME,
+    processor,
     connection,
     concurrency,
     limiter,
-    autorun: false,
-    removeOnComplete: {
-      count: 0
-    },
-    removeOnFail: {
-      count: 0
-    },
-    metrics: {
-      maxDataPoints: MetricsTime.ONE_WEEK
-    }
-  })
-
-  worker.on('error', (error) => {
-    logger.error(error, `There was an error in the TreatmentWorker`)
-  })
-
-  return worker
+    logger
+  )
 }
 
 /**

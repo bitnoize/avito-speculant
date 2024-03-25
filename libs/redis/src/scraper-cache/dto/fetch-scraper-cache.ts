@@ -1,7 +1,7 @@
 import { ScraperCache } from '../scraper-cache.js'
 
 export interface FetchScraperCacheRequest {
-  scraperJobId: string
+  scraperId: string
 }
 
 export interface FetchScraperCacheResponse {

@@ -1,4 +1,4 @@
 export interface DropScraperCacheRequest {
-  scraperJobId: string
+  scraperId: string
   avitoUrl: string
 }

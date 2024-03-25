@@ -1,4 +1,4 @@
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import {
   CreatePlanRequest,
   CreatePlanResponse,
@@ -77,11 +77,11 @@ export async function updatePlan(
     const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError<UpdatePlanRequest>(request)
+      throw new PlanNotFoundError(request)
     }
 
     if (planRow.is_enabled) {
-      throw new PlanIsEnabledError<UpdatePlanRequest>(request)
+      throw new PlanIsEnabledError(request)
     }
 
     // ...
@@ -147,7 +147,7 @@ export async function enablePlan(
     const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError<EnableDisablePlanRequest>(request)
+      throw new PlanNotFoundError(request)
     }
 
     if (planRow.is_enabled) {
@@ -197,7 +197,7 @@ export async function disablePlan(
     const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError<EnableDisablePlanRequest>(request)
+      throw new PlanNotFoundError(request)
     }
 
     if (!planRow.is_enabled) {
@@ -260,7 +260,7 @@ export async function producePlans(
   return await db.transaction().execute(async (trx) => {
     const plans: Plan[] = []
 
-    const planRows = await planRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
+    const planRows = await planRepository.selectRowsProduce(trx, request.limit)
 
     for (const planRow of planRows) {
       const updatedPlanRow = await planRepository.updateRowProduce(trx, planRow.id)
@@ -286,12 +286,14 @@ export async function consumePlan(
     const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError<ConsumePlanRequest>(request)
+      throw new PlanNotFoundError(request)
     }
 
     if (planRow.is_enabled) {
-      // TODO
+      // ...
     }
+
+    // ...
 
     const { subscriptions } = await subscriptionRepository.selectCountByPlanId(trx, planRow.id)
 
@@ -300,8 +302,6 @@ export async function consumePlan(
 
       planRow.subscriptions = subscriptions
     }
-
-    // ...
 
     if (!isChanged) {
       return {

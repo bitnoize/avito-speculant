@@ -15,7 +15,7 @@ export async function listPlanLogs(
     const planRow = await planRepository.selectRowByIdForShare(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError<ListPlanLogsRequest>(request)
+      throw new PlanNotFoundError(request)
     }
 
     const planLogRows = await planLogRepository.selectRowsList(trx, planRow.id, request.limit)

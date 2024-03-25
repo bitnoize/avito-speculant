@@ -1,6 +1,6 @@
 export interface SaveCategoryCacheRequest {
   categoryId: number
   userId: number
-  scraperJobId: string
+  scraperId: string
   avitoUrl: string
 }

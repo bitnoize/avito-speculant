@@ -1,4 +1,4 @@
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import {
   AuthorizeUserRequest,
   AuthorizeUserResponse,
@@ -97,7 +97,7 @@ export async function produceUsers(
   return await db.transaction().execute(async (trx) => {
     const users: User[] = []
 
-    const userRows = await userRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
+    const userRows = await userRepository.selectRowsProduce(trx, request.limit)
 
     for (const userRow of userRows) {
       const updatedUserRow = await userRepository.updateRowProduce(trx, userRow.id)
@@ -123,11 +123,21 @@ export async function consumeUser(
     const userRow = await userRepository.selectRowByIdForUpdate(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<ConsumeUserRequest>(request)
+      throw new UserNotFoundError(request)
     }
 
     if (userRow.status === 'paid') {
-      // TODO
+      const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
+        trx,
+        userRow.id,
+        'active'
+      )
+
+      if (subscriptionRow === undefined) {
+        isChanged = true
+
+        userRow.status = 'trial'
+      }
     }
 
     const { subscriptions } = await subscriptionRepository.selectCountByUserId(trx, userRow.id)

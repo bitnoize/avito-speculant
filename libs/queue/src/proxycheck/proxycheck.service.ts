@@ -1,28 +1,27 @@
 import { Logger } from '@avito-speculant/logger'
-import { ConnectionOptions, RateLimiterOptions, Queue, Worker, MetricsTime } from 'bullmq'
+import { ConnectionOptions, RateLimiterOptions } from 'bullmq'
 import {
   PROXYCHECK_QUEUE_NAME,
   ProxycheckConfig,
+  ProxycheckName,
   ProxycheckData,
+  ProxycheckResult,
   ProxycheckQueue,
   ProxycheckJob,
   ProxycheckWorker,
   ProxycheckProcessor
 } from './proxycheck.js'
+import { initBaseQueue, initBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): ProxycheckQueue {
-  const queue = new Queue<ProxycheckData>(PROXYCHECK_QUEUE_NAME, {
-    connection
-  })
-
-  queue.on('error', (error) => {
-    logger.error(error, `There was an error in the ProxycheckQueue`)
-  })
-
-  return queue
+  return initBaseQueue<ProxycheckData, ProxycheckResult, ProxycheckName>(
+    PROXYCHECK_QUEUE_NAME,
+    connection,
+    logger
+  )
 }
 
 /**
@@ -30,7 +29,7 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Proxyc
  */
 export async function addJob(
   queue: ProxycheckQueue,
-  name: string,
+  name: ProxycheckName,
   proxyId: number
 ): Promise<ProxycheckJob> {
   return await queue.add(name, { proxyId })
@@ -70,27 +69,14 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): ProxycheckWorker {
-  const worker = new Worker<ProxycheckData>(PROXYCHECK_QUEUE_NAME, processor, {
+  return initBaseWorker<ProxycheckData, ProxycheckResult, ProxycheckName>(
+    PROXYCHECK_QUEUE_NAME,
+    processor,
     connection,
     concurrency,
     limiter,
-    autorun: false,
-    removeOnComplete: {
-      count: 0
-    },
-    removeOnFail: {
-      count: 0
-    },
-    metrics: {
-      maxDataPoints: MetricsTime.ONE_WEEK
-    }
-  })
-
-  worker.on('error', (error) => {
-    logger.error(error, `There was an error in the ProxycheckWorker`)
-  })
-
-  return worker
+    logger
+  )
 }
 
 /**

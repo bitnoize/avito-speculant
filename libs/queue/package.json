@@ -1,8 +1,8 @@
 {
   "name": "@avito-speculant/queue",
   "type": "module",
-  "version": "0.0.8",
-  "description": "Avito-Speculant queue shared library",
+  "version": "0.0.9",
+  "description": "Avito-speculant queue library",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@avito-speculant/logger": "*",
+    "@avito-speculant/common": "*",
     "bullmq": "^5.1.0"
   }
 }

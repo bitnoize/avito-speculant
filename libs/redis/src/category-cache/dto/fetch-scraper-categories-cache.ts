@@ -1,7 +1,7 @@
 import { CategoryCache } from '../category-cache.js'
 
 export interface FetchScraperCategoriesCacheRequest {
-  scraperJobId: string
+  scraperId: string
 }
 
 export interface FetchScraperCategoriesCacheResponse {

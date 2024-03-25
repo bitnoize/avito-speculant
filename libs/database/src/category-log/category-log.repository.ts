@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import { CategoryLog, CategoryLogData } from './category-log.js'
 import { CategoryLogRow } from './category-log.table.js'
 import { TransactionDatabase } from '../database.js'

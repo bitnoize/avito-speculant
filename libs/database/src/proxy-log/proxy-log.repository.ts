@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import { ProxyLog, ProxyLogData } from './proxy-log.js'
 import { ProxyLogRow } from './proxy-log.table.js'
 import { TransactionDatabase } from '../database.js'

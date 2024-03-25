@@ -1,8 +1,8 @@
 {
-  "name": "@avito-speculant/notify",
+  "name": "@avito-speculant/common",
   "type": "module",
-  "version": "0.0.1",
-  "description": "Avito-Speculant Notify shared library",
+  "version": "0.0.4",
+  "description": "Avito-speculant common library",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -107,7 +107,7 @@ export async function selectCountByUserId(
     .executeTakeFirstOrThrow()
 }
 
-export async function selectRowsSkipLockedForUpdate(
+export async function selectRowsProduce(
   trx: TransactionDatabase,
   limit: number
 ): Promise<CategoryRow[]> {

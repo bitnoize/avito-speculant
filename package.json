@@ -2,12 +2,12 @@
   "name": "avito-speculant",
   "type": "module",
   "version": "0.0.0",
-  "description": "Avito-Speculant Monorepo",
+  "description": "Avito-speculant monorepo",
   "private": true,
   "workspaces": [
     "libs/config",
     "libs/logger",
-    "libs/notify",
+    "libs/common",
     "libs/database",
     "libs/redis",
     "libs/queue",
@@ -16,7 +16,7 @@
     "apps/worker-heartbeat",
     "apps/worker-treatment",
     "apps/worker-proxycheck",
-    "apps/worker-scraper",
+    "apps/worker-scraping",
     "apps/worker-sendreport"
   ],
   "engines": {

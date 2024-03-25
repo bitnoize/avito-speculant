@@ -127,7 +127,7 @@ export async function selectCountByPlanId(
     .executeTakeFirstOrThrow()
 }
 
-export async function selectRowsSkipLockedForUpdate(
+export async function selectRowsProduce(
   trx: TransactionDatabase,
   limit: number
 ): Promise<SubscriptionRow[]> {

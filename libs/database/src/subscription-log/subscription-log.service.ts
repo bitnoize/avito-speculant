@@ -18,7 +18,7 @@ export async function listSubscriptionLogs(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError<ListSubscriptionLogsRequest>(request)
+      throw new SubscriptionNotFoundError(request)
     }
 
     const subscriptionLogRows = await subscriptionLogRepository.selectRowsList(

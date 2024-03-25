@@ -1,31 +1,28 @@
 import { Logger } from '@avito-speculant/logger'
-import { ConnectionOptions, RateLimiterOptions, Queue, Worker, MetricsTime } from 'bullmq'
+import { ConnectionOptions, RateLimiterOptions } from 'bullmq'
 import {
   HEARTBEAT_QUEUE_NAME,
-  DEFAULT_HEARTBEAT_CONCURRENCY,
-  DEFAULT_HEARTBEAT_LIMITER_MAX,
-  DEFAULT_HEARTBEAT_LIMITER_DURATION,
+  HEARTBEAT_STEPS,
   HeartbeatConfig,
+  HeartbeatName,
   HeartbeatData,
+  HeartbeatResult,
   HeartbeatQueue,
   HeartbeatJob,
   HeartbeatWorker,
   HeartbeatProcessor
 } from './heartbeat.js'
+import { initBaseQueue, initBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): HeartbeatQueue {
-  const queue = new Queue<HeartbeatData>(HEARTBEAT_QUEUE_NAME, {
-    connection
-  })
-
-  queue.on('error', (error) => {
-    logger.error(error, `There was an error in the HeartbeatQueue`)
-  })
-
-  return queue
+  return initBaseQueue<HeartbeatData, HeartbeatResult, HeartbeatName>(
+    HEARTBEAT_QUEUE_NAME,
+    connection,
+    logger
+  )
 }
 
 /**
@@ -33,13 +30,13 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Heartb
  */
 export async function addJob(
   queue: HeartbeatQueue,
-  name: string,
+  name: HeartbeatName,
   every: number
 ): Promise<HeartbeatJob> {
   return await queue.add(
     name,
     {
-      step: 'produce-users'
+      step: HEARTBEAT_STEPS[0]
     },
     {
       repeat: {
@@ -83,27 +80,14 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): HeartbeatWorker {
-  const worker = new Worker<HeartbeatData>(HEARTBEAT_QUEUE_NAME, processor, {
+  return initBaseWorker<HeartbeatData, HeartbeatResult, HeartbeatName>(
+    HEARTBEAT_QUEUE_NAME,
+    processor,
     connection,
     concurrency,
     limiter,
-    autorun: false,
-    removeOnComplete: {
-      count: 0
-    },
-    removeOnFail: {
-      count: 0
-    },
-    metrics: {
-      maxDataPoints: MetricsTime.ONE_WEEK
-    }
-  })
-
-  worker.on('error', (error) => {
-    logger.error(error, `There was an error in the HeartbeatWorker`)
-  })
-
-  return worker
+    logger
+  )
 }
 
 /**

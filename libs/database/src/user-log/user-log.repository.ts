@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import { UserLog, UserLogData } from './user-log.js'
 import { UserLogRow } from './user-log.table.js'
 import { UserStatus } from '../user/user.js'

@@ -6,16 +6,23 @@ import {
   scrapersCacheKey
 } from './scraper-cache.js'
 import { REDIS_CACHE_TIMEOUT } from '../redis.js'
-import { parseNumber, parseString, parseManyStrings } from '../redis.utils.js'
+import {
+  parseNumber,
+  parseString,
+  parseManyStrings,
+  parseHash,
+  parsePipeline,
+  parseCommand
+} from '../redis.utils.js'
 
 export const fetchScraperCacheLua = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
-  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
+  return nil 
 end
 
 local scraper_cache = redis.call(
   'HMGET', KEYS[1],
-  'job_id',
+  'id',
   'avito_url',
   'interval_sec',
   'total_count',
@@ -27,24 +34,18 @@ return {
 }
 `
 
-/*
- * Fetch scraperCache by scraperJobId
- */
-export async function fetchModel(redis: Redis, scraperJobId: string): Promise<ScraperCache> {
+export async function fetchModel(redis: Redis, scraperId: string): Promise<ScraperCache> {
   const result = await redis.fetchScraperCache(
-    scraperCacheKey(scraperJobId) // KEYS[1]
+    scraperCacheKey(scraperId) // KEYS[1]
   )
 
-  return parseModel(result)
+  return parseModel(result, `ScraperCache fetchModel malformed result`)
 }
 
 export const findScraperCacheAvitoUrlIndexLua = `
 return redis.call('GET', KEYS[1])
 `
 
-/*
- * Find scraperCache by avitoUrl
- */
 export async function findAvitoUrlIndex(
   redis: Redis,
   avitoUrl: string
@@ -57,52 +58,46 @@ export async function findAvitoUrlIndex(
     return undefined
   }
 
-  return parseString(result)
+  return parseString(result, `ScraperCache findAvitoUrlIndex malformed result`)
 }
 
 export const fetchScrapersCacheIndexLua = `
 return redis.call('SMEMBERS', KEYS[1])
 `
 
-/*
- * Fetch scraperCache index
- */
 export async function fetchIndex(redis: Redis): Promise<string[]> {
-  const results = await redis.fetchScrapersCacheIndex(
+  const result = await redis.fetchScrapersCacheIndex(
     scrapersCacheKey() // KEYS[1]
   )
 
-  return parseManyStrings(results)
+  return parseManyStrings(result, `ScraperCache fetchIndex malformed result`)
 }
 
-/*
- * Fetch multiple models by scraperJobId as collection
- */
 export async function fetchCollection(
   redis: Redis,
-  scraperJobIds: string[]
+  scraperIds: string[]
 ): Promise<ScraperCache[]> {
-  if (scraperJobIds.length === 0) {
+  if (scraperIds.length === 0) {
     return []
   }
 
   const pipeline = redis.pipeline()
 
-  scraperJobIds.forEach((scraperJobId) => {
+  scraperIds.forEach((scraperId) => {
     pipeline.fetchScraperCache(
-      scraperCacheKey(scraperJobId) // KEYS[1]
+      scraperCacheKey(scraperId) // KEYS[1]
     )
   })
 
-  const results = await pipeline.exec()
+  const result = await pipeline.exec()
 
-  return parseCollection(results)
+  return parseCollection(result, `ScraperCache fetchCollection malformed result`)
 }
 
 export const saveScraperCacheLua = `
 redis.call(
   'HSET', KEYS[1],
-  'job_id', ARGV[1],
+  'id', ARGV[1],
   'avito_url', ARGV[2],
   'interval_sec', ARGV[3]
 )
@@ -119,20 +114,17 @@ redis.call('PEXPIRE', KEYS[3], ARGV[4])
 return redis.status_reply('OK')
 `
 
-/*
- * Save scraperCache
- */
 export async function saveModel(
   redis: Redis,
-  scraperJobId: string,
+  scraperId: string,
   avitoUrl: string,
   intervalSec: number
 ): Promise<void> {
   await redis.saveScraperCache(
-    scraperCacheKey(scraperJobId), // KEYS[1]
+    scraperCacheKey(scraperId), // KEYS[1]
     scraperCacheAvitoUrlKey(avitoUrl), // KEYS[2]
     scrapersCacheKey(), // KEYS[3]
-    scraperJobId, // ARGV[1]
+    scraperId, // ARGV[1]
     avitoUrl, // ARGV[2]
     intervalSec, // ARGV[3]
     REDIS_CACHE_TIMEOUT // ARGV[4]
@@ -148,47 +140,37 @@ redis.call('SREM', KEYS[3], ARGV[1])
 redis.call('PEXPIRE', KEYS[3], ARGV[2])
 `
 
-/*
- * Drop scraperCache
- */
 export async function dropModel(
   redis: Redis,
-  scraperJobId: string,
+  scraperId: string,
   avitoUrl: string
 ): Promise<void> {
   await redis.dropScraperCache(
-    scraperCacheKey(scraperJobId), // KEYS[1]
+    scraperCacheKey(scraperId), // KEYS[1]
     scraperCacheAvitoUrlKey(avitoUrl), // KEYS[2]
     scrapersCacheKey(), // KEYS[3]
-    scraperJobId, // ARGV[1]
+    scraperId, // ARGV[1]
     REDIS_CACHE_TIMEOUT // ARGV[2]
   )
 }
 
-const parseModel = (result: unknown): ScraperCache => {
-  if (!(Array.isArray(result) && result.length === 5)) {
-    throw new TypeError(`Redis malformed result`)
-  }
+const parseModel = (result: unknown, message: string): ScraperCache => {
+  const hash = parseHash(result, 5, message)
 
   return {
-    jobId: parseString(result[0]),
-    avitoUrl: parseString(result[1]),
-    intervalSec: parseNumber(result[2]),
-    totalCount: parseNumber(result[3]),
-    successCount: parseNumber(result[4])
+    id: parseString(hash[0], message),
+    avitoUrl: parseString(hash[1], message),
+    intervalSec: parseNumber(hash[2], message),
+    totalCount: parseNumber(hash[3], message),
+    successCount: parseNumber(hash[4], message)
   }
 }
 
-const parseCollection = (results: unknown): ScraperCache[] => {
-  if (!Array.isArray(results)) {
-    throw new TypeError(`Redis malformed results`)
-  }
+const parseCollection = (result: unknown, message: string): ScraperCache[] => {
+  const pipeline = parsePipeline(result, message)
 
-  return results.map((result) => {
-    if (!Array.isArray(result)) {
-      throw new TypeError(`Redis malformed result`)
-    }
-
-    return parseModel(result[1])
+  return pipeline.map((pl) => {
+    const command = parseCommand(pl, message)
+    return parseModel(command, message)
   })
 }

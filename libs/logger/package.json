@@ -2,7 +2,7 @@
   "name": "@avito-speculant/logger",
   "type": "module",
   "version": "0.0.4",
-  "description": "Avito-Speculant logger shared library",
+  "description": "Avito-speculant logger library",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

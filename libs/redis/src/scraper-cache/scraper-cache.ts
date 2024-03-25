@@ -1,15 +1,15 @@
 import { REDIS_CACHE_PREFIX } from '../redis.js'
 
 export interface ScraperCache {
-  jobId: string
+  id: string
   avitoUrl: string
   intervalSec: number
   totalCount: number
   successCount: number
 }
 
-export const scraperCacheKey = (scraperJobId: string) =>
-  [REDIS_CACHE_PREFIX, 'scraper', scraperJobId].join(':')
+export const scraperCacheKey = (scraperId: string) =>
+  [REDIS_CACHE_PREFIX, 'scraper', scraperId].join(':')
 
 export const scraperCacheAvitoUrlKey = (avitoUrl: string) =>
   [REDIS_CACHE_PREFIX, 'scraper-avito_url', avitoUrl].join(':')

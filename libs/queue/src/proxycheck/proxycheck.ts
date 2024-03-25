@@ -5,8 +5,8 @@ export const PROXYCHECK_QUEUE_NAME = `proxycheck`
 export const DEFAULT_PROXYCHECK_CONCURRENCY = 2
 export const DEFAULT_PROXYCHECK_LIMITER_MAX = 2
 export const DEFAULT_PROXYCHECK_LIMITER_DURATION = 1_000
-export const DEFAULT_PROXYCHECK_CHECK_URL = 'https://www.google.com'
-export const DEFAULT_PROXYCHECK_CHECK_TIMEOUT = 10_000
+export const DEFAULT_PROXYCHECK_CHECK_URL = 'https://www.avito.ru/company'
+export const DEFAULT_PROXYCHECK_CHECK_TIMEOUT = 1_000
 
 export type ProxycheckConfig = {
   PROXYCHECK_CONCURRENCY: number
@@ -16,11 +16,20 @@ export type ProxycheckConfig = {
   PROXYCHECK_CHECK_TIMEOUT: number
 }
 
+export type ProxycheckName = 'curl-impersonate'
+
 export type ProxycheckData = {
   proxyId: number
 }
 
-export type ProxycheckQueue = Queue<ProxycheckData, void>
-export type ProxycheckJob = Job<ProxycheckData, void>
-export type ProxycheckWorker = Worker<ProxycheckData, void>
-export type ProxycheckProcessor = Processor<ProxycheckData, void>
+export type ProxycheckNameResult = {
+  proxyId: number
+  statusCode: number
+  isOnline: boolean
+}
+export type ProxycheckResult = Record<string, ProxycheckNameResult>
+
+export type ProxycheckQueue = Queue<ProxycheckData, ProxycheckResult, ProxycheckName>
+export type ProxycheckJob = Job<ProxycheckData, ProxycheckResult, ProxycheckName>
+export type ProxycheckWorker = Worker<ProxycheckData, ProxycheckResult, ProxycheckName>
+export type ProxycheckProcessor = Processor<ProxycheckData, ProxycheckResult, ProxycheckName>

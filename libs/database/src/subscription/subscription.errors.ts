@@ -1,25 +1,25 @@
-import { HighDatabaseError } from '../database.errors.js'
+import { DomainError } from '@avito-speculant/common'
 
-export class SubscriptionNotFoundError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 404, message = `Subscription not found`) {
-    super(request, statusCode, message)
+export class SubscriptionNotFoundError extends DomainError {
+  constructor(context: unknown, statusCode = 101, message = `Subscription not found`) {
+    super(context, statusCode, message)
   }
 }
 
-export class SubscriptionExistsError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 403, message = `Subscription exists`) {
-    super(request, statusCode, message)
+export class SubscriptionExistsError extends DomainError {
+  constructor(context: unknown, statusCode = 103, message = `Subscription exists`) {
+    super(context, statusCode, message)
   }
 }
 
-export class SubscriptionNotWaitError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 403, message = `Subscription not wait`) {
-    super(request, statusCode, message)
+export class SubscriptionNotWaitError extends DomainError {
+  constructor(context: unknown, statusCode = 103, message = `Subscription not wait`) {
+    super(context, statusCode, message)
   }
 }
 
-export class SubscriptionNotActiveError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 403, message = `Subscription not active`) {
-    super(request, statusCode, message)
+export class SubscriptionNotActiveError extends DomainError {
+  constructor(context: unknown, statusCode = 103, message = `Subscription not active`) {
+    super(context, statusCode, message)
   }
 }

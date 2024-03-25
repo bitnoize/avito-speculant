@@ -1,31 +1,27 @@
 import { Logger } from '@avito-speculant/logger'
-import { ConnectionOptions, RateLimiterOptions, Queue, Worker, MetricsTime } from 'bullmq'
+import { ConnectionOptions, RateLimiterOptions } from 'bullmq'
 import {
   SENDREPORT_QUEUE_NAME,
-  DEFAULT_SENDREPORT_CONCURRENCY,
-  DEFAULT_SENDREPORT_LIMITER_MAX,
-  DEFAULT_SENDREPORT_LIMITER_DURATION,
   SendreportConfig,
+  SendreportName,
   SendreportData,
+  SendreportResult,
   SendreportQueue,
   SendreportJob,
   SendreportWorker,
   SendreportProcessor
 } from './sendreport.js'
+import { initBaseQueue, initBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): SendreportQueue {
-  const queue = new Queue<SendreportData>(SENDREPORT_QUEUE_NAME, {
-    connection
-  })
-
-  queue.on('error', (error) => {
-    logger.error(error, `There was an error in the SendreportQueue`)
-  })
-
-  return queue
+  return initBaseQueue<SendreportData, SendreportResult, SendreportName>(
+    SENDREPORT_QUEUE_NAME,
+    connection,
+    logger
+  )
 }
 
 /**
@@ -33,7 +29,7 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Sendre
  */
 export async function addJob(
   queue: SendreportQueue,
-  name: string,
+  name: SendreportName,
   userId: number,
   categoryId: number
 ): Promise<SendreportJob> {
@@ -74,27 +70,14 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): SendreportWorker {
-  const worker = new Worker<SendreportData>(SENDREPORT_QUEUE_NAME, processor, {
+  return initBaseWorker<SendreportData, SendreportResult, SendreportName>(
+    SENDREPORT_QUEUE_NAME,
+    processor,
     connection,
     concurrency,
     limiter,
-    autorun: false,
-    removeOnComplete: {
-      count: 0
-    },
-    removeOnFail: {
-      count: 0
-    },
-    metrics: {
-      maxDataPoints: MetricsTime.ONE_WEEK
-    }
-  })
-
-  worker.on('error', (error) => {
-    logger.error(error, `There was an error in the SendreportWorker`)
-  })
-
-  return worker
+    logger
+  )
 }
 
 /**

@@ -1,4 +1,4 @@
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import { Proxy } from '../proxy.js'
 import { ProxyLogData } from '../../proxy-log/proxy-log.js'
 

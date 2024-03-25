@@ -1,6 +1,7 @@
 import { Queue, Job, Worker, Processor } from 'bullmq'
+import { Entity } from '@avito-speculant/common'
 
-export const TREATMENT_QUEUE_NAME = `business`
+export const TREATMENT_QUEUE_NAME = `treatment`
 
 export const DEFAULT_TREATMENT_CONCURRENCY = 2
 export const DEFAULT_TREATMENT_LIMITER_MAX = 2
@@ -12,11 +13,16 @@ export type TreatmentConfig = {
   TREATMENT_LIMITER_DURATION: number
 }
 
+export type TreatmentName = Entity
+
 export type TreatmentData = {
   entityId: number
 }
 
-export type TreatmentQueue = Queue<TreatmentData, void>
-export type TreatmentJob = Job<TreatmentData, void>
-export type TreatmentWorker = Worker<TreatmentData, void>
-export type TreatmentProcessor = Processor<TreatmentData, void>
+export type TreatmentNameResult = { id: number }
+export type TreatmentResult = Record<string, TreatmentNameResult>
+
+export type TreatmentQueue = Queue<TreatmentData, TreatmentResult, TreatmentName>
+export type TreatmentJob = Job<TreatmentData, TreatmentResult, TreatmentName>
+export type TreatmentWorker = Worker<TreatmentData, TreatmentResult, TreatmentName>
+export type TreatmentProcessor = Processor<TreatmentData, TreatmentResult, TreatmentName>

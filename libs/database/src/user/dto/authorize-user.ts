@@ -1,4 +1,4 @@
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import { User } from '../user.js'
 import { UserLogData } from '../../user-log/user-log.js'
 import { Subscription } from '../../subscription/subscription.js'

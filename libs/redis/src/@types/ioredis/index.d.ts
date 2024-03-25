@@ -145,7 +145,7 @@ declare module 'ioredis' {
       scraperCategoriesCacheKey: string,
       categoryId: number,
       userId: number,
-      scraperJobId: string,
+      scraperId: string,
       avitoUrl: string,
       timeout: number,
       callback?: Callback<string>
@@ -230,7 +230,7 @@ declare module 'ioredis' {
       scraperCacheKey: string,
       scraperCacheAvitoUrlKey: string,
       scrapersCacheKey: string,
-      scraperJobId: string,
+      scraperId: string,
       avitoUrl: string,
       intervalSec: number,
       timeout: number,
@@ -241,7 +241,7 @@ declare module 'ioredis' {
       scraperCacheKey: string,
       scraperCacheAvitoUrlKey: string,
       scrapersCacheKey: string,
-      scraperJobId: string,
+      scraperId: string,
       timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>

@@ -22,13 +22,15 @@ export type HeartbeatConfig = {
   HEARTBEAT_PRODUCE_PROXIES_LIMIT: number
 }
 
+export type HeartbeatName = 'singleton'
+
 export const HEARTBEAT_STEPS = [
-  'produce-users',
-  'produce-plans',
-  'produce-subscriptions',
-  'produce-categories',
-  'produce-proxies',
-  'check-scrapers',
+  'users',
+  'plans',
+  'subscriptions',
+  'categories',
+  'proxies',
+  'scrapers',
   'complete'
 ]
 export type HeartbeatStep = (typeof HEARTBEAT_STEPS)[number]
@@ -37,7 +39,12 @@ export type HeartbeatData = {
   step: HeartbeatStep
 }
 
-export type HeartbeatQueue = Queue<HeartbeatData, void>
-export type HeartbeatJob = Job<HeartbeatData, void>
-export type HeartbeatWorker = Worker<HeartbeatData, void>
-export type HeartbeatProcessor = Processor<HeartbeatData, void>
+export type HeartbeatStepResult = {
+  count: number
+}
+export type HeartbeatResult = Record<string, HeartbeatStepResult>
+
+export type HeartbeatQueue = Queue<HeartbeatData, HeartbeatResult, HeartbeatName>
+export type HeartbeatJob = Job<HeartbeatData, HeartbeatResult, HeartbeatName>
+export type HeartbeatWorker = Worker<HeartbeatData, HeartbeatResult, HeartbeatName>
+export type HeartbeatProcessor = Processor<HeartbeatData, HeartbeatResult, HeartbeatName>

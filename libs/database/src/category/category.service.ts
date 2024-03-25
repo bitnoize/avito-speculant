@@ -1,4 +1,4 @@
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import {
   CreateCategoryRequest,
   CreateCategoryResponse,
@@ -34,11 +34,11 @@ export async function createCategory(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<CreateCategoryRequest>(request)
+      throw new UserNotFoundError(request)
     }
 
     if (userRow.status === 'block') {
-      throw new UserBlockedError<CreateCategoryRequest>(request)
+      throw new UserBlockedError(request)
     }
 
     // ...
@@ -80,7 +80,7 @@ export async function enableCategory(
     const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
-      throw new CategoryNotFoundError<EnableDisableCategoryRequest>(request)
+      throw new CategoryNotFoundError(request)
     }
 
     if (categoryRow.is_enabled) {
@@ -93,11 +93,11 @@ export async function enableCategory(
     const userRow = await userRepository.selectRowByIdForShare(trx, categoryRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<EnableDisableCategoryRequest>(request, 500)
+      throw new UserNotFoundError(request, 500)
     }
 
     if (userRow.status !== 'paid') {
-      throw new UserNotPaidError<EnableDisableCategoryRequest>(request)
+      throw new UserNotPaidError(request)
     }
 
     const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
@@ -107,13 +107,13 @@ export async function enableCategory(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotActiveError<EnableDisableCategoryRequest>(request)
+      throw new SubscriptionNotActiveError(request)
     }
 
     const { categories } = await categoryRepository.selectCountByUserId(trx, categoryRow.user_id)
 
     if (categories >= subscriptionRow.categories_max) {
-      throw new CategoriesLimitExceedError<EnableDisableCategoryRequest>(request)
+      throw new CategoriesLimitExceedError(request)
     }
 
     // ...
@@ -155,7 +155,7 @@ export async function disableCategory(
     const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
-      throw new CategoryNotFoundError<EnableDisableCategoryRequest>(request)
+      throw new CategoryNotFoundError(request)
     }
 
     if (!categoryRow.is_enabled) {
@@ -202,11 +202,11 @@ export async function listCategories(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<ListCategoriesRequest>(request)
+      throw new UserNotFoundError(request)
     }
 
     if (userRow.status === 'block') {
-      throw new UserBlockedError<ListCategoriesRequest>(request)
+      throw new UserBlockedError(request)
     }
 
     // ...
@@ -233,7 +233,7 @@ export async function produceCategories(
   return await db.transaction().execute(async (trx) => {
     const categories: Category[] = []
 
-    const categoryRows = await categoryRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
+    const categoryRows = await categoryRepository.selectRowsProduce(trx, request.limit)
 
     for (const categoryRow of categoryRows) {
       const updatedCategoryRow = await categoryRepository.updateRowProduce(trx, categoryRow.id)
@@ -259,13 +259,13 @@ export async function consumeCategory(
     const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
-      throw new CategoryNotFoundError<ConsumeCategoryRequest>(request)
+      throw new CategoryNotFoundError(request)
     }
 
     const userRow = await userRepository.selectRowByIdForShare(trx, categoryRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<ConsumeCategoryRequest>(request, 500)
+      throw new UserNotFoundError(request, 100)
     }
 
     const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(

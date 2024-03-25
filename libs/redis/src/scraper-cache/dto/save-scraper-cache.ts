@@ -1,5 +1,5 @@
 export interface SaveScraperCacheRequest {
-  scraperJobId: string
+  scraperId: string
   avitoUrl: string
   intervalSec: number
 }

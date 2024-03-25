@@ -1,17 +1,13 @@
-export abstract class HighDatabaseError<T> extends Error {
-  constructor(
-    readonly request: T,
-    readonly statusCode: number,
-    message: string
-  ) {
-    super(message)
+import { DomainError } from '@avito-speculant/common'
+
+export abstract class DatabaseError extends DomainError {
+  constructor(context: unknown, statusCode: number, message: string) {
+    super(context, statusCode, message)
   }
 }
 
-/*
-export class InternalError<T> extends KyselyDatabaseError<T> {
-  constructor(request: T, statusCode = 500, message = `Internal error`) {
-    super(request, statusCode, message)
+export class DatabaseInternalError extends DatabaseError {
+  constructor(context: unknown, statusCode = 100, message = `Database internal error`) {
+    super(context, statusCode, message)
   }
 }
-*/

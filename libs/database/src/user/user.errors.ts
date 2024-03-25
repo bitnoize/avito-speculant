@@ -1,19 +1,19 @@
-import { HighDatabaseError } from '../database.errors.js'
+import { DomainError } from '@avito-speculant/common'
 
-export class UserNotFoundError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 404, message = `User not found`) {
-    super(request, statusCode, message)
+export class UserNotFoundError extends DomainError {
+  constructor(context: unknown, statusCode = 101, message = `User not found`) {
+    super(context, statusCode, message)
   }
 }
 
-export class UserNotPaidError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 403, message = `User not paid`) {
-    super(request, statusCode, message)
+export class UserNotPaidError extends DomainError {
+  constructor(context: unknown, statusCode = 103, message = `User not paid`) {
+    super(context, statusCode, message)
   }
 }
 
-export class UserBlockedError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 403, message = `User is blocked`) {
-    super(request, statusCode, message)
+export class UserBlockedError extends DomainError {
+  constructor(context: unknown, statusCode = 103, message = `User is blocked`) {
+    super(context, statusCode, message)
   }
 }

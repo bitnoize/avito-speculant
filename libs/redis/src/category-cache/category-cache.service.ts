@@ -43,7 +43,7 @@ export async function fetchScraperCategoriesCache(
   redis: Redis,
   request: FetchScraperCategoriesCacheRequest
 ): Promise<FetchScraperCategoriesCacheResponse> {
-  const categoryIds = await categoryCacheRepository.fetchScraperIndex(redis, request.scraperJobId)
+  const categoryIds = await categoryCacheRepository.fetchScraperIndex(redis, request.scraperId)
   const categoriesCache = await categoryCacheRepository.fetchCollection(redis, categoryIds)
 
   return { categoriesCache }
@@ -60,7 +60,7 @@ export async function saveCategoryCache(
     redis,
     request.categoryId,
     request.userId,
-    request.scraperJobId,
+    request.scraperId,
     request.avitoUrl
   )
 }
@@ -76,6 +76,6 @@ export async function dropCategoryCache(
     redis,
     request.categoryId,
     request.userId,
-    request.scraperJobId
+    request.scraperId
   )
 }

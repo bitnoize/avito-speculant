@@ -17,7 +17,7 @@ export async function fetchScraperCache(
   redis: Redis,
   request: FetchScraperCacheRequest
 ): Promise<FetchScraperCacheResponse> {
-  const scraperCache = await scraperCacheRepository.fetchModel(redis, request.scraperJobId)
+  const scraperCache = await scraperCacheRepository.fetchModel(redis, request.scraperId)
 
   return { scraperCache }
 }
@@ -29,13 +29,13 @@ export async function findScraperCache(
   redis: Redis,
   request: FindScraperCacheRequest
 ): Promise<FindScraperCacheResponse> {
-  const scraperJobId = await scraperCacheRepository.findAvitoUrlIndex(redis, request.avitoUrl)
+  const scraperId = await scraperCacheRepository.findAvitoUrlIndex(redis, request.avitoUrl)
 
-  if (scraperJobId === undefined) {
+  if (scraperId === undefined) {
     return {}
   }
 
-  const scraperCache = await scraperCacheRepository.fetchModel(redis, scraperJobId)
+  const scraperCache = await scraperCacheRepository.fetchModel(redis, scraperId)
 
   return { scraperCache }
 }
@@ -44,8 +44,8 @@ export async function findScraperCache(
  * Fetch ScraperCache
  */
 export async function fetchScrapersCache(redis: Redis): Promise<FetchScrapersCacheResponse> {
-  const scraperJobIds = await scraperCacheRepository.fetchIndex(redis)
-  const scrapersCache = await scraperCacheRepository.fetchCollection(redis, scraperJobIds)
+  const scraperIds = await scraperCacheRepository.fetchIndex(redis)
+  const scrapersCache = await scraperCacheRepository.fetchCollection(redis, scraperIds)
 
   return { scrapersCache }
 }
@@ -59,7 +59,7 @@ export async function saveScraperCache(
 ): Promise<void> {
   await scraperCacheRepository.saveModel(
     redis,
-    request.scraperJobId,
+    request.scraperId,
     request.avitoUrl,
     request.intervalSec
   )
@@ -72,5 +72,5 @@ export async function dropScraperCache(
   redis: Redis,
   request: DropScraperCacheRequest
 ): Promise<void> {
-  await scraperCacheRepository.dropModel(redis, request.scraperJobId, request.avitoUrl)
+  await scraperCacheRepository.dropModel(redis, request.scraperId, request.avitoUrl)
 }

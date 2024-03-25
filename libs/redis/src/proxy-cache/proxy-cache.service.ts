@@ -78,7 +78,7 @@ export async function renewProxyCacheOnline(
   redis: Redis,
   request: RenewProxyCacheRequest
 ): Promise<void> {
-  await proxyCacheRepository.renewOnline(redis, request.proxyId)
+  await proxyCacheRepository.renewOnline(redis, request.proxyId, request.sizeBytes)
 }
 
 /*
@@ -88,5 +88,5 @@ export async function renewProxyCacheOffline(
   redis: Redis,
   request: RenewProxyCacheRequest
 ): Promise<void> {
-  await proxyCacheRepository.renewOffline(redis, request.proxyId)
+  await proxyCacheRepository.renewOffline(redis, request.proxyId, request.sizeBytes)
 }

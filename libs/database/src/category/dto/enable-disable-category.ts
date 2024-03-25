@@ -1,4 +1,4 @@
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import { Category } from '../category.js'
 import { CategoryLogData } from '../../category-log/category-log.js'
 

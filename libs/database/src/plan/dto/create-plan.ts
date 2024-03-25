@@ -1,4 +1,4 @@
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import { Plan } from '../plan.js'
 import { PlanLogData } from '../../plan-log/plan-log.js'
 

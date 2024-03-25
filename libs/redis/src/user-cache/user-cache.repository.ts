@@ -1,11 +1,18 @@
 import { Redis } from 'ioredis'
 import { UserCache, userCacheKey, usersCacheKey } from './user-cache.js'
 import { REDIS_CACHE_TIMEOUT } from '../redis.js'
-import { parseNumber, parseManyNumbers, parseString } from '../redis.utils.js'
+import {
+  parseNumber,
+  parseManyNumbers,
+  parseString,
+  parseHash,
+  parsePipeline,
+  parseCommand
+} from '../redis.utils.js'
 
 export const fetchUserCacheLua = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
-  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
+  return nil 
 end
 
 local user_cache = redis.call('HMGET', KEYS[1], 'id', 'tg_from_id')
@@ -20,7 +27,7 @@ export async function fetchModel(redis: Redis, userId: number): Promise<UserCach
     userCacheKey(userId) // KEYS[1]
   )
 
-  return parseModel(result)
+  return parseModel(result, `UserCache fetchModel malformed result`)
 }
 
 export const fetchUsersCacheIndexLua = `
@@ -28,11 +35,11 @@ return redis.call('SMEMBERS', KEYS[1])
 `
 
 export async function fetchIndex(redis: Redis): Promise<number[]> {
-  const results = await redis.fetchUsersCacheIndex(
+  const result = await redis.fetchUsersCacheIndex(
     usersCacheKey() // KEYS[1]
   )
 
-  return parseManyNumbers(results)
+  return parseManyNumbers(result, `UserCache fetchIndex malformed result`)
 }
 
 export async function fetchCollection(redis: Redis, userIds: number[]): Promise<UserCache[]> {
@@ -48,9 +55,9 @@ export async function fetchCollection(redis: Redis, userIds: number[]): Promise<
     )
   })
 
-  const results = await pipeline.exec()
+  const result = await pipeline.exec()
 
-  return parseCollection(results)
+  return parseCollection(result, `UserCache fetchCollection malformed result`)
 }
 
 export const saveUserCacheLua = `
@@ -91,27 +98,20 @@ export async function dropModel(redis: Redis, userId: number): Promise<void> {
   )
 }
 
-const parseModel = (result: unknown): UserCache => {
-  if (!(Array.isArray(result) && result.length === 2)) {
-    throw new TypeError(`Redis malformed result`)
-  }
+const parseModel = (result: unknown, message: string): UserCache => {
+  const hash = parseHash(result, 2, message)
 
   return {
-    id: parseNumber(result[0]),
-    tgFromId: parseString(result[1])
+    id: parseNumber(hash[0], message),
+    tgFromId: parseString(hash[1], message)
   }
 }
 
-const parseCollection = (results: unknown): UserCache[] => {
-  if (!Array.isArray(results)) {
-    throw new TypeError(`Redis malformed results`)
-  }
+const parseCollection = (result: unknown, message: string): UserCache[] => {
+  const pipeline = parsePipeline(result, message)
 
-  return results.map((result) => {
-    if (!Array.isArray(result)) {
-      throw new TypeError(`Redis malformed result`)
-    }
-
-    return parseModel(result[1])
+  return pipeline.map((pl) => {
+    const command = parseCommand(pl, message)
+    return parseModel(command, message)
   })
 }

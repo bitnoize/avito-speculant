@@ -1,4 +1,4 @@
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import {
   CreateSubscriptionRequest,
   CreateSubscriptionResponse,
@@ -41,21 +41,21 @@ export async function createSubscription(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<CreateSubscriptionRequest>(request)
+      throw new UserNotFoundError(request)
     }
 
     if (userRow.status === 'block') {
-      throw new UserBlockedError<CreateSubscriptionRequest>(request)
+      throw new UserBlockedError(request)
     }
 
     const planRow = await planRepository.selectRowByIdForShare(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError<CreateSubscriptionRequest>(request)
+      throw new PlanNotFoundError(request)
     }
 
     if (!planRow.is_enabled) {
-      throw new PlanIsDisabledError<CreateSubscriptionRequest>(request)
+      throw new PlanIsDisabledError(request)
     }
 
     const waitSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
@@ -65,7 +65,7 @@ export async function createSubscription(
     )
 
     if (waitSubscriptionRow !== undefined) {
-      throw new SubscriptionExistsError<CreateSubscriptionRequest>(request)
+      throw new SubscriptionExistsError(request)
     }
 
     const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
@@ -124,21 +124,21 @@ export async function activateSubscription(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError<ActivateSubscriptionRequest>(request)
+      throw new SubscriptionNotFoundError(request)
     }
 
     if (subscriptionRow.status !== 'wait') {
-      throw new SubscriptionNotWaitError<ActivateSubscriptionRequest>(request)
+      throw new SubscriptionNotWaitError(request)
     }
 
     const userRow = await userRepository.selectRowByIdForUpdate(trx, subscriptionRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<ActivateSubscriptionRequest>(request, 500)
+      throw new UserNotFoundError(request, 100)
     }
 
     if (userRow.status === 'block') {
-      throw new UserBlockedError<ActivateSubscriptionRequest>(request)
+      throw new UserBlockedError(request)
     }
 
     // ...
@@ -164,7 +164,7 @@ export async function activateSubscription(
     const userLogRow = await userLogRepository.insertRow(
       trx,
       updatedUserRow.id,
-      'paid_user',
+      'activate_subscription',
       updatedUserRow.status,
       updatedUserRow.subscriptions,
       updatedUserRow.categories,
@@ -197,7 +197,7 @@ export async function cancelSubscription(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError<CancelSubscriptionRequest>(request)
+      throw new SubscriptionNotFoundError(request)
     }
 
     if (subscriptionRow.status === 'cancel') {
@@ -208,18 +208,18 @@ export async function cancelSubscription(
     }
 
     if (subscriptionRow.status !== 'wait') {
-      throw new SubscriptionNotWaitError<CancelSubscriptionRequest>(request)
+      throw new SubscriptionNotWaitError(request)
     }
 
     const userRow = await userRepository.selectRowByIdForShare(trx, subscriptionRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<CancelSubscriptionRequest>(request, 500)
+      throw new UserNotFoundError(request, 100)
     }
 
-    if (userRow.status === 'block') {
-      throw new UserBlockedError<CancelSubscriptionRequest>(request)
-    }
+    //if (userRow.status === 'block') {
+    //  throw new UserBlockedError(request)
+    //}
 
     // ...
 
@@ -232,7 +232,7 @@ export async function cancelSubscription(
     const subscriptionLogRow = await subscriptionLogRepository.insertRow(
       trx,
       updatedSubscriptionRow.id,
-      'cancel_wait_subscription',
+      'cancel_subscription',
       updatedSubscriptionRow.status,
       request.data
     )
@@ -257,11 +257,11 @@ export async function listSubscriptions(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<ListSubscriptionsRequest>(request)
+      throw new UserNotFoundError(request)
     }
 
     if (userRow.status === 'block') {
-      throw new UserBlockedError<ListSubscriptionsRequest>(request)
+      throw new UserBlockedError(request)
     }
 
     const subscriptionRows = await subscriptionRepository.selectRowsList(
@@ -286,7 +286,7 @@ export async function produceSubscriptions(
   return await db.transaction().execute(async (trx) => {
     const subscriptions: Subscription[] = []
 
-    const subscriptionRows = await subscriptionRepository.selectRowsSkipLockedForUpdate(
+    const subscriptionRows = await subscriptionRepository.selectRowsProduce(
       trx,
       request.limit
     )
@@ -321,29 +321,32 @@ export async function consumeSubscription(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError<ConsumeSubscriptionRequest>(request)
+      throw new SubscriptionNotFoundError(request)
     }
 
     const userRow = await userRepository.selectRowByIdForShare(trx, subscriptionRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError<ConsumeSubscriptionRequest>(request, 500)
+      throw new UserNotFoundError(request, 100)
     }
 
     const planRow = await planRepository.selectRowByIdForShare(trx, subscriptionRow.plan_id)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError<ConsumeSubscriptionRequest>(request, 500)
+      throw new PlanNotFoundError(request, 100)
     }
 
     if (subscriptionRow.status === 'wait') {
-      if (subscriptionRow.created_at < Date.now() - 900 * 1000) {
+      if (subscriptionRow.queued_at > subscriptionRow.created_at + 900 * 1000) {
         isChanged = true
 
         subscriptionRow.status = 'cancel'
       }
-    } else if (subscriptionRow.status === 'active') {
-      if (subscriptionRow.created_at < Date.now() - subscriptionRow.duration_days * 86400 * 1000) {
+    }
+
+    if (subscriptionRow.status === 'active') {
+      const duration = subscriptionRow.duration_days * 3600 * 24 * 1000
+      if (subscriptionRow.queued_at > subscriptionRow.created_at + duration) {
         isChanged = true
 
         subscriptionRow.status = 'finish'

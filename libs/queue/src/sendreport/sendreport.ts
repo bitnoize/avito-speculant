@@ -13,12 +13,19 @@ export type SendreportConfig = {
   BOT_TOKEN: string
 }
 
+export type SendreportName = 'default'
+
 export type SendreportData = {
   userId: number
   categoryId: number
 }
 
-export type SendreportQueue = Queue<SendreportData, void>
-export type SendreportJob = Job<SendreportData, void>
-export type SendreportWorker = Worker<SendreportData, void>
-export type SendreportProcessor = Processor<SendreportData, void>
+export type SendreportNameResult = {
+  isSuccess: boolean
+}
+export type SendreportResult = Record<string, SendreportNameResult>
+
+export type SendreportQueue = Queue<SendreportData, SendreportResult, SendreportName>
+export type SendreportJob = Job<SendreportData, SendreportResult, SendreportName>
+export type SendreportWorker = Worker<SendreportData, SendreportResult, SendreportName>
+export type SendreportProcessor = Processor<SendreportData, SendreportResult, SendreportName>

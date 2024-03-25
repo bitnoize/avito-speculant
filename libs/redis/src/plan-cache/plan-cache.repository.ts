@@ -1,11 +1,17 @@
 import { Redis } from 'ioredis'
 import { PlanCache, planCacheKey, plansCacheKey } from './plan-cache.js'
 import { REDIS_CACHE_TIMEOUT } from '../redis.js'
-import { parseNumber, parseManyNumbers } from '../redis.utils.js'
+import {
+  parseNumber,
+  parseManyNumbers,
+  parseHash,
+  parsePipeline,
+  parseCommand
+} from '../redis.utils.js'
 
 export const fetchPlanCacheLua = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
-  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
+  return nil 
 end
 
 local plan_cache = redis.call(
@@ -28,7 +34,7 @@ export async function fetchModel(redis: Redis, planId: number): Promise<PlanCach
     planCacheKey(planId) // KEYS[1]
   )
 
-  return parseModel(result)
+  return parseModel(result, `PlanCache fetchModel malformed result`)
 }
 
 export const fetchPlansCacheIndexLua = `
@@ -36,11 +42,11 @@ return redis.call('SMEMBERS', KEYS[1])
 `
 
 export async function fetchIndex(redis: Redis): Promise<number[]> {
-  const results = await redis.fetchPlansCacheIndex(
+  const result = await redis.fetchPlansCacheIndex(
     plansCacheKey() // KEYS[1]
   )
 
-  return parseManyNumbers(results)
+  return parseManyNumbers(result, `PlanCache fetchIndex malformed result`)
 }
 
 export async function fetchCollection(redis: Redis, planIds: number[]): Promise<PlanCache[]> {
@@ -56,9 +62,9 @@ export async function fetchCollection(redis: Redis, planIds: number[]): Promise<
     )
   })
 
-  const results = await pipeline.exec()
+  const result = await pipeline.exec()
 
-  return parseCollection(results)
+  return parseCollection(result, `PlanCache fetchCollection malformed result`)
 }
 
 export const savePlanCacheLua = `
@@ -119,31 +125,24 @@ export async function dropModel(redis: Redis, planId: number): Promise<void> {
   )
 }
 
-const parseModel = (result: unknown): PlanCache => {
-  if (!(Array.isArray(result) && result.length === 6)) {
-    throw new TypeError(`Redis malformed result`)
-  }
+const parseModel = (result: unknown, message: string): PlanCache => {
+  const hash = parseHash(result, 6, message)
 
   return {
-    id: parseNumber(result[0]),
-    categoriesMax: parseNumber(result[1]),
-    priceRub: parseNumber(result[2]),
-    durationDays: parseNumber(result[3]),
-    intervalSec: parseNumber(result[4]),
-    analyticsOn: !!parseNumber(result[5])
+    id: parseNumber(hash[0], message),
+    categoriesMax: parseNumber(hash[1], message),
+    priceRub: parseNumber(hash[2], message),
+    durationDays: parseNumber(hash[3], message),
+    intervalSec: parseNumber(hash[4], message),
+    analyticsOn: !!parseNumber(hash[5], message)
   }
 }
 
-const parseCollection = (results: unknown): PlanCache[] => {
-  if (!Array.isArray(results)) {
-    throw new TypeError(`Redis malformed results`)
-  }
+const parseCollection = (result: unknown, message: string): PlanCache[] => {
+  const pipeline = parsePipeline(result, message)
 
-  return results.map((result) => {
-    if (!Array.isArray(result)) {
-      throw new TypeError(`Redis malformed result`)
-    }
-
-    return parseModel(result[1])
+  return pipeline.map((pl) => {
+    const command = parseCommand(pl, message)
+    return parseModel(command, message)
   })
 }

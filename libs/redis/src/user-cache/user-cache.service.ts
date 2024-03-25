@@ -21,7 +21,7 @@ export async function fetchUserCache(
 }
 
 /*
- * Fetch UserCache
+ * Fetch UsersCache
  */
 export async function fetchUsersCache(redis: Redis): Promise<FetchUsersCacheResponse> {
   const userIds = await userCacheRepository.fetchIndex(redis)

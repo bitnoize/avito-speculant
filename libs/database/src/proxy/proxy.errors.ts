@@ -1,27 +1,13 @@
-import { HighDatabaseError } from '../database.errors.js'
+import { DomainError } from '@avito-speculant/common'
 
-export class ProxyNotFoundError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 404, message = `Proxy not found`) {
-    super(request, statusCode, message)
+export class ProxyNotFoundError extends DomainError {
+  constructor(context: unknown, statusCode = 101, message = `Proxy not found`) {
+    super(context, statusCode, message)
   }
 }
 
-/*
-export class ProxyIsEnabledError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 403, message = `Proxy is enabled`) {
-    super(request, statusCode, message)
-  }
-}
-
-export class ProxyIsDisabledError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 403, message = `Proxy is disabled`) {
-    super(request, statusCode, message)
-  }
-}
-*/
-
-export class ProxyAllreadyExistsError<T> extends HighDatabaseError<T> {
-  constructor(request: T, statusCode = 403, message = `Proxy allready exists`) {
-    super(request, statusCode, message)
+export class ProxyAllreadyExistsError extends DomainError {
+  constructor(context: unknown, statusCode = 103, message = `Proxy allready exists`) {
+    super(context, statusCode, message)
   }
 }

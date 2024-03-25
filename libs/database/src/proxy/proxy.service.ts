@@ -1,4 +1,4 @@
-import { Notify } from '@avito-speculant/notify'
+import { Notify } from '@avito-speculant/common'
 import {
   CreateProxyRequest,
   CreateProxyResponse,
@@ -30,7 +30,7 @@ export async function createProxy(
     const existsProxyRow = await proxyRepository.selectRowByProxyUrlForShare(trx, request.proxyUrl)
 
     if (existsProxyRow !== undefined) {
-      throw new ProxyAllreadyExistsError<CreateProxyRequest>(request)
+      throw new ProxyAllreadyExistsError(request)
     }
 
     // ...
@@ -67,7 +67,7 @@ export async function enableProxy(
     const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
 
     if (proxyRow === undefined) {
-      throw new ProxyNotFoundError<EnableDisableProxyRequest>(request)
+      throw new ProxyNotFoundError(request)
     }
 
     if (proxyRow.is_enabled) {
@@ -111,7 +111,7 @@ export async function disableProxy(
     const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
 
     if (proxyRow === undefined) {
-      throw new ProxyNotFoundError<EnableDisableProxyRequest>(request)
+      throw new ProxyNotFoundError(request)
     }
 
     if (!proxyRow.is_enabled) {
@@ -168,7 +168,7 @@ export async function produceProxies(
   return await db.transaction().execute(async (trx) => {
     const proxies: Proxy[] = []
 
-    const proxyRows = await proxyRepository.selectRowsSkipLockedForUpdate(trx, request.limit)
+    const proxyRows = await proxyRepository.selectRowsProduce(trx, request.limit)
 
     for (const proxyRow of proxyRows) {
       const updatedProxyRow = await proxyRepository.updateRowProduce(trx, proxyRow.id)
@@ -194,11 +194,11 @@ export async function consumeProxy(
     const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
 
     if (proxyRow === undefined) {
-      throw new ProxyNotFoundError<ConsumeProxyRequest>(request)
+      throw new ProxyNotFoundError(request)
     }
 
     if (proxyRow.is_enabled) {
-      // TODO
+      // ...
     }
 
     // ...
