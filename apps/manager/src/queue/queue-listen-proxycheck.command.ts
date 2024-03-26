@@ -5,18 +5,16 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'queue-monitor-proxycheck',
-    description: 'Queue monitor proxycheck',
+    name: 'queue-listen-proxycheck',
+    description: 'Queue listen proxycheck',
     args: {},
     handler: async () => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const queueEvents = queueService.initQueueEvents(
-        queueConnection,
         PROXYCHECK_QUEUE_NAME,
+        queueConnection,
         logger
       )
-
-      queueService.listenMonitor(queueEvents, logger)
 
       await queueService.runQueueEvents(queueEvents)
     }

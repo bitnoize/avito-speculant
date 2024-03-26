@@ -20,7 +20,7 @@ import {
   scraperCacheService
 } from '@avito-speculant/redis'
 import {
-  ProcessUnknownNameError,
+  ProcessorUnknownNameError,
   TreatmentResult,
   TreatmentProcessor,
   queueService,
@@ -84,12 +84,16 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
       }
 
       default: {
-        throw new ProcessUnknownNameError({ name })
+        throw new ProcessorUnknownNameError({ name })
       }
     }
   } catch (error) {
     if (error instanceof DomainError) {
-      // stop system...
+      if (error.isEmergency()) {
+        // ...
+
+        logger.fatal(`TreatmentWorker emergency shutdown`)
+      }
     }
 
     throw error
@@ -129,9 +133,13 @@ const processUser: Process = async (config, logger, db, redis, pubSub, treatment
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { id: user.id }
+    return { entityId: user.id }
   } catch (error) {
-    logger.error(`TreatmentProcessor processUser exception`)
+    if (error instanceof DomainError) {
+      logger.error(`TreatmentProcessor processUser exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   }
@@ -168,9 +176,13 @@ const processPlan: Process = async (config, logger, db, redis, pubSub, treatment
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { id: plan.id }
+    return { entityId: plan.id }
   } catch (error) {
-    logger.error(`TreatmentProcessor processPlan exception`)
+    if (error instanceof DomainError) {
+      logger.error(`TreatmentProcessor processPlan exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   }
@@ -211,9 +223,13 @@ const processSubscription: Process = async (config, logger, db, redis, pubSub, t
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { id: subscription.id }
+    return { entityId: subscription.id }
   } catch (error) {
-    logger.error(`TreatmentProcessor processSubscription exception`)
+    if (error instanceof DomainError) {
+      logger.error(`TreatmentProcessor processSubscription exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   }
@@ -277,9 +293,13 @@ const processCategory: Process = async (config, logger, db, redis, pubSub, treat
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { id: category.id }
+    return { entityId: category.id }
   } catch (error) {
-    logger.error(`TreatmentProcessor processCategory exception`)
+    if (error instanceof DomainError) {
+      logger.error(`TreatmentProcessor processCategory exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   }
@@ -322,9 +342,13 @@ const processProxy: ProcessProxycheck = async (
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { id: proxy.id }
+    return { entityId: proxy.id }
   } catch (error) {
-    logger.error(`TreatmentProcessor processProxy exception`)
+    if (error instanceof DomainError) {
+      logger.error(`TreatmentProcessor processProxy exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   } finally {

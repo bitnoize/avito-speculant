@@ -32,7 +32,6 @@ declare module 'ioredis' {
       usersCacheKey: string,
       userId: number,
       tgFromId: string,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -40,7 +39,6 @@ declare module 'ioredis' {
       userCacheKey: string,
       usersCacheKey: string,
       userId: number,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -64,7 +62,6 @@ declare module 'ioredis' {
       durationDays: number,
       intervalSec: number,
       analyticsOn: number,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -72,7 +69,6 @@ declare module 'ioredis' {
       planCacheKey: string,
       plansCacheKey: string,
       planId: number,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -107,7 +103,6 @@ declare module 'ioredis' {
       durationDays: number,
       intervalSec: number,
       analyticsOn: number,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -116,7 +111,6 @@ declare module 'ioredis' {
       userSubscriptionCacheKey: string,
       planSubscriptionsCacheKey: string,
       subscriptionId: number,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -147,7 +141,6 @@ declare module 'ioredis' {
       userId: number,
       scraperId: string,
       avitoUrl: string,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -156,7 +149,6 @@ declare module 'ioredis' {
       userCategoriesCacheKey: string,
       scraperCategoriesCacheKey: string,
       categoryId: number,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -181,7 +173,6 @@ declare module 'ioredis' {
       proxiesCacheKey: string,
       proxyId: number,
       proxyUrl: string,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -190,7 +181,6 @@ declare module 'ioredis' {
       proxiesCacheKey: string,
       proxiesCacheOnlineKey: string,
       proxyId: number,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -198,7 +188,7 @@ declare module 'ioredis' {
       proxyCacheKey: string,
       proxiesCacheOnlineKey: string,
       proxyId: number,
-      timeout: number,
+      sizeBytes: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -206,7 +196,7 @@ declare module 'ioredis' {
       proxyCacheKey: string,
       proxiesCacheOnlineKey: string,
       proxyId: number,
-      timeout: number,
+      sizeBytes: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -233,7 +223,6 @@ declare module 'ioredis' {
       scraperId: string,
       avitoUrl: string,
       intervalSec: number,
-      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -242,7 +231,20 @@ declare module 'ioredis' {
       scraperCacheAvitoUrlKey: string,
       scrapersCacheKey: string,
       scraperId: string,
-      timeout: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    renewScraperCacheSuccess(
+      scraperCacheKey: string,
+      proxyCacheKey: string,
+      sizeBytes: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    renewScraperCacheFailed(
+      scraperCacheKey: string,
+      proxyCacheKey: string,
+      sizeBytes: number,
       callback?: Callback<string>
     ): Result<string, Context>
   }

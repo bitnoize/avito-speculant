@@ -4,15 +4,11 @@ import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
 import { redisService, proxyCacheService } from '@avito-speculant/redis'
 import {
-  ProcessUnknownNameError,
+  ProcessorUnknownNameError,
   ProxycheckResult,
   ProxycheckProcessor
 } from '@avito-speculant/queue'
-import {
-  Config,
-  ProxycheckCurlImpersonateRequest,
-  Process
-} from './worker-proxycheck.js'
+import { Config, CurlImpersonateRequest, Process } from './worker-proxycheck.js'
 import { configSchema } from './worker-proxycheck.schema.js'
 
 export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) => {
@@ -37,7 +33,7 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
       }
 
       default: {
-        throw new ProcessUnknownNameError({ name })
+        throw new ProcessorUnknownNameError({ name })
       }
     }
   } catch (error) {
@@ -63,54 +59,66 @@ const processCurlImpersonate: Process = async (config, logger, redis, proxycheck
       proxyId: proxycheckJob.data.proxyId
     })
 
-    const proxycheckCurlImpersonateResponse = await proxycheckCurlImpersonateRequest(
+    const curlImpersonateResponse = await curlImpersonateRequest(
       config.PROXYCHECK_CHECK_URL,
       proxyCache.proxyUrl,
       config.PROXYCHECK_CHECK_TIMEOUT,
-      true
+      false
     )
 
-    if (proxycheckCurlImpersonateResponse !== undefined) {
-      if (proxycheckCurlImpersonateResponse.statusCode === 200) {
+    if (curlImpersonateResponse !== undefined) {
+      if (curlImpersonateResponse.statusCode === 200) {
         await proxyCacheService.renewProxyCacheOnline(redis, {
-          proxyId: proxyCache.id
+          proxyId: proxyCache.id,
+          sizeBytes: curlImpersonateResponse.sizeBytes
         })
 
         return {
-          id: proxyCache.id,
-          statusCode: proxycheckCurlImpersonateResponse.statusCode,
-          isOnline: true,
+          proxyId: proxyCache.id,
+          success: true,
+          statusCode: curlImpersonateResponse.statusCode,
+          sizeBytes: curlImpersonateResponse.sizeBytes
         }
       } else {
         await proxyCacheService.renewProxyCacheOffline(redis, {
-          proxyId: proxyCache.id
+          proxyId: proxyCache.id,
+          sizeBytes: curlImpersonateResponse.sizeBytes
         })
 
         return {
-          id: proxyCache.id,
-          statusCode: proxycheckCurlImpersonateResponse.statusCode,
-          isOnline: false,
+          proxyId: proxyCache.id,
+          success: false,
+          statusCode: curlImpersonateResponse.statusCode,
+          sizeBytes: curlImpersonateResponse.sizeBytes
         }
       }
     } else {
       await proxyCacheService.renewProxyCacheOffline(redis, {
-        proxyId: proxyCache.id
+        proxyId: proxyCache.id,
+        sizeBytes: 0
       })
 
+      // ...
+
       return {
-        id: proxyCache.id,
-        isOnline: false,
-        statusCode: 0
+        proxyId: proxyCache.id,
+        success: false,
+        statusCode: 0,
+        sizeBytes: 0
       }
     }
   } catch (error) {
-    logger.error(`ProxycheckProcessor processCurlImpersonate exception`)
+    if (error instanceof DomainError) {
+      logger.error(`ProxycheckProcessor processCurlImpersonate exception`)
 
-    throw error.setEmergency()
+      error.setEmergency()
+    }
+
+    throw error
   }
 }
 
-const proxycheckCurlImpersonateRequest: ProxycheckCurlImpersonateRequest = async (
+const curlImpersonateRequest: CurlImpersonateRequest = async (
   checkUrl,
   proxyUrl,
   timeout,
@@ -121,20 +129,21 @@ const proxycheckCurlImpersonateRequest: ProxycheckCurlImpersonateRequest = async
       method: 'GET',
       impersonate: 'firefox-117',
       headers: [],
-      timeout,
       verbose,
       followRedirects: false,
       flags: [
-        '--insecure',
+        `--insecure`,
+        `--max-time ${timeout / 1000}`,
         `--proxy ${proxyUrl}`
       ]
     })
 
-    const curlResponse = await curlImpersonate.makeRequest()
+    const { statusCode, response } = await curlImpersonate.makeRequest()
 
     return {
-      statusCode: curlResponse.statusCode ?? 0,
-      body: curlResponse.response
+      statusCode: statusCode ?? 0,
+      body: response,
+      sizeBytes: Buffer.byteLength(response)
     }
   } catch (error) {
     return undefined

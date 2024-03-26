@@ -30,9 +30,18 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Treatm
 export async function addJob(
   queue: TreatmentQueue,
   name: TreatmentName,
-  entityId: number
+  entityId: number,
 ): Promise<TreatmentJob> {
-  return await queue.add(name, { entityId })
+  const jobId = name + '-' + entityId
+  return await queue.add(
+    name,
+    {
+      entityId
+    },
+    {
+      jobId
+    }
+  )
 }
 
 /**
@@ -43,7 +52,20 @@ export async function addJobs(
   name: TreatmentName,
   entityIds: number[]
 ): Promise<TreatmentJob[]> {
-  return await queue.addBulk(entityIds.map((entityId) => ({ name, data: { entityId } })))
+  return await queue.addBulk(
+    entityIds.map((entityId) => {
+      const jobId = name + '-' + entityId
+      return {
+        name,
+        data: {
+          entityId
+        },
+        opts: {
+          jobId
+        }
+      }
+    })
+  )
 }
 
 /**

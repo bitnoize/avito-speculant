@@ -17,7 +17,8 @@ import {
   scraperCacheService
 } from '@avito-speculant/redis'
 import {
-  ProcessUnknownStepError,
+  ProcessorUnknownStepError,
+  LostRepeatableJobIdError,
   HeartbeatResult,
   HeartbeatProcessor,
   queueService,
@@ -115,13 +116,17 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         }
 
         default: {
-          throw new ProcessUnknownStepError({ step })
+          throw new ProcessorUnknownStepError({ step })
         }
       }
     }
   } catch (error) {
     if (error instanceof DomainError) {
-      // stop system...
+      if (error.isEmergency()) {
+        // ...
+
+        logger.fatal(`HeartbeatWorker emergency shutdown`)
+      }
     }
 
     throw error
@@ -147,7 +152,11 @@ const processUsers: ProcessTreatment = async (config, logger, db, treatmentQueue
 
     return { count: users.length }
   } catch (error) {
-    logger.error(`HeartbeatProcessor processUsers exception`)
+    if (error instanceof DomainError) {
+      logger.error(`HeartbeatProcessor processUsers exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   } finally {
@@ -169,7 +178,11 @@ const processPlans: ProcessTreatment = async (config, logger, db, treatmentQueue
 
     return { count: plans.length }
   } catch (error) {
-    logger.error(`HeartbeatProcessor processPlans exception`)
+    if (error instanceof DomainError) {
+      logger.error(`HeartbeatProcessor processPlans exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   } finally {
@@ -191,7 +204,11 @@ const processSubscriptions: ProcessTreatment = async (config, logger, db, treatm
 
     return { count: subscriptions.length }
   } catch (error) {
-    logger.error(`HeartbeatProcessor processSubscriptions exception`)
+    if (error instanceof DomainError) {
+      logger.error(`HeartbeatProcessor processSubscriptions exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   } finally {
@@ -213,7 +230,11 @@ const processCategories: ProcessTreatment = async (config, logger, db, treatment
 
     return { count: categories.length }
   } catch (error) {
-    logger.error(`HeartbeatProcessor processCategories exception`)
+    if (error instanceof DomainError) {
+      logger.error(`HeartbeatProcessor processCategories exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   } finally {
@@ -235,7 +256,11 @@ const processProxies: ProcessTreatment = async (config, logger, db, treatmentQue
 
     return { count: proxies.length }
   } catch (error) {
-    logger.error(`HeartbeatProcessor processProxies exception`)
+    if (error instanceof DomainError) {
+      logger.error(`HeartbeatProcessor processProxies exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   } finally {
@@ -250,12 +275,25 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
     const repeatableJobs = await scrapingQueue.getRepeatableJobs()
 
     const scraperIds = scrapersCache.map((scraperCache) => scraperCache.id)
-    const orphanScrapingJobs = repeatableJobs.filter(
-      (repeatableJob) => repeatableJob.id != null && !scraperIds.includes(repeatableJob.id)
-    )
+    const orphanScrapingJobs = repeatableJobs.filter((repeatableJob) => {
+      if (repeatableJob.id == null) {
+        throw new LostRepeatableJobIdError({ repeatableJob })
+      }
+
+      return !scraperIds.includes(repeatableJob.id)
+    })
 
     for (const orphanScrapingJob of orphanScrapingJobs) {
       await scrapingQueue.removeRepeatableByKey(orphanScrapingJob.key)
+
+      const logData = {
+        job: {
+          id: orphanScrapingJob.id,
+          key: orphanScrapingJob.key,
+          name: orphanScrapingJob.name
+        }
+      }
+      logger.warn(logData, `HeartbeatProcessor remove orphan scraper`)
     }
 
     for (const scraperCache of scrapersCache) {
@@ -283,10 +321,17 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
         }
       }
 
-      const scrapingJob = await scrapingQueue.getJob(scraperCache.id)
+      const scrapingJob = repeatableJobs.find((repeatableJob) => {
+        if (repeatableJob.id == null) {
+          throw new LostRepeatableJobIdError({ repeatableJob })
+        }
+
+        return repeatableJob.id === scraperCache.id
+      })
 
       if (scrapingJob !== undefined) {
         // ScrapingJob allready running
+        console.log(`ScrapingJob allready running`)
 
         if (categoriesCache.length === 0) {
           // There are no categories attached to scraper, clear cache and stop job
@@ -296,9 +341,7 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
             avitoUrl: scraperCache.avitoUrl
           })
 
-          if (scrapingJob.repeatJobKey !== undefined) {
-            await scrapingQueue.removeRepeatableByKey(scrapingJob.repeatJobKey)
-          }
+          await scrapingQueue.removeRepeatableByKey(scrapingJob.key)
         } else {
           // Categories exists, save cache and restart job if scraper changed
 
@@ -309,20 +352,19 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
           })
 
           if (isChanged) {
-            if (scrapingJob.repeatJobKey !== undefined) {
-              await scrapingQueue.removeRepeatableByKey(scrapingJob.repeatJobKey)
-            }
+            await scrapingQueue.removeRepeatableByKey(scrapingJob.key)
 
             await scrapingService.addJob(
               scrapingQueue,
-              'default',
-              scraperCache.intervalSec * 1000,
-              scraperCache.id
+              'curl-impersonate',
+              scraperCache.id,
+              scraperCache.intervalSec * 1000
             )
           }
         }
       } else {
         // There is no scraping job running yet
+        console.log(`There is no scraping job running yet`)
 
         if (categoriesCache.length === 0) {
           // There are no categories attached to scraper, clear cache
@@ -342,9 +384,9 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
 
           await scrapingService.addJob(
             scrapingQueue,
-            'default',
-            scraperCache.intervalSec * 1000,
-            scraperCache.id
+            'curl-impersonate',
+            scraperCache.id,
+            scraperCache.intervalSec * 1000
           )
         }
       }
@@ -352,7 +394,11 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
 
     return { count: scrapersCache.length }
   } catch (error) {
-    logger.error(`HeartbeatProcessor processScrapers exception`)
+    if (error instanceof DomainError) {
+      logger.error(`HeartbeatProcessor processScrapers exception`)
+
+      error.setEmergency()
+    }
 
     throw error
   } finally {

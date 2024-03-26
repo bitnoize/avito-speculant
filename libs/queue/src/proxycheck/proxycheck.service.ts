@@ -32,7 +32,16 @@ export async function addJob(
   name: ProxycheckName,
   proxyId: number
 ): Promise<ProxycheckJob> {
-  return await queue.add(name, { proxyId })
+  const jobId = name + '-' + proxyId
+  return await queue.add(
+    name,
+    {
+      proxyId
+    },
+    {
+      jobId
+    }
+  )
 }
 
 /**

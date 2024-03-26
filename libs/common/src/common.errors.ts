@@ -5,10 +5,8 @@ export abstract class DomainError extends Error {
     super(message)
   }
 
-  setEmergency(): DomainError {
+  setEmergency(): void {
     this.emergency = true
-
-    return this
   }
 
   isEmergency(): boolean {

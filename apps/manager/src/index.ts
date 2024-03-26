@@ -38,10 +38,11 @@ import redisFetchScraperCategoriesCacheCommand from './redis/redis-fetch-scraper
 import redisFetchProxiesCacheCommand from './redis/redis-fetch-proxies-cache.command.js'
 import redisFetchProxiesCacheOnlineCommand from './redis/redis-fetch-proxies-cache-online.command.js'
 import redisFetchScrapersCacheCommand from './redis/redis-fetch-scrapers-cache.command.js'
-import queueMonitorHeartbeatCommand from './queue/queue-monitor-heartbeat.command.js'
-import queueMonitorTreatmentCommand from './queue/queue-monitor-treatment.command.js'
-import queueMonitorScrapingCommand from './queue/queue-monitor-scraping.command.js'
-import queueMonitorProxycheckCommand from './queue/queue-monitor-proxycheck.command.js'
+import queueListenHeartbeatCommand from './queue/queue-listen-heartbeat.command.js'
+import queueListenTreatmentCommand from './queue/queue-listen-treatment.command.js'
+import queueStatusScrapingCommand from './queue/queue-status-scraping.command.js'
+import queueListenScrapingCommand from './queue/queue-listen-scraping.command.js'
+import queueListenProxycheckCommand from './queue/queue-listen-proxycheck.command.js'
 import { Config } from './manager.js'
 import { configSchema } from './manager.schema.js'
 
@@ -108,10 +109,11 @@ async function bootstrap(): Promise<void> {
   const queueCommand = subcommands({
     name: 'queue',
     cmds: {
-      'monitor-heartbeat': queueMonitorHeartbeatCommand(config, logger),
-      'monitor-treatment': queueMonitorTreatmentCommand(config, logger),
-      'monitor-scraping': queueMonitorScrapingCommand(config, logger),
-      'monitor-proxycheck': queueMonitorProxycheckCommand(config, logger)
+      'listen-heartbeat': queueListenHeartbeatCommand(config, logger),
+      'listen-treatment': queueListenTreatmentCommand(config, logger),
+      'status-scraping': queueStatusScrapingCommand(config, logger),
+      'listen-scraping': queueListenScrapingCommand(config, logger),
+      'listen-proxycheck': queueListenProxycheckCommand(config, logger)
     }
   })
 

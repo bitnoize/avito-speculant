@@ -18,11 +18,9 @@ export default (config: Config, logger: Logger) => {
 
       const heartbeatJob = await heartbeatService.addJob(
         heartbeatQueue,
-        'singleton',
+        'heartbeat-pulse',
         10_000
       )
-
-      logger.info(`Heartbeat repeatable job added`)
 
       await heartbeatService.closeQueue(heartbeatQueue)
       await redisService.closeRedis(redis)

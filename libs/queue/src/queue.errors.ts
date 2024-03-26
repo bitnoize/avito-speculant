@@ -6,14 +6,20 @@ export abstract class QueueError extends DomainError {
   }
 }
 
-export class ProcessUnknownNameError extends QueueError {
-  constructor(context: unknown, statusCode = 100, message = `Process unknown name`) {
+export class ProcessorUnknownNameError extends QueueError {
+  constructor(context: unknown, statusCode = 100, message = `Processor unknown name`) {
     super(context, statusCode, message)
   }
 }
 
-export class ProcessUnknownStepError extends QueueError {
-  constructor(context: unknown, statusCode = 100, message = `Process unknown step`) {
+export class ProcessorUnknownStepError extends QueueError {
+  constructor(context: unknown, statusCode = 100, message = `Processor unknown step`) {
+    super(context, statusCode, message)
+  }
+}
+
+export class LostRepeatableJobIdError extends QueueError {
+  constructor(context: unknown, statusCode = 100, message = `Lost repeatable jobId`) {
     super(context, statusCode, message)
   }
 }

@@ -6,6 +6,7 @@ export interface ProxyCache {
   isOnline: boolean
   totalCount: number
   successCount: number
+  sizeBytes: number
 }
 
 export const proxyCacheKey = (proxyId: number) => [REDIS_CACHE_PREFIX, 'proxy', proxyId].join(':')

@@ -20,8 +20,6 @@ export default (config: Config, logger: Logger) => {
 
       for (const job of jobs) {
         heartbeatQueue.removeRepeatableByKey(job.key)
-
-        logger.info(job, `Repeatable job now destroed`)
       }
 
       await heartbeatService.closeQueue(heartbeatQueue)

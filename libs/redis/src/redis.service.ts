@@ -219,6 +219,16 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     lua: scraperCacheRepository.dropScraperCacheLua
   })
 
+  redis.defineCommand('renewScraperCacheSuccess', {
+    numberOfKeys: 2,
+    lua: scraperCacheRepository.renewScraperCacheFailedLua
+  })
+
+  redis.defineCommand('renewScraperCacheFailed', {
+    numberOfKeys: 2,
+    lua: scraperCacheRepository.renewScraperCacheFailedLua
+  })
+
   return redis
 }
 

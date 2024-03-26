@@ -5,7 +5,6 @@ import {
   userCategoriesCacheKey,
   scraperCategoriesCacheKey
 } from './category-cache.js'
-import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import {
   parseNumber,
   parseManyNumbers,
@@ -94,13 +93,10 @@ redis.call(
   'scraper_id', ARGV[3],
   'avito_url', ARGV[4]
 )
-redis.call('PEXPIRE', KEYS[1], ARGV[5])
 
 redis.call('SADD', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[5])
 
 redis.call('SADD', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[5])
 
 return redis.status_reply('OK')
 `
@@ -120,7 +116,6 @@ export async function saveModel(
     userId, // ARGV[2]
     scraperId, // ARGV[3]
     avitoUrl, // ARGV[4]
-    REDIS_CACHE_TIMEOUT // ARGV[5]
   )
 }
 
@@ -128,10 +123,8 @@ export const dropCategoryCacheLua = `
 redis.call('DEL', KEYS[1])
 
 redis.call('SREM', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[2])
 
 redis.call('SREM', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[2])
 
 return redis.status_reply('OK')
 `
@@ -147,7 +140,6 @@ export async function dropModel(
     userCategoriesCacheKey(userId), // KEYS[2]
     scraperCategoriesCacheKey(scraperId), // KEYS[3]
     categoryId, // ARGV[1]
-    REDIS_CACHE_TIMEOUT // ARGV[2]
   )
 }
 

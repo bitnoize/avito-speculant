@@ -30,13 +30,13 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Scrapi
 export async function addJob(
   queue: ScrapingQueue,
   name: ScrapingName,
-  every: number,
-  jobId: string
+  jobId: string,
+  every: number
 ): Promise<ScrapingJob> {
-  const job = await queue.add(
+  return await queue.add(
     name,
     {
-      scraperJobId: jobId
+      scraperId: jobId
     },
     {
       jobId,
@@ -45,8 +45,6 @@ export async function addJob(
       }
     }
   )
-
-  return job
 }
 
 /**

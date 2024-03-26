@@ -18,7 +18,7 @@ export function getLoggerOptions<T extends LoggerConfig>(config: T): LoggerOptio
 export function initLogger(options: LoggerOptions): Logger {
   const logger = pino(options)
 
-  logger.info(`Logger initialized with '${logger.level}' level`)
+  logger.debug(`Logger initialized with '${logger.level}' level`)
 
   return logger
 }

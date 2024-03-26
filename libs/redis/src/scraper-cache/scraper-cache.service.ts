@@ -6,7 +6,8 @@ import {
   FindScraperCacheResponse,
   FetchScrapersCacheResponse,
   SaveScraperCacheRequest,
-  DropScraperCacheRequest
+  DropScraperCacheRequest,
+  RenewScraperCacheRequest
 } from './dto/index.js'
 import * as scraperCacheRepository from './scraper-cache.repository.js'
 
@@ -73,4 +74,34 @@ export async function dropScraperCache(
   request: DropScraperCacheRequest
 ): Promise<void> {
   await scraperCacheRepository.dropModel(redis, request.scraperId, request.avitoUrl)
+}
+
+/*
+ * Renew ScraperCache Success
+ */
+export async function renewScraperCacheSuccess(
+  redis: Redis,
+  request: RenewScraperCacheRequest
+): Promise<void> {
+  await scraperCacheRepository.renewSuccess(
+    redis,
+    request.scraperId,
+    request.proxyId,
+    request.sizeBytes
+  )
+}
+
+/*
+ * Renew ScraperCache Failed
+ */
+export async function renewScraperCacheFailed(
+  redis: Redis,
+  request: RenewScraperCacheRequest
+): Promise<void> {
+  await scraperCacheRepository.renewFailed(
+    redis,
+    request.scraperId,
+    request.proxyId,
+    request.sizeBytes
+  )
 }

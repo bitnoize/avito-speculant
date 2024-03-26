@@ -5,7 +5,7 @@ import {
   scraperCacheAvitoUrlKey,
   scrapersCacheKey
 } from './scraper-cache.js'
-import { REDIS_CACHE_TIMEOUT } from '../redis.js'
+import { proxyCacheKey } from '../proxy-cache/proxy-cache.js'
 import {
   parseNumber,
   parseString,
@@ -26,7 +26,8 @@ local scraper_cache = redis.call(
   'avito_url',
   'interval_sec',
   'total_count',
-  'success_count'
+  'success_count',
+  'size_bytes'
 )
 
 return {
@@ -103,13 +104,11 @@ redis.call(
 )
 redis.call('HSETNX', KEYS[1], 'total_count', 0)
 redis.call('HSETNX', KEYS[1], 'success_count', 0)
-redis.call('PEXPIRE', KEYS[1], ARGV[4])
+redis.call('HSETNX', KEYS[1], 'size_bytes', 0)
 
-redis.call('SET', KEYS[2], ARGV[2])
-redis.call('PEXPIRE', KEYS[2], ARGV[4])
+redis.call('SET', KEYS[2], ARGV[1])
 
 redis.call('SADD', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[4])
 
 return redis.status_reply('OK')
 `
@@ -127,7 +126,6 @@ export async function saveModel(
     scraperId, // ARGV[1]
     avitoUrl, // ARGV[2]
     intervalSec, // ARGV[3]
-    REDIS_CACHE_TIMEOUT // ARGV[4]
   )
 }
 
@@ -137,7 +135,6 @@ redis.call('DEL', KEYS[1])
 redis.call('DEL', KEYS[2])
 
 redis.call('SREM', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[2])
 `
 
 export async function dropModel(
@@ -150,19 +147,75 @@ export async function dropModel(
     scraperCacheAvitoUrlKey(avitoUrl), // KEYS[2]
     scrapersCacheKey(), // KEYS[3]
     scraperId, // ARGV[1]
-    REDIS_CACHE_TIMEOUT // ARGV[2]
+  )
+}
+
+export const renewScraperCacheSuccessLua = `
+if redis.call('EXISTS', KEYS[1]) ~= 0 then
+  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
+  redis.call('HINCRBY', KEYS[1], 'success_count', 1)
+  redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
+end
+
+if redis.call('EXISTS', KEYS[2]) ~= 0 then
+  redis.call('HINCRBY', KEYS[2], 'total_count', 1)
+  redis.call('HINCRBY', KEYS[2], 'success_count', 1)
+  redis.call('HINCRBY', KEYS[2], 'size_bytes', ARGV[1])
+end
+
+return redis.status_reply('OK')
+`
+
+export async function renewSuccess(
+  redis: Redis,
+  scraperId: string,
+  proxyId: number,
+  sizeBytes: number
+): Promise<void> {
+  await redis.renewScraperCacheSuccess(
+    scraperCacheKey(scraperId), // KEYS[1]
+    proxyCacheKey(proxyId), // KEYS[2]
+    sizeBytes, // ARGV[1]
+  )
+}
+
+export const renewScraperCacheFailedLua = `
+if redis.call('EXISTS', KEYS[1]) ~= 0 then
+  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
+  redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
+end
+
+if redis.call('EXISTS', KEYS[2]) ~= 0 then
+  redis.call('HINCRBY', KEYS[2], 'total_count', 1)
+  redis.call('HINCRBY', KEYS[2], 'size_bytes', ARGV[1])
+end
+
+return redis.status_reply('OK')
+`
+
+export async function renewFailed(
+  redis: Redis,
+  scraperId: string,
+  proxyId: number,
+  sizeBytes: number
+): Promise<void> {
+  await redis.renewScraperCacheFailed(
+    scraperCacheKey(scraperId), // KEYS[1]
+    proxyCacheKey(proxyId), // KEYS[2]
+    sizeBytes, // ARGV[1]
   )
 }
 
 const parseModel = (result: unknown, message: string): ScraperCache => {
-  const hash = parseHash(result, 5, message)
+  const hash = parseHash(result, 6, message)
 
   return {
     id: parseString(hash[0], message),
     avitoUrl: parseString(hash[1], message),
     intervalSec: parseNumber(hash[2], message),
     totalCount: parseNumber(hash[3], message),
-    successCount: parseNumber(hash[4], message)
+    successCount: parseNumber(hash[4], message),
+    sizeBytes: parseNumber(hash[5], message)
   }
 }
 

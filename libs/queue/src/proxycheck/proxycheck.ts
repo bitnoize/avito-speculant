@@ -24,8 +24,9 @@ export type ProxycheckData = {
 
 export type ProxycheckNameResult = {
   proxyId: number
+  success: boolean
   statusCode: number
-  isOnline: boolean
+  sizeBytes: number
 }
 export type ProxycheckResult = Record<string, ProxycheckNameResult>
 

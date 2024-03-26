@@ -1,6 +1,5 @@
 import { Redis } from 'ioredis'
 import { PlanCache, planCacheKey, plansCacheKey } from './plan-cache.js'
-import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import {
   parseNumber,
   parseManyNumbers,
@@ -77,10 +76,8 @@ redis.call(
   'interval_sec', ARGV[5],
   'analytics_on', ARGV[6]
 )
-redis.call('PEXPIRE', KEYS[1], ARGV[7])
 
 redis.call('SADD', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[7])
 
 return redis.status_reply('OK')
 `
@@ -103,7 +100,6 @@ export async function saveModel(
     durationDays, // ARGV[4]
     intervalSec, // ARGV[5]
     analyticsOn ? 1 : 0, // ARGV[6]
-    REDIS_CACHE_TIMEOUT // ARGV[7]
   )
 }
 
@@ -111,7 +107,6 @@ export const dropPlanCacheLua = `
 redis.call('DEL', KEYS[1])
 
 redis.call('SREM', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[2])
 
 return redis.status_reply('OK')
 `
@@ -121,7 +116,6 @@ export async function dropModel(redis: Redis, planId: number): Promise<void> {
     planCacheKey(planId), // KEYS[1]
     plansCacheKey(), // KEYS[2]
     planId, // ARGV[1]
-    REDIS_CACHE_TIMEOUT // ARGV[2]
   )
 }
 

@@ -5,7 +5,6 @@ import {
   userSubscriptionCacheKey,
   planSubscriptionsCacheKey
 } from './subscription-cache.js'
-import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import {
   parseNumber,
   parseManyNumbers,
@@ -101,13 +100,10 @@ redis.call(
   'interval_sec', ARGV[7],
   'analytics_on', ARGV[8]
 )
-redis.call('PEXPIRE', KEYS[1], ARGV[9])
 
 redis.call('SET', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[9])
 
 redis.call('SADD', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[3], ARGV[9])
 
 return redis.status_reply('OK')
 `
@@ -135,7 +131,6 @@ export async function saveModel(
     durationDays, // ARGV[6]
     intervalSec, // ARGV[7]
     analyticsOn ? 1 : 0, // ARGV[8]
-    REDIS_CACHE_TIMEOUT // ARGV[9]
   )
 }
 
@@ -145,7 +140,6 @@ redis.call('DEL', KEYS[1])
 redis.call('DEL', KEYS[2])
 
 redis.call('SREM', KEYS[3], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[2])
 
 return redis.status_reply('OK')
 `
@@ -161,7 +155,6 @@ export async function dropModel(
     userSubscriptionCacheKey(userId), // KEYS[2]
     planSubscriptionsCacheKey(planId), // KEYS[3]
     subscriptionId, // ARGV[1]
-    REDIS_CACHE_TIMEOUT // ARGV[2]
   )
 }
 

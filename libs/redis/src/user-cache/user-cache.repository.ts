@@ -1,6 +1,5 @@
 import { Redis } from 'ioredis'
 import { UserCache, userCacheKey, usersCacheKey } from './user-cache.js'
-import { REDIS_CACHE_TIMEOUT } from '../redis.js'
 import {
   parseNumber,
   parseManyNumbers,
@@ -62,10 +61,8 @@ export async function fetchCollection(redis: Redis, userIds: number[]): Promise<
 
 export const saveUserCacheLua = `
 redis.call('HSET', KEYS[1], 'id', ARGV[1], 'tg_from_id', ARGV[2])
-redis.call('PEXPIRE', KEYS[1], ARGV[3])
 
 redis.call('SADD', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[3])
 
 return redis.status_reply('OK')
 `
@@ -76,7 +73,6 @@ export async function saveModel(redis: Redis, userId: number, tgFromId: string):
     usersCacheKey(), // KEYS[2]
     userId, // ARGV[1]
     tgFromId, // ARGV[2]
-    REDIS_CACHE_TIMEOUT // ARGV[3]
   )
 }
 
@@ -84,7 +80,6 @@ export const dropUserCacheLua = `
 redis.call('DEL', KEYS[1])
 
 redis.call('SREM', KEYS[2], ARGV[1])
-redis.call('PEXPIRE', KEYS[2], ARGV[2])
 
 return redis.status_reply('OK')
 `
@@ -94,7 +89,6 @@ export async function dropModel(redis: Redis, userId: number): Promise<void> {
     userCacheKey(userId), // KEYS[1]
     usersCacheKey(), // KEYS[2]
     userId, // ARGV[1]
-    REDIS_CACHE_TIMEOUT // ARGV[2]
   )
 }
 

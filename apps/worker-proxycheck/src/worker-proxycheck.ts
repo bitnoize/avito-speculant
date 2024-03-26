@@ -12,7 +12,7 @@ export type Config = LoggerConfig & RedisConfig & QueueConfig & ProxycheckConfig
 export type CurlImpersonateResponse = {
   statusCode: number
   body: string
-  size: number
+  sizeBytes: number
 }
 
 export type CurlImpersonateRequest = (

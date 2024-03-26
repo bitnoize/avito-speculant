@@ -22,7 +22,7 @@ export type HeartbeatConfig = {
   HEARTBEAT_PRODUCE_PROXIES_LIMIT: number
 }
 
-export type HeartbeatName = 'singleton'
+export type HeartbeatName = 'pulse'
 
 export const HEARTBEAT_STEPS = [
   'users',

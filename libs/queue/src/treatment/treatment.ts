@@ -19,7 +19,9 @@ export type TreatmentData = {
   entityId: number
 }
 
-export type TreatmentNameResult = { id: number }
+export type TreatmentNameResult = {
+  entityId: number
+}
 export type TreatmentResult = Record<string, TreatmentNameResult>
 
 export type TreatmentQueue = Queue<TreatmentData, TreatmentResult, TreatmentName>

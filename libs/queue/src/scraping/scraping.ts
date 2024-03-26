@@ -12,14 +12,18 @@ export type ScrapingConfig = {
   SCRAPING_LIMITER_DURATION: number
 }
 
-export type ScrapingName = 'default'
+export type ScrapingName = 'curl-impersonate'
 
 export type ScrapingData = {
-  scraperJobId: string
+  scraperId: string
 }
 
 export type ScrapingNameResult = {
-  isSuccess: boolean
+  scraperId: string
+  proxyId: number
+  success: boolean
+  statusCode: number
+  sizeBytes: number
 }
 export type ScrapingResult = Record<string, ScrapingNameResult>
 

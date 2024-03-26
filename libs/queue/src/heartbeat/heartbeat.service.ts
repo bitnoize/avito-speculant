@@ -30,15 +30,16 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Heartb
  */
 export async function addJob(
   queue: HeartbeatQueue,
-  name: HeartbeatName,
-  every: number
+  jobId: string,
+  every: number,
 ): Promise<HeartbeatJob> {
   return await queue.add(
-    name,
+    'pulse',
     {
       step: HEARTBEAT_STEPS[0]
     },
     {
+      jobId,
       repeat: {
         every
       }
