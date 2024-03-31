@@ -16,12 +16,12 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@avito-speculant/common": "*",
     "@avito-speculant/config": "*",
     "@avito-speculant/logger": "*",
-    "@avito-speculant/common": "*",
-    "@avito-speculant/redis": "*",
     "@avito-speculant/queue": "*",
-    "cheerio": "^1.0.0-rc.12",
-    "node-curl-impersonate": "^1.4.2"
+    "@avito-speculant/redis": "*",
+    "ajv": "^8.12.0",
+    "node-libcurl": "^4.0.0"
   }
 }

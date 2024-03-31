@@ -5,7 +5,7 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-fetch-scraper-categories-cache',
+    name: 'redis-fetch-scraper-categories-cache',
     description: 'Redis fetch scraper categories cache',
     args: {
       scraperId: positional({

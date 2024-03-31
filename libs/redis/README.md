@@ -17,6 +17,8 @@
 * subscriptionCacheService - Подписки
 * categoryCacheService - Категории
 * proxyCacheService - Прокси
+* scraperCacheService - Парсер
+* advertCacheService - Объявления
 
 ```
 # Собрать модуль

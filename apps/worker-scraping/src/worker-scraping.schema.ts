@@ -13,7 +13,7 @@ import {
   DEFAULT_SCRAPING_LIMITER_MAX,
   DEFAULT_SCRAPING_LIMITER_DURATION
 } from '@avito-speculant/queue'
-import { Config } from './worker-scraping.js'
+import { Config, AvitoDesktop } from './worker-scraping.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
@@ -101,4 +101,28 @@ export const configSchema: JSONSchemaType<Config> = {
       default: DEFAULT_SCRAPING_LIMITER_DURATION
     }
   }
+}
+
+export const avitoDesktopSchema: JSONSchemaType<AvitoDesktop> = {
+  type: 'object',
+  required: [
+    'data',
+    'cookies'
+  ],
+  properties: {
+    data: {
+      type: 'object',
+      required: [
+      ],
+      properties: {
+      }
+    },
+    cookies: {
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    }
+  },
+  additionalProperties: true
 }

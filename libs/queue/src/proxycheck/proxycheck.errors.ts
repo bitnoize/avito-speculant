@@ -1,7 +1,8 @@
+import { ErrorContext } from '@avito-speculant/common'
 import { QueueError } from '../queue.errors.js'
 
-export class OnlineProxyUnavailableError extends QueueError {
-  constructor(context: unknown, statusCode = 100, message = `Online proxy unavailable`) {
-    super(context, statusCode, message)
+export class OnlineProxiesUnavailableError extends QueueError {
+  constructor(context: ErrorContext, code = 123, message = `Online proxies unavailable`) {
+    super(context, code, message)
   }
 }

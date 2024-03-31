@@ -54,7 +54,7 @@ export async function authorizeUser(
       trx,
       instertedUserRow.id,
       'create_user',
-      instertedUserRow.status,
+      instertedUserRow.is_paid,
       instertedUserRow.subscriptions,
       instertedUserRow.categories,
       request.data
@@ -123,10 +123,10 @@ export async function consumeUser(
     const userRow = await userRepository.selectRowByIdForUpdate(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request)
+      throw new UserNotFoundError({ request })
     }
 
-    if (userRow.status === 'paid') {
+    if (userRow.is_paid) {
       const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
         trx,
         userRow.id,
@@ -136,7 +136,7 @@ export async function consumeUser(
       if (subscriptionRow === undefined) {
         isChanged = true
 
-        userRow.status = 'trial'
+        userRow.is_paid = false
       }
     }
 
@@ -168,7 +168,7 @@ export async function consumeUser(
     const updatedUserRow = await userRepository.updateRowConsume(
       trx,
       userRow.id,
-      userRow.status,
+      userRow.is_paid,
       userRow.subscriptions,
       userRow.categories
     )
@@ -177,7 +177,7 @@ export async function consumeUser(
       trx,
       updatedUserRow.id,
       'consume_user',
-      updatedUserRow.status,
+      updatedUserRow.is_paid,
       updatedUserRow.subscriptions,
       updatedUserRow.categories,
       request.data

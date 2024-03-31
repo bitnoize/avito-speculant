@@ -1,11 +1,13 @@
 import { Redis } from 'ioredis'
 import {
   ScraperCache,
-  scraperCacheKey,
-  scraperCacheAvitoUrlKey,
-  scrapersCacheKey
+  scraperKey,
+  avitoUrlScraperKey,
+  scrapersKey,
+  categoryScrapersKey,
+  advertScrapersKey
 } from './scraper-cache.js'
-import { proxyCacheKey } from '../proxy-cache/proxy-cache.js'
+import { proxyKey } from '../proxy-cache/proxy-cache.js'
 import {
   parseNumber,
   parseString,
@@ -15,66 +17,54 @@ import {
   parseCommand
 } from '../redis.utils.js'
 
-export const fetchScraperCacheLua = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return nil 
-end
-
-local scraper_cache = redis.call(
-  'HMGET', KEYS[1],
-  'id',
-  'avito_url',
-  'interval_sec',
-  'total_count',
-  'success_count',
-  'size_bytes'
-)
-
-return {
-  unpack(scraper_cache)
-}
-`
-
-export async function fetchModel(redis: Redis, scraperId: string): Promise<ScraperCache> {
+export async function fetchScraperCache(redis: Redis, scraperId: string): Promise<ScraperCache> {
   const result = await redis.fetchScraperCache(
-    scraperCacheKey(scraperId) // KEYS[1]
+    scraperKey(scraperId) // KEYS[1]
   )
 
-  return parseModel(result, `ScraperCache fetchModel malformed result`)
+  return parseModel(result, `ScraperCache fetchScraperCache malformed result`)
 }
 
-export const findScraperCacheAvitoUrlIndexLua = `
-return redis.call('GET', KEYS[1])
-`
-
-export async function findAvitoUrlIndex(
+export async function findAvitoUrlScraper(
   redis: Redis,
   avitoUrl: string
 ): Promise<string | undefined> {
-  const result = await redis.findScraperCacheAvitoUrlIndex(
-    scraperCacheAvitoUrlKey(avitoUrl) // KEYS[1]
+  const result = await redis.findAvitoUrlScraper(
+    avitoUrlScraperKey(avitoUrl) // KEYS[1]
   )
 
   if (result == null) {
     return undefined
   }
 
-  return parseString(result, `ScraperCache findAvitoUrlIndex malformed result`)
+  return parseString(result, `ScraperCache findAvitoUrlScraper malformed result`)
 }
 
-export const fetchScrapersCacheIndexLua = `
-return redis.call('SMEMBERS', KEYS[1])
-`
-
-export async function fetchIndex(redis: Redis): Promise<string[]> {
-  const result = await redis.fetchScrapersCacheIndex(
-    scrapersCacheKey() // KEYS[1]
+export async function fetchScrapers(redis: Redis): Promise<string[]> {
+  const result = await redis.fetchScrapers(
+    scrapersKey() // KEYS[1]
   )
 
-  return parseManyStrings(result, `ScraperCache fetchIndex malformed result`)
+  return parseManyStrings(result, `ScraperCache fetchScrapers malformed result`)
 }
 
-export async function fetchCollection(
+export async function fetchCategoryScrapers(redis: Redis, categoryId: number): Promise<string[]> {
+  const result = await redis.fetchScrapers(
+    categoryScrapersKey(categoryId) // KEYS[1]
+  )
+
+  return parseManyStrings(result, `ScraperCache fetchCategoryScrapers malformed result`)
+}
+
+export async function fetchAdvertScrapers(redis: Redis, advertId: number): Promise<string[]> {
+  const result = await redis.fetchScrapers(
+    advertScrapersKey(advertId) // KEYS[1]
+  )
+
+  return parseManyStrings(result, `ScraperCache fetchAdvertScrapers malformed result`)
+}
+
+export async function fetchScrapersCache(
   redis: Redis,
   scraperIds: string[]
 ): Promise<ScraperCache[]> {
@@ -86,128 +76,75 @@ export async function fetchCollection(
 
   scraperIds.forEach((scraperId) => {
     pipeline.fetchScraperCache(
-      scraperCacheKey(scraperId) // KEYS[1]
+      scraperKey(scraperId) // KEYS[1]
     )
   })
 
   const result = await pipeline.exec()
 
-  return parseCollection(result, `ScraperCache fetchCollection malformed result`)
+  return parseCollection(result, `ScraperCache fetchScrapersCache malformed result`)
 }
 
-export const saveScraperCacheLua = `
-redis.call(
-  'HSET', KEYS[1],
-  'id', ARGV[1],
-  'avito_url', ARGV[2],
-  'interval_sec', ARGV[3]
-)
-redis.call('HSETNX', KEYS[1], 'total_count', 0)
-redis.call('HSETNX', KEYS[1], 'success_count', 0)
-redis.call('HSETNX', KEYS[1], 'size_bytes', 0)
-
-redis.call('SET', KEYS[2], ARGV[1])
-
-redis.call('SADD', KEYS[3], ARGV[1])
-
-return redis.status_reply('OK')
-`
-
-export async function saveModel(
+export async function saveScraperCache(
   redis: Redis,
   scraperId: string,
   avitoUrl: string,
   intervalSec: number
 ): Promise<void> {
   await redis.saveScraperCache(
-    scraperCacheKey(scraperId), // KEYS[1]
-    scraperCacheAvitoUrlKey(avitoUrl), // KEYS[2]
-    scrapersCacheKey(), // KEYS[3]
+    scraperKey(scraperId), // KEYS[1]
+    avitoUrlScraperKey(avitoUrl), // KEYS[2]
+    scrapersKey(), // KEYS[3]
     scraperId, // ARGV[1]
     avitoUrl, // ARGV[2]
     intervalSec, // ARGV[3]
+    Date.now() // ARGV[4]
   )
 }
 
-export const dropScraperCacheLua = `
-redis.call('DEL', KEYS[1])
-
-redis.call('DEL', KEYS[2])
-
-redis.call('SREM', KEYS[3], ARGV[1])
-`
-
-export async function dropModel(
+export async function dropScraperCache(
   redis: Redis,
   scraperId: string,
   avitoUrl: string
 ): Promise<void> {
   await redis.dropScraperCache(
-    scraperCacheKey(scraperId), // KEYS[1]
-    scraperCacheAvitoUrlKey(avitoUrl), // KEYS[2]
-    scrapersCacheKey(), // KEYS[3]
-    scraperId, // ARGV[1]
+    scraperKey(scraperId), // KEYS[1]
+    avitoUrlScraperKey(avitoUrl), // KEYS[2]
+    scrapersKey(), // KEYS[3]
+    scraperId // ARGV[1]
   )
 }
 
-export const renewScraperCacheSuccessLua = `
-if redis.call('EXISTS', KEYS[1]) ~= 0 then
-  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'success_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
-end
-
-if redis.call('EXISTS', KEYS[2]) ~= 0 then
-  redis.call('HINCRBY', KEYS[2], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[2], 'success_count', 1)
-  redis.call('HINCRBY', KEYS[2], 'size_bytes', ARGV[1])
-end
-
-return redis.status_reply('OK')
-`
-
-export async function renewSuccess(
+export async function renewSuccessScraperCache(
   redis: Redis,
   scraperId: string,
   proxyId: number,
   sizeBytes: number
 ): Promise<void> {
-  await redis.renewScraperCacheSuccess(
-    scraperCacheKey(scraperId), // KEYS[1]
-    proxyCacheKey(proxyId), // KEYS[2]
+  await redis.renewSuccessScraperCache(
+    scraperKey(scraperId), // KEYS[1]
+    proxyKey(proxyId), // KEYS[2]
     sizeBytes, // ARGV[1]
+    Date.now() // ARGV[2]
   )
 }
 
-export const renewScraperCacheFailedLua = `
-if redis.call('EXISTS', KEYS[1]) ~= 0 then
-  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
-end
-
-if redis.call('EXISTS', KEYS[2]) ~= 0 then
-  redis.call('HINCRBY', KEYS[2], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[2], 'size_bytes', ARGV[1])
-end
-
-return redis.status_reply('OK')
-`
-
-export async function renewFailed(
+export async function renewFailedScraperCache(
   redis: Redis,
   scraperId: string,
   proxyId: number,
   sizeBytes: number
 ): Promise<void> {
-  await redis.renewScraperCacheFailed(
-    scraperCacheKey(scraperId), // KEYS[1]
-    proxyCacheKey(proxyId), // KEYS[2]
+  await redis.renewFailedScraperCache(
+    scraperKey(scraperId), // KEYS[1]
+    proxyKey(proxyId), // KEYS[2]
     sizeBytes, // ARGV[1]
+    Date.now() // ARGV[2]
   )
 }
 
 const parseModel = (result: unknown, message: string): ScraperCache => {
-  const hash = parseHash(result, 6, message)
+  const hash = parseHash(result, 7, message)
 
   return {
     id: parseString(hash[0], message),
@@ -215,7 +152,8 @@ const parseModel = (result: unknown, message: string): ScraperCache => {
     intervalSec: parseNumber(hash[2], message),
     totalCount: parseNumber(hash[3], message),
     successCount: parseNumber(hash[4], message),
-    sizeBytes: parseNumber(hash[5], message)
+    sizeBytes: parseNumber(hash[5], message),
+    time: parseNumber(hash[6], message)
   }
 }
 

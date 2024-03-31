@@ -51,7 +51,7 @@ async function bootstrap(): Promise<void> {
   })
 
   bot.command('start', async (ctx) => {
-    await ctx.reply(`user status: ${ctx.user.status}`)
+    await ctx.reply(`user isPaid: ${ctx.user.isPaid}`)
   })
 
   bot.catch(async (botError) => {

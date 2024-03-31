@@ -5,7 +5,7 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-fetch-plan-subscriptions-cache',
+    name: 'redis-fetch-plan-subscriptions-cache',
     description: 'Redis fetch plan subscriptions cache',
     args: {
       planId: positional({

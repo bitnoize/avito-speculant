@@ -18,7 +18,7 @@ export async function fetchSubscriptionCache(
   redis: Redis,
   request: FetchSubscriptionCacheRequest
 ): Promise<FetchSubscriptionCacheResponse> {
-  const subscriptionCache = await subscriptionCacheRepository.fetchModel(
+  const subscriptionCache = await subscriptionCacheRepository.fetchSubscriptionCache(
     redis,
     request.subscriptionId
   )
@@ -33,8 +33,14 @@ export async function fetchUserSubscriptionCache(
   redis: Redis,
   request: FetchUserSubscriptionCacheRequest
 ): Promise<FetchUserSubscriptionCacheResponse> {
-  const subscriptionId = await subscriptionCacheRepository.fetchUserIndex(redis, request.userId)
-  const subscriptionCache = await subscriptionCacheRepository.fetchModel(redis, subscriptionId)
+  const subscriptionId = await subscriptionCacheRepository.fetchUserSubscription(
+    redis,
+    request.userId
+  )
+  const subscriptionCache = await subscriptionCacheRepository.fetchSubscriptionCache(
+    redis,
+    subscriptionId
+  )
 
   return { subscriptionCache }
 }
@@ -46,8 +52,11 @@ export async function fetchPlanSubscriptionsCache(
   redis: Redis,
   request: FetchPlanSubscriptionsCacheRequest
 ): Promise<FetchPlanSubscriptionsCacheResponse> {
-  const subscriptionIds = await subscriptionCacheRepository.fetchPlanIndex(redis, request.planId)
-  const subscriptionsCache = await subscriptionCacheRepository.fetchCollection(
+  const subscriptionIds = await subscriptionCacheRepository.fetchPlanSubscriptions(
+    redis,
+    request.planId
+  )
+  const subscriptionsCache = await subscriptionCacheRepository.fetchSubscriptionsCache(
     redis,
     subscriptionIds
   )
@@ -62,7 +71,7 @@ export async function saveSubscriptionCache(
   redis: Redis,
   request: SaveSubscriptionCacheRequest
 ): Promise<void> {
-  await subscriptionCacheRepository.saveModel(
+  await subscriptionCacheRepository.saveSubscriptionCache(
     redis,
     request.subscriptionId,
     request.userId,
@@ -82,7 +91,7 @@ export async function dropSubscriptionCache(
   redis: Redis,
   request: DropSubscriptionCacheRequest
 ): Promise<void> {
-  await subscriptionCacheRepository.dropModel(
+  await subscriptionCacheRepository.dropSubscriptionCache(
     redis,
     request.subscriptionId,
     request.userId,

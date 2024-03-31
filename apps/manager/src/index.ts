@@ -36,12 +36,15 @@ import redisFetchPlanSubscriptionsCacheCommand from './redis/redis-fetch-plan-su
 import redisFetchUserCategoriesCacheCommand from './redis/redis-fetch-user-categories-cache.command.js'
 import redisFetchScraperCategoriesCacheCommand from './redis/redis-fetch-scraper-categories-cache.command.js'
 import redisFetchProxiesCacheCommand from './redis/redis-fetch-proxies-cache.command.js'
-import redisFetchProxiesCacheOnlineCommand from './redis/redis-fetch-proxies-cache-online.command.js'
+import redisFetchOnlineProxiesCacheCommand from './redis/redis-fetch-online-proxies-cache.command.js'
 import redisFetchScrapersCacheCommand from './redis/redis-fetch-scrapers-cache.command.js'
+import queueStatusHeartbeatCommand from './queue/queue-status-heartbeat.command.js'
 import queueListenHeartbeatCommand from './queue/queue-listen-heartbeat.command.js'
+import queueStatusTreatmentCommand from './queue/queue-status-treatment.command.js'
 import queueListenTreatmentCommand from './queue/queue-listen-treatment.command.js'
 import queueStatusScrapingCommand from './queue/queue-status-scraping.command.js'
 import queueListenScrapingCommand from './queue/queue-listen-scraping.command.js'
+import queueStatusProxycheckCommand from './queue/queue-status-proxycheck.command.js'
 import queueListenProxycheckCommand from './queue/queue-listen-proxycheck.command.js'
 import { Config } from './manager.js'
 import { configSchema } from './manager.schema.js'
@@ -101,7 +104,7 @@ async function bootstrap(): Promise<void> {
       'fetch-user-categories-cache': redisFetchUserCategoriesCacheCommand(config, logger),
       'fetch-scraper-categories-cache': redisFetchScraperCategoriesCacheCommand(config, logger),
       'fetch-proxies-cache': redisFetchProxiesCacheCommand(config, logger),
-      'fetch-proxies-cache-online': redisFetchProxiesCacheOnlineCommand(config, logger),
+      'fetch-online-proxies-cache': redisFetchOnlineProxiesCacheCommand(config, logger),
       'fetch-scrapers-cache': redisFetchScrapersCacheCommand(config, logger)
     }
   })
@@ -109,11 +112,14 @@ async function bootstrap(): Promise<void> {
   const queueCommand = subcommands({
     name: 'queue',
     cmds: {
+      'status-heartbeat': queueStatusHeartbeatCommand(config, logger),
       'listen-heartbeat': queueListenHeartbeatCommand(config, logger),
+      'status-treatment': queueStatusTreatmentCommand(config, logger),
       'listen-treatment': queueListenTreatmentCommand(config, logger),
       'status-scraping': queueStatusScrapingCommand(config, logger),
       'listen-scraping': queueListenScrapingCommand(config, logger),
-      'listen-proxycheck': queueListenProxycheckCommand(config, logger)
+      'status-proxycheck': queueStatusProxycheckCommand(config, logger),
+      'listen-proxycheck': queueListenProxycheckCommand(config, logger),
     }
   })
 

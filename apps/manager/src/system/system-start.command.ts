@@ -16,11 +16,7 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const heartbeatQueue = heartbeatService.initQueue(queueConnection, logger)
 
-      const heartbeatJob = await heartbeatService.addJob(
-        heartbeatQueue,
-        'heartbeat-pulse',
-        10_000
-      )
+      const heartbeatJob = await heartbeatService.addJob(heartbeatQueue, 'heartbeat-pulse', 10_000)
 
       await heartbeatService.closeQueue(heartbeatQueue)
       await redisService.closeRedis(redis)

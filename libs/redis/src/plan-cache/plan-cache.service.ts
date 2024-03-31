@@ -15,17 +15,17 @@ export async function fetchPlanCache(
   redis: Redis,
   request: FetchPlanCacheRequest
 ): Promise<FetchPlanCacheResponse> {
-  const planCache = await planCacheRepository.fetchModel(redis, request.planId)
+  const planCache = await planCacheRepository.fetchPlanCache(redis, request.planId)
 
   return { planCache }
 }
 
 /*
- * Fetch PlanCache
+ * Fetch PlansCache
  */
 export async function fetchPlansCache(redis: Redis): Promise<FetchPlansCacheResponse> {
-  const planIds = await planCacheRepository.fetchIndex(redis)
-  const plansCache = await planCacheRepository.fetchCollection(redis, planIds)
+  const planIds = await planCacheRepository.fetchPlans(redis)
+  const plansCache = await planCacheRepository.fetchPlansCache(redis, planIds)
 
   return { plansCache }
 }
@@ -34,7 +34,7 @@ export async function fetchPlansCache(redis: Redis): Promise<FetchPlansCacheResp
  * Save PlanCache
  */
 export async function savePlanCache(redis: Redis, request: SavePlanCacheRequest): Promise<void> {
-  await planCacheRepository.saveModel(
+  await planCacheRepository.savePlanCache(
     redis,
     request.planId,
     request.categoriesMax,
@@ -49,5 +49,5 @@ export async function savePlanCache(redis: Redis, request: SavePlanCacheRequest)
  * Drop PlanCache
  */
 export async function dropPlanCache(redis: Redis, request: DropPlanCacheRequest): Promise<void> {
-  await planCacheRepository.dropModel(redis, request.planId)
+  await planCacheRepository.dropPlanCache(redis, request.planId)
 }

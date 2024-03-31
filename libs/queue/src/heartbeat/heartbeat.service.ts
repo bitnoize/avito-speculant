@@ -31,7 +31,7 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Heartb
 export async function addJob(
   queue: HeartbeatQueue,
   jobId: string,
-  every: number,
+  every: number
 ): Promise<HeartbeatJob> {
   return await queue.add(
     'pulse',

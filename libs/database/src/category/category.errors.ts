@@ -1,19 +1,20 @@
-import { DomainError } from '@avito-speculant/common'
+import { ErrorContext } from '@avito-speculant/common'
+import { DatabaseError } from '../database.errors.js'
 
-export class CategoryNotFoundError extends DomainError {
-  constructor(context: unknown, statusCode = 101, message = `Category not found`) {
-    super(context, statusCode, message)
+export class CategoryNotFoundError extends DatabaseError {
+  constructor(context: ErrorContext, code = 101, message = `Category not found`) {
+    super(context, code, message)
   }
 }
 
-export class CategoryIsEnabledError extends DomainError {
-  constructor(context: unknown, statusCode = 103, message = `Category is enabled`) {
-    super(context, statusCode, message)
+export class CategoryIsEnabledError extends DatabaseError {
+  constructor(context: ErrorContext, code = 103, message = `Category is enabled`) {
+    super(context, code, message)
   }
 }
 
-export class CategoriesLimitExceedError extends DomainError {
-  constructor(context: unknown, statusCode = 103, message = `Categories limit exceed`) {
-    super(context, statusCode, message)
+export class CategoriesLimitExceedError extends DatabaseError {
+  constructor(context: ErrorContext, code = 103, message = `Categories limit exceed`) {
+    super(context, code, message)
   }
 }

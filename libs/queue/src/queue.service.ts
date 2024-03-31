@@ -33,7 +33,7 @@ export function getQueueConnection<T extends QueueConfig>(config: T): Connection
 export function initBaseQueue<DT, RT, NT extends string>(
   name: string,
   connection: ConnectionOptions,
-  logger: Logger,
+  logger: Logger
 ): Queue<DT, RT, NT> {
   const queue = new Queue<DT, RT, NT>(name, {
     connection
@@ -59,7 +59,7 @@ export function initBaseQueue<DT, RT, NT extends string>(
   })
 
   queue.on('waiting', (job) => {
-    const logData: Record<string, unknown> = {
+    const logData = {
       queue: job.queueName,
       job: {
         id: job.id,
@@ -71,7 +71,7 @@ export function initBaseQueue<DT, RT, NT extends string>(
   })
 
   queue.on('progress', (job, progress) => {
-    const logData: Record<string, unknown> = {
+    const logData = {
       queue: job.queueName,
       job: {
         id: job.id,
@@ -84,7 +84,7 @@ export function initBaseQueue<DT, RT, NT extends string>(
   })
 
   queue.on('removed', (job) => {
-    const logData: Record<string, unknown> = {
+    const logData = {
       queue: job.queueName,
       job: {
         id: job.id,
@@ -96,7 +96,7 @@ export function initBaseQueue<DT, RT, NT extends string>(
   })
 
   queue.on('cleaned', (jobs, type) => {
-    const logData: Record<string, unknown> = { jobs, type }
+    const logData = { jobs, type }
     logger.debug(logData, `${logQueueName} enter cleaned state`)
   })
 
@@ -155,72 +155,72 @@ export function initQueueEvents(
   })
 
   queueEvents.on('paused', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.debug(logData, `${logQueueName} enter paused state`)
   })
 
   queueEvents.on('resumed', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.debug(logData, `${logQueueName} enter resumed state`)
   })
 
   queueEvents.on('added', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.info(logData, `${logQueueName} enter added state`)
   })
 
   queueEvents.on('duplicated', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.warn(logData, `${logQueueName} enter duplicated state`)
   })
 
   queueEvents.on('delayed', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.debug(logData, `${logQueueName} enter delayed state`)
   })
 
   queueEvents.on('waiting', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.debug(logData, `${logQueueName} enter waiting state`)
   })
 
   queueEvents.on('active', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.debug(logData, `${logQueueName} enter active state`)
   })
 
   queueEvents.on('completed', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.info(logData, `${logQueueName} enter completed state`)
   })
 
   queueEvents.on('progress', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.info(logData, `${logQueueName} enter progress state`)
   })
 
   queueEvents.on('failed', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.error(logData, `${logQueueName} enter failed state`)
   })
 
   queueEvents.on('stalled', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.warn(logData, `${logQueueName} enter stalled state`)
   })
 
   queueEvents.on('removed', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.debug(logData, `${logQueueName} enter removed state`)
   })
 
   queueEvents.on('cleaned', (args, id) => {
-    const logData: Record<string, unknown> = { args, id }
+    const logData = { args, id }
     logger.debug(logData, `${logQueueName} enter cleaned state`)
   })
 
   queueEvents.on('drained', (id) => {
-    const logData: Record<string, unknown> = { id }
+    const logData = { id }
     logger.debug(logData, `${logQueueName} enter drained state`)
   })
 
@@ -304,7 +304,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
   })
 
   worker.on('active', (job, prev) => {
-    const logData: Record<string, unknown> = {
+    const logData = {
       queue: job.queueName,
       job: {
         id: job.id,
@@ -317,7 +317,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
   })
 
   worker.on('progress', (job, progress) => {
-    const logData: Record<string, unknown> = {
+    const logData = {
       queue: job.queueName,
       job: {
         id: job.id,
@@ -330,7 +330,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
   })
 
   worker.on('completed', (job, result, prev) => {
-    const logData: Record<string, unknown> = {
+    const logData = {
       queue: job.queueName,
       job: {
         id: job.id,
@@ -344,23 +344,26 @@ export function initBaseWorker<DT, RT, NT extends string>(
   })
 
   worker.on('failed', (job, error, prev) => {
-    const logData: Record<string, unknown> = { prev }
     if (job !== undefined) {
-      logData.queue = job.queueName
-      logData.job = {
-        id: job.id,
-        name: job.name,
-        data: job.data
+      const logData = {
+        queue: job.queueName,
+        job: {
+          id: job.id,
+          name: job.name,
+          data: job.data
+        },
+        prev
       }
       logger.error(logData, `${logWorkerName} enter failed state`)
     } else {
+      const logData = { prev }
       logger.error(logData, `${logWorkerName} stalled job reaches limit`)
     }
 
     if (error instanceof DomainError) {
-      const logData: Record<string, unknown> = {
+      const logData = {
         context: error.context,
-        statusCode: error.statusCode
+        code: error.code
       }
       logger.error(logData, error.message)
     } else {
@@ -369,7 +372,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
   })
 
   worker.on('stalled', (jobId, prev) => {
-    const logData: Record<string, unknown> = { jobId, prev}
+    const logData = { jobId, prev }
     logger.error(logData, `${logWorkerName} enter stalled state`)
   })
 

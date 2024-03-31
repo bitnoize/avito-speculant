@@ -1,6 +1,5 @@
-import * as fs from 'fs'
-import { CurlImpersonate } from 'node-curl-impersonate'
-import * as cheerio from 'cheerio'
+import Ajv, { JSONSchemaType } from 'ajv'
+import { curly, CurlyResult } from 'node-libcurl'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
@@ -17,7 +16,7 @@ import {
   ScrapingResult,
   ScrapingProcessor
 } from '@avito-speculant/queue'
-import { Config, CurlImpersonateRequest, Process } from './worker-scraping.js'
+import { Config, CurlRequest, Process } from './worker-scraping.js'
 import { configSchema } from './worker-scraping.schema.js'
 
 const scrapingProcessor: ScrapingProcessor = async (scrapingJob) => {
@@ -35,8 +34,8 @@ const scrapingProcessor: ScrapingProcessor = async (scrapingJob) => {
     const name = scrapingJob.name
 
     switch (name) {
-      case 'curl-impersonate': {
-        result[name] = await processCurlImpersonate(config, logger, redis, scrapingJob)
+      case 'curl': {
+        result[name] = await processCurl(config, logger, redis, scrapingJob)
 
         break
       }
@@ -47,6 +46,10 @@ const scrapingProcessor: ScrapingProcessor = async (scrapingJob) => {
     }
   } catch (error) {
     if (error instanceof DomainError) {
+      if (error instanceof ProcessorUnknownNameError) {
+        error.setEmergency()
+      }
+
       if (error.isEmergency()) {
         // ...
 
@@ -62,7 +65,7 @@ const scrapingProcessor: ScrapingProcessor = async (scrapingJob) => {
   return result
 }
 
-const processCurlImpersonate: Process = async (config, logger, redis, scrapingJob) => {
+const processCurl: Process = async (config, logger, redis, scrapingJob) => {
   try {
     const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
       scraperId: scrapingJob.data.scraperId
@@ -71,68 +74,29 @@ const processCurlImpersonate: Process = async (config, logger, redis, scrapingJo
     const { proxyCache } = await proxyCacheService.randomProxyCacheOnline(redis)
 
     if (proxyCache === undefined) {
-      throw new OnlineProxyUnavailableError(scraperCache)
+      throw new OnlineProxyUnavailableError({ scraperCache })
     }
 
-    const curlImpersonateResponse = await curlImpersonateRequest(
+    const curlResponse = await curlRequest(
       scraperCache.avitoUrl,
       proxyCache.proxyUrl,
       scraperCache.intervalSec,
       false
     )
 
-    if (curlImpersonateResponse !== undefined) {
-      if (curlImpersonateResponse.statusCode === 200) {
-        await scraperCacheService.renewScraperCacheSuccess(redis, {
-          scraperId: scraperCache.id,
-          proxyId: proxyCache.id,
-          sizeBytes: curlImpersonateResponse.sizeBytes
-        })
-
-        curlImpersonateParse(curlImpersonateResponse.body, 'body > script:nth-child(5)')
-
-        const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
-          scraperId: scraperCache.id
-        })
-
-        for (const categoryCache of categoriesCache) {
-          const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(redis, {
-            userId: categoryCache.userId
-          })
-
-          // ...
-        }
-
-        return {
-          scraperId: scraperCache.id,
-          proxyId: proxyCache.id,
-          success: true,
-          statusCode: curlImpersonateResponse.statusCode,
-          sizeBytes: curlImpersonateResponse.sizeBytes
-        }
-      } else {
-        await scraperCacheService.renewScraperCacheFailed(redis, {
-          scraperId: scraperCache.id,
-          proxyId: proxyCache.id,
-          sizeBytes: curlImpersonateResponse.sizeBytes
-        })
-
-        return {
-          scraperId: scraperCache.id,
-          proxyId: proxyCache.id,
-          success: false,
-          statusCode: curlImpersonateResponse.statusCode,
-          sizeBytes: curlImpersonateResponse.sizeBytes
-        }
-      }
-    } else {
+    if (curlResponse.error !== undefined) {
       await scraperCacheService.renewScraperCacheFailed(redis, {
         scraperId: scraperCache.id,
         proxyId: proxyCache.id,
         sizeBytes: 0
       })
 
-      // ...
+      const logData = {
+        scraperCache,
+        proxyCache,
+        error: curlResponse.error
+      }
+      logger.error(logData, `ScrapingProcessor curlRequest failed`)
 
       return {
         scraperId: scraperCache.id,
@@ -142,13 +106,58 @@ const processCurlImpersonate: Process = async (config, logger, redis, scrapingJo
         sizeBytes: 0
       }
     }
+
+    if (curlResponse.statusCode !== 200) {
+      await scraperCacheService.renewScraperCacheFailed(redis, {
+        scraperId: scraperCache.id,
+        proxyId: proxyCache.id,
+        sizeBytes: curlResponse.body.length
+      })
+
+      return {
+        scraperId: scraperCache.id,
+        proxyId: proxyCache.id,
+        success: false,
+        statusCode: curlResponse.statusCode,
+        sizeBytes: curlResponse.body.length
+      }
+    }
+
+    curlParse(curlResponse)
+
+    await scraperCacheService.renewScraperCacheSuccess(redis, {
+      scraperId: scraperCache.id,
+      proxyId: proxyCache.id,
+      sizeBytes: curlResponse.body.length
+    })
+
+    const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
+      scraperId: scraperCache.id
+    })
+
+    for (const categoryCache of categoriesCache) {
+      const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(
+        redis,
+        {
+          userId: categoryCache.userId
+        }
+      )
+
+      // ...
+    }
+
+    return {
+      scraperId: scraperCache.id,
+      proxyId: proxyCache.id,
+      success: true,
+      statusCode: curlResponse.statusCode,
+      sizeBytes: curlResponse.body.length
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       if (error instanceof OnlineProxyUnavailableError) {
-        logger.warn(`ScrapingProcessor no online proxy available`)
+        logger.warn(`ScrapingProcessor no online proxy available in proxy-pool`)
       } else {
-        logger.error(`ScrapingProcessor processCurlImpersonate exception`)
-
         error.setEmergency()
       }
     }
@@ -157,51 +166,42 @@ const processCurlImpersonate: Process = async (config, logger, redis, scrapingJo
   }
 }
 
-const curlImpersonateRequest: CurlImpersonateRequest = async(
+const curlRequest: CurlRequest = async (
   avitoUrl,
   proxyUrl,
-  timeout,
+  timeoutMs,
   verbose
 ) => {
   try {
-    const curlImpersonate = new CurlImpersonate(avitoUrl, {
-      method: 'GET',
-      impersonate: 'firefox-117',
-      headers: [],
-      verbose,
-      followRedirects: false,
-      flags: [
-        '--insecure',
-        `--max-time ${timeout}`,
-        `--proxy ${proxyUrl}`
-      ]
+    const { statusCode, data } = await curly.get(avitoUrl, {
+      proxy: proxyUrl,
+      timeoutMs,
+      verbose
     })
 
-    const { statusCode, response } = await curlImpersonate.makeRequest()
-
     return {
-      statusCode: statusCode ?? 0,
-      body: response,
-      sizeBytes: Buffer.byteLength(response)
+      statusCode,
+      body: data
     }
   } catch (error) {
-    console.log(error)
-    return undefined
+    return {
+      statusCode: 0,
+      body: Buffer.alloc(0),
+      error: error.message
+    }
   }
 }
 
-const curlImpersonateParse = (body: string, target: string): void => {
+const curlParse = (data: Buffer): void => {
   try {
+    const body = data.toString()
+
     const indexStart = body.indexOf('window.__initial') + 'window.__initialData__ = "'.length
     const indexEnd = body.indexOf('window.__locations__')
     const initialData = body.substring(indexStart, indexEnd).trim().slice(0, -2)
-    console.log(`indexStart: ${indexStart}  indexEnd: ${indexEnd}`)
-
-    fs.writeFileSync('/tmp/data.txt', initialData)
-    fs.writeFileSync('/tmp/data.orig', body)
 
     const ads = JSON.parse(decodeURIComponent(initialData))
-    console.log(ads)
+    console.dir(ads, { depth: 8 })
   } catch (error) {
     return
   }

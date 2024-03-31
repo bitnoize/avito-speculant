@@ -1,10 +1,9 @@
 import { Generated, ColumnType, Selectable, Insertable, Updateable } from 'kysely'
-import { UserStatus } from './user.js'
 
 export interface UserTable {
   id: Generated<number>
   tg_from_id: ColumnType<string, string, never>
-  status: ColumnType<UserStatus, UserStatus, UserStatus | undefined>
+  is_paid: ColumnType<boolean, boolean, boolean | undefined>
   subscriptions: ColumnType<number, number, number | undefined>
   categories: ColumnType<number, number, number | undefined>
   created_at: ColumnType<number, number, never>

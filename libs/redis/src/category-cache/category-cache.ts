@@ -5,13 +5,14 @@ export interface CategoryCache {
   userId: number
   scraperId: string
   avitoUrl: string
+  time: number
 }
 
-export const categoryCacheKey = (categoryId: number) =>
+export const categoryKey = (categoryId: number) =>
   [REDIS_CACHE_PREFIX, 'category', categoryId].join(':')
 
-export const userCategoriesCacheKey = (userId: number) =>
+export const userCategoriesKey = (userId: number) =>
   [REDIS_CACHE_PREFIX, 'user-categories', userId].join(':')
 
-export const scraperCategoriesCacheKey = (scraperId: string) =>
+export const scraperCategoriesKey = (scraperId: string) =>
   [REDIS_CACHE_PREFIX, 'scraper-categories', scraperId].join(':')

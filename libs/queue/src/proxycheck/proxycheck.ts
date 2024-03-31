@@ -16,7 +16,7 @@ export type ProxycheckConfig = {
   PROXYCHECK_CHECK_TIMEOUT: number
 }
 
-export type ProxycheckName = 'curl-impersonate'
+export type ProxycheckName = 'simple'
 
 export type ProxycheckData = {
   proxyId: number

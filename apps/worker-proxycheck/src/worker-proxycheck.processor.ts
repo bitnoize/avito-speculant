@@ -131,11 +131,7 @@ const curlImpersonateRequest: CurlImpersonateRequest = async (
       headers: [],
       verbose,
       followRedirects: false,
-      flags: [
-        `--insecure`,
-        `--max-time ${timeout / 1000}`,
-        `--proxy ${proxyUrl}`
-      ]
+      flags: [`--insecure`, `--max-time ${timeout / 1000}`, `--proxy ${proxyUrl}`]
     })
 
     const { statusCode, response } = await curlImpersonate.makeRequest()

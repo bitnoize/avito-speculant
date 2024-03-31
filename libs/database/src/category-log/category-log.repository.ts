@@ -8,7 +8,6 @@ export async function insertRow(
   trx: TransactionDatabase,
   category_id: number,
   action: string,
-  avito_url: string,
   is_enabled: boolean,
   data: CategoryLogData
 ): Promise<CategoryLogRow> {
@@ -17,7 +16,6 @@ export async function insertRow(
     .values(() => ({
       category_id,
       action,
-      avito_url,
       is_enabled,
       data,
       created_at: sql<number>`now()`
@@ -45,7 +43,6 @@ export const buildModel = (row: CategoryLogRow): CategoryLog => {
     id: row.id,
     categoryId: row.category_id,
     action: row.action,
-    avitoUrl: row.avito_url,
     isEnabled: row.is_enabled,
     data: row.data,
     createdAt: row.created_at

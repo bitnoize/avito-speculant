@@ -10,11 +10,7 @@ export default (config: Config, logger: Logger) => {
     args: {},
     handler: async () => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
-      const queueEvents = queueService.initQueueEvents(
-        SCRAPING_QUEUE_NAME,
-        queueConnection,
-        logger
-      )
+      const queueEvents = queueService.initQueueEvents(SCRAPING_QUEUE_NAME, queueConnection, logger)
 
       await queueService.runQueueEvents(queueEvents)
     }

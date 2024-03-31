@@ -1,13 +1,14 @@
-import { DomainError } from '@avito-speculant/common'
+import { ErrorContext } from '@avito-speculant/common'
+import { DatabaseError } from '../database.errors.js'
 
-export class ProxyNotFoundError extends DomainError {
-  constructor(context: unknown, statusCode = 101, message = `Proxy not found`) {
-    super(context, statusCode, message)
+export class ProxyNotFoundError extends DatabaseError {
+  constructor(context: ErrorContext, code = 101, message = `Proxy not found`) {
+    super(context, code, message)
   }
 }
 
-export class ProxyAllreadyExistsError extends DomainError {
-  constructor(context: unknown, statusCode = 103, message = `Proxy allready exists`) {
-    super(context, statusCode, message)
+export class ProxyAllreadyExistsError extends DatabaseError {
+  constructor(context: ErrorContext, code = 103, message = `Proxy allready exists`) {
+    super(context, code, message)
   }
 }

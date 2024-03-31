@@ -1,13 +1,16 @@
-import { DomainError } from '@avito-speculant/common'
+import { DomainError, ErrorContext } from '@avito-speculant/common'
 
+/*
+ * Abstract class for redis level errors
+ */
 export abstract class RedisError extends DomainError {
-  constructor(context: unknown, statusCode: number, message: string) {
-    super(context, statusCode, message)
+  constructor(context: ErrorContext, code: number, message: string) {
+    super(false, context, code, message)
   }
 }
 
-export class RedisInternalError extends RedisError {
-  constructor(context: unknown, statusCode = 100, message = `Redis internal error`) {
-    super(context, statusCode, message)
+export class RedisParseError extends RedisError {
+  constructor(context: ErrorContext, code = 100, message = `Redis parse error`) {
+    super(context, code, message)
   }
 }

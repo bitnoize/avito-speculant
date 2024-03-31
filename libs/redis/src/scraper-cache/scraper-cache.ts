@@ -7,12 +7,19 @@ export interface ScraperCache {
   totalCount: number
   successCount: number
   sizeBytes: number
+  time: number
 }
 
-export const scraperCacheKey = (scraperId: string) =>
+export const scraperKey = (scraperId: string) =>
   [REDIS_CACHE_PREFIX, 'scraper', scraperId].join(':')
 
-export const scraperCacheAvitoUrlKey = (avitoUrl: string) =>
-  [REDIS_CACHE_PREFIX, 'scraper-avito_url', avitoUrl].join(':')
+export const avitoUrlScraperKey = (avitoUrl: string) =>
+  [REDIS_CACHE_PREFIX, 'avito_url-scraper', avitoUrl].join(':')
 
-export const scrapersCacheKey = () => [REDIS_CACHE_PREFIX, 'scrapers'].join(':')
+export const scrapersKey = () => [REDIS_CACHE_PREFIX, 'scrapers'].join(':')
+
+export const categoryScrapersKey = (categoryId: number) =>
+  [REDIS_CACHE_PREFIX, 'category-scrapers', categoryId].join(':')
+
+export const advertScrapersKey = (advertId: number) =>
+  [REDIS_CACHE_PREFIX, 'advert-scrapers', advertId].join(':')

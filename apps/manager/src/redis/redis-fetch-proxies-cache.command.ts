@@ -5,7 +5,7 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-fetch-proxies-cache',
+    name: 'redis-fetch-proxies-cache',
     description: 'Redis fetch proxies cache',
     args: {},
     handler: async () => {

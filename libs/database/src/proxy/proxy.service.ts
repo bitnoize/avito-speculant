@@ -30,7 +30,7 @@ export async function createProxy(
     const existsProxyRow = await proxyRepository.selectRowByProxyUrlForShare(trx, request.proxyUrl)
 
     if (existsProxyRow !== undefined) {
-      throw new ProxyAllreadyExistsError(request)
+      throw new ProxyAllreadyExistsError({ request })
     }
 
     // ...
@@ -67,7 +67,7 @@ export async function enableProxy(
     const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
 
     if (proxyRow === undefined) {
-      throw new ProxyNotFoundError(request)
+      throw new ProxyNotFoundError({ request })
     }
 
     if (proxyRow.is_enabled) {
@@ -111,7 +111,7 @@ export async function disableProxy(
     const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
 
     if (proxyRow === undefined) {
-      throw new ProxyNotFoundError(request)
+      throw new ProxyNotFoundError({ request })
     }
 
     if (!proxyRow.is_enabled) {
@@ -194,7 +194,7 @@ export async function consumeProxy(
     const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
 
     if (proxyRow === undefined) {
-      throw new ProxyNotFoundError(request)
+      throw new ProxyNotFoundError({ request })
     }
 
     if (proxyRow.is_enabled) {

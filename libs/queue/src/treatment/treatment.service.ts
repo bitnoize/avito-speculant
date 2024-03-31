@@ -30,7 +30,7 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Treatm
 export async function addJob(
   queue: TreatmentQueue,
   name: TreatmentName,
-  entityId: number,
+  entityId: number
 ): Promise<TreatmentJob> {
   const jobId = name + '-' + entityId
   return await queue.add(

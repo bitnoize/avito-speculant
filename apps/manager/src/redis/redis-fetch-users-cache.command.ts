@@ -5,7 +5,7 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-fetch-users-cache',
+    name: 'redis-fetch-users-cache',
     description: 'Redis fetch users cache',
     args: {},
     handler: async () => {

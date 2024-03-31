@@ -77,11 +77,11 @@ export async function updatePlan(
     const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError(request)
+      throw new PlanNotFoundError({ request })
     }
 
     if (planRow.is_enabled) {
-      throw new PlanIsEnabledError(request)
+      throw new PlanIsEnabledError({ request })
     }
 
     // ...
@@ -147,7 +147,7 @@ export async function enablePlan(
     const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError(request)
+      throw new PlanNotFoundError({ request })
     }
 
     if (planRow.is_enabled) {
@@ -197,7 +197,7 @@ export async function disablePlan(
     const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError(request)
+      throw new PlanNotFoundError({ request })
     }
 
     if (!planRow.is_enabled) {
@@ -286,7 +286,7 @@ export async function consumePlan(
     const planRow = await planRepository.selectRowByIdForUpdate(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError(request)
+      throw new PlanNotFoundError({ request })
     }
 
     if (planRow.is_enabled) {

@@ -21,7 +21,7 @@ import {
 } from './subscription.errors.js'
 import * as subscriptionRepository from './subscription.repository.js'
 import * as subscriptionLogRepository from '../subscription-log/subscription-log.repository.js'
-import { UserNotFoundError, UserBlockedError } from '../user/user.errors.js'
+import { UserNotFoundError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
 import { PlanNotFoundError, PlanIsDisabledError } from '../plan/plan.errors.js'
@@ -41,21 +41,17 @@ export async function createSubscription(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request)
-    }
-
-    if (userRow.status === 'block') {
-      throw new UserBlockedError(request)
+      throw new UserNotFoundError({ request })
     }
 
     const planRow = await planRepository.selectRowByIdForShare(trx, request.planId)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError(request)
+      throw new PlanNotFoundError({ request })
     }
 
     if (!planRow.is_enabled) {
-      throw new PlanIsDisabledError(request)
+      throw new PlanIsDisabledError({ request })
     }
 
     const waitSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
@@ -65,7 +61,7 @@ export async function createSubscription(
     )
 
     if (waitSubscriptionRow !== undefined) {
-      throw new SubscriptionExistsError(request)
+      throw new SubscriptionExistsError({ request })
     }
 
     const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
@@ -124,21 +120,17 @@ export async function activateSubscription(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError(request)
+      throw new SubscriptionNotFoundError({ request })
     }
 
     if (subscriptionRow.status !== 'wait') {
-      throw new SubscriptionNotWaitError(request)
+      throw new SubscriptionNotWaitError({ request })
     }
 
     const userRow = await userRepository.selectRowByIdForUpdate(trx, subscriptionRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, 100)
-    }
-
-    if (userRow.status === 'block') {
-      throw new UserBlockedError(request)
+      throw new UserNotFoundError({ request }, 100)
     }
 
     // ...
@@ -159,13 +151,13 @@ export async function activateSubscription(
 
     backLog.push(subscriptionLogRepository.buildNotify(subscriptionLogRow))
 
-    const updatedUserRow = await userRepository.updateRowStatus(trx, userRow.id, 'paid')
+    const updatedUserRow = await userRepository.updateRowIsPaid(trx, userRow.id, true)
 
     const userLogRow = await userLogRepository.insertRow(
       trx,
       updatedUserRow.id,
       'activate_subscription',
-      updatedUserRow.status,
+      updatedUserRow.is_paid,
       updatedUserRow.subscriptions,
       updatedUserRow.categories,
       request.data
@@ -197,7 +189,7 @@ export async function cancelSubscription(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError(request)
+      throw new SubscriptionNotFoundError({ request })
     }
 
     if (subscriptionRow.status === 'cancel') {
@@ -208,18 +200,14 @@ export async function cancelSubscription(
     }
 
     if (subscriptionRow.status !== 'wait') {
-      throw new SubscriptionNotWaitError(request)
+      throw new SubscriptionNotWaitError({ request })
     }
 
     const userRow = await userRepository.selectRowByIdForShare(trx, subscriptionRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, 100)
+      throw new UserNotFoundError({ request }, 100)
     }
-
-    //if (userRow.status === 'block') {
-    //  throw new UserBlockedError(request)
-    //}
 
     // ...
 
@@ -257,11 +245,7 @@ export async function listSubscriptions(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request)
-    }
-
-    if (userRow.status === 'block') {
-      throw new UserBlockedError(request)
+      throw new UserNotFoundError({ request })
     }
 
     const subscriptionRows = await subscriptionRepository.selectRowsList(
@@ -286,10 +270,7 @@ export async function produceSubscriptions(
   return await db.transaction().execute(async (trx) => {
     const subscriptions: Subscription[] = []
 
-    const subscriptionRows = await subscriptionRepository.selectRowsProduce(
-      trx,
-      request.limit
-    )
+    const subscriptionRows = await subscriptionRepository.selectRowsProduce(trx, request.limit)
 
     for (const subscriptionRow of subscriptionRows) {
       const updatedSubscriptionRow = await subscriptionRepository.updateRowProduce(
@@ -321,19 +302,19 @@ export async function consumeSubscription(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError(request)
+      throw new SubscriptionNotFoundError({ request })
     }
 
     const userRow = await userRepository.selectRowByIdForShare(trx, subscriptionRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, 100)
+      throw new UserNotFoundError({ request }, 100)
     }
 
     const planRow = await planRepository.selectRowByIdForShare(trx, subscriptionRow.plan_id)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError(request, 100)
+      throw new PlanNotFoundError({ request }, 100)
     }
 
     if (subscriptionRow.status === 'wait') {

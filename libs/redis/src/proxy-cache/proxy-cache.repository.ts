@@ -1,5 +1,5 @@
 import { Redis } from 'ioredis'
-import { ProxyCache, proxyCacheKey, proxiesCacheKey, proxiesCacheOnlineKey } from './proxy-cache.js'
+import { ProxyCache, proxyKey, proxiesKey, onlineProxiesKey } from './proxy-cache.js'
 import {
   parseNumber,
   parseManyNumbers,
@@ -9,71 +9,43 @@ import {
   parseCommand
 } from '../redis.utils.js'
 
-export const fetchProxyCacheLua = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return nil 
-end
-
-local proxy_cache = redis.call(
-  'HMGET', KEYS[1],
-  'id',
-  'proxy_url',
-  'is_online',
-  'total_count',
-  'success_count',
-  'size_bytes'
-)
-
-return {
-  unpack(proxy_cache)
-}
-`
-
-export async function fetchModel(redis: Redis, proxyId: number): Promise<ProxyCache> {
+export async function fetchProxyCache(redis: Redis, proxyId: number): Promise<ProxyCache> {
   const result = await redis.fetchProxyCache(
-    proxyCacheKey(proxyId) // KEYS[1]
+    proxyKey(proxyId) // KEYS[1]
   )
 
-  return parseModel(result, `ProxyCache fetchModel malformed result`)
+  return parseModel(result, `ProxyCache fetchProxyCache malformed result`)
 }
 
-export const fetchProxiesCacheIndexLua = `
-return redis.call('SMEMBERS', KEYS[1])
-`
-
-export async function fetchIndex(redis: Redis): Promise<number[]> {
-  const result = await redis.fetchProxiesCacheIndex(
-    proxiesCacheKey() // KEYS[1]
+export async function fetchProxies(redis: Redis): Promise<number[]> {
+  const result = await redis.fetchProxies(
+    proxiesKey() // KEYS[1]
   )
 
-  return parseManyNumbers(result, `ProxyCache fetchIndex malformed result`)
+  return parseManyNumbers(result, `ProxyCache fetchProxies malformed result`)
 }
 
-export async function fetchOnlineIndex(redis: Redis): Promise<number[]> {
-  const result = await redis.fetchProxiesCacheIndex(
-    proxiesCacheOnlineKey() // KEYS[1]
+export async function fetchOnlineProxies(redis: Redis): Promise<number[]> {
+  const result = await redis.fetchProxies(
+    onlineProxiesKey() // KEYS[1]
   )
 
-  return parseManyNumbers(result, `ProxyCache fetchOnlineIndex malformed result`)
+  return parseManyNumbers(result, `ProxyCache fetchOnlineProxies malformed result`)
 }
 
-export const randomProxyCacheIndexLua = `
-return redis.call('SRANDMEMBER', KEYS[1])
-`
-
-export async function randomOnlineIndex(redis: Redis): Promise<number | undefined> {
-  const result = await redis.randomProxyCacheIndex(
-    proxiesCacheOnlineKey() // KEYS[1]
+export async function fetchRandomOnlineProxy(redis: Redis): Promise<number | undefined> {
+  const result = await redis.fetchRandomProxy(
+    onlineProxiesKey() // KEYS[1]
   )
 
   if (result == null) {
     return undefined
   }
 
-  return parseNumber(result, `ProxyCache randomOnlineIndex malformed result`)
+  return parseNumber(result, `ProxyCache fetchRandomOnlineProxy malformed result`)
 }
 
-export async function fetchCollection(redis: Redis, proxyIds: number[]): Promise<ProxyCache[]> {
+export async function fetchProxiesCache(redis: Redis, proxyIds: number[]): Promise<ProxyCache[]> {
   if (proxyIds.length === 0) {
     return []
   }
@@ -82,108 +54,68 @@ export async function fetchCollection(redis: Redis, proxyIds: number[]): Promise
 
   proxyIds.forEach((proxyId) => {
     pipeline.fetchProxyCache(
-      proxyCacheKey(proxyId) // KEYS[1]
+      proxyKey(proxyId) // KEYS[1]
     )
   })
 
   const result = await pipeline.exec()
 
-  return parseCollection(result, `ProxyCache fetchCollection malformed result`)
+  return parseCollection(result, `ProxyCache fetchProxiesCache malformed result`)
 }
 
-export const saveProxyCacheLua = `
-redis.call('HSET', KEYS[1], 'id', ARGV[1], 'proxy_url', ARGV[2])
-redis.call('HSETNX', KEYS[1], 'is_online', 0)
-redis.call('HSETNX', KEYS[1], 'total_count', 0)
-redis.call('HSETNX', KEYS[1], 'success_count', 0)
-redis.call('HSETNX', KEYS[1], 'size_bytes', 0)
-
-redis.call('SADD', KEYS[2], ARGV[1])
-
-return redis.status_reply('OK')
-`
-
-export async function saveModel(redis: Redis, proxyId: number, proxyUrl: string): Promise<void> {
+export async function saveProxyCache(
+  redis: Redis,
+  proxyId: number,
+  proxyUrl: string
+): Promise<void> {
   await redis.saveProxyCache(
-    proxyCacheKey(proxyId), // KEYS[1]
-    proxiesCacheKey(), // KEYS[2]
+    proxyKey(proxyId), // KEYS[1]
+    proxiesKey(), // KEYS[2]
     proxyId, // ARGV[1]
     proxyUrl, // ARGV[2]
+    Date.now() // ARGV[3]
   )
 }
 
-export const dropProxyCacheLua = `
-redis.call('DEL', KEYS[1])
-
-redis.call('SREM', KEYS[2], ARGV[1])
-
-redis.call('SREM', KEYS[3], ARGV[1])
-
-return redis.status_reply('OK')
-`
-
-export async function dropModel(redis: Redis, proxyId: number): Promise<void> {
+export async function dropProxyCache(redis: Redis, proxyId: number): Promise<void> {
   await redis.dropProxyCache(
-    proxyCacheKey(proxyId), // KEYS[1]
-    proxiesCacheKey(), // KEYS[2]
-    proxiesCacheOnlineKey(), // KEYS[3]
-    proxyId, // ARGV[1]
+    proxyKey(proxyId), // KEYS[1]
+    proxiesKey(), // KEYS[2]
+    onlineProxiesKey(), // KEYS[3]
+    proxyId // ARGV[1]
   )
 }
 
-export const renewProxyCacheOnlineLua = `
-if redis.call('EXISTS', KEYS[1]) ~= 0 then
-  redis.call('HSET', KEYS[1], 'is_online', 1)
-  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'success_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[2])
-
-  redis.call('SADD', KEYS[2], ARGV[1])
-end
-
-return redis.status_reply('OK')
-`
-
-export async function renewOnline(
+export async function renewOnlineProxyCache(
   redis: Redis,
   proxyId: number,
   sizeBytes: number
 ): Promise<void> {
-  await redis.renewProxyCacheOnline(
-    proxyCacheKey(proxyId), // KEYS[1]
-    proxiesCacheOnlineKey(), // KEYS[2]
+  await redis.renewOnlineProxyCache(
+    proxyKey(proxyId), // KEYS[1]
+    onlineProxiesKey(), // KEYS[2]
     proxyId, // ARGV[1]
     sizeBytes, // ARGV[2]
+    Date.now() // ARGV[3]
   )
 }
 
-export const renewProxyCacheOfflineLua = `
-if redis.call('EXISTS', KEYS[1]) ~= 0 then
-  redis.call('HSET', KEYS[1], 'is_online', 0)
-  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[2])
-
-  redis.call('SREM', KEYS[2], ARGV[1])
-end
-
-return redis.status_reply('OK')
-`
-
-export async function renewOffline(
+export async function renewOfflineProxyCache(
   redis: Redis,
   proxyId: number,
   sizeBytes: number
 ): Promise<void> {
-  await redis.renewProxyCacheOffline(
-    proxyCacheKey(proxyId), // KEYS[1]
-    proxiesCacheOnlineKey(), // KEYS[2]
+  await redis.renewOfflineProxyCache(
+    proxyKey(proxyId), // KEYS[1]
+    onlineProxiesKey(), // KEYS[2]
     proxyId, // ARGV[1]
     sizeBytes, // ARGV[2]
+    Date.now() // ARGV[3]
   )
 }
 
 const parseModel = (result: unknown, message: string): ProxyCache => {
-  const hash = parseHash(result, 6, message)
+  const hash = parseHash(result, 7, message)
 
   return {
     id: parseNumber(hash[0], message),
@@ -191,7 +123,8 @@ const parseModel = (result: unknown, message: string): ProxyCache => {
     isOnline: !!parseNumber(hash[2], message),
     totalCount: parseNumber(hash[3], message),
     successCount: parseNumber(hash[4], message),
-    sizeBytes: parseNumber(hash[5], message)
+    sizeBytes: parseNumber(hash[5], message),
+    time: parseNumber(hash[6], message)
   }
 }
 

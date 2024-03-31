@@ -15,7 +15,7 @@ export async function fetchUserCache(
   redis: Redis,
   request: FetchUserCacheRequest
 ): Promise<FetchUserCacheResponse> {
-  const userCache = await userCacheRepository.fetchModel(redis, request.userId)
+  const userCache = await userCacheRepository.fetchUserCache(redis, request.userId)
 
   return { userCache }
 }
@@ -24,8 +24,8 @@ export async function fetchUserCache(
  * Fetch UsersCache
  */
 export async function fetchUsersCache(redis: Redis): Promise<FetchUsersCacheResponse> {
-  const userIds = await userCacheRepository.fetchIndex(redis)
-  const usersCache = await userCacheRepository.fetchCollection(redis, userIds)
+  const userIds = await userCacheRepository.fetchUsers(redis)
+  const usersCache = await userCacheRepository.fetchUsersCache(redis, userIds)
 
   return { usersCache }
 }
@@ -34,12 +34,12 @@ export async function fetchUsersCache(redis: Redis): Promise<FetchUsersCacheResp
  * Save UserCache
  */
 export async function saveUserCache(redis: Redis, request: SaveUserCacheRequest): Promise<void> {
-  await userCacheRepository.saveModel(redis, request.userId, request.tgFromId)
+  await userCacheRepository.saveUserCache(redis, request.userId, request.tgFromId)
 }
 
 /*
  * Drop UserCache
  */
 export async function dropUserCache(redis: Redis, request: DropUserCacheRequest): Promise<void> {
-  await userCacheRepository.dropModel(redis, request.userId)
+  await userCacheRepository.dropUserCache(redis, request.userId)
 }

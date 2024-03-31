@@ -2,14 +2,13 @@ import { sql } from 'kysely'
 import { Notify } from '@avito-speculant/common'
 import { UserLog, UserLogData } from './user-log.js'
 import { UserLogRow } from './user-log.table.js'
-import { UserStatus } from '../user/user.js'
 import { TransactionDatabase } from '../database.js'
 
 export async function insertRow(
   trx: TransactionDatabase,
   user_id: number,
   action: string,
-  status: UserStatus,
+  is_paid: boolean,
   subscriptions: number,
   categories: number,
   data: UserLogData
@@ -19,7 +18,7 @@ export async function insertRow(
     .values(() => ({
       user_id,
       action,
-      status,
+      is_paid,
       subscriptions,
       categories,
       data,
@@ -48,7 +47,7 @@ export const buildModel = (row: UserLogRow): UserLog => {
     id: row.id,
     userId: row.user_id,
     action: row.action,
-    status: row.status,
+    isPaid: row.is_paid,
     subscriptions: row.subscriptions,
     categories: row.categories,
     data: row.data,

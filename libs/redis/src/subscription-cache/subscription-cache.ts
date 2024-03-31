@@ -9,13 +9,14 @@ export interface SubscriptionCache {
   durationDays: number
   intervalSec: number
   analyticsOn: boolean
+  time: number
 }
 
-export const subscriptionCacheKey = (subscriptionId: number) =>
+export const subscriptionKey = (subscriptionId: number) =>
   [REDIS_CACHE_PREFIX, 'subscription', subscriptionId].join(':')
 
-export const userSubscriptionCacheKey = (userId: number) =>
+export const userSubscriptionKey = (userId: number) =>
   [REDIS_CACHE_PREFIX, 'user-subscription', userId].join(':')
 
-export const planSubscriptionsCacheKey = (planId: number) =>
+export const planSubscriptionsKey = (planId: number) =>
   [REDIS_CACHE_PREFIX, 'plan-subscriptions', planId].join(':')

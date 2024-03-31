@@ -7,8 +7,9 @@ export interface PlanCache {
   durationDays: number
   intervalSec: number
   analyticsOn: boolean
+  time: number
 }
 
-export const planCacheKey = (planId: number) => [REDIS_CACHE_PREFIX, 'plan', planId].join(':')
+export const planKey = (planId: number) => [REDIS_CACHE_PREFIX, 'plan', planId].join(':')
 
-export const plansCacheKey = () => [REDIS_CACHE_PREFIX, 'plans'].join(':')
+export const plansKey = () => [REDIS_CACHE_PREFIX, 'plans'].join(':')

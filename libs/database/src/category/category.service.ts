@@ -15,7 +15,7 @@ import { Category } from './category.js'
 import { CategoryNotFoundError, CategoriesLimitExceedError } from './category.errors.js'
 import * as categoryRepository from './category.repository.js'
 import * as categoryLogRepository from '../category-log/category-log.repository.js'
-import { UserNotFoundError, UserBlockedError, UserNotPaidError } from '../user/user.errors.js'
+import { UserNotFoundError, UserNotPaidError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
 import { SubscriptionNotActiveError } from '../subscription/subscription.errors.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
@@ -34,11 +34,7 @@ export async function createCategory(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request)
-    }
-
-    if (userRow.status === 'block') {
-      throw new UserBlockedError(request)
+      throw new UserNotFoundError({ request })
     }
 
     // ...
@@ -53,7 +49,6 @@ export async function createCategory(
       trx,
       insertedCategoryRow.id,
       'create_category',
-      insertedCategoryRow.avito_url,
       insertedCategoryRow.is_enabled,
       request.data
     )
@@ -80,7 +75,7 @@ export async function enableCategory(
     const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
-      throw new CategoryNotFoundError(request)
+      throw new CategoryNotFoundError({ request })
     }
 
     if (categoryRow.is_enabled) {
@@ -93,11 +88,11 @@ export async function enableCategory(
     const userRow = await userRepository.selectRowByIdForShare(trx, categoryRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, 500)
+      throw new UserNotFoundError({ request }, 100)
     }
 
-    if (userRow.status !== 'paid') {
-      throw new UserNotPaidError(request)
+    if (!userRow.is_paid) {
+      throw new UserNotPaidError({ request })
     }
 
     const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
@@ -107,13 +102,13 @@ export async function enableCategory(
     )
 
     if (subscriptionRow === undefined) {
-      throw new SubscriptionNotActiveError(request)
+      throw new SubscriptionNotActiveError({ request })
     }
 
     const { categories } = await categoryRepository.selectCountByUserId(trx, categoryRow.user_id)
 
     if (categories >= subscriptionRow.categories_max) {
-      throw new CategoriesLimitExceedError(request)
+      throw new CategoriesLimitExceedError({ request })
     }
 
     // ...
@@ -128,7 +123,6 @@ export async function enableCategory(
       trx,
       updatedCategoryRow.id,
       'enable_category',
-      updatedCategoryRow.avito_url,
       updatedCategoryRow.is_enabled,
       request.data
     )
@@ -155,7 +149,7 @@ export async function disableCategory(
     const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
-      throw new CategoryNotFoundError(request)
+      throw new CategoryNotFoundError({ request })
     }
 
     if (!categoryRow.is_enabled) {
@@ -177,7 +171,6 @@ export async function disableCategory(
       trx,
       updatedCategoryRow.id,
       'disable_category',
-      updatedCategoryRow.avito_url,
       updatedCategoryRow.is_enabled,
       request.data
     )
@@ -202,11 +195,7 @@ export async function listCategories(
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request)
-    }
-
-    if (userRow.status === 'block') {
-      throw new UserBlockedError(request)
+      throw new UserNotFoundError({ request })
     }
 
     // ...
@@ -259,13 +248,13 @@ export async function consumeCategory(
     const categoryRow = await categoryRepository.selectRowByIdForUpdate(trx, request.categoryId)
 
     if (categoryRow === undefined) {
-      throw new CategoryNotFoundError(request)
+      throw new CategoryNotFoundError({ request })
     }
 
     const userRow = await userRepository.selectRowByIdForShare(trx, categoryRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError(request, 100)
+      throw new UserNotFoundError({ request }, 100)
     }
 
     const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
@@ -295,7 +284,6 @@ export async function consumeCategory(
         trx,
         updatedCategoryRow.id,
         'consume_category',
-        updatedCategoryRow.avito_url,
         updatedCategoryRow.is_enabled,
         request.data
       )

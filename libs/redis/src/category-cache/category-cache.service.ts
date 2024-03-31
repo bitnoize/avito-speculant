@@ -18,7 +18,7 @@ export async function fetchCategoryCache(
   redis: Redis,
   request: FetchCategoryCacheRequest
 ): Promise<FetchCategoryCacheResponse> {
-  const categoryCache = await categoryCacheRepository.fetchModel(redis, request.categoryId)
+  const categoryCache = await categoryCacheRepository.fetchCategoryCache(redis, request.categoryId)
 
   return { categoryCache }
 }
@@ -30,8 +30,8 @@ export async function fetchUserCategoriesCache(
   redis: Redis,
   request: FetchUserCategoriesCacheRequest
 ): Promise<FetchUserCategoriesCacheResponse> {
-  const categoryIds = await categoryCacheRepository.fetchUserIndex(redis, request.userId)
-  const categoriesCache = await categoryCacheRepository.fetchCollection(redis, categoryIds)
+  const categoryIds = await categoryCacheRepository.fetchUserCategories(redis, request.userId)
+  const categoriesCache = await categoryCacheRepository.fetchCategoriesCache(redis, categoryIds)
 
   return { categoriesCache }
 }
@@ -43,8 +43,8 @@ export async function fetchScraperCategoriesCache(
   redis: Redis,
   request: FetchScraperCategoriesCacheRequest
 ): Promise<FetchScraperCategoriesCacheResponse> {
-  const categoryIds = await categoryCacheRepository.fetchScraperIndex(redis, request.scraperId)
-  const categoriesCache = await categoryCacheRepository.fetchCollection(redis, categoryIds)
+  const categoryIds = await categoryCacheRepository.fetchScraperCategories(redis, request.scraperId)
+  const categoriesCache = await categoryCacheRepository.fetchCategoriesCache(redis, categoryIds)
 
   return { categoriesCache }
 }
@@ -56,7 +56,7 @@ export async function saveCategoryCache(
   redis: Redis,
   request: SaveCategoryCacheRequest
 ): Promise<void> {
-  await categoryCacheRepository.saveModel(
+  await categoryCacheRepository.saveCategoryCache(
     redis,
     request.categoryId,
     request.userId,
@@ -72,7 +72,7 @@ export async function dropCategoryCache(
   redis: Redis,
   request: DropCategoryCacheRequest
 ): Promise<void> {
-  await categoryCacheRepository.dropModel(
+  await categoryCacheRepository.dropCategoryCache(
     redis,
     request.categoryId,
     request.userId,

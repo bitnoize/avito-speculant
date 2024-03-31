@@ -5,7 +5,7 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-fetch-user-categories-cache',
+    name: 'redis-fetch-user-categories-cache',
     description: 'Redis fetch user categories cache',
     args: {
       userId: positional({

@@ -77,8 +77,15 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
       case 'proxy': {
         const proxycheckQueue = proxycheckService.initQueue(queueConnection, logger)
 
-        result[name] =
-          await processProxy(config, logger, db, redis, pubSub, treatmentJob, proxycheckQueue)
+        result[name] = await processProxy(
+          config,
+          logger,
+          db,
+          redis,
+          pubSub,
+          treatmentJob,
+          proxycheckQueue
+        )
 
         break
       }
@@ -120,7 +127,7 @@ const processUser: Process = async (config, logger, db, redis, pubSub, treatment
       }
     })
 
-    if (user.status === 'paid') {
+    if (user.isPaid) {
       await userCacheService.saveUserCache(redis, {
         userId: user.id,
         tgFromId: user.tgFromId
@@ -333,7 +340,7 @@ const processProxy: ProcessProxycheck = async (
         proxyUrl: proxy.proxyUrl
       })
 
-      await proxycheckService.addJob(proxycheckQueue, 'curl-impersonate', proxy.id)
+      await proxycheckService.addJob(proxycheckQueue, 'simple', proxy.id)
     } else {
       await proxyCacheService.dropProxyCache(redis, {
         proxyId: proxy.id

@@ -5,14 +5,14 @@ import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
   return command({
-    name: 'database-fetch-proxies-cache-online',
-    description: 'Redis fetch proxies cache online',
+    name: 'redis-fetch-online-proxies-cache',
+    description: 'Redis fetch online proxies cache',
     args: {},
     handler: async () => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const { proxiesCache } = await proxyCacheService.fetchProxiesCacheOnline(redis)
+      const { proxiesCache } = await proxyCacheService.fetchOnlineProxiesCache(redis)
 
       logger.info({ proxiesCache }, `ProxiesCache successfully fetched`)
 

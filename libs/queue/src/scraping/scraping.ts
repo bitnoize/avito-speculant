@@ -12,7 +12,7 @@ export type ScrapingConfig = {
   SCRAPING_LIMITER_DURATION: number
 }
 
-export type ScrapingName = 'curl-impersonate'
+export type ScrapingName = 'desktop'
 
 export type ScrapingData = {
   scraperId: string

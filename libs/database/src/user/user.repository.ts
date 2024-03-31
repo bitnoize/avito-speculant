@@ -1,5 +1,5 @@
 import { sql } from 'kysely'
-import { User, UserStatus } from './user.js'
+import { User } from './user.js'
 import { UserRow } from './user.table.js'
 import { TransactionDatabase } from '../database.js'
 
@@ -44,7 +44,7 @@ export async function insertRow(trx: TransactionDatabase, tg_from_id: string): P
     .insertInto('user')
     .values(() => ({
       tg_from_id,
-      status: 'trial',
+      is_paid: false,
       subscriptions: 0,
       categories: 0,
       created_at: sql<number>`now()`,
@@ -55,15 +55,15 @@ export async function insertRow(trx: TransactionDatabase, tg_from_id: string): P
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowStatus(
+export async function updateRowIsPaid(
   trx: TransactionDatabase,
   user_id: number,
-  status: UserStatus
+  is_paid: boolean
 ): Promise<UserRow> {
   return await trx
     .updateTable('user')
     .set(() => ({
-      status,
+      is_paid,
       updated_at: sql<number>`now()`
     }))
     .where('id', '=', user_id)
@@ -72,12 +72,12 @@ export async function updateRowStatus(
 }
 
 export async function selectRowsList(trx: TransactionDatabase, all: boolean): Promise<UserRow[]> {
-  const filter = all ? ['trial', 'paid', 'block'] : ['trial', 'paid']
+  const filter = all ? [true, false] : [true]
 
   return await trx
     .selectFrom('user')
     .selectAll()
-    .where('status', 'in', filter)
+    .where('is_paid', 'in', filter)
     .forShare()
     .orderBy('id', 'asc')
     .execute()
@@ -115,14 +115,14 @@ export async function updateRowProduce(
 export async function updateRowConsume(
   trx: TransactionDatabase,
   user_id: number,
-  status: UserStatus,
+  is_paid: boolean,
   subscriptions: number,
   categories: number
 ): Promise<UserRow> {
   return await trx
     .updateTable('user')
     .set(() => ({
-      status,
+      is_paid,
       subscriptions,
       categories,
       updated_at: sql<number>`now()`
@@ -136,7 +136,7 @@ export const buildModel = (row: UserRow): User => {
   return {
     id: row.id,
     tgFromId: row.tg_from_id,
-    status: row.status,
+    isPaid: row.is_paid,
     subscriptions: row.subscriptions,
     categories: row.categories,
     createdAt: row.created_at,

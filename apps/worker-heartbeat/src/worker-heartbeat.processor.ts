@@ -18,7 +18,7 @@ import {
 } from '@avito-speculant/redis'
 import {
   ProcessorUnknownStepError,
-  LostRepeatableJobIdError,
+  LostRepeatableJobError,
   HeartbeatResult,
   HeartbeatProcessor,
   queueService,
@@ -277,7 +277,7 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
     const scraperIds = scrapersCache.map((scraperCache) => scraperCache.id)
     const orphanScrapingJobs = repeatableJobs.filter((repeatableJob) => {
       if (repeatableJob.id == null) {
-        throw new LostRepeatableJobIdError({ repeatableJob })
+        throw new LostRepeatableJobError({ repeatableJob })
       }
 
       return !scraperIds.includes(repeatableJob.id)
@@ -299,12 +299,9 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
     for (const scraperCache of scrapersCache) {
       let isChanged = false
 
-      const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(
-        redis,
-        {
-          scraperId: scraperCache.id
-        }
-      )
+      const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
+        scraperId: scraperCache.id
+      })
 
       for (const categoryCache of categoriesCache) {
         const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(
@@ -323,7 +320,7 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
 
       const scrapingJob = repeatableJobs.find((repeatableJob) => {
         if (repeatableJob.id == null) {
-          throw new LostRepeatableJobIdError({ repeatableJob })
+          throw new LostRepeatableJobError({ repeatableJob })
         }
 
         return repeatableJob.id === scraperCache.id
@@ -356,7 +353,7 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
 
             await scrapingService.addJob(
               scrapingQueue,
-              'curl-impersonate',
+              'curl',
               scraperCache.id,
               scraperCache.intervalSec * 1000
             )
@@ -384,7 +381,7 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
 
           await scrapingService.addJob(
             scrapingQueue,
-            'curl-impersonate',
+            'curl',
             scraperCache.id,
             scraperCache.intervalSec * 1000
           )
