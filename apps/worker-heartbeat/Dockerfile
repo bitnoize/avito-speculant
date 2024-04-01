@@ -23,7 +23,8 @@ COPY libs/queue/package*.json libs/queue/tsconfig*.json libs/queue/
 
 COPY apps/worker-heartbeat/package*.json apps/worker-heartbeat/tsconfig*.json apps/worker-heartbeat/
 
-RUN npm install
+RUN set -eux; \
+    npm install
 
 COPY libs/config/ libs/config/
 COPY libs/logger/ libs/logger/
@@ -34,14 +35,14 @@ COPY libs/queue/ libs/queue/
 
 COPY apps/worker-heartbeat/ apps/worker-heartbeat/
 
-RUN npm run -w @avito-speculant/config build
-RUN npm run -w @avito-speculant/logger build
-RUN npm run -w @avito-speculant/common build
-RUN npm run -w @avito-speculant/database build
-RUN npm run -w @avito-speculant/redis build
-RUN npm run -w @avito-speculant/queue build
-
-RUN npm run -w @avito-speculant/worker-heartbeat build
+RUN set -eux; \
+    npm run -w @avito-speculant/config build; \
+    npm run -w @avito-speculant/logger build; \
+    npm run -w @avito-speculant/common build; \
+    npm run -w @avito-speculant/database build; \
+    npm run -w @avito-speculant/redis build; \
+    npm run -w @avito-speculant/queue build; \
+    npm run -w @avito-speculant/worker-heartbeat build
 
 COPY docker-entrypoint/ /lib/entrypoint/
 

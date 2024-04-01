@@ -31,7 +31,7 @@ services:
           cpus: "0.2"
           memory: 256Mb
 
-  worker-scraper:
+  worker-scraping:
     deploy:
       replicas: 2
       resources:

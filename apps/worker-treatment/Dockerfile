@@ -23,7 +23,8 @@ COPY libs/queue/package*.json libs/queue/tsconfig*.json libs/queue/
 
 COPY apps/worker-treatment/package*.json apps/worker-treatment/tsconfig*.json apps/worker-treatment/
 
-RUN npm install
+RUN set -eux; \
+    npm install
 
 COPY libs/config/ libs/config/
 COPY libs/logger/ libs/logger/
@@ -34,14 +35,14 @@ COPY libs/queue/ libs/queue/
 
 COPY apps/worker-treatment/ apps/worker-treatment/
 
-RUN npm run -w @avito-speculant/config build
-RUN npm run -w @avito-speculant/logger build
-RUN npm run -w @avito-speculant/common build
-RUN npm run -w @avito-speculant/database build
-RUN npm run -w @avito-speculant/redis build
-RUN npm run -w @avito-speculant/queue build
-
-RUN npm run -w @avito-speculant/worker-treatment build
+RUN set -eux; \
+    npm run -w @avito-speculant/config build; \
+    npm run -w @avito-speculant/logger build; \
+    npm run -w @avito-speculant/common build; \
+    npm run -w @avito-speculant/database build; \
+    npm run -w @avito-speculant/redis build; \
+    npm run -w @avito-speculant/queue build; \
+    npm run -w @avito-speculant/worker-treatment build
 
 COPY docker-entrypoint/ /lib/entrypoint/
 
