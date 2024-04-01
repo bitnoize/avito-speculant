@@ -134,11 +134,11 @@ services:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
-  worker-scraper:
-    image: ghcr.io/bitnoize/avito-speculant-worker-scraper:latest
+  worker-scraping:
+    image: ghcr.io/bitnoize/avito-speculant-worker-scraping:latest
     build:
       context: .
-      dockerfile: ./apps/worker-scraper/Dockerfile
+      dockerfile: ./apps/worker-scraping/Dockerfile
     environment:
       - UID=54740
       - GID=54740
