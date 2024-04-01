@@ -12,7 +12,7 @@ RUN set -eux; \
     # Debian packages
     apt-get update -q; \
     apt-get install -yq \
-        python \
+        python3 \
         libcurl4-openssl-dev; \
     # Curl-impersonate
     wget -q -O- "https://github.com/lwthiker/curl-impersonate/releases/download/v0.6.1/libcurl-impersonate-v0.6.1.x86_64-linux-gnu.tar.gz" | \
