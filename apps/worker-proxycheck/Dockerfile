@@ -16,7 +16,7 @@ RUN set -eux; \
         libcurl4-openssl-dev; \
     # Curl-impersonate
     wget -q -O- "https://github.com/lwthiker/curl-impersonate/releases/download/v0.6.1/libcurl-impersonate-v0.6.1.x86_64-linux-gnu.tar.gz" | \
-        tar xz -C /usr/local/lib --strip-components=1; \
+        tar xz -C /usr/local/lib; \
     ln -s /usr/local/lib/libcurl-impersonate-chrome.so \
         /usr/local/lib/libcurl.so; \
     echo "/usr/local/lib/libcurl-impersonate-chrome.so" >> /etc/ld.so.preload
