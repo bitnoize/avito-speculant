@@ -1,5 +1,5 @@
 import { Redis } from 'ioredis'
-import { AdvertCache, advertKey, scraperAdvertsKey, categoryAdvertsKey } from './advert-cache.js'
+import { AdvertCache, AvitoAdvert, advertKey, scraperAdvertsKey } from './advert-cache.js'
 import {
   parseNumber,
   parseString,
@@ -25,18 +25,6 @@ export async function fetchScraperAdverts(redis: Redis, scraperId: string): Prom
   return parseManyNumbers(result, `AdvertCache fetchScraperAdverts malformed result`)
 }
 
-export async function fetchCategoryAdverts(
-  redis: Redis,
-  categoryId: number,
-  topic: string
-): Promise<number[]> {
-  const result = await redis.fetchCategoryAdverts(
-    categoryAdvertsKey(categoryId, topic) // KEYS[1]
-  )
-
-  return parseManyNumbers(result, `AdvertCache fetchCategoryAdverts malformed result`)
-}
-
 export async function fetchAdvertsCache(redis: Redis, advertIds: number[]): Promise<AdvertCache[]> {
   if (advertIds.length === 0) {
     return []
@@ -55,49 +43,48 @@ export async function fetchAdvertsCache(redis: Redis, advertIds: number[]): Prom
   return parseCollection(result, `AdvertCache fetchAdvertsCache malformed result`)
 }
 
-export async function saveAdvertCache(
+export async function saveAdvertsCache(
   redis: Redis,
-  advertId: number,
   scraperId: string,
-  categoryId: number,
-  title: string,
-  priceRub: number,
-  url: string,
-  age: number,
-  imageUrl: string,
-  topic: string
+  avitoAdverts: AvitoAdvert[],
 ): Promise<void> {
-  await redis.saveAdvertCache(
-    advertKey(advertId), // KEYS[1]
-    scraperAdvertsKey(scraperId), // KEYS[2]
-    categoryAdvertsKey(categoryId, topic), // KEYS[3]
-    advertId, // ARGV[1]
-    title, // ARGV[2]
-    priceRub, // ARGV[3]
-    url, // ARGV[4]
-    age, // ARGV[5]
-    imageUrl, // ARGV[6]
-    topic, // ARGV[7]
-    Date.now() // ARGV[8]
-  )
+  if (avitoAdverts.length === 0) {
+    return
+  }
+
+  const pipeline = redis.pipeline()
+
+  avitoAdverts.forEach((avitoAdvert) => {
+    pipeline.saveAdvertCache(
+      advertKey(avitoAdvert.id), // KEYS[1]
+      scraperAdvertsKey(scraperId), // KEYS[2]
+      avitoAdvert.id, // ARGV[1]
+      avitoAdvert.title, // ARGV[2]
+      avitoAdvert.priceRub, // ARGV[3]
+      avitoAdvert.url, // ARGV[4]
+      avitoAdvert.age, // ARGV[5]
+      avitoAdvert.imageUrl, // ARGV[6]
+      Date.now() // ARGV[7]
+    )
+  })
+
+  await pipeline.exec()
 }
 
 export async function dropAdvertCache(
   redis: Redis,
   advertId: number,
   scraperId: string,
-  categoryId: number
 ): Promise<void> {
   await redis.dropAdvertCache(
     advertKey(advertId), // KEYS[1]
     scraperAdvertsKey(scraperId), // KEYS[2]
-    categoryAdvertsKey(categoryId, 'wait'), // KEYS[3]
     advertId // ARGV[1]
   )
 }
 
 const parseModel = (result: unknown, message: string): AdvertCache => {
-  const hash = parseHash(result, 8, message)
+  const hash = parseHash(result, 7, message)
 
   return {
     id: parseNumber(hash[0], message),
@@ -106,8 +93,7 @@ const parseModel = (result: unknown, message: string): AdvertCache => {
     url: parseString(hash[3], message),
     age: parseNumber(hash[4], message),
     imageUrl: parseString(hash[5], message),
-    topic: parseString(hash[6], message),
-    time: parseNumber(hash[7], message)
+    time: parseNumber(hash[6], message)
   }
 }
 

@@ -7,8 +7,16 @@ export interface AdvertCache {
   url: string
   age: number
   imageUrl: string
-  topic: string
   time: number
+}
+
+export interface AvitoAdvert {
+  id: number
+  title: string
+  priceRub: number
+  url: string
+  age: number
+  imageUrl: string
 }
 
 export const advertKey = (advertId: number) => [REDIS_CACHE_PREFIX, 'advert', advertId].join(':')
@@ -16,5 +24,3 @@ export const advertKey = (advertId: number) => [REDIS_CACHE_PREFIX, 'advert', ad
 export const scraperAdvertsKey = (scraperId: string) =>
   [REDIS_CACHE_PREFIX, 'scraper-adverts', scraperId].join(':')
 
-export const categoryAdvertsKey = (categoryId: number, topic: string) =>
-  [REDIS_CACHE_PREFIX, 'category-adverts', categoryId, topic].join(':')

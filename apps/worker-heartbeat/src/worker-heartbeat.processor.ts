@@ -353,7 +353,7 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
 
             await scrapingService.addJob(
               scrapingQueue,
-              'curl',
+              'desktop',
               scraperCache.id,
               scraperCache.intervalSec * 1000
             )
@@ -381,7 +381,7 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
 
           await scrapingService.addJob(
             scrapingQueue,
-            'curl',
+            'desktop',
             scraperCache.id,
             scraperCache.intervalSec * 1000
           )

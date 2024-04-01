@@ -38,6 +38,7 @@ import redisFetchScraperCategoriesCacheCommand from './redis/redis-fetch-scraper
 import redisFetchProxiesCacheCommand from './redis/redis-fetch-proxies-cache.command.js'
 import redisFetchOnlineProxiesCacheCommand from './redis/redis-fetch-online-proxies-cache.command.js'
 import redisFetchScrapersCacheCommand from './redis/redis-fetch-scrapers-cache.command.js'
+import redisFetchScraperAdvertsCacheCommand from './redis/redis-fetch-scraper-adverts-cache.command.js'
 import queueStatusHeartbeatCommand from './queue/queue-status-heartbeat.command.js'
 import queueListenHeartbeatCommand from './queue/queue-listen-heartbeat.command.js'
 import queueStatusTreatmentCommand from './queue/queue-status-treatment.command.js'
@@ -105,7 +106,8 @@ async function bootstrap(): Promise<void> {
       'fetch-scraper-categories-cache': redisFetchScraperCategoriesCacheCommand(config, logger),
       'fetch-proxies-cache': redisFetchProxiesCacheCommand(config, logger),
       'fetch-online-proxies-cache': redisFetchOnlineProxiesCacheCommand(config, logger),
-      'fetch-scrapers-cache': redisFetchScrapersCacheCommand(config, logger)
+      'fetch-scrapers-cache': redisFetchScrapersCacheCommand(config, logger),
+      'fetch-scraper-adverts-cache': redisFetchScraperAdvertsCacheCommand(config, logger)
     }
   })
 

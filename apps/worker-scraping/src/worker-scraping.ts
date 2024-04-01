@@ -1,5 +1,5 @@
 import { LoggerConfig, Logger } from '@avito-speculant/logger'
-import { RedisConfig, Redis } from '@avito-speculant/redis'
+import { RedisConfig, Redis, AvitoAdvert } from '@avito-speculant/redis'
 import {
   QueueConfig,
   ScrapingConfig,
@@ -9,6 +9,13 @@ import {
 
 export type Config = LoggerConfig & RedisConfig & QueueConfig & ScrapingConfig
 
+export type NameProcess = (
+  config: Config,
+  logger: Logger,
+  redis: Redis,
+  scrapingJob: ScrapingJob
+) => Promise<ScrapingNameResult>
+
 export type CurlResponse = {
   statusCode: number
   body: Buffer
@@ -16,28 +23,32 @@ export type CurlResponse = {
 }
 
 export type CurlRequest = (
-  avitoUrl: string,
+  url: string,
   proxyUrl: string,
-  timeout: number,
+  timeoutMs: number,
   verbose: boolean
-) => Promise<CurlResponse | undefined>
+) => Promise<CurlResponse>
 
-export type Process = (
-  config: Config,
-  logger: Logger,
-  redis: Redis,
-  scrapingJob: ScrapingJob
-) => Promise<ScrapingNameResult>
-
-export interface AvitoDesktop {
-  data: unknown
+export type ParseResult = {
+  avitoAdverts: AvitoAdvert[]
+  error?: string
 }
 
-export interface AvitoAdv {
+export type ParseAttempt = (body: Buffer) => ParseResult
+
+export interface AvitoDesktop {
+  data: AvitoDesktopData
+}
+
+export interface AvitoDesktopData {
+  catalog: AvitoDesktopDataCatalog
+}
+
+export interface AvitoDesktopDataCatalog {
+  items: AvitoDesktopDataCatalogItem[]
+}
+
+export interface AvitoDesktopDataCatalogItem {
   id: number
   title: string
-  price: number
-  url: string
-  age: number
-  image: string
 }

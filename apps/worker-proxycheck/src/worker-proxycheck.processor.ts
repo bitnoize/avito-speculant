@@ -1,4 +1,3 @@
-import { CurlImpersonate } from 'node-curl-impersonate'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
@@ -8,8 +7,9 @@ import {
   ProxycheckResult,
   ProxycheckProcessor
 } from '@avito-speculant/queue'
-import { Config, CurlImpersonateRequest, Process } from './worker-proxycheck.js'
+import { Config, NameProcess } from './worker-proxycheck.js'
 import { configSchema } from './worker-proxycheck.schema.js'
+import { curlRequest } from '././worker-proxycheck.utils.js'
 
 export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) => {
   const config = configService.initConfig<Config>(configSchema)
@@ -26,8 +26,8 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
     const name = proxycheckJob.name
 
     switch (name) {
-      case 'curl-impersonate': {
-        result[name] = await processCurlImpersonate(config, logger, redis, proxycheckJob)
+      case 'simple': {
+        result[name] = await processSimple(config, logger, redis, proxycheckJob)
 
         break
       }
@@ -53,52 +53,30 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
   return result
 }
 
-const processCurlImpersonate: Process = async (config, logger, redis, proxycheckJob) => {
+const processSimple: NameProcess = async (config, logger, redis, proxycheckJob) => {
   try {
     const { proxyCache } = await proxyCacheService.fetchProxyCache(redis, {
       proxyId: proxycheckJob.data.proxyId
     })
 
-    const curlImpersonateResponse = await curlImpersonateRequest(
+    const curlResponse = await curlRequest(
       config.PROXYCHECK_CHECK_URL,
       proxyCache.proxyUrl,
       config.PROXYCHECK_CHECK_TIMEOUT,
       false
     )
 
-    if (curlImpersonateResponse !== undefined) {
-      if (curlImpersonateResponse.statusCode === 200) {
-        await proxyCacheService.renewProxyCacheOnline(redis, {
-          proxyId: proxyCache.id,
-          sizeBytes: curlImpersonateResponse.sizeBytes
-        })
-
-        return {
-          proxyId: proxyCache.id,
-          success: true,
-          statusCode: curlImpersonateResponse.statusCode,
-          sizeBytes: curlImpersonateResponse.sizeBytes
-        }
-      } else {
-        await proxyCacheService.renewProxyCacheOffline(redis, {
-          proxyId: proxyCache.id,
-          sizeBytes: curlImpersonateResponse.sizeBytes
-        })
-
-        return {
-          proxyId: proxyCache.id,
-          success: false,
-          statusCode: curlImpersonateResponse.statusCode,
-          sizeBytes: curlImpersonateResponse.sizeBytes
-        }
-      }
-    } else {
-      await proxyCacheService.renewProxyCacheOffline(redis, {
+    if (curlResponse.error !== undefined) {
+      await proxyCacheService.renewOfflineProxyCache(redis, {
         proxyId: proxyCache.id,
         sizeBytes: 0
       })
 
-      // ...
+      const logData = {
+        proxyCache,
+        error: curlResponse.error
+      }
+      logger.warn(logData, `ProxycheckProcessor processSimple curlRequest failed`)
 
       return {
         proxyId: proxyCache.id,
@@ -107,41 +85,39 @@ const processCurlImpersonate: Process = async (config, logger, redis, proxycheck
         sizeBytes: 0
       }
     }
+
+    if (curlResponse.statusCode !== 200) {
+      await proxyCacheService.renewOfflineProxyCache(redis, {
+        proxyId: proxyCache.id,
+        sizeBytes: curlResponse.body.length
+      })
+
+      return {
+        proxyId: proxyCache.id,
+        success: false,
+        statusCode: curlResponse.statusCode,
+        sizeBytes: curlResponse.body.length
+      }
+    }
+
+    await proxyCacheService.renewOnlineProxyCache(redis, {
+      proxyId: proxyCache.id,
+      sizeBytes: curlResponse.body.length
+    })
+
+    return {
+      proxyId: proxyCache.id,
+      success: true,
+      statusCode: curlResponse.statusCode,
+      sizeBytes: curlResponse.body.length
+    }
   } catch (error) {
     if (error instanceof DomainError) {
-      logger.error(`ProxycheckProcessor processCurlImpersonate exception`)
+      logger.error(`ProxycheckProcessor processSimple exception`)
 
       error.setEmergency()
     }
 
     throw error
-  }
-}
-
-const curlImpersonateRequest: CurlImpersonateRequest = async (
-  checkUrl,
-  proxyUrl,
-  timeout,
-  verbose
-) => {
-  try {
-    const curlImpersonate = new CurlImpersonate(checkUrl, {
-      method: 'GET',
-      impersonate: 'firefox-117',
-      headers: [],
-      verbose,
-      followRedirects: false,
-      flags: [`--insecure`, `--max-time ${timeout / 1000}`, `--proxy ${proxyUrl}`]
-    })
-
-    const { statusCode, response } = await curlImpersonate.makeRequest()
-
-    return {
-      statusCode: statusCode ?? 0,
-      body: response,
-      sizeBytes: Buffer.byteLength(response)
-    }
-  } catch (error) {
-    return undefined
   }
 }

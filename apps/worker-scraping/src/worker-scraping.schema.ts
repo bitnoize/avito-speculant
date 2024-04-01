@@ -105,24 +105,41 @@ export const configSchema: JSONSchemaType<Config> = {
 
 export const avitoDesktopSchema: JSONSchemaType<AvitoDesktop> = {
   type: 'object',
-  required: [
-    'data',
-    'cookies'
-  ],
+  required: ['data'],
   properties: {
     data: {
       type: 'object',
-      required: [
-      ],
+      required: ['catalog'],
       properties: {
-      }
+        catalog: {
+          type: 'object',
+          required: ['items'],
+          properties: {
+            items: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: [
+                  'id',
+                  'title',
+                ],
+                properties: {
+                  id: {
+                    type: 'integer'
+                  },
+                  title: {
+                    type: 'string'
+                  },
+                },
+                additionalProperties: true
+              }
+            }
+          },
+          additionalProperties: true
+        }
+      },
+      additionalProperties: true
     },
-    cookies: {
-      type: 'array',
-      items: {
-        type: 'string'
-      }
-    }
   },
   additionalProperties: true
 }

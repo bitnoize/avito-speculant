@@ -17,14 +17,12 @@ declare module 'ioredis' {
     saveAdvertCache(
       advertKey: string,
       scraperAdvertsKey: string,
-      categoryAdvertsKey: string,
       advertId: number,
       title: string,
       priceRub: number,
       url: string,
       age: number,
       imageUrl: string,
-      topic: string,
       time: number,
       callback?: Callback<string>
     ): Result<string, Context>
@@ -32,7 +30,6 @@ declare module 'ioredis' {
     dropAdvertCache(
       advertKey: string,
       scraperAdvertsKey: string,
-      categoryAdvertsKey: string,
       advertId: number,
       callback?: Callback<string>
     ): Result<string, Context>

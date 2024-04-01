@@ -8,7 +8,18 @@ RUN set -eux; \
     # User home
     usermod -d /home/avito-speculant node; \
     mkdir -m 0750 /home/avito-speculant; \
-    chown node:node /home/avito-speculant
+    chown node:node /home/avito-speculant; \
+    # Debian packages
+    apt-get update -q; \
+    apt-get install -yq \
+      python \
+      libcurl4-openssl-dev; \
+    # Curl-impersonate
+    wget -q -O- "https://github.com/lwthiker/curl-impersonate/releases/download/v0.6.1/libcurl-impersonate-v0.6.1.x86_64-linux-gnu.tar.gz" | \
+      tar xz -C /usr/local/lib --strip-components=1; \
+    ln -s /usr/local/lib/libcurl-impersonate-chrome.so \
+      /usr/local/lib/libcurl.so; \
+    echo "/usr/local/lib/libcurl-impersonate-chrome.so" >> /etc/ld.so.preload
 
 WORKDIR /usr/src/avito-speculant
 
@@ -22,7 +33,11 @@ COPY libs/queue/package*.json libs/queue/tsconfig*.json libs/queue/
 
 COPY apps/worker-proxycheck/package*.json apps/worker-proxycheck/tsconfig*.json apps/worker-proxycheck/
 
-RUN npm install
+RUN set -eux; \
+  npm install; \
+  npm rebuild node-libcurl \
+    --build-from-source \
+    --curl_libraries='-Wl,-rpath /usr/local/lib -lcurl'
 
 COPY libs/config/ libs/config/
 COPY libs/logger/ libs/logger/
@@ -38,7 +53,8 @@ RUN npm run -w @avito-speculant/notify build
 RUN npm run -w @avito-speculant/redis build
 RUN npm run -w @avito-speculant/queue build
 
-RUN npm run -w @avito-speculant/worker-proxycheck build
+RUN set -eux; \
+  npm run -w @avito-speculant/worker-proxycheck build
 
 COPY docker-entrypoint/ /lib/entrypoint/
 

@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/worker-proxycheck",
   "type": "module",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Avito-Speculant worker-proxycheck application",
   "private": true,
   "main": "dist/index.js",
@@ -20,6 +20,6 @@
     "@avito-speculant/logger": "*",
     "@avito-speculant/queue": "*",
     "@avito-speculant/redis": "*",
-    "got-scraping": "^4.0.4"
+    "node-libcurl": "^4.0.0"
   }
 }

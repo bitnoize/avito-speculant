@@ -4,9 +4,7 @@ import {
   FetchAdvertCacheResponse,
   FetchScraperAdvertsCacheRequest,
   FetchScraperAdvertsCacheResponse,
-  FetchCategoryAdvertsCacheRequest,
-  FetchCategoryAdvertsCacheResponse,
-  SaveAdvertCacheRequest,
+  SaveAdvertsCacheRequest,
   DropAdvertCacheRequest
 } from './dto/index.js'
 import * as advertCacheRepository from './advert-cache.repository.js'
@@ -37,40 +35,16 @@ export async function fetchScraperAdvertsCache(
 }
 
 /*
- * Fetch Category AdvertsCache
+ * Save AdvertsCache
  */
-export async function fetchCategoryAdvertsCache(
+export async function saveAdvertsCache(
   redis: Redis,
-  request: FetchCategoryAdvertsCacheRequest
-): Promise<FetchCategoryAdvertsCacheResponse> {
-  const advertIds = await advertCacheRepository.fetchCategoryAdverts(
-    redis,
-    request.categoryId,
-    request.topic
-  )
-  const advertsCache = await advertCacheRepository.fetchAdvertsCache(redis, advertIds)
-
-  return { advertsCache }
-}
-
-/*
- * Save AdvertCache
- */
-export async function saveAdvertCache(
-  redis: Redis,
-  request: SaveAdvertCacheRequest
+  request: SaveAdvertsCacheRequest
 ): Promise<void> {
-  await advertCacheRepository.saveAdvertCache(
+  await advertCacheRepository.saveAdvertsCache(
     redis,
-    request.advertId,
     request.scraperId,
-    request.categoryId,
-    request.title,
-    request.priceRub,
-    request.url,
-    request.age,
-    request.imageUrl,
-    'wait'
+    request.avitoAdverts
   )
 }
 
@@ -85,6 +59,5 @@ export async function dropAdvertCache(
     redis,
     request.advertId,
     request.scraperId,
-    request.categoryId
   )
 }

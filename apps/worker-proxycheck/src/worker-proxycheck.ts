@@ -9,22 +9,22 @@ import {
 
 export type Config = LoggerConfig & RedisConfig & QueueConfig & ProxycheckConfig
 
-export type CurlImpersonateResponse = {
-  statusCode: number
-  body: string
-  sizeBytes: number
-}
-
-export type CurlImpersonateRequest = (
-  checkUrl: string,
-  proxyUrl: string,
-  timeout: number,
-  verbose: boolean
-) => Promise<CurlImpersonateResponse | undefined>
-
-export type Process = (
+export type NameProcess = (
   config: Config,
   logger: Logger,
   redis: Redis,
   proxycheckJob: ProxycheckJob
 ) => Promise<ProxycheckNameResult>
+
+export type CurlResponse = {
+  statusCode: number
+  body: Buffer
+  error?: string
+}
+
+export type CurlRequest = (
+  checkUrl: string,
+  proxyUrl: string,
+  timeoutMs: number,
+  verbose: boolean
+) => Promise<CurlResponse>

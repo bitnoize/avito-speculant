@@ -13,11 +13,10 @@ local advert_cache = redis.call(
   'HMGET', KEYS[1],
   'id',
   'title',
-  'priceRub',
+  'price_rub',
   'url',
   'age',
-  'imageUrl',
-  'topic',
+  'image_url',
   'time'
 )
 
@@ -43,15 +42,12 @@ redis.call(
   'url', ARGV[4],
   'age', ARGV[5],
   'image_url', ARGV[6],
-  'topic', ARGV[7],
-  'time', ARGV[8]
+  'time', ARGV[7]
 )
 
-if redis.call('LPOS', KEYS[2], ARGV[1]) == nil then
+if not redis.call('LPOS', KEYS[2], ARGV[1]) then
   redis.call('LPUSH', KEYS[2], ARGV[1])
 end
-
-redis.call('SADD', KEYS[3], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -60,8 +56,6 @@ const dropAdvertCache = `
 redis.call('DEL', KEYS[1])
 
 redis.call('LREM', KEYS[2], 0, ARGV[1])
-
-redis.call('SREM', KEYS[3], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -83,12 +77,12 @@ export default (redis: Redis): void => {
   })
 
   redis.defineCommand('saveAdvertCache', {
-    numberOfKeys: 3,
+    numberOfKeys: 2,
     lua: saveAdvertCache
   })
 
   redis.defineCommand('dropAdvertCache', {
-    numberOfKeys: 3,
+    numberOfKeys: 2,
     lua: dropAdvertCache
   })
 }

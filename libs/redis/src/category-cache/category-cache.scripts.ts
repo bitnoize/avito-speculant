@@ -37,7 +37,8 @@ redis.call(
   'id', ARGV[1],
   'user_id', ARGV[2],
   'scraper_id', ARGV[3],
-  'avito_url', ARGV[4]
+  'avito_url', ARGV[4],
+  'time', ARGV[5]
 )
 
 redis.call('SADD', KEYS[2], ARGV[1])
