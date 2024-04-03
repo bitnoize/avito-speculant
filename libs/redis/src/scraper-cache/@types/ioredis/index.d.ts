@@ -4,17 +4,17 @@ declare module 'ioredis' {
   interface RedisCommander<Context> {
     fetchScraperCache(scraperKey: string, callback?: Callback<string>): Result<string, Context>
 
-    findAvitoUrlScraper(
-      avitoUrlScraperKey: string,
+    fetchScrapers(scrapersKey: string, callback?: Callback<string>): Result<string, Context>
+
+    findAvitoUrlScrapers(
+      avitoUrlScrapersKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchScrapers(scrapersKey: string, callback?: Callback<string>): Result<string, Context>
-
     saveScraperCache(
       scraperKey: string,
-      avitoUrlScraperKey: string,
       scrapersKey: string,
+      avitoUrlScrapersKey: string,
       scraperId: string,
       avitoUrl: string,
       intervalSec: number,
@@ -24,8 +24,8 @@ declare module 'ioredis' {
 
     dropScraperCache(
       scraperKey: string,
-      avitoUrlScraperKey: string,
       scrapersKey: string,
+      avitoUrlScrapersKey: string,
       scraperId: string,
       callback?: Callback<string>
     ): Result<string, Context>

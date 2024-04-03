@@ -3,7 +3,7 @@ import {
   FetchProxyCacheRequest,
   FetchProxyCacheResponse,
   FetchProxiesCacheResponse,
-  RandomProxyCacheResponse,
+  FetchRandomProxyCacheResponse,
   SaveProxyCacheRequest,
   DropProxyCacheRequest,
   RenewProxyCacheRequest
@@ -33,7 +33,7 @@ export async function fetchProxiesCache(redis: Redis): Promise<FetchProxiesCache
 }
 
 /*
- * Fetch online ProxiesCache
+ * Fetch Online ProxiesCache
  */
 export async function fetchOnlineProxiesCache(redis: Redis): Promise<FetchProxiesCacheResponse> {
   const proxyIds = await proxyCacheRepository.fetchOnlineProxies(redis)
@@ -43,9 +43,11 @@ export async function fetchOnlineProxiesCache(redis: Redis): Promise<FetchProxie
 }
 
 /*
- * Fetch random online ProxyCache
+ * Fetch Random Online ProxyCache
  */
-export async function fetchRandomOnlineProxyCache(redis: Redis): Promise<RandomProxyCacheResponse> {
+export async function fetchRandomOnlineProxyCache(
+  redis: Redis
+): Promise<FetchRandomProxyCacheResponse> {
   const proxyId = await proxyCacheRepository.fetchRandomOnlineProxy(redis)
 
   if (proxyId === undefined) {

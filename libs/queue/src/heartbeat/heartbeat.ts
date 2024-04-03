@@ -6,7 +6,7 @@ export const DEFAULT_HEARTBEAT_CONCURRENCY = 1
 export const DEFAULT_HEARTBEAT_LIMITER_MAX = 1
 export const DEFAULT_HEARTBEAT_LIMITER_DURATION = 1_000
 export const DEFAULT_HEARTBEAT_PRODUCE_USERS_LIMIT = 10
-export const DEFAULT_HEARTBEAT_PRODUCE_PLANS_LIMIT = 1
+export const DEFAULT_HEARTBEAT_PRODUCE_PLANS_LIMIT = 2
 export const DEFAULT_HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT = 10
 export const DEFAULT_HEARTBEAT_PRODUCE_CATEGORIES_LIMIT = 10
 export const DEFAULT_HEARTBEAT_PRODUCE_PROXIES_LIMIT = 10
@@ -40,7 +40,8 @@ export type HeartbeatData = {
 }
 
 export type HeartbeatStepResult = {
-  count: number
+  entities: number
+  durationTime: number
 }
 export type HeartbeatResult = Record<string, HeartbeatStepResult>
 

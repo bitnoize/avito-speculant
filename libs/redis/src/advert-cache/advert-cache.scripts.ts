@@ -1,8 +1,4 @@
-import { Redis } from 'ioredis'
-
-//
-// AdvertCache scripts
-//
+import { InitScripts } from '../redis.js'
 
 const fetchAdvertCache = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -33,6 +29,28 @@ const fetchCategoryAdverts = `
 return redis.call('SMEMBERS', KEYS[1])
 `
 
+const leadWaitAdverts = `
+redis.call('SADD', KEYS[1], unpack(ARGV))
+
+local new_adverts = redis.call('SDIFF', KEYS[1], KEYS[2], KEYS[3], KEYS[4])
+
+redis.call('SADD', KEYS[2], unpack(new_adverts))
+
+redis.call('DEL', KEYS[1])
+
+return redis.status_reply('OK')
+`
+
+const leadSendingAdvert = `
+local wait_adverts = redis.call('SMEMBERS', KEYS[1])
+
+redis.call('SADD', KEYS[2], unpack(wait_adverts))
+
+redis.call('DEL', KEYS[1])
+
+return wait_adverts
+`
+
 const saveAdvertCache = `
 redis.call(
   'HSET', KEYS[1],
@@ -60,7 +78,7 @@ redis.call('LREM', KEYS[2], 0, ARGV[1])
 return redis.status_reply('OK')
 `
 
-export default (redis: Redis): void => {
+const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchAdvertCache', {
     numberOfKeys: 1,
     lua: fetchAdvertCache
@@ -86,3 +104,5 @@ export default (redis: Redis): void => {
     lua: dropAdvertCache
   })
 }
+
+export default initScripts

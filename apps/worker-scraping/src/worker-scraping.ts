@@ -19,6 +19,8 @@ export type NameProcess = (
 export type CurlResponse = {
   statusCode: number
   body: Buffer
+  sizeBytes: number
+  durationTime: number
   error?: string
 }
 
@@ -29,12 +31,20 @@ export type CurlRequest = (
   verbose: boolean
 ) => Promise<CurlResponse>
 
+export type CurlRequestArgs = [string, string, number, boolean]
+
 export type ParseResult = {
   avitoAdverts: AvitoAdvert[]
+  totalAdverts: number
+  durationTime: number
   error?: string
 }
 
 export type ParseAttempt = (body: Buffer) => ParseResult
+
+//
+// Avito InitialData
+//
 
 export interface AvitoDesktop {
   data: AvitoDesktopData

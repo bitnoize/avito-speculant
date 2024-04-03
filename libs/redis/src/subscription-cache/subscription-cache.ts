@@ -15,8 +15,8 @@ export interface SubscriptionCache {
 export const subscriptionKey = (subscriptionId: number) =>
   [REDIS_CACHE_PREFIX, 'subscription', subscriptionId].join(':')
 
-export const userSubscriptionKey = (userId: number) =>
-  [REDIS_CACHE_PREFIX, 'user-subscription', userId].join(':')
+export const userSubscriptionsKey = (userId: number) =>
+  [REDIS_CACHE_PREFIX, 'user-subscriptions', userId].join(':')
 
 export const planSubscriptionsKey = (planId: number) =>
   [REDIS_CACHE_PREFIX, 'plan-subscriptions', planId].join(':')

@@ -2,13 +2,13 @@ import { v4 as uuidv4 } from 'uuid'
 import { RedisOptions, Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
 import { Notify } from '@avito-speculant/common'
-import userCacheScripts from './user-cache/user-cache.scripts.js'
-import planCacheScripts from './plan-cache/plan-cache.scripts.js'
-import subscriptionCacheScripts from './subscription-cache/subscription-cache.scripts.js'
-import categoryCacheScripts from './category-cache/category-cache.scripts.js'
-import proxyCacheScripts from './proxy-cache/proxy-cache.scripts.js'
-import scraperCacheScripts from './scraper-cache/scraper-cache.scripts.js'
-import advertCacheScripts from './advert-cache/advert-cache.scripts.js'
+import initUserCacheScripts from './user-cache/user-cache.scripts.js'
+import initPlanCacheScripts from './plan-cache/plan-cache.scripts.js'
+import initSubscriptionCacheScripts from './subscription-cache/subscription-cache.scripts.js'
+import initCategoryCacheScripts from './category-cache/category-cache.scripts.js'
+import initProxyCacheScripts from './proxy-cache/proxy-cache.scripts.js'
+import initScraperCacheScripts from './scraper-cache/scraper-cache.scripts.js'
+import initAdvertCacheScripts from './advert-cache/advert-cache.scripts.js'
 import { RedisConfig } from './redis.js'
 
 /**
@@ -36,13 +36,13 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
     logger.debug(`Redis successfully connected`)
   })
 
-  userCacheScripts(redis)
-  planCacheScripts(redis)
-  subscriptionCacheScripts(redis)
-  categoryCacheScripts(redis)
-  proxyCacheScripts(redis)
-  scraperCacheScripts(redis)
-  advertCacheScripts(redis)
+  initUserCacheScripts(redis)
+  initPlanCacheScripts(redis)
+  initSubscriptionCacheScripts(redis)
+  initCategoryCacheScripts(redis)
+  initProxyCacheScripts(redis)
+  initScraperCacheScripts(redis)
+  initAdvertCacheScripts(redis)
 
   return redis
 }

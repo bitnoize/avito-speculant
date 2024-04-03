@@ -11,14 +11,14 @@ import {
 
 export type Config = LoggerConfig & DatabaseConfig & RedisConfig & QueueConfig & HeartbeatConfig
 
-export type ProcessTreatment = (
+export type StepProcessTreatment = (
   config: Config,
   logger: Logger,
   db: KyselyDatabase,
   treatmentQueue: TreatmentQueue
 ) => Promise<HeartbeatStepResult>
 
-export type ProcessScraping = (
+export type StepProcessScraping = (
   config: Config,
   logger: Logger,
   redis: Redis,

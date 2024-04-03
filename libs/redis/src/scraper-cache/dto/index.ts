@@ -1,5 +1,5 @@
 export * from './fetch-scraper-cache.js'
-export * from './find-scraper-cache.js'
+export * from './fetch-avito-url-scraper-cache.js'
 export * from './fetch-scrapers-cache.js'
 export * from './fetch-category-scrapers-cache.js'
 export * from './fetch-advert-scrapers-cache.js'

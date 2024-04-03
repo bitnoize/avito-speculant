@@ -30,10 +30,10 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Sendre
 export async function addJob(
   queue: SendreportQueue,
   name: SendreportName,
-  userId: number,
-  categoryId: number
+  categoryId: number,
+  advertId: number,
 ): Promise<SendreportJob> {
-  return await queue.add(name, { userId, categoryId })
+  return await queue.add(name, { categoryId, advertId })
 }
 
 /**

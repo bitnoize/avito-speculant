@@ -1,8 +1,4 @@
-import { Redis } from 'ioredis'
-
-//
-// SubscriptionCache scripts
-//
+import { InitScripts } from '../redis.js'
 
 const fetchSubscriptionCache = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -27,11 +23,7 @@ return {
 }
 `
 
-const fetchUserSubscription = `
-return redis.call('GET', KEYS[1])
-`
-
-const fetchPlanSubscriptions = `
+const fetchSubscriptions = `
 return redis.call('SMEMBERS', KEYS[1])
 `
 
@@ -49,7 +41,7 @@ redis.call(
   'time', ARGV[9]
 )
 
-redis.call('SET', KEYS[2], ARGV[1])
+redis.call('SADD', KEYS[2], ARGV[1])
 
 redis.call('SADD', KEYS[3], ARGV[1])
 
@@ -59,27 +51,22 @@ return redis.status_reply('OK')
 const dropSubscriptionCache = `
 redis.call('DEL', KEYS[1])
 
-redis.call('DEL', KEYS[2])
+redis.call('SREM', KEYS[2], ARGV[1])
 
 redis.call('SREM', KEYS[3], ARGV[1])
 
 return redis.status_reply('OK')
 `
 
-export default (redis: Redis): void => {
+const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchSubscriptionCache', {
     numberOfKeys: 1,
     lua: fetchSubscriptionCache
   })
 
-  redis.defineCommand('fetchUserSubscription', {
+  redis.defineCommand('fetchSubscriptions', {
     numberOfKeys: 1,
-    lua: fetchUserSubscription
-  })
-
-  redis.defineCommand('fetchPlanSubscriptions', {
-    numberOfKeys: 1,
-    lua: fetchPlanSubscriptions
+    lua: fetchSubscriptions
   })
 
   redis.defineCommand('saveSubscriptionCache', {
@@ -92,3 +79,5 @@ export default (redis: Redis): void => {
     lua: dropSubscriptionCache
   })
 }
+
+export default initScripts

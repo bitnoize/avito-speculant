@@ -2,8 +2,8 @@ import { Queue, Job, Worker, Processor } from 'bullmq'
 
 export const SENDREPORT_QUEUE_NAME = `sendreport`
 
-export const DEFAULT_SENDREPORT_CONCURRENCY = 2
-export const DEFAULT_SENDREPORT_LIMITER_MAX = 2
+export const DEFAULT_SENDREPORT_CONCURRENCY = 10
+export const DEFAULT_SENDREPORT_LIMITER_MAX = 10
 export const DEFAULT_SENDREPORT_LIMITER_DURATION = 1_000
 
 export type SendreportConfig = {
@@ -16,12 +16,13 @@ export type SendreportConfig = {
 export type SendreportName = 'default'
 
 export type SendreportData = {
-  userId: number
   categoryId: number
+  advertId: number
 }
 
 export type SendreportNameResult = {
-  isSuccess: boolean
+  success: boolean
+  durationTime: number
 }
 export type SendreportResult = Record<string, SendreportNameResult>
 

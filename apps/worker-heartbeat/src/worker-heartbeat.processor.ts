@@ -25,7 +25,7 @@ import {
   treatmentService,
   scrapingService
 } from '@avito-speculant/queue'
-import { Config, ProcessTreatment, ProcessScraping } from './worker-heartbeat.js'
+import { Config, StepProcessTreatment, StepProcessScraping } from './worker-heartbeat.js'
 import { configSchema } from './worker-heartbeat.schema.js'
 
 const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
@@ -138,8 +138,10 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
   return result
 }
 
-const processUsers: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processUsers: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
   try {
+    const startTime = Date.now()
+
     const { users } = await userService.produceUsers(db, {
       limit: config.HEARTBEAT_PRODUCE_USERS_LIMIT
     })
@@ -150,7 +152,10 @@ const processUsers: ProcessTreatment = async (config, logger, db, treatmentQueue
       users.map((user) => user.id)
     )
 
-    return { count: users.length }
+    return {
+      entities: users.length,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`HeartbeatProcessor processUsers exception`)
@@ -164,8 +169,10 @@ const processUsers: ProcessTreatment = async (config, logger, db, treatmentQueue
   }
 }
 
-const processPlans: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processPlans: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
   try {
+    const startTime = Date.now()
+
     const { plans } = await planService.producePlans(db, {
       limit: config.HEARTBEAT_PRODUCE_PLANS_LIMIT
     })
@@ -176,7 +183,10 @@ const processPlans: ProcessTreatment = async (config, logger, db, treatmentQueue
       plans.map((plan) => plan.id)
     )
 
-    return { count: plans.length }
+    return {
+      entities: plans.length,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`HeartbeatProcessor processPlans exception`)
@@ -190,8 +200,10 @@ const processPlans: ProcessTreatment = async (config, logger, db, treatmentQueue
   }
 }
 
-const processSubscriptions: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processSubscriptions: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
   try {
+    const startTime = Date.now()
+
     const { subscriptions } = await subscriptionService.produceSubscriptions(db, {
       limit: config.HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT
     })
@@ -202,7 +214,10 @@ const processSubscriptions: ProcessTreatment = async (config, logger, db, treatm
       subscriptions.map((subscription) => subscription.id)
     )
 
-    return { count: subscriptions.length }
+    return {
+      entities: subscriptions.length,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`HeartbeatProcessor processSubscriptions exception`)
@@ -216,8 +231,10 @@ const processSubscriptions: ProcessTreatment = async (config, logger, db, treatm
   }
 }
 
-const processCategories: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processCategories: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
   try {
+    const startTime = Date.now()
+
     const { categories } = await categoryService.produceCategories(db, {
       limit: config.HEARTBEAT_PRODUCE_CATEGORIES_LIMIT
     })
@@ -228,7 +245,10 @@ const processCategories: ProcessTreatment = async (config, logger, db, treatment
       categories.map((category) => category.id)
     )
 
-    return { count: categories.length }
+    return {
+      entities: categories.length,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`HeartbeatProcessor processCategories exception`)
@@ -242,8 +262,10 @@ const processCategories: ProcessTreatment = async (config, logger, db, treatment
   }
 }
 
-const processProxies: ProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processProxies: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
   try {
+    const startTime = Date.now()
+
     const { proxies } = await proxyService.produceProxies(db, {
       limit: config.HEARTBEAT_PRODUCE_PROXIES_LIMIT
     })
@@ -254,7 +276,10 @@ const processProxies: ProcessTreatment = async (config, logger, db, treatmentQue
       proxies.map((proxy) => proxy.id)
     )
 
-    return { count: proxies.length }
+    return {
+      entities: proxies.length,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`HeartbeatProcessor processProxies exception`)
@@ -268,8 +293,10 @@ const processProxies: ProcessTreatment = async (config, logger, db, treatmentQue
   }
 }
 
-const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQueue) => {
+const processScrapers: StepProcessScraping = async (config, logger, redis, scrapingQueue) => {
   try {
+    const startTime = Date.now()
+
     const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis)
 
     const repeatableJobs = await scrapingQueue.getRepeatableJobs()
@@ -296,6 +323,26 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
       logger.warn(logData, `HeartbeatProcessor remove orphan scraper`)
     }
 
+    return {
+      entities: scrapersCache.length,
+      durationTime: Date.now() - startTime
+    }
+  } catch (error) {
+    if (error instanceof DomainError) {
+      logger.error(`HeartbeatProcessor processScrapers exception`)
+
+      error.setEmergency()
+    }
+
+    throw error
+  } finally {
+    await scrapingService.closeQueue(scrapingQueue)
+  }
+}
+
+export default heartbeatProcessor
+
+/*
     for (const scraperCache of scrapersCache) {
       let isChanged = false
 
@@ -388,19 +435,4 @@ const processScrapers: ProcessScraping = async (config, logger, redis, scrapingQ
         }
       }
     }
-
-    return { count: scrapersCache.length }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      logger.error(`HeartbeatProcessor processScrapers exception`)
-
-      error.setEmergency()
-    }
-
-    throw error
-  } finally {
-    await scrapingService.closeQueue(scrapingQueue)
-  }
-}
-
-export default heartbeatProcessor
+*/

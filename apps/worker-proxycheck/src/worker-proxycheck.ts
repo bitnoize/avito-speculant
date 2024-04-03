@@ -19,12 +19,16 @@ export type NameProcess = (
 export type CurlResponse = {
   statusCode: number
   body: Buffer
+  sizeBytes: number
+  durationTime: number
   error?: string
 }
 
 export type CurlRequest = (
-  checkUrl: string,
+  url: string,
   proxyUrl: string,
   timeoutMs: number,
   verbose: boolean
 ) => Promise<CurlResponse>
+
+export type CurlRequestArgs = [string, string, number, boolean]

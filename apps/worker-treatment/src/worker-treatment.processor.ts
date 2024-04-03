@@ -21,12 +21,19 @@ import {
 } from '@avito-speculant/redis'
 import {
   ProcessorUnknownNameError,
+  UserSubscriptionLostError,
   TreatmentResult,
   TreatmentProcessor,
   queueService,
+  scrapingService,
   proxycheckService
 } from '@avito-speculant/queue'
-import { Config, Process, ProcessProxycheck } from './worker-treatment.js'
+import {
+  Config,
+  NameProcess,
+  NameProcessScraping,
+  NameProcessProxycheck
+} from './worker-treatment.js'
 import { configSchema } from './worker-treatment.schema.js'
 
 const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
@@ -69,7 +76,17 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
       }
 
       case 'category': {
-        result[name] = await processCategory(config, logger, db, redis, pubSub, treatmentJob)
+        const scrapingQueue = scrapingService.initQueue(queueConnection, logger)
+
+        result[name] = await processCategory(
+          config,
+          logger,
+          db,
+          redis,
+          pubSub,
+          treatmentJob,
+          scrapingQueue
+        )
 
         break
       }
@@ -113,8 +130,10 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
   return result
 }
 
-const processUser: Process = async (config, logger, db, redis, pubSub, treatmentJob) => {
+const processUser: NameProcess = async (config, logger, db, redis, pubSub, treatmentJob) => {
   try {
+    const startTime = Date.now()
+
     const { user, backLog } = await userService.consumeUser(db, {
       userId: treatmentJob.data.entityId,
       data: {
@@ -140,7 +159,10 @@ const processUser: Process = async (config, logger, db, redis, pubSub, treatment
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { entityId: user.id }
+    return {
+      entityId: user.id,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`TreatmentProcessor processUser exception`)
@@ -152,8 +174,10 @@ const processUser: Process = async (config, logger, db, redis, pubSub, treatment
   }
 }
 
-const processPlan: Process = async (config, logger, db, redis, pubSub, treatmentJob) => {
+const processPlan: NameProcess = async (config, logger, db, redis, pubSub, treatmentJob) => {
   try {
+    const startTime = Date.now()
+
     const { plan, backLog } = await planService.consumePlan(db, {
       planId: treatmentJob.data.entityId,
       data: {
@@ -183,7 +207,10 @@ const processPlan: Process = async (config, logger, db, redis, pubSub, treatment
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { entityId: plan.id }
+    return {
+      entityId: plan.id,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`TreatmentProcessor processPlan exception`)
@@ -195,8 +222,10 @@ const processPlan: Process = async (config, logger, db, redis, pubSub, treatment
   }
 }
 
-const processSubscription: Process = async (config, logger, db, redis, pubSub, treatmentJob) => {
+const processSubscription: NameProcess = async (config, logger, db, redis, pubSub, treatmentJob) => {
   try {
+    const startTime = Date.now()
+
     const { subscription, backLog } = await subscriptionService.consumeSubscription(db, {
       subscriptionId: treatmentJob.data.entityId,
       data: {
@@ -230,7 +259,10 @@ const processSubscription: Process = async (config, logger, db, redis, pubSub, t
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { entityId: subscription.id }
+    return {
+      entityId: subscription.id,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`TreatmentProcessor processSubscription exception`)
@@ -242,8 +274,18 @@ const processSubscription: Process = async (config, logger, db, redis, pubSub, t
   }
 }
 
-const processCategory: Process = async (config, logger, db, redis, pubSub, treatmentJob) => {
+const processCategory: NameProcessScraping = async (
+  config,
+  logger,
+  db,
+  redis,
+  pubSub,
+  treatmentJob,
+  scrapingQueue
+) => {
   try {
+    const startTime = Date.now()
+
     const { category, subscription, backLog } = await categoryService.consumeCategory(db, {
       categoryId: treatmentJob.data.entityId,
       data: {
@@ -256,51 +298,117 @@ const processCategory: Process = async (config, logger, db, redis, pubSub, treat
       }
     })
 
-    const { scraperCache } = await scraperCacheService.findScraperCache(redis, {
+    const { scraperCache } = await scraperCacheService.fetchAvitoUrlScraperCache(redis, {
       avitoUrl: category.avitoUrl
     })
 
-    if (scraperCache !== undefined) {
-      // ScraperCache allready exists
+    if (category.isEnabled) {
+      if (subscription === undefined) {
+        throw new UserSubscriptionLostError({ category })
+      }
 
-      if (category.isEnabled) {
-        await categoryCacheService.saveCategoryCache(redis, {
+      if (scraperCache !== undefined) {
+        // Scraper allready exists
+        // Save scraper and category
+        // Ensure scraping job is running
+
+        if (subscription.intervalSec < scraperCache.intervalSec) {
+          // Category subscription interval is less then scraper interval
+          // Scraper needs to be updated and restarted
+
+          const success = await scrapingService.removeJob(
+            scrapingQueue,
+            scraperCache.id,
+            scraperCache.intervalSec
+          )
+
+          if (!success) {
+            const logData = { scraperCache }
+            logger.warn(logData, `ScrapingJob not removed on restart`)
+          }
+
+          scraperCache.intervalSec = subscription.intervalSec
+        }
+
+        await categoryCacheService.saveScraperCategoryCache(redis, {
           categoryId: category.id,
           userId: category.userId,
           scraperId: scraperCache.id,
-          avitoUrl: category.avitoUrl
+          avitoUrl: category.avitoUrl,
+          intervalSec: scraperCache.intervalSec
         })
-      } else {
-        await categoryCacheService.dropCategoryCache(redis, {
-          categoryId: category.id,
-          userId: category.userId,
-          scraperId: scraperCache.id
-        })
-      }
-    } else {
-      // ScraperCache not exists yet
 
-      if (category.isEnabled && subscription !== undefined) {
+        await scrapingService.addJob(scrapingQueue, scraperCache.id, scraperCache.intervalSec)
+      } else {
+        // Scraper does not exists yet
+        // Create new scraper and save it with category
+        // Ensure scraping job is running
+
         const scraperId = redisService.randomHash()
 
-        await scraperCacheService.saveScraperCache(redis, {
+        await categoryCacheService.saveScraperCategoryCache(redis, {
+          categoryId: category.id,
+          userId: category.userId,
           scraperId,
           avitoUrl: category.avitoUrl,
           intervalSec: subscription.intervalSec
         })
 
-        await categoryCacheService.saveCategoryCache(redis, {
-          categoryId: category.id,
-          userId: category.userId,
-          scraperId,
-          avitoUrl: category.avitoUrl
+        await scrapingService.addJob(scrapingQueue, scraperId, subscription.intervalSec)
+      }
+    } else {
+      if (scraperCache !== undefined) {
+        // Scraper exists
+
+        const { categoriesCache } = categoryCacheService.fetchScraperCategoriesCache(redis, {
+          scraperId: scraperCache.id
         })
+
+        if (
+          categoriesCache.length === 0 ||
+          (categoriesCache.length === 1 && categoriesCache[0].id === category.id)
+        ) {
+          // Scraper has no categories at all or only this one category
+          // Ensure scrapingJob is stopped
+          // Drop scraperCache and categoryCache
+
+          const success = await scrapingService.removeJob(
+            scrapingQueue,
+            scraperCache.id,
+            scraperCache.intervalSec
+          )
+
+          if (!success) {
+            const logData = { scraperCache }
+            logger.warn(logData, `ScrapingJob not removed on empty`)
+          }
+
+          await categoryCacheService.dropScraperCategoryCache(redis, {
+            categoryId: category.id,
+            userId: category.userId,
+            scraperId: scraperCache.id,
+            avitoUrl: scraperCache.avitoUrl
+          })
+        } else {
+          // Scraper has categories different from this one
+          // Do not touch scrapingJob
+          // Drop only categoryCache
+
+          await categoryCacheService.dropCategoryCache(redis, {
+            categoryId: category.id,
+            userId: category.userId,
+            scraperId: scraperCache.id
+          })
+        }
       }
     }
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { entityId: category.id }
+    return {
+      entityId: category.id,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`TreatmentProcessor processCategory exception`)
@@ -309,10 +417,12 @@ const processCategory: Process = async (config, logger, db, redis, pubSub, treat
     }
 
     throw error
+  } finally {
+    await scrapingService.closeQueue(scrapingQueue)
   }
 }
 
-const processProxy: ProcessProxycheck = async (
+const processProxy: NameProcessProxycheck = async (
   config,
   logger,
   db,
@@ -322,6 +432,8 @@ const processProxy: ProcessProxycheck = async (
   proxycheckQueue
 ) => {
   try {
+    const startTime = Date.now()
+
     const { proxy, backLog } = await proxyService.consumeProxy(db, {
       proxyId: treatmentJob.data.entityId,
       data: {
@@ -340,7 +452,7 @@ const processProxy: ProcessProxycheck = async (
         proxyUrl: proxy.proxyUrl
       })
 
-      await proxycheckService.addJob(proxycheckQueue, 'simple', proxy.id)
+      await proxycheckService.addJob(proxycheckQueue, proxy.id)
     } else {
       await proxyCacheService.dropProxyCache(redis, {
         proxyId: proxy.id
@@ -349,7 +461,10 @@ const processProxy: ProcessProxycheck = async (
 
     await redisService.publishBackLog(pubSub, backLog)
 
-    return { entityId: proxy.id }
+    return {
+      entityId: proxy.id,
+      durationTime: Date.now() - startTime
+    }
   } catch (error) {
     if (error instanceof DomainError) {
       logger.error(`TreatmentProcessor processProxy exception`)
@@ -364,3 +479,41 @@ const processProxy: ProcessProxycheck = async (
 }
 
 export default treatmentProcessor
+
+
+
+/*
+    if (scraperCache !== undefined) {
+      if (category.isEnabled) {
+        await categoryCacheService.saveCategoryCache(redis, {
+          categoryId: category.id,
+          userId: category.userId,
+          scraperId: scraperCache.id,
+          avitoUrl: category.avitoUrl
+        })
+      } else {
+        await categoryCacheService.dropCategoryCache(redis, {
+          categoryId: category.id,
+          userId: category.userId,
+          scraperId: scraperCache.id
+        })
+      }
+    } else {
+      if (category.isEnabled && subscription !== undefined) {
+        const scraperId = redisService.randomHash()
+
+        await scraperCacheService.saveScraperCache(redis, {
+          scraperId,
+          avitoUrl: category.avitoUrl,
+          intervalSec: subscription.intervalSec
+        })
+
+        await categoryCacheService.saveCategoryCache(redis, {
+          categoryId: category.id,
+          userId: category.userId,
+          scraperId,
+          avitoUrl: category.avitoUrl
+        })
+      }
+    }
+*/

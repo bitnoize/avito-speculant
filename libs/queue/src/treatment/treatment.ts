@@ -3,8 +3,8 @@ import { Entity } from '@avito-speculant/common'
 
 export const TREATMENT_QUEUE_NAME = `treatment`
 
-export const DEFAULT_TREATMENT_CONCURRENCY = 2
-export const DEFAULT_TREATMENT_LIMITER_MAX = 2
+export const DEFAULT_TREATMENT_CONCURRENCY = 10
+export const DEFAULT_TREATMENT_LIMITER_MAX = 10
 export const DEFAULT_TREATMENT_LIMITER_DURATION = 1_000
 
 export type TreatmentConfig = {
@@ -21,6 +21,7 @@ export type TreatmentData = {
 
 export type TreatmentNameResult = {
   entityId: number
+  durationTime: number
 }
 export type TreatmentResult = Record<string, TreatmentNameResult>
 

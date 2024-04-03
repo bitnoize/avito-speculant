@@ -7,13 +7,8 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchUserSubscription(
-      userSubscriptionKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    fetchPlanSubscriptions(
-      planSubscriptionsKey: string,
+    fetchSubscriptions(
+      subscriptionsKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
 

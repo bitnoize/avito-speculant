@@ -2,8 +2,8 @@ import { Redis } from 'ioredis'
 import {
   ScraperCache,
   scraperKey,
-  avitoUrlScraperKey,
   scrapersKey,
+  avitoUrlScrapersKey,
   categoryScrapersKey,
   advertScrapersKey
 } from './scraper-cache.js'
@@ -25,27 +25,20 @@ export async function fetchScraperCache(redis: Redis, scraperId: string): Promis
   return parseModel(result, `ScraperCache fetchScraperCache malformed result`)
 }
 
-export async function findAvitoUrlScraper(
-  redis: Redis,
-  avitoUrl: string
-): Promise<string | undefined> {
-  const result = await redis.findAvitoUrlScraper(
-    avitoUrlScraperKey(avitoUrl) // KEYS[1]
-  )
-
-  if (result == null) {
-    return undefined
-  }
-
-  return parseString(result, `ScraperCache findAvitoUrlScraper malformed result`)
-}
-
 export async function fetchScrapers(redis: Redis): Promise<string[]> {
   const result = await redis.fetchScrapers(
     scrapersKey() // KEYS[1]
   )
 
   return parseManyStrings(result, `ScraperCache fetchScrapers malformed result`)
+}
+
+export async function fetchAvitoUrlScrapers(redis: Redis, avitoUrl: string): Promise<string[]> {
+  const result = await redis.fetchScrapers(
+    avitoUrlScrapersKey(avitoUrl) // KEYS[1]
+  )
+
+  return parseManyStrings(result, `ScraperCache fetchAvitoUrlScrapers malformed result`)
 }
 
 export async function fetchCategoryScrapers(redis: Redis, categoryId: number): Promise<string[]> {
@@ -85,6 +78,7 @@ export async function fetchScrapersCache(
   return parseCollection(result, `ScraperCache fetchScrapersCache malformed result`)
 }
 
+/*
 export async function saveScraperCache(
   redis: Redis,
   scraperId: string,
@@ -93,8 +87,8 @@ export async function saveScraperCache(
 ): Promise<void> {
   await redis.saveScraperCache(
     scraperKey(scraperId), // KEYS[1]
-    avitoUrlScraperKey(avitoUrl), // KEYS[2]
-    scrapersKey(), // KEYS[3]
+    scrapersKey(), // KEYS[2]
+    avitoUrlScrapersKey(avitoUrl), // KEYS[3]
     scraperId, // ARGV[1]
     avitoUrl, // ARGV[2]
     intervalSec, // ARGV[3]
@@ -109,11 +103,12 @@ export async function dropScraperCache(
 ): Promise<void> {
   await redis.dropScraperCache(
     scraperKey(scraperId), // KEYS[1]
-    avitoUrlScraperKey(avitoUrl), // KEYS[2]
-    scrapersKey(), // KEYS[3]
+    scrapersKey(), // KEYS[2]
+    avitoUrlScrapersKey(avitoUrl), // KEYS[3]
     scraperId // ARGV[1]
   )
 }
+*/
 
 export async function renewSuccessScraperCache(
   redis: Redis,

@@ -1,4 +1,3 @@
-//import * as fs from 'fs'
 import _Ajv from 'ajv'
 import { curly, CurlyResult } from 'node-libcurl'
 import { CurlRequest, ParseAttempt } from './worker-scraping.js'
@@ -6,8 +5,25 @@ import { avitoDesktopSchema } from './worker-scraping.schema.js'
 
 const Ajv = _Ajv.default
 
+// Моментально, 15 сек, 1 минута, 10 минут
+export const timeoutAdjust = (intervalSec: number): number => {
+  if (intervalSec > 0 && intervalSec <= 1) {
+    return 900
+  } else if (intervalSec > 1 && intervalSec <= 2) {
+    return 1_000
+  } else if (intervalSec > 2 && intervalSec <= 10) {
+    return (intervalSec - 1) * 1000
+  } else if (intervalSec > 10 && intervalSec <= 3600) {
+    return 10_000
+  } else {
+    throw new TypeError(`Wrong intervalSec: ${intervalSec}`)
+  }
+}
+
 export const curlRequest: CurlRequest = async (url, proxyUrl, timeoutMs, verbose) => {
   try {
+    const startTime = Date.now()
+
     const { statusCode, data } = await curly.get(url, {
       proxy: proxyUrl,
       timeoutMs,
@@ -16,12 +32,16 @@ export const curlRequest: CurlRequest = async (url, proxyUrl, timeoutMs, verbose
 
     return {
       statusCode,
-      body: data
+      body: data,
+      sizeBytes: data.length,
+      durationTime: Date.now() - startTime
     }
   } catch (error) {
     return {
       statusCode: 0,
       body: Buffer.alloc(0),
+      sizeBytes: 0,
+      durationTime: 0,
       error: error.message
     }
   }
@@ -29,6 +49,8 @@ export const curlRequest: CurlRequest = async (url, proxyUrl, timeoutMs, verbose
 
 export const parseAttempt: ParseAttempt = (body) => {
   try {
+    const startTime = Date.now()
+
     const ajv = new Ajv()
     const validate = ajv.compile(avitoDesktopSchema)
 
@@ -44,6 +66,8 @@ export const parseAttempt: ParseAttempt = (body) => {
     if (typeof json !== 'object') {
       return {
         avitoAdverts: [],
+        totalAdverts: 0,
+        durationTime: Date.now() - startTime,
         error: `Not and object JSON`
       }
     }
@@ -53,20 +77,24 @@ export const parseAttempt: ParseAttempt = (body) => {
     if (avitoKey === undefined) {
       return {
         avitoAdverts: [],
+        totalAdverts: 0,
+        durationTime: Date.now() - startTime,
         error: `AvitoKey not found in JSON`
       }
     }
 
-    const raw = json[avitoKey]
+    const avitoRaw = json[avitoKey]
 
-    if (!validate(raw)) {
+    if (!validate(avitoRaw)) {
       return {
         avitoAdverts: [],
-        error: `Avito JSON is not valid`
+        totalAdverts: 0,
+        durationTime: Date.now() - startTime,
+        error: `AvitoRaw is not valid object`
       }
     }
 
-    const avitoAdverts = raw.data.catalog.items.map((item) => ({
+    const avitoAdverts = avitoRaw.data.catalog.items.map((item) => ({
       id: item.id,
       title: item.title,
       priceRub: 0,
@@ -76,11 +104,15 @@ export const parseAttempt: ParseAttempt = (body) => {
     }))
 
     return {
-      avitoAdverts
+      avitoAdverts,
+      totalAdverts: avitoAdverts.length,
+      durationTime: Date.now() - startTime
     }
   } catch (error) {
     return {
       avitoAdverts: [],
+      totalAdverts: 0,
+      durationTime: 0,
       error: error.message
     }
   }

@@ -6,12 +6,13 @@ import {
   TreatmentConfig,
   TreatmentNameResult,
   TreatmentJob,
+  ScrapingQueue,
   ProxycheckQueue
 } from '@avito-speculant/queue'
 
 export type Config = LoggerConfig & DatabaseConfig & RedisConfig & QueueConfig & TreatmentConfig
 
-export type Process = (
+export type NameProcess = (
   config: Config,
   logger: Logger,
   db: KyselyDatabase,
@@ -20,7 +21,17 @@ export type Process = (
   treatmentJob: TreatmentJob
 ) => Promise<TreatmentNameResult>
 
-export type ProcessProxycheck = (
+export type NameProcessScraping = (
+  config: Config,
+  logger: Logger,
+  db: KyselyDatabase,
+  redis: Redis,
+  pubSub: Redis,
+  treatmentJob: TreatmentJob,
+  scrapingQueue: ScrapingQueue
+) => Promise<TreatmentNameResult>
+
+export type NameProcessProxycheck = (
   config: Config,
   logger: Logger,
   db: KyselyDatabase,

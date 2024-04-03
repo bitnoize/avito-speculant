@@ -1,8 +1,4 @@
-import { Redis } from 'ioredis'
-
-//
-// CategoryCache scripts
-//
+import { InitScripts } from '../redis.js'
 
 const fetchCategoryCache = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -23,11 +19,7 @@ return {
 }
 `
 
-const fetchUserCategories = `
-return redis.call('SMEMBERS', KEYS[1])
-`
-
-const fetchScraperCategories = `
+const fetchCategories = `
 return redis.call('SMEMBERS', KEYS[1])
 `
 
@@ -58,20 +50,15 @@ redis.call('SREM', KEYS[3], ARGV[1])
 return redis.status_reply('OK')
 `
 
-export default (redis: Redis): void => {
+const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchCategoryCache', {
     numberOfKeys: 1,
     lua: fetchCategoryCache
   })
 
-  redis.defineCommand('fetchUserCategories', {
+  redis.defineCommand('fetchCategories', {
     numberOfKeys: 1,
-    lua: fetchUserCategories
-  })
-
-  redis.defineCommand('fetchScraperCategories', {
-    numberOfKeys: 1,
-    lua: fetchScraperCategories
+    lua: fetchCategories
   })
 
   redis.defineCommand('saveCategoryCache', {
@@ -84,3 +71,5 @@ export default (redis: Redis): void => {
     lua: dropCategoryCache
   })
 }
+
+export default initScripts

@@ -5,5 +5,5 @@ export interface FetchUserSubscriptionCacheRequest {
 }
 
 export interface FetchUserSubscriptionCacheResponse {
-  subscriptionCache: SubscriptionCache
+  subscriptionCache: SubscriptionCache | undefined
 }

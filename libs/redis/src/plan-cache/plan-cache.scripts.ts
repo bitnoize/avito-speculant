@@ -1,8 +1,4 @@
-import { Redis } from 'ioredis'
-
-//
-// PlanCache Lua scripts
-//
+import { InitScripts } from '../redis.js'
 
 const fetchPlanCache = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -54,7 +50,7 @@ redis.call('SREM', KEYS[2], ARGV[1])
 return redis.status_reply('OK')
 `
 
-export default (redis: Redis): void => {
+const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchPlanCache', {
     numberOfKeys: 1,
     lua: fetchPlanCache
@@ -75,3 +71,5 @@ export default (redis: Redis): void => {
     lua: dropPlanCache
   })
 }
+
+export default initScripts

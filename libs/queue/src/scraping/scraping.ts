@@ -24,6 +24,9 @@ export type ScrapingNameResult = {
   success: boolean
   statusCode: number
   sizeBytes: number
+  durationTime: number
+  curlDurationTime: number
+  parseDurationTime: number
 }
 export type ScrapingResult = Record<string, ScrapingNameResult>
 

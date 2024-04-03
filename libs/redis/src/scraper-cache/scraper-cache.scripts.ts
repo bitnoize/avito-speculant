@@ -1,8 +1,4 @@
-import { Redis } from 'ioredis'
-
-//
-// ScraperCache scripts
-//
+import { InitScripts } from '../redis.js'
 
 const fetchScraperCache = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -25,10 +21,6 @@ return {
 }
 `
 
-const findAvitoUrlScraper = `
-return redis.call('GET', KEYS[1])
-`
-
 const fetchScrapers = `
 return redis.call('SMEMBERS', KEYS[1])
 `
@@ -45,7 +37,7 @@ redis.call('HSETNX', KEYS[1], 'total_count', 0)
 redis.call('HSETNX', KEYS[1], 'success_count', 0)
 redis.call('HSETNX', KEYS[1], 'size_bytes', 0)
 
-redis.call('SET', KEYS[2], ARGV[1])
+redis.call('SADD', KEYS[2], ARGV[1])
 
 redis.call('SADD', KEYS[3], ARGV[1])
 
@@ -55,7 +47,7 @@ return redis.status_reply('OK')
 const dropScraperCache = `
 redis.call('DEL', KEYS[1])
 
-redis.call('DEL', KEYS[2])
+redis.call('SREM', KEYS[2], ARGV[1])
 
 redis.call('SREM', KEYS[3], ARGV[1])
 `
@@ -94,15 +86,10 @@ end
 return redis.status_reply('OK')
 `
 
-export default (redis: Redis): void => {
+const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchScraperCache', {
     numberOfKeys: 1,
     lua: fetchScraperCache
-  })
-
-  redis.defineCommand('findAvitoUrlScraper', {
-    numberOfKeys: 1,
-    lua: findAvitoUrlScraper
   })
 
   redis.defineCommand('fetchScrapers', {
@@ -130,3 +117,5 @@ export default (redis: Redis): void => {
     lua: renewFailedScraperCache
   })
 }
+
+export default initScripts

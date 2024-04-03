@@ -1,8 +1,4 @@
-import { Redis } from 'ioredis'
-
-//
-// UserCache Lua scripts
-//
+import { InitScripts } from '../redis.js'
 
 const fetchUserCache = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -46,7 +42,7 @@ redis.call('SREM', KEYS[2], ARGV[1])
 return redis.status_reply('OK')
 `
 
-export default (redis: Redis): void => {
+const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchUserCache', {
     numberOfKeys: 1,
     lua: fetchUserCache
@@ -67,3 +63,5 @@ export default (redis: Redis): void => {
     lua: dropUserCache
   })
 }
+
+export default initScripts

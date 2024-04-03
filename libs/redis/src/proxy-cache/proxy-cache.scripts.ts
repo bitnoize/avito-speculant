@@ -1,8 +1,4 @@
-import { Redis } from 'ioredis'
-
-//
-// ProxyCache scripts
-//
+import { InitScripts } from '../redis.js'
 
 const fetchProxyCache = `
 if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -87,7 +83,7 @@ end
 return redis.status_reply('OK')
 `
 
-export default (redis: Redis): void => {
+const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchProxyCache', {
     numberOfKeys: 1,
     lua: fetchProxyCache
@@ -123,3 +119,5 @@ export default (redis: Redis): void => {
     lua: renewOfflineProxyCache
   })
 }
+
+export default initScripts

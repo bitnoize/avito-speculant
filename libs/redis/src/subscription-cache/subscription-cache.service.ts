@@ -9,6 +9,7 @@ import {
   SaveSubscriptionCacheRequest,
   DropSubscriptionCacheRequest
 } from './dto/index.js'
+import { UserSubscriptionError } from './subscription-cache.errors.js'
 import * as subscriptionCacheRepository from './subscription-cache.repository.js'
 
 /*
@@ -33,13 +34,24 @@ export async function fetchUserSubscriptionCache(
   redis: Redis,
   request: FetchUserSubscriptionCacheRequest
 ): Promise<FetchUserSubscriptionCacheResponse> {
-  const subscriptionId = await subscriptionCacheRepository.fetchUserSubscription(
+  const subscriptionIds = await subscriptionCacheRepository.fetchUserSubscriptions(
     redis,
     request.userId
   )
+
+  if (subscriptionIds.length === 0) {
+    return {
+      subscriptionCache: undefined
+    }
+  }
+
+  if (subscriptionIds.length !== 1) {
+    throw new UserSubscriptionError({ request })
+  }
+
   const subscriptionCache = await subscriptionCacheRepository.fetchSubscriptionCache(
     redis,
-    subscriptionId
+    subscriptionIds[0]
   )
 
   return { subscriptionCache }

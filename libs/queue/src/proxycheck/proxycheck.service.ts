@@ -29,12 +29,11 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Proxyc
  */
 export async function addJob(
   queue: ProxycheckQueue,
-  name: ProxycheckName,
   proxyId: number
 ): Promise<ProxycheckJob> {
-  const jobId = name + '-' + proxyId
+  const jobId = 'simple-' + proxyId
   return await queue.add(
-    name,
+    'simple',
     {
       proxyId
     },
