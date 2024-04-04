@@ -78,24 +78,6 @@ export async function fetchScrapersCache(
   return parseCollection(result, `ScraperCache fetchScrapersCache malformed result`)
 }
 
-/*
-export async function saveScraperCache(
-  redis: Redis,
-  scraperId: string,
-  avitoUrl: string,
-  intervalSec: number
-): Promise<void> {
-  await redis.saveScraperCache(
-    scraperKey(scraperId), // KEYS[1]
-    scrapersKey(), // KEYS[2]
-    avitoUrlScrapersKey(avitoUrl), // KEYS[3]
-    scraperId, // ARGV[1]
-    avitoUrl, // ARGV[2]
-    intervalSec, // ARGV[3]
-    Date.now() // ARGV[4]
-  )
-}
-
 export async function dropScraperCache(
   redis: Redis,
   scraperId: string,
@@ -108,7 +90,6 @@ export async function dropScraperCache(
     scraperId // ARGV[1]
   )
 }
-*/
 
 export async function renewSuccessScraperCache(
   redis: Redis,
@@ -160,3 +141,22 @@ const parseCollection = (result: unknown, message: string): ScraperCache[] => {
     return parseModel(command, message)
   })
 }
+
+/*
+export async function saveScraperCache(
+  redis: Redis,
+  scraperId: string,
+  avitoUrl: string,
+  intervalSec: number
+): Promise<void> {
+  await redis.saveScraperCache(
+    scraperKey(scraperId), // KEYS[1]
+    scrapersKey(), // KEYS[2]
+    avitoUrlScrapersKey(avitoUrl), // KEYS[3]
+    scraperId, // ARGV[1]
+    avitoUrl, // ARGV[2]
+    intervalSec, // ARGV[3]
+    Date.now() // ARGV[4]
+  )
+}
+*/

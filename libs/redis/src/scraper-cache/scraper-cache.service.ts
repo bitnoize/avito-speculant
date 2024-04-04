@@ -9,7 +9,6 @@ import {
   FetchCategoryScrapersCacheResponse,
   FetchAdvertScrapersCacheRequest,
   FetchAdvertScrapersCacheResponse,
-  SaveScraperCacheRequest,
   DropScraperCacheRequest,
   RenewScraperCacheRequest
 } from './dto/index.js'
@@ -88,25 +87,12 @@ export async function fetchAdvertScrapersCache(
   return { scrapersCache }
 }
 
-/*
-export async function saveScraperCache(
-  redis: Redis,
-  request: SaveScraperCacheRequest
-): Promise<void> {
-  await scraperCacheRepository.saveScraperCache(
-    redis,
-    request.scraperId,
-    request.avitoUrl,
-    request.intervalSec
-  )
-}
 export async function dropScraperCache(
   redis: Redis,
   request: DropScraperCacheRequest
 ): Promise<void> {
   await scraperCacheRepository.dropScraperCache(redis, request.scraperId, request.avitoUrl)
 }
-*/
 
 /*
  * Renew Success ScraperCache
@@ -137,3 +123,17 @@ export async function renewFailedScraperCache(
     request.sizeBytes
   )
 }
+
+/*
+export async function saveScraperCache(
+  redis: Redis,
+  request: SaveScraperCacheRequest
+): Promise<void> {
+  await scraperCacheRepository.saveScraperCache(
+    redis,
+    request.scraperId,
+    request.avitoUrl,
+    request.intervalSec
+  )
+}
+*/

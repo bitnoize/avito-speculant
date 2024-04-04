@@ -1,5 +1,11 @@
 import { Redis } from 'ioredis'
-import { AdvertCache, AvitoAdvert, advertKey, scraperAdvertsKey } from './advert-cache.js'
+import {
+  AdvertCache,
+  AvitoAdvert,
+  advertKey,
+  scraperAdvertsKey,
+  categoryAdvertsKey
+} from './advert-cache.js'
 import {
   parseNumber,
   parseString,
@@ -18,11 +24,23 @@ export async function fetchAdvertCache(redis: Redis, advertId: number): Promise<
 }
 
 export async function fetchScraperAdverts(redis: Redis, scraperId: string): Promise<number[]> {
-  const result = await redis.fetchScraperAdverts(
+  const result = await redis.fetchAdverts(
     scraperAdvertsKey(scraperId) // KEYS[1]
   )
 
   return parseManyNumbers(result, `AdvertCache fetchScraperAdverts malformed result`)
+}
+
+export async function fetchCategoryAdverts(
+  redis: Redis,
+  categoryId: number,
+  topic: string
+): Promise<number[]> {
+  const result = await redis.fetchAdverts(
+    categoryAdvertsKey(categoryId, topic) // KEYS[1]
+  )
+
+  return parseManyNumbers(result, `AdvertCache fetchCategoryAdverts malformed result`)
 }
 
 export async function fetchAdvertsCache(redis: Redis, advertIds: number[]): Promise<AdvertCache[]> {
@@ -79,6 +97,43 @@ export async function dropAdvertCache(
   await redis.dropAdvertCache(
     advertKey(advertId), // KEYS[1]
     scraperAdvertsKey(scraperId), // KEYS[2]
+    advertId // ARGV[1]
+  )
+}
+
+export async function pourCategoryAdvertsWait(
+  redis: Redis,
+  scraperId: string,
+  categoryId: number
+): Promise<void> {
+  await redis.pourCategoryAdvertsWait(
+    scraperAdvertsKey(scraperId), // KEYS[1]
+    categoryAdvertsKey(categoryId, 'wait'), // KEYS[2]
+    categoryAdvertsKey(categoryId, 'send'), // KEYS[3]
+    categoryAdvertsKey(categoryId, 'done'), // KEYS[4]
+  )
+}
+
+export async function pourCategoryAdvertsSend(
+  redis: Redis,
+  categoryId: number,
+  count: number,
+): Promise<void> {
+  await redis.pourCategoryAdvertsSend(
+    categoryAdvertsKey(categoryId, 'wait'), // KEYS[1]
+    categoryAdvertsKey(categoryId, 'send'), // KEYS[2]
+    count // ARGV[1]
+  )
+}
+
+export async function pourCategoryAdvertDone(
+  redis: Redis,
+  categoryId: number,
+  advertId: number
+): Promise<void> {
+  await redis.pourCategoryAdvertDone(
+    categoryAdvertsKey(categoryId, 'send'), // KEYS[1]
+    categoryAdvertsKey(categoryId, 'done'), // KEYS[2]
     advertId // ARGV[1]
   )
 }

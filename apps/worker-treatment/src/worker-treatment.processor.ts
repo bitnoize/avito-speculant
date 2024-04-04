@@ -25,12 +25,14 @@ import {
   TreatmentResult,
   TreatmentProcessor,
   queueService,
+  heraldingService,
   scrapingService,
   proxycheckService
 } from '@avito-speculant/queue'
 import {
   Config,
   NameProcess,
+  NameProcessHeralding,
   NameProcessScraping,
   NameProcessProxycheck
 } from './worker-treatment.js'
@@ -58,7 +60,17 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
 
     switch (name) {
       case 'user': {
-        result[name] = await processUser(config, logger, db, redis, pubSub, treatmentJob)
+        const heraldingQueue = heraldingService.initQueue(queueConnection, logger)
+
+        result[name] = await processUser(
+          config,
+          logger,
+          db,
+          redis,
+          pubSub,
+          treatmentJob,
+          heraldingQueue
+        )
 
         break
       }
@@ -130,11 +142,19 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
   return result
 }
 
-const processUser: NameProcess = async (config, logger, db, redis, pubSub, treatmentJob) => {
+const processUser: NameProcessHeralding = async (
+  config,
+  logger,
+  db,
+  redis,
+  pubSub,
+  treatmentJob,
+  heraldingQueue
+) => {
   try {
     const startTime = Date.now()
 
-    const { user, backLog } = await userService.consumeUser(db, {
+    const { user, subscription, backLog } = await userService.consumeUser(db, {
       userId: treatmentJob.data.entityId,
       data: {
         queue: treatmentJob.queueName,
@@ -147,9 +167,14 @@ const processUser: NameProcess = async (config, logger, db, redis, pubSub, treat
     })
 
     if (user.isPaid) {
+      if (subscription === undefined) {
+        throw new UserSubscriptionLostError({ user })
+      }
+
       await userCacheService.saveUserCache(redis, {
         userId: user.id,
-        tgFromId: user.tgFromId
+        tgFromId: user.tgFromId,
+        checkpoint: startTime + subscription.intervalSec * 1000
       })
     } else {
       await userCacheService.dropUserCache(redis, {
@@ -171,6 +196,8 @@ const processUser: NameProcess = async (config, logger, db, redis, pubSub, treat
     }
 
     throw error
+  } finally {
+    await heraldingService.closeQueue(heraldingQueue)
   }
 }
 
@@ -316,13 +343,16 @@ const processCategory: NameProcessScraping = async (
           // Category subscription interval is less then scraper interval
           // Scraper needs to be updated and restarted
 
-          const success = await scrapingService.removeJob(
+          const removed = await scrapingService.removeJob(
             scrapingQueue,
             scraperCache.id,
             scraperCache.intervalSec
           )
 
-          if (!success) {
+          if (removed) {
+            const logData = { scraperCache }
+            logger.info(logData, `ScrapingJob removed on restart`)
+          } else {
             const logData = { scraperCache }
             logger.warn(logData, `ScrapingJob not removed on restart`)
           }
@@ -360,44 +390,38 @@ const processCategory: NameProcessScraping = async (
       if (scraperCache !== undefined) {
         // Scraper exists
 
-        const { categoriesCache } = categoryCacheService.fetchScraperCategoriesCache(redis, {
+        await categoryCacheService.dropCategoryCache(redis, {
+          categoryId: category.id,
+          userId: category.userId,
           scraperId: scraperCache.id
         })
 
-        if (
-          categoriesCache.length === 0 ||
-          (categoriesCache.length === 1 && categoriesCache[0].id === category.id)
-        ) {
-          // Scraper has no categories at all or only this one category
+        const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
+          scraperId: scraperCache.id
+        })
+
+        if (categoriesCache.length === 0) {
+          // Scraper has only this one category
           // Ensure scrapingJob is stopped
           // Drop scraperCache and categoryCache
 
-          const success = await scrapingService.removeJob(
+          const removed = await scrapingService.removeJob(
             scrapingQueue,
             scraperCache.id,
             scraperCache.intervalSec
           )
 
-          if (!success) {
+          if (removed) {
+            const logData = { scraperCache }
+            logger.info(logData, `ScrapingJob removed on empty`)
+          } else {
             const logData = { scraperCache }
             logger.warn(logData, `ScrapingJob not removed on empty`)
           }
 
-          await categoryCacheService.dropScraperCategoryCache(redis, {
-            categoryId: category.id,
-            userId: category.userId,
+          await scraperCacheService.dropScraperCache(redis, {
             scraperId: scraperCache.id,
             avitoUrl: scraperCache.avitoUrl
-          })
-        } else {
-          // Scraper has categories different from this one
-          // Do not touch scrapingJob
-          // Drop only categoryCache
-
-          await categoryCacheService.dropCategoryCache(redis, {
-            categoryId: category.id,
-            userId: category.userId,
-            scraperId: scraperCache.id
           })
         }
       }

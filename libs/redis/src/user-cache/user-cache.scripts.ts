@@ -1,20 +1,13 @@
 import { InitScripts } from '../redis.js'
 
 const fetchUserCache = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return nil 
-end
-
-local user_cache = redis.call(
+return redis.call(
   'HMGET', KEYS[1],
   'id',
   'tg_from_id',
+  'checkpoint',
   'time'
 )
-
-return {
-  unpack(user_cache)
-}
 `
 
 const fetchUsers = `
@@ -26,7 +19,8 @@ redis.call(
   'HSET', KEYS[1],
   'id', ARGV[1],
   'tg_from_id', ARGV[2],
-  'time', ARGV[3]
+  'checkpoint', ARGV[3],
+  'time', ARGV[4]
 )
 
 redis.call('SADD', KEYS[2], ARGV[1])

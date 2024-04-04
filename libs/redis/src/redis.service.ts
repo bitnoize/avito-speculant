@@ -32,10 +32,6 @@ export function getRedisOptions<T extends RedisConfig>(config: T): RedisOptions 
 export function initRedis(options: RedisOptions, logger: Logger): Redis {
   const redis = new Redis(options)
 
-  redis.on('connect', () => {
-    logger.debug(`Redis successfully connected`)
-  })
-
   initUserCacheScripts(redis)
   initPlanCacheScripts(redis)
   initSubscriptionCacheScripts(redis)

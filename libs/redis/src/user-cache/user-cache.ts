@@ -3,6 +3,7 @@ import { REDIS_CACHE_PREFIX } from '../redis.js'
 export interface UserCache {
   id: number
   tgFromId: string
+  checkpoint: number
   time: number
 }
 

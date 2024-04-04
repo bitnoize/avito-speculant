@@ -3,8 +3,6 @@ import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
 import {
   redisService,
-  subscriptionCacheService,
-  categoryCacheService,
   proxyCacheService,
   scraperCacheService,
   advertCacheService
@@ -168,21 +166,6 @@ const processDesktop: NameProcess = async (config, logger, redis, scrapingJob) =
       scraperId: scraperCache.id,
       avitoAdverts: parseResult.avitoAdverts
     })
-
-    const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
-      scraperId: scraperCache.id
-    })
-
-    for (const categoryCache of categoriesCache) {
-      const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(
-        redis,
-        {
-          userId: categoryCache.userId
-        }
-      )
-
-      // ...
-    }
 
     return {
       scraperId: scraperCache.id,

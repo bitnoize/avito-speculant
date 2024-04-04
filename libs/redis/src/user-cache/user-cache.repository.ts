@@ -43,13 +43,19 @@ export async function fetchUsersCache(redis: Redis, userIds: number[]): Promise<
   return parseCollection(result, `UserCache fetchUsersCache malformed result`)
 }
 
-export async function saveUserCache(redis: Redis, userId: number, tgFromId: string): Promise<void> {
+export async function saveUserCache(
+  redis: Redis,
+  userId: number,
+  tgFromId: string,
+  checkpoint: number
+): Promise<void> {
   await redis.saveUserCache(
     userKey(userId), // KEYS[1]
     usersKey(), // KEYS[2]
     userId, // ARGV[1]
     tgFromId, // ARGV[2]
-    Date.now() // ARGV[3]
+    checkpoint, // ARGV[3]
+    Date.now() // ARGV[4]
   )
 }
 
@@ -62,12 +68,13 @@ export async function dropUserCache(redis: Redis, userId: number): Promise<void>
 }
 
 const parseModel = (result: unknown, message: string): UserCache => {
-  const hash = parseHash(result, 3, message)
+  const hash = parseHash(result, 4, message)
 
   return {
     id: parseNumber(hash[0], message),
     tgFromId: parseString(hash[1], message),
-    time: parseNumber(hash[2], message)
+    checkpoint: parseNumber(hash[2], message),
+    time: parseNumber(hash[3], message)
   }
 }
 

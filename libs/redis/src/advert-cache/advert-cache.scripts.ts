@@ -1,11 +1,7 @@
 import { InitScripts } from '../redis.js'
 
 const fetchAdvertCache = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return nil 
-end
-
-local advert_cache = redis.call(
+return redis.call(
   'HMGET', KEYS[1],
   'id',
   'title',
@@ -15,40 +11,10 @@ local advert_cache = redis.call(
   'image_url',
   'time'
 )
-
-return {
-  unpack(advert_cache)
-}
 `
 
-const fetchScraperAdverts = `
-return redis.call('LRANGE', KEYS[1], 0, -1)
-`
-
-const fetchCategoryAdverts = `
+const fetchAdverts = `
 return redis.call('SMEMBERS', KEYS[1])
-`
-
-const leadWaitAdverts = `
-redis.call('SADD', KEYS[1], unpack(ARGV))
-
-local new_adverts = redis.call('SDIFF', KEYS[1], KEYS[2], KEYS[3], KEYS[4])
-
-redis.call('SADD', KEYS[2], unpack(new_adverts))
-
-redis.call('DEL', KEYS[1])
-
-return redis.status_reply('OK')
-`
-
-const leadSendingAdvert = `
-local wait_adverts = redis.call('SMEMBERS', KEYS[1])
-
-redis.call('SADD', KEYS[2], unpack(wait_adverts))
-
-redis.call('DEL', KEYS[1])
-
-return wait_adverts
 `
 
 const saveAdvertCache = `
@@ -63,9 +29,7 @@ redis.call(
   'time', ARGV[7]
 )
 
-if not redis.call('LPOS', KEYS[2], ARGV[1]) then
-  redis.call('LPUSH', KEYS[2], ARGV[1])
-end
+redis.call('SADD', KEYS[2], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -73,7 +37,35 @@ return redis.status_reply('OK')
 const dropAdvertCache = `
 redis.call('DEL', KEYS[1])
 
-redis.call('LREM', KEYS[2], 0, ARGV[1])
+redis.call('SREM', KEYS[2], ARGV[1])
+
+return redis.status_reply('OK')
+`
+
+const pourCategoryAdvertsWait = `
+local wait_adverts = redis.call('SDIFF', KEYS[1], KEYS[2], KEYS[3], KEYS[4])
+
+redis.call('SADD', KEYS[2], unpack(wait_adverts))
+
+return redis.status_reply('OK')
+`
+
+const pourCategoryAdvertsSend = `
+local count = tonumber(ARGV[1]) - tonumber(redis.call('SCARD', KEYS[2]))
+
+if count > 0 then
+  local send_adverts = redis.call('SRANDMEMBER', KEYS[1], count)
+
+  redis.call('SREM', KEYS[1], unpack(send_adverts))
+  redis.call('SADD', KEYS[2], unpack(send_adverts))
+end
+
+return redis.status_reply('OK')
+`
+
+const pourCategoryAdvertDone = `
+redis.call('SREM', KEYS[1], ARGV[1])
+redis.call('SADD', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -84,14 +76,9 @@ const initScripts: InitScripts = (redis) => {
     lua: fetchAdvertCache
   })
 
-  redis.defineCommand('fetchScraperAdverts', {
+  redis.defineCommand('fetchAdverts', {
     numberOfKeys: 1,
-    lua: fetchScraperAdverts
-  })
-
-  redis.defineCommand('fetchCategoryAdverts', {
-    numberOfKeys: 1,
-    lua: fetchCategoryAdverts
+    lua: fetchAdverts
   })
 
   redis.defineCommand('saveAdvertCache', {
@@ -102,6 +89,21 @@ const initScripts: InitScripts = (redis) => {
   redis.defineCommand('dropAdvertCache', {
     numberOfKeys: 2,
     lua: dropAdvertCache
+  })
+
+  redis.defineCommand('pourCategoryAdvertsWait', {
+    numberOfKeys: 4,
+    lua: pourCategoryAdvertsWait
+  })
+
+  redis.defineCommand('pourCategoryAdvertsSend', {
+    numberOfKeys: 2,
+    lua: pourCategoryAdvertsSend
+  })
+
+  redis.defineCommand('pourCategoryAdvertsDone', {
+    numberOfKeys: 2,
+    lua: pourCategoryAdvertsSend
   })
 }
 

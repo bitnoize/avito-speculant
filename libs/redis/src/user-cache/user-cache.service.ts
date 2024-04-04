@@ -34,7 +34,12 @@ export async function fetchUsersCache(redis: Redis): Promise<FetchUsersCacheResp
  * Save UserCache
  */
 export async function saveUserCache(redis: Redis, request: SaveUserCacheRequest): Promise<void> {
-  await userCacheRepository.saveUserCache(redis, request.userId, request.tgFromId)
+  await userCacheRepository.saveUserCache(
+    redis,
+    request.userId,
+    request.tgFromId,
+    request.checkpoint
+  )
 }
 
 /*

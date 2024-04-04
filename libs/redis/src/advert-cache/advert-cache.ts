@@ -24,3 +24,5 @@ export const advertKey = (advertId: number) => [REDIS_CACHE_PREFIX, 'advert', ad
 export const scraperAdvertsKey = (scraperId: string) =>
   [REDIS_CACHE_PREFIX, 'scraper-adverts', scraperId].join(':')
 
+export const categoryAdvertsKey = (categoryId: number, topic: string) =>
+  [REDIS_CACHE_PREFIX, 'category-adverts', categoryId, topic].join(':')

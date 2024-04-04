@@ -11,6 +11,7 @@ declare module 'ioredis' {
       usersKey: string,
       userId: number,
       tgFromId: string,
+      checkpoint: number,
       time: number,
       callback?: Callback<string>
     ): Result<string, Context>

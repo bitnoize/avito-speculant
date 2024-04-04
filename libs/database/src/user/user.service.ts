@@ -64,6 +64,7 @@ export async function authorizeUser(
 
     return {
       user: userRepository.buildModel(instertedUserRow),
+      subscription: undefined,
       backLog
     }
   })
@@ -126,13 +127,13 @@ export async function consumeUser(
       throw new UserNotFoundError({ request })
     }
 
-    if (userRow.is_paid) {
-      const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
-        trx,
-        userRow.id,
-        'active'
-      )
+    const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
+      trx,
+      userRow.id,
+      'active'
+    )
 
+    if (userRow.is_paid) {
       if (subscriptionRow === undefined) {
         isChanged = true
 
@@ -161,6 +162,10 @@ export async function consumeUser(
     if (!isChanged) {
       return {
         user: userRepository.buildModel(userRow),
+        subscription:
+          subscriptionRow !== undefined
+            ? subscriptionRepository.buildModel(subscriptionRow)
+            : undefined,
         backLog
       }
     }
@@ -187,6 +192,10 @@ export async function consumeUser(
 
     return {
       user: userRepository.buildModel(updatedUserRow),
+      subscription:
+        subscriptionRow !== undefined
+          ? subscriptionRepository.buildModel(subscriptionRow)
+          : undefined,
       backLog
     }
   })

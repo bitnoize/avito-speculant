@@ -94,30 +94,18 @@ export async function saveScraperCategoryCache(
   await multi.exec()
 }
 
-export async function dropScraperCategoryCache(
+export async function dropCategoryCache(
   redis: Redis,
   categoryId: number,
   userId: number,
-  scraperId: string,
-  avitoUrl: string
+  scraperId: string
 ): Promise<void> {
-  const multi = redis.multi()
-
-  multi.dropCategoryCache(
+  await redis.dropCategoryCache(
     categoryKey(categoryId), // KEYS[1]
     userCategoriesKey(userId), // KEYS[2]
     scraperCategoriesKey(scraperId), // KEYS[3]
     categoryId // ARGV[1]
   )
-
-  multi.dropScraperCache(
-    scraperKey(scraperId), // KEYS[1]
-    scrapersKey(), // KEYS[2]
-    avitoUrlScrapersKey(avitoUrl), // KEYS[3]
-    scraperId // ARGV[1]
-  )
-
-  await multi.exec()
 }
 
 const parseModel = (result: unknown, message: string): CategoryCache => {
@@ -160,20 +148,4 @@ export async function saveCategoryCache(
     Date.now() // ARGV[5]
   )
 }
-
-export async function dropCategoryCache(
-  redis: Redis,
-  categoryId: number,
-  userId: number,
-  scraperId: string
-): Promise<void> {
-  await redis.dropCategoryCache(
-    categoryKey(categoryId), // KEYS[1]
-    userCategoriesKey(userId), // KEYS[2]
-    scraperCategoriesKey(scraperId), // KEYS[3]
-    categoryId // ARGV[1]
-  )
-}
 */
-
-

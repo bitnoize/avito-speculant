@@ -4,15 +4,7 @@ declare module 'ioredis' {
   interface RedisCommander<Context> {
     fetchAdvertCache(advertKey: string, callback?: Callback<string>): Result<string, Context>
 
-    fetchScraperAdverts(
-      scraperAdvertsKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    fetchCategoryAdverts(
-      categoryAdvertsKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
+    fetchAdverts(advertsKey: string, callback?: Callback<string>): Result<string, Context>
 
     saveAdvertCache(
       advertKey: string,
@@ -30,6 +22,28 @@ declare module 'ioredis' {
     dropAdvertCache(
       advertKey: string,
       scraperAdvertsKey: string,
+      advertId: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    pourCategoryAdvertsWait(
+      scraperAdvertsKey: string,
+      categoryAdvertsWaitKey: string,
+      categoryAdvertsSendKey: string,
+      categoryAdvertsDoneKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    pourCategoryAdvertsSend(
+      categoryAdvertsWaitKey: string,
+      categoryAdvertsSendKey: string,
+      count: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    pourCategoryAdvertDone(
+      categoryAdvertsSendKey: string,
+      categoryAdvertsDoneKey: string,
       advertId: number,
       callback?: Callback<string>
     ): Result<string, Context>

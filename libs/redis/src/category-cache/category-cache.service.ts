@@ -7,7 +7,7 @@ import {
   FetchScraperCategoriesCacheRequest,
   FetchScraperCategoriesCacheResponse,
   SaveScraperCategoryCacheRequest,
-  DropScraperCategoryCacheRequest
+  DropCategoryCacheRequest
 } from './dto/index.js'
 import * as categoryCacheRepository from './category-cache.repository.js'
 
@@ -50,32 +50,6 @@ export async function fetchScraperCategoriesCache(
 }
 
 /*
-export async function saveCategoryCache(
-  redis: Redis,
-  request: SaveCategoryCacheRequest
-): Promise<void> {
-  await categoryCacheRepository.saveCategoryCache(
-    redis,
-    request.categoryId,
-    request.userId,
-    request.scraperId,
-    request.avitoUrl
-  )
-}
-export async function dropCategoryCache(
-  redis: Redis,
-  request: DropCategoryCacheRequest
-): Promise<void> {
-  await categoryCacheRepository.dropCategoryCache(
-    redis,
-    request.categoryId,
-    request.userId,
-    request.scraperId
-  )
-}
-*/
-
-/*
  * Save ScraperCategoryCache
  */
 export async function saveScraperCategoryCache(
@@ -93,13 +67,26 @@ export async function saveScraperCategoryCache(
 }
 
 /*
- * Drop ScraperCategoryCache
+ * Drop CategoryCache
  */
-export async function dropScraperCategoryCache(
+export async function dropCategoryCache(
   redis: Redis,
-  request: DropScraperCategoryCacheRequest
+  request: DropCategoryCacheRequest
 ): Promise<void> {
-  await categoryCacheRepository.dropScraperCategoryCache(
+  await categoryCacheRepository.dropCategoryCache(
+    redis,
+    request.categoryId,
+    request.userId,
+    request.scraperId
+  )
+}
+
+/*
+export async function saveCategoryCache(
+  redis: Redis,
+  request: SaveCategoryCacheRequest
+): Promise<void> {
+  await categoryCacheRepository.saveCategoryCache(
     redis,
     request.categoryId,
     request.userId,
@@ -107,3 +94,4 @@ export async function dropScraperCategoryCache(
     request.avitoUrl
   )
 }
+*/
