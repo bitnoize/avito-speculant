@@ -2,6 +2,7 @@ import { Redis } from 'ioredis'
 import {
   AdvertCache,
   AvitoAdvert,
+  CategoryAdvertTopic,
   advertKey,
   scraperAdvertsKey,
   categoryAdvertsKey
@@ -34,7 +35,7 @@ export async function fetchScraperAdverts(redis: Redis, scraperId: string): Prom
 export async function fetchCategoryAdverts(
   redis: Redis,
   categoryId: number,
-  topic: string
+  topic: CategoryAdvertTopic
 ): Promise<number[]> {
   const result = await redis.fetchAdverts(
     categoryAdvertsKey(categoryId, topic) // KEYS[1]
@@ -64,7 +65,7 @@ export async function fetchAdvertsCache(redis: Redis, advertIds: number[]): Prom
 export async function saveAdvertsCache(
   redis: Redis,
   scraperId: string,
-  avitoAdverts: AvitoAdvert[],
+  avitoAdverts: AvitoAdvert[]
 ): Promise<void> {
   if (avitoAdverts.length === 0) {
     return
@@ -92,7 +93,7 @@ export async function saveAdvertsCache(
 export async function dropAdvertCache(
   redis: Redis,
   advertId: number,
-  scraperId: string,
+  scraperId: string
 ): Promise<void> {
   await redis.dropAdvertCache(
     advertKey(advertId), // KEYS[1]
@@ -110,14 +111,14 @@ export async function pourCategoryAdvertsWait(
     scraperAdvertsKey(scraperId), // KEYS[1]
     categoryAdvertsKey(categoryId, 'wait'), // KEYS[2]
     categoryAdvertsKey(categoryId, 'send'), // KEYS[3]
-    categoryAdvertsKey(categoryId, 'done'), // KEYS[4]
+    categoryAdvertsKey(categoryId, 'done') // KEYS[4]
   )
 }
 
 export async function pourCategoryAdvertsSend(
   redis: Redis,
   categoryId: number,
-  count: number,
+  count: number
 ): Promise<void> {
   await redis.pourCategoryAdvertsSend(
     categoryAdvertsKey(categoryId, 'wait'), // KEYS[1]

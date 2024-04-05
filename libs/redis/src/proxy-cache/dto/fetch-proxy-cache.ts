@@ -1,9 +1,13 @@
 import { ProxyCache } from '../proxy-cache.js'
+import { RedisMethod } from '../../redis.js'
 
-export interface FetchProxyCacheRequest {
+export type FetchProxyCacheRequest = {
   proxyId: number
 }
 
-export interface FetchProxyCacheResponse {
+export type FetchProxyCacheResponse = {
   proxyCache: ProxyCache
 }
+
+export type FetchProxyCache = RedisMethod<FetchProxyCacheRequest, FetchProxyCacheResponse>
+

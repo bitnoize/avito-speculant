@@ -1,8 +1,8 @@
 {
-  "name": "@avito-speculant/worker-heralding",
+  "name": "@avito-speculant/worker-broadcast",
   "type": "module",
-  "version": "0.0.6",
-  "description": "Avito-Speculant worker-heralding application",
+  "version": "0.0.1",
+  "description": "Avito-Speculant worker-broadcast application",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

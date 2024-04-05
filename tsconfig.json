@@ -13,6 +13,7 @@
     { "path": "apps/worker-treatment" },
     { "path": "apps/worker-proxycheck" },
     { "path": "apps/worker-scraping" },
+    { "path": "apps/worker-broadcast" },
     { "path": "apps/worker-sendreport" }
   ]
 }

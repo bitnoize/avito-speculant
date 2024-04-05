@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
 import { RedisOptions, Redis } from 'ioredis'
 import { Logger } from '@avito-speculant/logger'
 import { Notify } from '@avito-speculant/common'
@@ -31,6 +30,10 @@ export function getRedisOptions<T extends RedisConfig>(config: T): RedisOptions 
  */
 export function initRedis(options: RedisOptions, logger: Logger): Redis {
   const redis = new Redis(options)
+
+  redis.on('connect', () => {
+    logger.debug(`Redis successfully connected`)
+  })
 
   initUserCacheScripts(redis)
   initPlanCacheScripts(redis)
@@ -79,8 +82,3 @@ export async function publishBackLog(pubSub: Redis, backLog: Notify[]): Promise<
 export async function closePubSub(pubSub: Redis): Promise<void> {
   await pubSub.disconnect()
 }
-
-/*
- * Generate random identifier
- */
-export const randomHash = (): string => uuidv4().replaceAll('-', '')

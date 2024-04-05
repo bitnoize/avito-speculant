@@ -18,7 +18,7 @@ import {
 } from '@avito-speculant/redis'
 import {
   ProcessorUnknownStepError,
-  LostRepeatableJobError,
+  RepeatableJobLostIdError,
   HeartbeatResult,
   HeartbeatProcessor,
   queueService,
@@ -297,14 +297,14 @@ const processScrapers: StepProcessScraping = async (config, logger, redis, scrap
   try {
     const startTime = Date.now()
 
-    const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis)
+    const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis, undefined)
 
     const repeatableJobs = await scrapingQueue.getRepeatableJobs()
 
     const scraperIds = scrapersCache.map((scraperCache) => scraperCache.id)
     const orphanScrapingJobs = repeatableJobs.filter((repeatableJob) => {
       if (repeatableJob.id == null) {
-        throw new LostRepeatableJobError({ repeatableJob })
+        throw new RepeatableJobLostIdError({ repeatableJob })
       }
 
       return !scraperIds.includes(repeatableJob.id)
@@ -367,7 +367,7 @@ export default heartbeatProcessor
 
       const scrapingJob = repeatableJobs.find((repeatableJob) => {
         if (repeatableJob.id == null) {
-          throw new LostRepeatableJobError({ repeatableJob })
+          throw new RepeatableJobLostIdError({ repeatableJob })
         }
 
         return repeatableJob.id === scraperCache.id

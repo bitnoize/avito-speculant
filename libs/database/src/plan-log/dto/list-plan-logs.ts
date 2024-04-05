@@ -1,10 +1,13 @@
 import { PlanLog } from '../plan-log.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ListPlanLogsRequest {
+export type ListPlanLogsRequest = {
   planId: number
   limit: number
 }
 
-export interface ListPlanLogsResponse {
+export type ListPlanLogsResponse = {
   planLogs: PlanLog[]
 }
+
+export type ListPlanLogs = DatabaseMethod<ListPlanLogsRequest, ListPlanLogsResponse>

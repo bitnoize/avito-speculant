@@ -1,10 +1,13 @@
 import { UserLog } from '../user-log.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ListUserLogsRequest {
+export type ListUserLogsRequest = {
   userId: number
   limit: number
 }
 
-export interface ListUserLogsResponse {
+export type ListUserLogsResponse = {
   userLogs: UserLog[]
 }
+
+export type ListUserLogs = DatabaseMethod<ListUserLogsRequest, ListUserLogsResponse>

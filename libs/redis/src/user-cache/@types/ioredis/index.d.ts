@@ -22,5 +22,12 @@ declare module 'ioredis' {
       userId: number,
       callback?: Callback<string>
     ): Result<string, Context>
+
+    renewUserCache(
+      userKey: string,
+      checkpoint: number,
+      time: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
   }
 }

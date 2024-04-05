@@ -20,7 +20,7 @@ COPY libs/common/package*.json libs/common/tsconfig*.json libs/common/
 COPY libs/redis/package*.json libs/redis/tsconfig*.json libs/redis/
 COPY libs/queue/package*.json libs/queue/tsconfig*.json libs/queue/
 
-COPY apps/worker-heralding/package*.json apps/worker-heralding/tsconfig*.json apps/worker-heralding/
+COPY apps/worker-broadcast/package*.json apps/worker-broadcast/tsconfig*.json apps/worker-broadcast/
 
 RUN set -eux; \
     npm install
@@ -31,7 +31,7 @@ COPY libs/common/ libs/common/
 COPY libs/redis/ libs/redis/
 COPY libs/queue/ libs/queue/
 
-COPY apps/worker-heralding/ apps/worker-heralding/
+COPY apps/worker-broadcast/ apps/worker-broadcast/
 
 RUN set -eux; \
     npm run -w @avito-speculant/config build; \
@@ -39,9 +39,9 @@ RUN set -eux; \
     npm run -w @avito-speculant/common build; \
     npm run -w @avito-speculant/redis build; \
     npm run -w @avito-speculant/queue build; \
-    npm run -w @avito-speculant/worker-heralding build
+    npm run -w @avito-speculant/worker-broadcast build
 
 COPY docker-entrypoint/ /lib/entrypoint/
 
-CMD ["npm", "-w", "@avito-speculant/worker-heralding", "run", "start"]
+CMD ["npm", "-w", "@avito-speculant/worker-broadcast", "run", "start"]
 

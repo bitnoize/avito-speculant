@@ -1,9 +1,12 @@
 import { User } from '../user.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ProduceUsersRequest {
+export type ProduceUsersRequest = {
   limit: number
 }
 
-export interface ProduceUsersResponse {
+export type ProduceUsersResponse = {
   users: User[]
 }
+
+export type ProduceUsers = DatabaseMethod<ProduceUsersRequest, ProduceUsersResponse>

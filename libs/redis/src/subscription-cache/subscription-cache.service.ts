@@ -1,13 +1,9 @@
-import { Redis } from 'ioredis'
 import {
-  FetchSubscriptionCacheRequest,
-  FetchSubscriptionCacheResponse,
-  FetchUserSubscriptionCacheRequest,
-  FetchUserSubscriptionCacheResponse,
-  FetchPlanSubscriptionsCacheRequest,
-  FetchPlanSubscriptionsCacheResponse,
-  SaveSubscriptionCacheRequest,
-  DropSubscriptionCacheRequest
+  FetchSubscriptionCache,
+  FetchUserSubscriptionCache,
+  FetchPlanSubscriptionsCache,
+  SaveSubscriptionCache,
+  DropSubscriptionCache
 } from './dto/index.js'
 import { UserSubscriptionError } from './subscription-cache.errors.js'
 import * as subscriptionCacheRepository from './subscription-cache.repository.js'
@@ -15,10 +11,7 @@ import * as subscriptionCacheRepository from './subscription-cache.repository.js
 /*
  * Fetch SubscriptionCache
  */
-export async function fetchSubscriptionCache(
-  redis: Redis,
-  request: FetchSubscriptionCacheRequest
-): Promise<FetchSubscriptionCacheResponse> {
+export const fetchSubscriptionCache: FetchSubscriptionCache = async function(redis, request) {
   const subscriptionCache = await subscriptionCacheRepository.fetchSubscriptionCache(
     redis,
     request.subscriptionId
@@ -28,12 +21,9 @@ export async function fetchSubscriptionCache(
 }
 
 /*
- * Fetch User SubscriptionCache
+ * Fetch UserSubscriptionCache
  */
-export async function fetchUserSubscriptionCache(
-  redis: Redis,
-  request: FetchUserSubscriptionCacheRequest
-): Promise<FetchUserSubscriptionCacheResponse> {
+export const fetchUserSubscriptionCache: FetchUserSubscriptionCache = async function(redis, request) {
   const subscriptionIds = await subscriptionCacheRepository.fetchUserSubscriptions(
     redis,
     request.userId
@@ -58,12 +48,9 @@ export async function fetchUserSubscriptionCache(
 }
 
 /*
- * Fetch Plan SubscriptionsCache
+ * Fetch PlanSubscriptionsCache
  */
-export async function fetchPlanSubscriptionsCache(
-  redis: Redis,
-  request: FetchPlanSubscriptionsCacheRequest
-): Promise<FetchPlanSubscriptionsCacheResponse> {
+export const fetchPlanSubscriptionsCache: FetchPlanSubscriptionsCache = async function(redis, request) {
   const subscriptionIds = await subscriptionCacheRepository.fetchPlanSubscriptions(
     redis,
     request.planId
@@ -79,10 +66,7 @@ export async function fetchPlanSubscriptionsCache(
 /*
  * Save SubscriptionCache
  */
-export async function saveSubscriptionCache(
-  redis: Redis,
-  request: SaveSubscriptionCacheRequest
-): Promise<void> {
+export const saveSubscriptionCache: SaveSubscriptionCache = async function(redis, request) {
   await subscriptionCacheRepository.saveSubscriptionCache(
     redis,
     request.subscriptionId,
@@ -99,10 +83,7 @@ export async function saveSubscriptionCache(
 /*
  * Drop SubscriptionCache
  */
-export async function dropSubscriptionCache(
-  redis: Redis,
-  request: DropSubscriptionCacheRequest
-): Promise<void> {
+export const dropSubscriptionCache: DropSubscriptionCache = async function(redis, request) {
   await subscriptionCacheRepository.dropSubscriptionCache(
     redis,
     request.subscriptionId,

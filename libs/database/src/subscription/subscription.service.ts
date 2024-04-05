@@ -1,17 +1,11 @@
 import { Notify } from '@avito-speculant/common'
 import {
-  CreateSubscriptionRequest,
-  CreateSubscriptionResponse,
-  ActivateSubscriptionRequest,
-  ActivateSubscriptionResponse,
-  CancelSubscriptionRequest,
-  CancelSubscriptionResponse,
-  ListSubscriptionsRequest,
-  ListSubscriptionsResponse,
-  ProduceSubscriptionsRequest,
-  ProduceSubscriptionsResponse,
-  ConsumeSubscriptionRequest,
-  ConsumeSubscriptionResponse
+  CreateSubscription,
+  ActivateSubscription,
+  CancelSubscription,
+  ListSubscriptions,
+  ProduceSubscriptions,
+  ConsumeSubscription
 } from './dto/index.js'
 import { Subscription } from './subscription.js'
 import {
@@ -26,15 +20,11 @@ import * as userRepository from '../user/user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
 import { PlanNotFoundError, PlanIsDisabledError } from '../plan/plan.errors.js'
 import * as planRepository from '../plan/plan.repository.js'
-import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Subscription
  */
-export async function createSubscription(
-  db: KyselyDatabase,
-  request: CreateSubscriptionRequest
-): Promise<CreateSubscriptionResponse> {
+export const createSubscription: CreateSubscription = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -107,10 +97,7 @@ export async function createSubscription(
 /**
  * Activate Subscription
  */
-export async function activateSubscription(
-  db: KyselyDatabase,
-  request: ActivateSubscriptionRequest
-): Promise<ActivateSubscriptionResponse> {
+export const activateSubscription: ActivateSubscription = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -176,10 +163,7 @@ export async function activateSubscription(
 /**
  * Cancel Subscription
  */
-export async function cancelSubscription(
-  db: KyselyDatabase,
-  request: CancelSubscriptionRequest
-): Promise<CancelSubscriptionResponse> {
+export const cancelSubscription: CancelSubscription = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -237,10 +221,7 @@ export async function cancelSubscription(
 /**
  * List Subscriptions
  */
-export async function listSubscriptions(
-  db: KyselyDatabase,
-  request: ListSubscriptionsRequest
-): Promise<ListSubscriptionsResponse> {
+export const listSubscriptions: ListSubscriptions = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
@@ -263,10 +244,7 @@ export async function listSubscriptions(
 /**
  * Produce Subscriptions
  */
-export async function produceSubscriptions(
-  db: KyselyDatabase,
-  request: ProduceSubscriptionsRequest
-): Promise<ProduceSubscriptionsResponse> {
+export const produceSubscriptions: ProduceSubscriptions = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const subscriptions: Subscription[] = []
 
@@ -288,10 +266,7 @@ export async function produceSubscriptions(
 /**
  * Consume Subscription
  */
-export async function consumeSubscription(
-  db: KyselyDatabase,
-  request: ConsumeSubscriptionRequest
-): Promise<ConsumeSubscriptionResponse> {
+export const consumeSubscription: ConsumeSubscription = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false

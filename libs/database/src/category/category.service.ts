@@ -1,15 +1,11 @@
 import { Notify } from '@avito-speculant/common'
 import {
-  CreateCategoryRequest,
-  CreateCategoryResponse,
-  EnableDisableCategoryRequest,
-  EnableDisableCategoryResponse,
-  ListCategoriesRequest,
-  ListCategoriesResponse,
-  ProduceCategoriesRequest,
-  ProduceCategoriesResponse,
-  ConsumeCategoryRequest,
-  ConsumeCategoryResponse
+  CreateCategory,
+  EnableCategory,
+  DisableCategory,
+  ListCategories,
+  ProduceCategories,
+  ConsumeCategory,
 } from './dto/index.js'
 import { Category } from './category.js'
 import { CategoryNotFoundError, CategoriesLimitExceedError } from './category.errors.js'
@@ -19,15 +15,11 @@ import { UserNotFoundError, UserNotPaidError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
 import { SubscriptionNotActiveError } from '../subscription/subscription.errors.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
-import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Category
  */
-export async function createCategory(
-  db: KyselyDatabase,
-  request: CreateCategoryRequest
-): Promise<CreateCategoryResponse> {
+export const createCategory: CreateCategory = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -65,10 +57,7 @@ export async function createCategory(
 /**
  * Enable Category
  */
-export async function enableCategory(
-  db: KyselyDatabase,
-  request: EnableDisableCategoryRequest
-): Promise<EnableDisableCategoryResponse> {
+export const enableCategory: EnableCategory = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -139,10 +128,7 @@ export async function enableCategory(
 /**
  * Disable Category
  */
-export async function disableCategory(
-  db: KyselyDatabase,
-  request: EnableDisableCategoryRequest
-): Promise<EnableDisableCategoryResponse> {
+export const disableCategory: DisableCategory = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -187,10 +173,7 @@ export async function disableCategory(
 /**
  * List Categories
  */
-export async function listCategories(
-  db: KyselyDatabase,
-  request: ListCategoriesRequest
-): Promise<ListCategoriesResponse> {
+export const listCategories: ListCategories = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
@@ -215,10 +198,7 @@ export async function listCategories(
 /**
  * Produce Categories
  */
-export async function produceCategories(
-  db: KyselyDatabase,
-  request: ProduceCategoriesRequest
-): Promise<ProduceCategoriesResponse> {
+export const produceCategories: ProduceCategories = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const categories: Category[] = []
 
@@ -237,10 +217,7 @@ export async function produceCategories(
 /**
  * Consume Category
  */
-export async function consumeCategory(
-  db: KyselyDatabase,
-  request: ConsumeCategoryRequest
-): Promise<ConsumeCategoryResponse> {
+export const consumeCategory: ConsumeCategory = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false

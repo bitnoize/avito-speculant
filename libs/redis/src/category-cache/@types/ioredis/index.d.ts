@@ -4,10 +4,7 @@ declare module 'ioredis' {
   interface RedisCommander<Context> {
     fetchCategoryCache(categoryKey: string, callback?: Callback<string>): Result<string, Context>
 
-    fetchCategories(
-      categoriesKey: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
+    fetchCategories(categoriesKey: string, callback?: Callback<string>): Result<string, Context>
 
     saveCategoryCache(
       categoryKey: string,

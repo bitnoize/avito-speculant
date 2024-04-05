@@ -1,35 +1,25 @@
-import { Redis } from 'ioredis'
 import {
-  FetchCategoryCacheRequest,
-  FetchCategoryCacheResponse,
-  FetchUserCategoriesCacheRequest,
-  FetchUserCategoriesCacheResponse,
-  FetchScraperCategoriesCacheRequest,
-  FetchScraperCategoriesCacheResponse,
-  SaveScraperCategoryCacheRequest,
-  DropCategoryCacheRequest
+  FetchCategoryCache,
+  FetchUserCategoriesCache,
+  FetchScraperCategoriesCache,
+  SaveScraperCategoryCache,
+  DropCategoryCache
 } from './dto/index.js'
 import * as categoryCacheRepository from './category-cache.repository.js'
 
 /*
  * Fetch CategoryCache
  */
-export async function fetchCategoryCache(
-  redis: Redis,
-  request: FetchCategoryCacheRequest
-): Promise<FetchCategoryCacheResponse> {
+export const fetchCategoryCache: FetchCategoryCache = async function(redis, request) {
   const categoryCache = await categoryCacheRepository.fetchCategoryCache(redis, request.categoryId)
 
   return { categoryCache }
 }
 
 /*
- * Fetch User CategoryCache
+ * Fetch UserCategoriesCache
  */
-export async function fetchUserCategoriesCache(
-  redis: Redis,
-  request: FetchUserCategoriesCacheRequest
-): Promise<FetchUserCategoriesCacheResponse> {
+export const fetchUserCategoriesCache: FetchUserCategoriesCache = async function(redis, request) {
   const categoryIds = await categoryCacheRepository.fetchUserCategories(redis, request.userId)
   const categoriesCache = await categoryCacheRepository.fetchCategoriesCache(redis, categoryIds)
 
@@ -37,12 +27,9 @@ export async function fetchUserCategoriesCache(
 }
 
 /*
- * Fetch Scraper CategoryCache
+ * Fetch ScraperCategoriesCache
  */
-export async function fetchScraperCategoriesCache(
-  redis: Redis,
-  request: FetchScraperCategoriesCacheRequest
-): Promise<FetchScraperCategoriesCacheResponse> {
+export const fetchScraperCategoriesCache: FetchScraperCategoriesCache = async function(redis, request) {
   const categoryIds = await categoryCacheRepository.fetchScraperCategories(redis, request.scraperId)
   const categoriesCache = await categoryCacheRepository.fetchCategoriesCache(redis, categoryIds)
 
@@ -52,10 +39,7 @@ export async function fetchScraperCategoriesCache(
 /*
  * Save ScraperCategoryCache
  */
-export async function saveScraperCategoryCache(
-  redis: Redis,
-  request: SaveScraperCategoryCacheRequest
-): Promise<void> {
+export const saveScraperCategoryCache: SaveScraperCategoryCache = async function(redis, request) {
   await categoryCacheRepository.saveScraperCategoryCache(
     redis,
     request.categoryId,
@@ -69,10 +53,7 @@ export async function saveScraperCategoryCache(
 /*
  * Drop CategoryCache
  */
-export async function dropCategoryCache(
-  redis: Redis,
-  request: DropCategoryCacheRequest
-): Promise<void> {
+export const dropCategoryCache: DropCategoryCache = async function(redis, request) {
   await categoryCacheRepository.dropCategoryCache(
     redis,
     request.categoryId,

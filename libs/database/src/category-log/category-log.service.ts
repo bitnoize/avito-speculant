@@ -1,16 +1,12 @@
-import { ListCategoryLogsRequest, ListCategoryLogsResponse } from './dto/list-category-logs.js'
+import { ListCategoryLogs } from './dto/list-category-logs.js'
 import * as categoryLogRepository from './category-log.repository.js'
 import { CategoryNotFoundError } from '../category/category.errors.js'
 import * as categoryRepository from '../category/category.repository.js'
-import { KyselyDatabase } from '../database.js'
 
 /*
  * List CategoryLogs
  */
-export async function listCategoryLogs(
-  db: KyselyDatabase,
-  request: ListCategoryLogsRequest
-): Promise<ListCategoryLogsResponse> {
+export const listCategoryLogs: ListCategoryLogs = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const categoryRow = await categoryRepository.selectRowByIdForShare(trx, request.categoryId)
 

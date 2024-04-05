@@ -19,10 +19,13 @@ export interface AvitoAdvert {
   imageUrl: string
 }
 
+export const CATEGORY_ADVERTS_TOPICS = ['wait', 'send', 'done']
+export type CategoryAdvertTopic = (typeof CATEGORY_ADVERTS_TOPICS)[number]
+
 export const advertKey = (advertId: number) => [REDIS_CACHE_PREFIX, 'advert', advertId].join(':')
 
 export const scraperAdvertsKey = (scraperId: string) =>
   [REDIS_CACHE_PREFIX, 'scraper-adverts', scraperId].join(':')
 
-export const categoryAdvertsKey = (categoryId: number, topic: string) =>
+export const categoryAdvertsKey = (categoryId: number, topic: CategoryAdvertTopic) =>
   [REDIS_CACHE_PREFIX, 'category-adverts', categoryId, topic].join(':')

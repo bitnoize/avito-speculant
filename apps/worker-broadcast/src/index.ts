@@ -1,9 +1,9 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { queueService, heraldingService } from '@avito-speculant/queue'
-import { Config } from './worker-heralding.js'
-import { configSchema } from './worker-heralding.schema.js'
-import heraldingProcessor from './worker-heralding.processor.js'
+import { queueService, broadcastService } from '@avito-speculant/queue'
+import { Config } from './worker-broadcast.js'
+import { configSchema } from './worker-broadcast.schema.js'
+import broadcastProcessor from './worker-broadcast.processor.js'
 
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
@@ -12,18 +12,18 @@ async function bootstrap(): Promise<void> {
   const logger = loggerService.initLogger(loggerOptions)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
-  const concurrency = heraldingService.getWorkerConcurrency<Config>(config)
-  const limiter = heraldingService.getWorkerLimiter<Config>(config)
+  const concurrency = broadcastService.getWorkerConcurrency<Config>(config)
+  const limiter = broadcastService.getWorkerLimiter<Config>(config)
 
-  const heraldingWorker = heraldingService.initWorker(
-    heraldingProcessor,
+  const broadcastWorker = broadcastService.initWorker(
+    broadcastProcessor,
     queueConnection,
     concurrency,
     limiter,
     logger
   )
 
-  await heraldingService.runWorker(heraldingWorker)
+  await broadcastService.runWorker(broadcastWorker)
 }
 
 bootstrap().catch((error) => {

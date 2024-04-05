@@ -1,9 +1,12 @@
 import { ScraperCache } from '../scraper-cache.js'
+import { RedisMethod } from '../../redis.js'
 
-export interface FetchScraperCacheRequest {
+export type FetchScraperCacheRequest = {
   scraperId: string
 }
 
-export interface FetchScraperCacheResponse {
+export type FetchScraperCacheResponse = {
   scraperCache: ScraperCache
 }
+
+export type FetchScraperCache = RedisMethod<FetchScraperCacheRequest, FetchScraperCacheResponse>

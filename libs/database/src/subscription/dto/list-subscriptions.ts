@@ -1,10 +1,16 @@
 import { Subscription } from '../subscription.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ListSubscriptionsRequest {
+export type ListSubscriptionsRequest = {
   userId: number
   all?: boolean
 }
 
-export interface ListSubscriptionsResponse {
+export type ListSubscriptionsResponse = {
   subscriptions: Subscription[]
 }
+
+export type ListSubscriptions = DatabaseMethod<
+  ListSubscriptionsRequest,
+  ListSubscriptionsResponse
+>

@@ -1,24 +1,24 @@
 import { Logger } from '@avito-speculant/logger'
 import { ConnectionOptions, RateLimiterOptions } from 'bullmq'
 import {
-  HERALDING_QUEUE_NAME,
-  HeraldingConfig,
-  HeraldingName,
-  HeraldingData,
-  HeraldingResult,
-  HeraldingQueue,
-  HeraldingJob,
-  HeraldingWorker,
-  HeraldingProcessor
-} from './heralding.js'
+  BROADCAST_QUEUE_NAME,
+  BroadcastConfig,
+  BroadcastName,
+  BroadcastData,
+  BroadcastResult,
+  BroadcastQueue,
+  BroadcastJob,
+  BroadcastWorker,
+  BroadcastProcessor
+} from './broadcast.js'
 import { initBaseQueue, initBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
-export function initQueue(connection: ConnectionOptions, logger: Logger): HeraldingQueue {
-  return initBaseQueue<HeraldingData, HeraldingResult, HeraldingName>(
-    HERALDING_QUEUE_NAME,
+export function initQueue(connection: ConnectionOptions, logger: Logger): BroadcastQueue {
+  return initBaseQueue<BroadcastData, BroadcastResult, BroadcastName>(
+    BROADCAST_QUEUE_NAME,
     connection,
     logger
   )
@@ -28,10 +28,10 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Herald
  * Add Job
  */
 export async function addJob(
-  queue: HeraldingQueue,
+  queue: BroadcastQueue,
   userId: number,
   everySec: number
-): Promise<HeraldingJob> {
+): Promise<BroadcastJob> {
   const jobId = 'user-' + userId
   const every = everySec * 1000
   return await queue.add(
@@ -52,8 +52,8 @@ export async function addJob(
  * Remove Job
  */
 export async function removeJob(
-  queue: HeraldingQueue,
-  userId: string,
+  queue: BroadcastQueue,
+  userId: number,
   everySec: number
 ): Promise<boolean> {
   const jobId = 'user-' + userId
@@ -70,24 +70,24 @@ export async function removeJob(
 /**
  * Close Queue
  */
-export async function closeQueue(queue: HeraldingQueue): Promise<void> {
+export async function closeQueue(queue: BroadcastQueue): Promise<void> {
   await queue.close()
 }
 
 /**
  * Get Worker concurrency from config
  */
-export function getWorkerConcurrency<T extends HeraldingConfig>(config: T): number {
-  return config.HERALDING_CONCURRENCY
+export function getWorkerConcurrency<T extends BroadcastConfig>(config: T): number {
+  return config.BROADCAST_CONCURRENCY
 }
 
 /**
  * Get Worker limiter from config
  */
-export function getWorkerLimiter<T extends HeraldingConfig>(config: T): RateLimiterOptions {
+export function getWorkerLimiter<T extends BroadcastConfig>(config: T): RateLimiterOptions {
   return {
-    max: config.HERALDING_LIMITER_MAX,
-    duration: config.HERALDING_LIMITER_DURATION
+    max: config.BROADCAST_LIMITER_MAX,
+    duration: config.BROADCAST_LIMITER_DURATION
   }
 }
 
@@ -95,14 +95,14 @@ export function getWorkerLimiter<T extends HeraldingConfig>(config: T): RateLimi
  * Initialize Worker
  */
 export function initWorker(
-  processor: HeraldingProcessor,
+  processor: BroadcastProcessor,
   connection: ConnectionOptions,
   concurrency: number,
   limiter: RateLimiterOptions,
   logger: Logger
-): HeraldingWorker {
-  return initBaseWorker<HeraldingData, HeraldingResult, HeraldingName>(
-    HERALDING_QUEUE_NAME,
+): BroadcastWorker {
+  return initBaseWorker<BroadcastData, BroadcastResult, BroadcastName>(
+    BROADCAST_QUEUE_NAME,
     processor,
     connection,
     concurrency,
@@ -114,13 +114,13 @@ export function initWorker(
 /**
  * Run Worker
  */
-export async function runWorker(worker: HeraldingWorker): Promise<void> {
+export async function runWorker(worker: BroadcastWorker): Promise<void> {
   await worker.run()
 }
 
 /**
  * Close Worker
  */
-export async function closeWorker(worker: HeraldingWorker): Promise<void> {
+export async function closeWorker(worker: BroadcastWorker): Promise<void> {
   await worker.close()
 }

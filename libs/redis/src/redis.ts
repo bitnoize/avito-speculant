@@ -15,3 +15,5 @@ export type RedisConfig = {
 }
 
 export type InitScripts = (redis: Redis) => void
+
+export type RedisMethod<Request, Response> = (redis: Redis, request: Request) => Promise<Response>

@@ -1,9 +1,15 @@
 import { CategoryCache } from '../category-cache.js'
+import { RedisMethod } from '../../redis.js'
 
-export interface FetchUserCategoriesCacheRequest {
+export type FetchUserCategoriesCacheRequest = {
   userId: number
 }
 
-export interface FetchUserCategoriesCacheResponse {
+export type FetchUserCategoriesCacheResponse = {
   categoriesCache: CategoryCache[]
 }
+
+export type FetchUserCategoriesCache = RedisMethod<
+  FetchUserCategoriesCacheRequest,
+  FetchUserCategoriesCacheResponse
+>

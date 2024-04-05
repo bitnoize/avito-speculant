@@ -1,29 +1,21 @@
 import { Notify } from '@avito-speculant/common'
 import {
-  CreateProxyRequest,
-  CreateProxyResponse,
-  EnableDisableProxyRequest,
-  EnableDisableProxyResponse,
-  ListProxiesRequest,
-  ListProxiesResponse,
-  ProduceProxiesRequest,
-  ProduceProxiesResponse,
-  ConsumeProxyRequest,
-  ConsumeProxyResponse
+  CreateProxy,
+  EnableProxy,
+  DisableProxy,
+  ListProxies,
+  ProduceProxies,
+  ConsumeProxy,
 } from './dto/index.js'
 import { Proxy } from './proxy.js'
 import { ProxyNotFoundError, ProxyAllreadyExistsError } from './proxy.errors.js'
 import * as proxyRepository from './proxy.repository.js'
 import * as proxyLogRepository from '../proxy-log/proxy-log.repository.js'
-import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Proxy
  */
-export async function createProxy(
-  db: KyselyDatabase,
-  request: CreateProxyRequest
-): Promise<CreateProxyResponse> {
+export const createProxy: CreateProxy = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -57,10 +49,7 @@ export async function createProxy(
 /**
  * Enable Proxy
  */
-export async function enableProxy(
-  db: KyselyDatabase,
-  request: EnableDisableProxyRequest
-): Promise<EnableDisableProxyResponse> {
+export const enableProxy: EnableProxy = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -101,10 +90,7 @@ export async function enableProxy(
 /**
  * Disable Proxy
  */
-export async function disableProxy(
-  db: KyselyDatabase,
-  request: EnableDisableProxyRequest
-): Promise<EnableDisableProxyResponse> {
+export const disableProxy: DisableProxy = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -145,10 +131,7 @@ export async function disableProxy(
 /**
  * List Proxies
  */
-export async function listProxies(
-  db: KyselyDatabase,
-  request: ListProxiesRequest
-): Promise<ListProxiesResponse> {
+export const listProxies: ListProxies = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const proxyRows = await proxyRepository.selectRowsList(trx, request.all ?? false)
 
@@ -161,10 +144,7 @@ export async function listProxies(
 /**
  * Produce Proxies
  */
-export async function produceProxies(
-  db: KyselyDatabase,
-  request: ProduceProxiesRequest
-): Promise<ProduceProxiesResponse> {
+export const produceProxies: ProduceProxies = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const proxies: Proxy[] = []
 
@@ -183,10 +163,7 @@ export async function produceProxies(
 /**
  * Consume Proxy
  */
-export async function consumeProxy(
-  db: KyselyDatabase,
-  request: ConsumeProxyRequest
-): Promise<ConsumeProxyResponse> {
+export const consumeProxy: ConsumeProxy = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false

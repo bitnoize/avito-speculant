@@ -1,7 +1,7 @@
 @avito-speculant/queue
 ----------------------
 
-Очереди, задачи и воркеры
+Очереди, задания и воркеры
 
 Стек:
 
@@ -13,7 +13,9 @@
 * heartbeatService
 * treatmentService
 * proxycheckService
-* scraperService
+* scrapingService
+* broadcastService
+* sendreportService
 
 ```
 # Собрать модуль

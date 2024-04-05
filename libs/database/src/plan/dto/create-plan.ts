@@ -1,8 +1,9 @@
 import { Notify } from '@avito-speculant/common'
 import { Plan } from '../plan.js'
 import { PlanLogData } from '../../plan-log/plan-log.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface CreatePlanRequest {
+export type CreatePlanRequest = {
   categoriesMax: number
   priceRub: number
   durationDays: number
@@ -11,7 +12,9 @@ export interface CreatePlanRequest {
   data: PlanLogData
 }
 
-export interface CreatePlanResponse {
+export type CreatePlanResponse = {
   plan: Plan
   backLog: Notify[]
 }
+
+export type CreatePlan = DatabaseMethod<CreatePlanRequest, CreatePlanResponse>

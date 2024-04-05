@@ -1,10 +1,13 @@
 import { CategoryLog } from '../category-log.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ListCategoryLogsRequest {
+export type ListCategoryLogsRequest = {
   categoryId: number
   limit: number
 }
 
-export interface ListCategoryLogsResponse {
+export type ListCategoryLogsResponse = {
   categoryLogs: CategoryLog[]
 }
+
+export type ListCategoryLogs = DatabaseMethod<ListCategoryLogsRequest, ListCategoryLogsResponse>

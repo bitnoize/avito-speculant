@@ -67,6 +67,18 @@ export async function dropUserCache(redis: Redis, userId: number): Promise<void>
   )
 }
 
+export async function renewUserCache(
+  redis: Redis,
+  userId: number,
+  checkpoint: number
+): Promise<void> {
+  await redis.renewUserCache(
+    userKey(userId), // KEYS[1]
+    checkpoint, // ARGV[1]
+    Date.now() // ARGV[2]
+  )
+}
+
 const parseModel = (result: unknown, message: string): UserCache => {
   const hash = parseHash(result, 4, message)
 

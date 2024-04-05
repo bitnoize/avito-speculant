@@ -1,10 +1,16 @@
 import { SubscriptionLog } from '../subscription-log.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ListSubscriptionLogsRequest {
+export type ListSubscriptionLogsRequest = {
   subscriptionId: number
   limit: number
 }
 
-export interface ListSubscriptionLogsResponse {
+export type ListSubscriptionLogsResponse = {
   subscriptionLogs: SubscriptionLog[]
 }
+
+export type ListSubscriptionLogs = DatabaseMethod<
+  ListSubscriptionLogsRequest,
+  ListSubscriptionLogsResponse
+>

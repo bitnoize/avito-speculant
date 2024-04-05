@@ -17,6 +17,7 @@ Avito-Speculant
 * [@avito-speculant/worker-treatment](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-treatment) - Воркер для очереди **treatment**
 * [@avito-speculant/worker-proxycheck](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-proxycheck) - Воркер для очереди **proxycheck**
 * [@avito-speculant/worker-scraping](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-scraping) - Воркер для очереди **scraping**
+* [@avito-speculant/worker-broadcast](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-broadcast) - Воркер для очереди **broadcast**
 * [@avito-speculant/worker-sendreport](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-sendreport) - Воркер для очереди **sendreport**
 
 ```

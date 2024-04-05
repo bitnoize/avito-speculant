@@ -1,9 +1,12 @@
 import { Proxy } from '../proxy.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ListProxiesRequest {
+export type ListProxiesRequest = {
   all?: boolean
 }
 
-export interface ListProxiesResponse {
+export type ListProxiesResponse = {
   proxies: Proxy[]
 }
+
+export type ListProxies = DatabaseMethod<ListProxiesRequest, ListProxiesResponse>

@@ -1,10 +1,14 @@
 import { ProxyLog } from '../proxy-log.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ListProxyLogsRequest {
+export type ListProxyLogsRequest = {
   proxyId: number
   limit: number
 }
 
-export interface ListProxyLogsResponse {
+export type ListProxyLogsResponse = {
   proxyLogs: ProxyLog[]
 }
+
+export type ListProxyLogs = DatabaseMethod<ListProxyLogsRequest, ListProxyLogsResponse>
+

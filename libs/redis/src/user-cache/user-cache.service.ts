@@ -1,20 +1,16 @@
-import { Redis } from 'ioredis'
 import {
-  FetchUserCacheRequest,
-  FetchUserCacheResponse,
-  FetchUsersCacheResponse,
-  SaveUserCacheRequest,
-  DropUserCacheRequest
+  FetchUserCache,
+  FetchUsersCache,
+  SaveUserCache,
+  DropUserCache,
+  RenewUserCache
 } from './dto/index.js'
 import * as userCacheRepository from './user-cache.repository.js'
 
 /*
  * Fetch UserCache
  */
-export async function fetchUserCache(
-  redis: Redis,
-  request: FetchUserCacheRequest
-): Promise<FetchUserCacheResponse> {
+export const fetchUserCache: FetchUserCache = async function(redis, request) {
   const userCache = await userCacheRepository.fetchUserCache(redis, request.userId)
 
   return { userCache }
@@ -23,7 +19,7 @@ export async function fetchUserCache(
 /*
  * Fetch UsersCache
  */
-export async function fetchUsersCache(redis: Redis): Promise<FetchUsersCacheResponse> {
+export const fetchUsersCache: FetchUsersCache = async function(redis) {
   const userIds = await userCacheRepository.fetchUsers(redis)
   const usersCache = await userCacheRepository.fetchUsersCache(redis, userIds)
 
@@ -33,7 +29,7 @@ export async function fetchUsersCache(redis: Redis): Promise<FetchUsersCacheResp
 /*
  * Save UserCache
  */
-export async function saveUserCache(redis: Redis, request: SaveUserCacheRequest): Promise<void> {
+export const saveUserCache: SaveUserCache = async function(redis, request) {
   await userCacheRepository.saveUserCache(
     redis,
     request.userId,
@@ -45,6 +41,13 @@ export async function saveUserCache(redis: Redis, request: SaveUserCacheRequest)
 /*
  * Drop UserCache
  */
-export async function dropUserCache(redis: Redis, request: DropUserCacheRequest): Promise<void> {
+export const dropUserCache: DropUserCache = async function(redis, request) {
   await userCacheRepository.dropUserCache(redis, request.userId)
+}
+
+/*
+ * Renew UserCache
+ */
+export const renewUserCache: RenewUserCache = async function(redis, request) {
+  await userCacheRepository.renewUserCache(redis, request.userId, request.checkpoint)
 }

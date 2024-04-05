@@ -65,7 +65,7 @@ return redis.status_reply('OK')
 
 const pourCategoryAdvertDone = `
 redis.call('SREM', KEYS[1], ARGV[1])
-redis.call('SADD', KEYS[1], ARGV[1])
+redis.call('SADD', KEYS[2], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -101,9 +101,9 @@ const initScripts: InitScripts = (redis) => {
     lua: pourCategoryAdvertsSend
   })
 
-  redis.defineCommand('pourCategoryAdvertsDone', {
+  redis.defineCommand('pourCategoryAdvertDone', {
     numberOfKeys: 2,
-    lua: pourCategoryAdvertsSend
+    lua: pourCategoryAdvertDone
   })
 }
 

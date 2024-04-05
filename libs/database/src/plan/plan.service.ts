@@ -1,32 +1,23 @@
 import { Notify } from '@avito-speculant/common'
 import {
-  CreatePlanRequest,
-  CreatePlanResponse,
-  UpdatePlanRequest,
-  UpdatePlanResponse,
-  EnableDisablePlanRequest,
-  EnableDisablePlanResponse,
-  ListPlansRequest,
-  ListPlansResponse,
-  ProducePlansRequest,
-  ProducePlansResponse,
-  ConsumePlanRequest,
-  ConsumePlanResponse
+  CreatePlan,
+  UpdatePlan,
+  EnablePlan,
+  DisablePlan,
+  ListPlans,
+  ProducePlans,
+  ConsumePlan,
 } from './dto/index.js'
 import { Plan } from './plan.js'
 import { PlanNotFoundError, PlanIsEnabledError } from './plan.errors.js'
 import * as planRepository from './plan.repository.js'
 import * as planLogRepository from '../plan-log/plan-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
-import { KyselyDatabase } from '../database.js'
 
 /**
  * Create Plan
  */
-export async function createPlan(
-  db: KyselyDatabase,
-  request: CreatePlanRequest
-): Promise<CreatePlanResponse> {
+export const createPlan: CreatePlan = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -67,10 +58,7 @@ export async function createPlan(
 /**
  * Update Plan
  */
-export async function updatePlan(
-  db: KyselyDatabase,
-  request: UpdatePlanRequest
-): Promise<UpdatePlanResponse> {
+export const updatePlan: UpdatePlan = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -137,10 +125,7 @@ export async function updatePlan(
 /**
  * Enable Plan
  */
-export async function enablePlan(
-  db: KyselyDatabase,
-  request: EnableDisablePlanRequest
-): Promise<EnableDisablePlanResponse> {
+export const enablePlan: EnablePlan = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -187,10 +172,7 @@ export async function enablePlan(
 /**
  * Disable Plan
  */
-export async function disablePlan(
-  db: KyselyDatabase,
-  request: EnableDisablePlanRequest
-): Promise<EnableDisablePlanResponse> {
+export const disablePlan: DisablePlan = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -237,10 +219,7 @@ export async function disablePlan(
 /**
  * List Plans
  */
-export async function listPlans(
-  db: KyselyDatabase,
-  request: ListPlansRequest
-): Promise<ListPlansResponse> {
+export const listPlans: ListPlans = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const planRows = await planRepository.selectRowsList(trx, request.all ?? false)
 
@@ -253,10 +232,7 @@ export async function listPlans(
 /**
  * Produce Plans
  */
-export async function producePlans(
-  db: KyselyDatabase,
-  request: ProducePlansRequest
-): Promise<ProducePlansResponse> {
+export const producePlans: ProducePlans = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const plans: Plan[] = []
 
@@ -275,10 +251,7 @@ export async function producePlans(
 /**
  * Consume Plan
  */
-export async function consumePlan(
-  db: KyselyDatabase,
-  request: ConsumePlanRequest
-): Promise<ConsumePlanResponse> {
+export const consumePlan: ConsumePlan = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false

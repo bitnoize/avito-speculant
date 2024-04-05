@@ -1,16 +1,12 @@
-import { ListPlanLogsRequest, ListPlanLogsResponse } from './dto/index.js'
+import { ListPlanLogs } from './dto/index.js'
 import { PlanNotFoundError } from '../plan/plan.errors.js'
 import * as planLogRepository from './plan-log.repository.js'
 import * as planRepository from '../plan/plan.repository.js'
-import { KyselyDatabase } from '../database.js'
 
 /*
  * List PlanLogs
  */
-export async function listPlanLogs(
-  db: KyselyDatabase,
-  request: ListPlanLogsRequest
-): Promise<ListPlanLogsResponse> {
+export const listPlanLogs: ListPlanLogs = async function listPlanLogs(db, request) {
   return await db.transaction().execute(async (trx) => {
     const planRow = await planRepository.selectRowByIdForShare(trx, request.planId)
 

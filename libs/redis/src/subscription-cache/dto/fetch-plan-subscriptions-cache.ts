@@ -1,9 +1,15 @@
 import { SubscriptionCache } from '../subscription-cache.js'
+import { RedisMethod } from '../../redis.js'
 
-export interface FetchPlanSubscriptionsCacheRequest {
+export type FetchPlanSubscriptionsCacheRequest = {
   planId: number
 }
 
-export interface FetchPlanSubscriptionsCacheResponse {
+export type FetchPlanSubscriptionsCacheResponse = {
   subscriptionsCache: SubscriptionCache[]
 }
+
+export type FetchPlanSubscriptionsCache = RedisMethod<
+  FetchPlanSubscriptionsCacheRequest,
+  FetchPlanSubscriptionsCacheResponse
+>

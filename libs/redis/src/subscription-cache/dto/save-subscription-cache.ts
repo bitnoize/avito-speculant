@@ -1,4 +1,6 @@
-export interface SaveSubscriptionCacheRequest {
+import { RedisMethod } from '../../redis.js'
+
+export type SaveSubscriptionCacheRequest = {
   subscriptionId: number
   userId: number
   planId: number
@@ -8,3 +10,10 @@ export interface SaveSubscriptionCacheRequest {
   intervalSec: number
   analyticsOn: boolean
 }
+
+export type SaveSubscriptionCacheResponse = void
+
+export type SaveSubscriptionCache = RedisMethod<
+  SaveSubscriptionCacheRequest,
+  SaveSubscriptionCacheResponse
+>

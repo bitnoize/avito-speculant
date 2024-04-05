@@ -21,7 +21,6 @@ export type SendreportData = {
 }
 
 export type SendreportNameResult = {
-  success: boolean
   durationTime: number
 }
 export type SendreportResult = Record<string, SendreportNameResult>

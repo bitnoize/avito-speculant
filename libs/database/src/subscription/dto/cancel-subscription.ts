@@ -1,13 +1,19 @@
 import { Notify } from '@avito-speculant/common'
 import { Subscription } from '../subscription.js'
 import { SubscriptionLogData } from '../../subscription-log/subscription-log.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface CancelSubscriptionRequest {
+export type CancelSubscriptionRequest = {
   subscriptionId: number
   data: SubscriptionLogData
 }
 
-export interface CancelSubscriptionResponse {
+export type CancelSubscriptionResponse = {
   subscription: Subscription
   backLog: Notify[]
 }
+
+export type CancelSubscription = DatabaseMethod<
+  CancelSubscriptionRequest,
+  CancelSubscriptionResponse
+>

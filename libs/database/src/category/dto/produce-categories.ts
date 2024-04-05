@@ -1,9 +1,13 @@
 import { Category } from '../category.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ProduceCategoriesRequest {
+export type ProduceCategoriesRequest = {
   limit: number
 }
 
-export interface ProduceCategoriesResponse {
+export type ProduceCategoriesResponse = {
   categories: Category[]
 }
+
+export type ProduceCategories = DatabaseMethod<ProduceCategoriesRequest, ProduceCategoriesResponse>
+

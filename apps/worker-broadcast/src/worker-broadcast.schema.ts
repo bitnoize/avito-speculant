@@ -9,11 +9,11 @@ import {
   DEFAULT_QUEUE_REDIS_HOST,
   DEFAULT_QUEUE_REDIS_PORT,
   DEFAULT_QUEUE_REDIS_DATABASE,
-  DEFAULT_HERALDING_CONCURRENCY,
-  DEFAULT_HERALDING_LIMITER_MAX,
-  DEFAULT_HERALDING_LIMITER_DURATION
+  DEFAULT_BROADCAST_CONCURRENCY,
+  DEFAULT_BROADCAST_LIMITER_MAX,
+  DEFAULT_BROADCAST_LIMITER_DURATION
 } from '@avito-speculant/queue'
-import { Config } from './worker-heralding.js'
+import { Config } from './worker-broadcast.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
@@ -25,9 +25,9 @@ export const configSchema: JSONSchemaType<Config> = {
     'QUEUE_REDIS_HOST',
     'QUEUE_REDIS_PORT',
     'QUEUE_REDIS_DATABASE',
-    'HERALDING_CONCURRENCY',
-    'HERALDING_LIMITER_MAX',
-    'HERALDING_LIMITER_DURATION'
+    'BROADCAST_CONCURRENCY',
+    'BROADCAST_LIMITER_MAX',
+    'BROADCAST_LIMITER_DURATION'
   ],
   properties: {
     LOG_LEVEL: {
@@ -82,23 +82,23 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'string',
       nullable: true
     },
-    HERALDING_CONCURRENCY: {
+    BROADCAST_CONCURRENCY: {
       type: 'integer',
       minimum: 1,
       maximum: 100,
-      default: DEFAULT_HERALDING_CONCURRENCY
+      default: DEFAULT_BROADCAST_CONCURRENCY
     },
-    HERALDING_LIMITER_MAX: {
+    BROADCAST_LIMITER_MAX: {
       type: 'integer',
       minimum: 1,
       maximum: 1000,
-      default: DEFAULT_HERALDING_LIMITER_MAX
+      default: DEFAULT_BROADCAST_LIMITER_MAX
     },
-    HERALDING_LIMITER_DURATION: {
+    BROADCAST_LIMITER_DURATION: {
       type: 'integer',
       minimum: 1000,
       maximum: 60000,
-      default: DEFAULT_HERALDING_LIMITER_DURATION
+      default: DEFAULT_BROADCAST_LIMITER_DURATION
     }
   }
 }

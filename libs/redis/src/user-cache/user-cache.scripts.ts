@@ -36,6 +36,15 @@ redis.call('SREM', KEYS[2], ARGV[1])
 return redis.status_reply('OK')
 `
 
+const renewUserCache = `
+if redis.call('EXISTS', KEYS[1]) ~= 0 then
+  redis.call('HSET', KEYS[1], 'checkpoint', ARGV[1])
+  redis.call('HSET', KEYS[1], 'time', ARGV[2])
+end
+
+return redis.status_reply('OK')
+`
+
 const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchUserCache', {
     numberOfKeys: 1,
@@ -55,6 +64,11 @@ const initScripts: InitScripts = (redis) => {
   redis.defineCommand('dropUserCache', {
     numberOfKeys: 2,
     lua: dropUserCache
+  })
+
+  redis.defineCommand('renewUserCache', {
+    numberOfKeys: 1,
+    lua: renewUserCache
   })
 }
 

@@ -1,9 +1,12 @@
 import { Plan } from '../plan.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ProducePlansRequest {
+export type ProducePlansRequest = {
   limit: number
 }
 
-export interface ProducePlansResponse {
+export type ProducePlansResponse = {
   plans: Plan[]
 }
+
+export type ProducePlans = DatabaseMethod<ProducePlansRequest, ProducePlansResponse>

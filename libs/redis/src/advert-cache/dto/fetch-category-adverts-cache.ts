@@ -1,10 +1,16 @@
-import { AdvertCache } from '../advert-cache.js'
+import { RedisMethod } from '../../redis.js'
+import { AdvertCache, CategoryAdvertTopic } from '../advert-cache.js'
 
-export interface FetchCategoryAdvertsCacheRequest {
+export type FetchCategoryAdvertsCacheRequest = {
   categoryId: number
-  topic: string
+  topic: CategoryAdvertTopic
 }
 
-export interface FetchCategoryAdvertsCacheResponse {
+export type FetchCategoryAdvertsCacheResponse = {
   advertsCache: AdvertCache[]
 }
+
+export type FetchCategoryAdvertsCache = RedisMethod<
+  FetchCategoryAdvertsCacheRequest,
+  FetchCategoryAdvertsCacheResponse
+>

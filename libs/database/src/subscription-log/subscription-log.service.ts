@@ -1,16 +1,12 @@
-import { ListSubscriptionLogsRequest, ListSubscriptionLogsResponse } from './dto/index.js'
+import { ListSubscriptionLogs } from './dto/index.js'
 import * as subscriptionLogRepository from './subscription-log.repository.js'
 import { SubscriptionNotFoundError } from '../subscription/subscription.errors.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
-import { KyselyDatabase } from '../database.js'
 
 /*
  * List SubscriptionLogs
  */
-export async function listSubscriptionLogs(
-  db: KyselyDatabase,
-  request: ListSubscriptionLogsRequest
-): Promise<ListSubscriptionLogsResponse> {
+export const listSubscriptionLogs: ListSubscriptionLogs = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const subscriptionRow = await subscriptionRepository.selectRowByIdForShare(
       trx,

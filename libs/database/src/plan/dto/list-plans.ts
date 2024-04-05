@@ -1,9 +1,12 @@
 import { Plan } from '../plan.js'
+import { DatabaseMethod } from '../../database.js'
 
-export interface ListPlansRequest {
+export type ListPlansRequest = {
   all?: boolean
 }
 
-export interface ListPlansResponse {
+export type ListPlansResponse = {
   plans: Plan[]
 }
+
+export type ListPlans = DatabaseMethod<ListPlansRequest, ListPlansResponse>

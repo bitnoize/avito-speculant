@@ -38,3 +38,8 @@ export interface Database {
 
 export type KyselyDatabase = Kysely<Database>
 export type TransactionDatabase = Transaction<Database>
+
+export type DatabaseMethod<Request, Response> = (
+  db: KyselyDatabase,
+  request: Request
+) => Promise<Response>

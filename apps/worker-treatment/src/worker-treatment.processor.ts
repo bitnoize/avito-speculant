@@ -25,16 +25,16 @@ import {
   TreatmentResult,
   TreatmentProcessor,
   queueService,
-  heraldingService,
+  proxycheckService,
   scrapingService,
-  proxycheckService
+  broadcastService,
 } from '@avito-speculant/queue'
 import {
   Config,
   NameProcess,
-  NameProcessHeralding,
+  NameProcessProxycheck,
   NameProcessScraping,
-  NameProcessProxycheck
+  NameProcessBroadcast,
 } from './worker-treatment.js'
 import { configSchema } from './worker-treatment.schema.js'
 
@@ -60,7 +60,7 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
 
     switch (name) {
       case 'user': {
-        const heraldingQueue = heraldingService.initQueue(queueConnection, logger)
+        const broadcastQueue = broadcastService.initQueue(queueConnection, logger)
 
         result[name] = await processUser(
           config,
@@ -69,7 +69,7 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
           redis,
           pubSub,
           treatmentJob,
-          heraldingQueue
+          broadcastQueue
         )
 
         break
@@ -142,14 +142,14 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
   return result
 }
 
-const processUser: NameProcessHeralding = async (
+const processUser: NameProcessBroadcast = async (
   config,
   logger,
   db,
   redis,
   pubSub,
   treatmentJob,
-  heraldingQueue
+  broadcastQueue
 ) => {
   try {
     const startTime = Date.now()
@@ -176,7 +176,11 @@ const processUser: NameProcessHeralding = async (
         tgFromId: user.tgFromId,
         checkpoint: startTime + subscription.intervalSec * 1000
       })
+
+      await broadcastService.addJob(broadcastQueue, user.id, 1000)
     } else {
+      await broadcastService.removeJob(broadcastQueue, user.id, 1000)
+
       await userCacheService.dropUserCache(redis, {
         userId: user.id
       })
@@ -197,7 +201,7 @@ const processUser: NameProcessHeralding = async (
 
     throw error
   } finally {
-    await heraldingService.closeQueue(heraldingQueue)
+    await broadcastService.closeQueue(broadcastQueue)
   }
 }
 

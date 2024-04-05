@@ -1,9 +1,12 @@
 import { AdvertCache } from '../advert-cache.js'
+import { RedisMethod } from '../../redis.js'
 
-export interface FetchAdvertCacheRequest {
+export type FetchAdvertCacheRequest = {
   advertId: number
 }
 
-export interface FetchAdvertCacheResponse {
+export type FetchAdvertCacheResponse = {
   advertCache: AdvertCache
 }
+
+export type FetchAdvertCache = RedisMethod<FetchAdvertCacheRequest, FetchAdvertCacheResponse>

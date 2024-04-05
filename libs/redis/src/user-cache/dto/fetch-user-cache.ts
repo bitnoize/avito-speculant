@@ -1,9 +1,12 @@
 import { UserCache } from '../user-cache.js'
+import { RedisMethod } from '../../redis.js'
 
-export interface FetchUserCacheRequest {
+export type FetchUserCacheRequest = {
   userId: number
 }
 
-export interface FetchUserCacheResponse {
+export type FetchUserCacheResponse = {
   userCache: UserCache
 }
+
+export type FetchUserCache = RedisMethod<FetchUserCacheRequest, FetchUserCacheResponse>

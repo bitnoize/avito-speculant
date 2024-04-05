@@ -6,5 +6,3 @@ export class AvitoUrlScraperError extends RedisError {
     super(context, code, message)
   }
 }
-
-

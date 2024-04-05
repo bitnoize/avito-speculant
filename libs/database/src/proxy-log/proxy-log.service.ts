@@ -1,16 +1,12 @@
-import { ListProxyLogsRequest, ListProxyLogsResponse } from './dto/index.js'
+import { ListProxyLogs } from './dto/index.js'
 import { ProxyNotFoundError } from '../proxy/proxy.errors.js'
 import * as proxyLogRepository from './proxy-log.repository.js'
 import * as proxyRepository from '../proxy/proxy.repository.js'
-import { KyselyDatabase } from '../database.js'
 
 /*
  * List ProxyLogs
  */
-export async function listProxyLogs(
-  db: KyselyDatabase,
-  request: ListProxyLogsRequest
-): Promise<ListProxyLogsResponse> {
+export const listProxyLogs: ListProxyLogs = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const proxyRow = await proxyRepository.selectRowByIdForShare(trx, request.proxyId)
 

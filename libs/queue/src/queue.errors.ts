@@ -21,8 +21,20 @@ export abstract class QueueError extends DomainError {
   }
 }
 
-export class LostRepeatableJobError extends QueueError {
-  constructor(context: ErrorContext, code = 100, message = `Lost repeatable job`) {
+export class RepeatableJobLostIdError extends QueueError {
+  constructor(context: ErrorContext, code = 100, message = `Repeatable job lost id`) {
+    super(context, code, message)
+  }
+}
+
+export class UserSubscriptionLostError extends QueueError {
+  constructor(context: ErrorContext, code = 123, message = `User subscription lost`) {
+    super(context, code, message)
+  }
+}
+
+export class OnlineProxiesUnavailableError extends QueueError {
+  constructor(context: ErrorContext, code = 123, message = `Online proxies unavailable`) {
     super(context, code, message)
   }
 }

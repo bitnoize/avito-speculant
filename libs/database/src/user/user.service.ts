@@ -1,29 +1,16 @@
 import { Notify } from '@avito-speculant/common'
-import {
-  AuthorizeUserRequest,
-  AuthorizeUserResponse,
-  ListUsersRequest,
-  ListUsersResponse,
-  ProduceUsersRequest,
-  ProduceUsersResponse,
-  ConsumeUserRequest,
-  ConsumeUserResponse
-} from './dto/index.js'
+import { AuthorizeUser, ListUsers, ProduceUsers, ConsumeUser } from './dto/index.js'
 import { User } from './user.js'
 import { UserNotFoundError } from './user.errors.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as categoryRepository from '../category/category.repository.js'
-import { KyselyDatabase } from '../database.js'
 
 /**
  * Authorize User
  */
-export async function authorizeUser(
-  db: KyselyDatabase,
-  request: AuthorizeUserRequest
-): Promise<AuthorizeUserResponse> {
+export const authorizeUser: AuthorizeUser = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -73,10 +60,7 @@ export async function authorizeUser(
 /**
  * List Users
  */
-export async function listUsers(
-  db: KyselyDatabase,
-  request: ListUsersRequest
-): Promise<ListUsersResponse> {
+export const listUsers: ListUsers = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     // ...
 
@@ -91,10 +75,7 @@ export async function listUsers(
 /**
  * Produce Users
  */
-export async function produceUsers(
-  db: KyselyDatabase,
-  request: ProduceUsersRequest
-): Promise<ProduceUsersResponse> {
+export const produceUsers: ProduceUsers = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const users: User[] = []
 
@@ -113,10 +94,7 @@ export async function produceUsers(
 /**
  * Consume User
  */
-export async function consumeUser(
-  db: KyselyDatabase,
-  request: ConsumeUserRequest
-): Promise<ConsumeUserResponse> {
+export const consumeUser: ConsumeUser = async function(db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false
