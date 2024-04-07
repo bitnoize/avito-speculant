@@ -3,18 +3,19 @@ import { RedisConfig, Redis, AvitoAdvert } from '@avito-speculant/redis'
 import {
   QueueConfig,
   ScrapingConfig,
-  ScrapingNameResult,
+  ScrapingResult,
   ScrapingJob
 } from '@avito-speculant/queue'
 
 export type Config = LoggerConfig & RedisConfig & QueueConfig & ScrapingConfig
 
-export type NameProcess = (
+export type ProcessDefault = (
   config: Config,
   logger: Logger,
   redis: Redis,
-  scrapingJob: ScrapingJob
-) => Promise<ScrapingNameResult>
+  scrapingJob: ScrapingJob,
+  scrapingResult: ScrapingResult
+) => Promise<void>
 
 export type CurlResponse = {
   statusCode: number

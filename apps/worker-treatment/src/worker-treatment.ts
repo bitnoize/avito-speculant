@@ -4,7 +4,7 @@ import { RedisConfig, Redis } from '@avito-speculant/redis'
 import {
   QueueConfig,
   TreatmentConfig,
-  TreatmentNameResult,
+  TreatmentResult,
   TreatmentJob,
   ScrapingQueue,
   ProxycheckQueue,
@@ -19,8 +19,9 @@ export type NameProcess = (
   db: KyselyDatabase,
   redis: Redis,
   pubSub: Redis,
-  treatmentJob: TreatmentJob
-) => Promise<TreatmentNameResult>
+  treatmentJob: TreatmentJob,
+  treatmentResult: TreatmentResult,
+) => Promise<void>
 
 export type NameProcessBroadcast = (
   config: Config,
@@ -29,8 +30,9 @@ export type NameProcessBroadcast = (
   redis: Redis,
   pubSub: Redis,
   treatmentJob: TreatmentJob,
+  treatmentResult: TreatmentResult,
   broadcastQueue: BroadcastQueue
-) => Promise<TreatmentNameResult>
+) => Promise<void>
 
 export type NameProcessScraping = (
   config: Config,
@@ -39,8 +41,9 @@ export type NameProcessScraping = (
   redis: Redis,
   pubSub: Redis,
   treatmentJob: TreatmentJob,
+  treatmentResult: TreatmentResult,
   scrapingQueue: ScrapingQueue
-) => Promise<TreatmentNameResult>
+) => Promise<void>
 
 export type NameProcessProxycheck = (
   config: Config,
@@ -49,5 +52,6 @@ export type NameProcessProxycheck = (
   redis: Redis,
   pubSub: Redis,
   treatmentJob: TreatmentJob,
+  treatmentResult: TreatmentResult,
   proxycheckQueue: ProxycheckQueue
-) => Promise<TreatmentNameResult>
+) => Promise<void>

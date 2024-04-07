@@ -12,20 +12,15 @@ import {
 import {
   redisService,
   systemService,
-  subscriptionCacheService,
-  categoryCacheService,
-  scraperCacheService
 } from '@avito-speculant/redis'
 import {
   ProcessorUnknownStepError,
-  RepeatableJobLostIdError,
   HeartbeatResult,
   HeartbeatProcessor,
   queueService,
-  treatmentService,
-  scrapingService
+  treatmentService
 } from '@avito-speculant/queue'
-import { Config, StepProcessTreatment, StepProcessScraping } from './worker-heartbeat.js'
+import { Config, StepProcessTreatment } from './worker-heartbeat.js'
 import { configSchema } from './worker-heartbeat.schema.js'
 
 const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
@@ -42,7 +37,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
 
-  const result: HeartbeatResult = {}
+  const heartbeatResult: HeartbeatResult = {}
 
   try {
     let { step } = heartbeatJob.data
@@ -52,7 +47,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         case 'users': {
           const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-          result[step] = await processUsers(config, logger, db, treatmentQueue)
+          await processUsers(config, logger, db, heartbeatJob, heartbeatResult, treatmentQueue)
 
           step = 'plans'
           await heartbeatJob.updateData({ step })
@@ -63,7 +58,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         case 'plans': {
           const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-          result[step] = await processPlans(config, logger, db, treatmentQueue)
+          await processPlans(config, logger, db, heartbeatJob, heartbeatResult, treatmentQueue)
 
           step = 'subscriptions'
           await heartbeatJob.updateData({ step })
@@ -74,7 +69,14 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         case 'subscriptions': {
           const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-          result[step] = await processSubscriptions(config, logger, db, treatmentQueue)
+          await processSubscriptions(
+            config,
+            logger,
+            db,
+            heartbeatJob,
+            heartbeatResult,
+            treatmentQueue
+          )
 
           step = 'categories'
           await heartbeatJob.updateData({ step })
@@ -85,7 +87,14 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         case 'categories': {
           const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-          result[step] = await processCategories(config, logger, db, treatmentQueue)
+          await processCategories(
+            config,
+            logger,
+            db,
+            heartbeatJob,
+            heartbeatResult,
+            treatmentQueue
+          )
 
           step = 'proxies'
           await heartbeatJob.updateData({ step })
@@ -96,18 +105,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         case 'proxies': {
           const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-          result[step] = await processProxies(config, logger, db, treatmentQueue)
-
-          step = 'scrapers'
-          await heartbeatJob.updateData({ step })
-
-          break
-        }
-
-        case 'scrapers': {
-          const scrapingQueue = scrapingService.initQueue(queueConnection, logger)
-
-          result[step] = await processScrapers(config, logger, redis, scrapingQueue)
+          await processProxies(config, logger, db, heartbeatJob, heartbeatResult, treatmentQueue)
 
           step = 'complete'
           await heartbeatJob.updateData({ step })
@@ -135,26 +133,44 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
     await databaseService.closeDatabase(db)
   }
 
-  return result
+  return heartbeatResult
 }
 
-const processUsers: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processUsers: StepProcessTreatment = async function(
+  config,
+  logger,
+  db,
+  heartbeatJob,
+  heartbeatResult,
+  treatmentQueue
+) {
   try {
     const startTime = Date.now()
+    const { step } = heartbeatJob.data
 
-    const { users } = await userService.produceUsers(db, {
-      limit: config.HEARTBEAT_PRODUCE_USERS_LIMIT
-    })
+    const fillingCount = await treatmentQueue.count()
+    if (fillingCount < config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+      const { users } = await userService.produceUsers(db, {
+        limit: config.HEARTBEAT_PRODUCE_USERS_LIMIT
+      })
 
-    await treatmentService.addJobs(
-      treatmentQueue,
-      'user',
-      users.map((user) => user.id)
-    )
+      await treatmentService.addJobs(
+        treatmentQueue,
+        'user',
+        users.map((user) => user.id)
+      )
 
-    return {
-      entities: users.length,
-      durationTime: Date.now() - startTime
+      heartbeatResult[step] = {
+        produceCount: users.length,
+        durationTime: Date.now() - startTime
+      }
+    } else {
+      logger.warn(`HeartbeatProcessor processUsers overflow jobs`)
+
+      heartbeatResult[step] = {
+        produceCount: 0,
+        durationTime: Date.now() - startTime
+      }
     }
   } catch (error) {
     if (error instanceof DomainError) {
@@ -169,23 +185,41 @@ const processUsers: StepProcessTreatment = async (config, logger, db, treatmentQ
   }
 }
 
-const processPlans: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processPlans: StepProcessTreatment = async function(
+  config,
+  logger,
+  db,
+  heartbeatJob,
+  heartbeatResult,
+  treatmentQueue
+) {
   try {
     const startTime = Date.now()
+    const { step } = heartbeatJob.data
 
-    const { plans } = await planService.producePlans(db, {
-      limit: config.HEARTBEAT_PRODUCE_PLANS_LIMIT
-    })
+    const fillingCount = await treatmentQueue.count()
+    if (fillingCount < config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+      const { plans } = await planService.producePlans(db, {
+        limit: config.HEARTBEAT_PRODUCE_PLANS_LIMIT
+      })
 
-    await treatmentService.addJobs(
-      treatmentQueue,
-      'plan',
-      plans.map((plan) => plan.id)
-    )
+      await treatmentService.addJobs(
+        treatmentQueue,
+        'plan',
+        plans.map((plan) => plan.id)
+      )
 
-    return {
-      entities: plans.length,
-      durationTime: Date.now() - startTime
+      heartbeatResult[step] = {
+        produceCount: plans.length,
+        durationTime: Date.now() - startTime
+      }
+    } else {
+      logger.warn(`HeartbeatProcessor processPlans overflow jobs`)
+
+      heartbeatResult[step] = {
+        produceCount: 0,
+        durationTime: Date.now() - startTime
+      }
     }
   } catch (error) {
     if (error instanceof DomainError) {
@@ -200,23 +234,41 @@ const processPlans: StepProcessTreatment = async (config, logger, db, treatmentQ
   }
 }
 
-const processSubscriptions: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processSubscriptions: StepProcessTreatment = async function(
+  config,
+  logger,
+  db,
+  heartbeatJob,
+  heartbeatResult,
+  treatmentQueue
+) {
   try {
     const startTime = Date.now()
+    const { step } = heartbeatJob.data
 
-    const { subscriptions } = await subscriptionService.produceSubscriptions(db, {
-      limit: config.HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT
-    })
+    const fillingCount = await treatmentQueue.count()
+    if (fillingCount < config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+      const { subscriptions } = await subscriptionService.produceSubscriptions(db, {
+        limit: config.HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT
+      })
 
-    await treatmentService.addJobs(
-      treatmentQueue,
-      'subscription',
-      subscriptions.map((subscription) => subscription.id)
-    )
+      await treatmentService.addJobs(
+        treatmentQueue,
+        'subscription',
+        subscriptions.map((subscription) => subscription.id)
+      )
 
-    return {
-      entities: subscriptions.length,
-      durationTime: Date.now() - startTime
+      heartbeatResult[step] = {
+        produceCount: subscriptions.length,
+        durationTime: Date.now() - startTime
+      }
+    } else {
+      logger.warn(`HeartbeatProcessor processSubscriptions overflow jobs`)
+
+      heartbeatResult[step] = {
+        produceCount: 0,
+        durationTime: Date.now() - startTime
+      }
     }
   } catch (error) {
     if (error instanceof DomainError) {
@@ -231,23 +283,41 @@ const processSubscriptions: StepProcessTreatment = async (config, logger, db, tr
   }
 }
 
-const processCategories: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processCategories: StepProcessTreatment = async function(
+  config,
+  logger,
+  db,
+  heartbeatJob,
+  heartbeatResult,
+  treatmentQueue
+) {
   try {
     const startTime = Date.now()
+    const { step } = heartbeatJob.data
 
-    const { categories } = await categoryService.produceCategories(db, {
-      limit: config.HEARTBEAT_PRODUCE_CATEGORIES_LIMIT
-    })
+    const fillingCount = await treatmentQueue.count()
+    if (fillingCount < config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+      const { categories } = await categoryService.produceCategories(db, {
+        limit: config.HEARTBEAT_PRODUCE_CATEGORIES_LIMIT
+      })
 
-    await treatmentService.addJobs(
-      treatmentQueue,
-      'category',
-      categories.map((category) => category.id)
-    )
+      await treatmentService.addJobs(
+        treatmentQueue,
+        'category',
+        categories.map((category) => category.id)
+      )
 
-    return {
-      entities: categories.length,
-      durationTime: Date.now() - startTime
+      heartbeatResult[step] = {
+        produceCount: categories.length,
+        durationTime: Date.now() - startTime
+      }
+    } else {
+      logger.warn(`HeartbeatProcessor processCategories overflow jobs`)
+
+      heartbeatResult[step] = {
+        produceCount: 0,
+        durationTime: Date.now() - startTime
+      }
     }
   } catch (error) {
     if (error instanceof DomainError) {
@@ -262,23 +332,41 @@ const processCategories: StepProcessTreatment = async (config, logger, db, treat
   }
 }
 
-const processProxies: StepProcessTreatment = async (config, logger, db, treatmentQueue) => {
+const processProxies: StepProcessTreatment = async function(
+  config,
+  logger,
+  db,
+  heartbeatJob,
+  heartbeatResult,
+  treatmentQueue
+) {
   try {
     const startTime = Date.now()
+    const { step } = heartbeatJob.data
 
-    const { proxies } = await proxyService.produceProxies(db, {
-      limit: config.HEARTBEAT_PRODUCE_PROXIES_LIMIT
-    })
+    const fillingCount = await treatmentQueue.count()
+    if (fillingCount < config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+      const { proxies } = await proxyService.produceProxies(db, {
+        limit: config.HEARTBEAT_PRODUCE_PROXIES_LIMIT
+      })
 
-    await treatmentService.addJobs(
-      treatmentQueue,
-      'proxy',
-      proxies.map((proxy) => proxy.id)
-    )
+      await treatmentService.addJobs(
+        treatmentQueue,
+        'proxy',
+        proxies.map((proxy) => proxy.id)
+      )
 
-    return {
-      entities: proxies.length,
-      durationTime: Date.now() - startTime
+      heartbeatResult[step] = {
+        produceCount: proxies.length,
+        durationTime: Date.now() - startTime
+      }
+    } else {
+      logger.warn(`HeartbeatProcessor processProxies overflow jobs`)
+
+      heartbeatResult[step] = {
+        produceCount: 0,
+        durationTime: Date.now() - startTime
+      }
     }
   } catch (error) {
     if (error instanceof DomainError) {
@@ -293,146 +381,4 @@ const processProxies: StepProcessTreatment = async (config, logger, db, treatmen
   }
 }
 
-const processScrapers: StepProcessScraping = async (config, logger, redis, scrapingQueue) => {
-  try {
-    const startTime = Date.now()
-
-    const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis, undefined)
-
-    const repeatableJobs = await scrapingQueue.getRepeatableJobs()
-
-    const scraperIds = scrapersCache.map((scraperCache) => scraperCache.id)
-    const orphanScrapingJobs = repeatableJobs.filter((repeatableJob) => {
-      if (repeatableJob.id == null) {
-        throw new RepeatableJobLostIdError({ repeatableJob })
-      }
-
-      return !scraperIds.includes(repeatableJob.id)
-    })
-
-    for (const orphanScrapingJob of orphanScrapingJobs) {
-      await scrapingQueue.removeRepeatableByKey(orphanScrapingJob.key)
-
-      const logData = {
-        job: {
-          id: orphanScrapingJob.id,
-          key: orphanScrapingJob.key,
-          name: orphanScrapingJob.name
-        }
-      }
-      logger.warn(logData, `HeartbeatProcessor remove orphan scraper`)
-    }
-
-    return {
-      entities: scrapersCache.length,
-      durationTime: Date.now() - startTime
-    }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      logger.error(`HeartbeatProcessor processScrapers exception`)
-
-      error.setEmergency()
-    }
-
-    throw error
-  } finally {
-    await scrapingService.closeQueue(scrapingQueue)
-  }
-}
-
 export default heartbeatProcessor
-
-/*
-    for (const scraperCache of scrapersCache) {
-      let isChanged = false
-
-      const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
-        scraperId: scraperCache.id
-      })
-
-      for (const categoryCache of categoriesCache) {
-        const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(
-          redis,
-          {
-            userId: categoryCache.userId
-          }
-        )
-
-        if (subscriptionCache.intervalSec < scraperCache.intervalSec) {
-          isChanged = true
-
-          scraperCache.intervalSec = subscriptionCache.intervalSec
-        }
-      }
-
-      const scrapingJob = repeatableJobs.find((repeatableJob) => {
-        if (repeatableJob.id == null) {
-          throw new RepeatableJobLostIdError({ repeatableJob })
-        }
-
-        return repeatableJob.id === scraperCache.id
-      })
-
-      if (scrapingJob !== undefined) {
-        // ScrapingJob allready running
-        console.log(`ScrapingJob allready running`)
-
-        if (categoriesCache.length === 0) {
-          // There are no categories attached to scraper, clear cache and stop job
-
-          await scraperCacheService.dropScraperCache(redis, {
-            scraperId: scraperCache.id,
-            avitoUrl: scraperCache.avitoUrl
-          })
-
-          await scrapingQueue.removeRepeatableByKey(scrapingJob.key)
-        } else {
-          // Categories exists, save cache and restart job if scraper changed
-
-          await scraperCacheService.saveScraperCache(redis, {
-            scraperId: scraperCache.id,
-            avitoUrl: scraperCache.avitoUrl,
-            intervalSec: scraperCache.intervalSec
-          })
-
-          if (isChanged) {
-            await scrapingQueue.removeRepeatableByKey(scrapingJob.key)
-
-            await scrapingService.addJob(
-              scrapingQueue,
-              'desktop',
-              scraperCache.id,
-              scraperCache.intervalSec * 1000
-            )
-          }
-        }
-      } else {
-        // There is no scraping job running yet
-        console.log(`There is no scraping job running yet`)
-
-        if (categoriesCache.length === 0) {
-          // There are no categories attached to scraper, clear cache
-
-          await scraperCacheService.dropScraperCache(redis, {
-            scraperId: scraperCache.id,
-            avitoUrl: scraperCache.avitoUrl
-          })
-        } else {
-          // Categories attached, save cache and start job
-
-          await scraperCacheService.saveScraperCache(redis, {
-            scraperId: scraperCache.id,
-            avitoUrl: scraperCache.avitoUrl,
-            intervalSec: scraperCache.intervalSec
-          })
-
-          await scrapingService.addJob(
-            scrapingQueue,
-            'desktop',
-            scraperCache.id,
-            scraperCache.intervalSec * 1000
-          )
-        }
-      }
-    }
-*/

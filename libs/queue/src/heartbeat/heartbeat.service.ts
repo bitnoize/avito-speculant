@@ -26,15 +26,15 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Heartb
 }
 
 /**
- * Add Job
+ * Add RepeatableJob
  */
-export async function addJob(
+export async function addRepeatableJob(
   queue: HeartbeatQueue,
   jobId: string,
   every: number
 ): Promise<HeartbeatJob> {
   return await queue.add(
-    'pulse',
+    'default',
     {
       step: HEARTBEAT_STEPS[0]
     },
@@ -44,6 +44,23 @@ export async function addJob(
         every
       }
     }
+  )
+}
+
+/**
+ * Remove RepeatableJob
+ */
+export async function removeRepeatableJob(
+  queue: HeartbeatQueue,
+  jobId: string,
+  every: number
+): Promise<boolean> {
+  return await queue.removeRepeatable(
+    'default',
+    {
+      every
+    },
+    jobId
   )
 }
 

@@ -42,7 +42,7 @@ export const curlRequest: CurlRequest = async (url, proxyUrl, timeoutMs, verbose
       body: Buffer.alloc(0),
       sizeBytes: 0,
       durationTime: 0,
-      error: error.message
+      error: error.message || `Curl unknown error`
     }
   }
 }
@@ -113,7 +113,7 @@ export const parseAttempt: ParseAttempt = (body) => {
       avitoAdverts: [],
       totalAdverts: 0,
       durationTime: 0,
-      error: error.message
+      error: error.message || `Parse unknown error`
     }
   }
 }

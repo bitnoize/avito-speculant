@@ -12,23 +12,22 @@ export type ScrapingConfig = {
   SCRAPING_LIMITER_DURATION: number
 }
 
-export type ScrapingName = 'desktop'
+export type ScrapingName = 'default'
 
 export type ScrapingData = {
   scraperId: string
 }
 
 export type ScrapingNameResult = {
-  scraperId: string
-  proxyId: number
   success: boolean
   statusCode: number
   sizeBytes: number
   durationTime: number
   curlDurationTime: number
   parseDurationTime: number
+  totalAdverts: number
 }
-export type ScrapingResult = Record<string, ScrapingNameResult>
+export type ScrapingResult = Partial<Record<ScrapingName, ScrapingNameResult>>
 
 export type ScrapingQueue = Queue<ScrapingData, ScrapingResult, ScrapingName>
 export type ScrapingJob = Job<ScrapingData, ScrapingResult, ScrapingName>

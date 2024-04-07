@@ -11,7 +11,7 @@ declare module 'ioredis' {
       usersKey: string,
       userId: number,
       tgFromId: string,
-      checkpoint: number,
+      checkpointAt: number,
       time: number,
       callback?: Callback<string>
     ): Result<string, Context>
@@ -25,7 +25,7 @@ declare module 'ioredis' {
 
     renewUserCache(
       userKey: string,
-      checkpoint: number,
+      checkpointAt: number,
       time: number,
       callback?: Callback<string>
     ): Result<string, Context>

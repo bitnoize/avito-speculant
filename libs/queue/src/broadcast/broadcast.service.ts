@@ -25,15 +25,13 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Broadc
 }
 
 /**
- * Add Job
+ * Add RepeatableJob
  */
-export async function addJob(
+export async function addRepeatableJob(
   queue: BroadcastQueue,
-  userId: number,
-  everySec: number
+  userId: number
 ): Promise<BroadcastJob> {
-  const jobId = 'user-' + userId
-  const every = everySec * 1000
+  const jobId = `user-${userId}`
   return await queue.add(
     'default',
     {
@@ -42,26 +40,24 @@ export async function addJob(
     {
       jobId,
       repeat: {
-        every
+        every: 1000
       }
     }
   )
 }
 
 /**
- * Remove Job
+ * Remove RepeatableJob
  */
-export async function removeJob(
+export async function removeRepeatableJob(
   queue: BroadcastQueue,
   userId: number,
-  everySec: number
 ): Promise<boolean> {
-  const jobId = 'user-' + userId
-  const every = everySec * 1000
+  const jobId = `user-${userId}`
   return await queue.removeRepeatable(
     'default',
     {
-      every
+      every: 1000
     },
     jobId
   )

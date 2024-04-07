@@ -13,7 +13,7 @@ import {
   ScrapingResult,
   ScrapingProcessor
 } from '@avito-speculant/queue'
-import { Config, NameProcess, CurlRequestArgs } from './worker-scraping.js'
+import { Config, ProcessDefault, CurlRequestArgs } from './worker-scraping.js'
 import { configSchema } from './worker-scraping.schema.js'
 import { timeoutAdjust, curlRequest, parseAttempt } from '././worker-scraping.utils.js'
 
@@ -26,22 +26,10 @@ const scrapingProcessor: ScrapingProcessor = async (scrapingJob) => {
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
 
-  const result: ScrapingResult = {}
+  const scrapingResult: ScrapingResult = {}
 
   try {
-    const name = scrapingJob.name
-
-    switch (name) {
-      case 'desktop': {
-        result[name] = await processDesktop(config, logger, redis, scrapingJob)
-
-        break
-      }
-
-      default: {
-        throw new ProcessorUnknownNameError({ name })
-      }
-    }
+    await processDefault(config, logger, redis, scrapingJob, scrapingResult)
   } catch (error) {
     if (error instanceof DomainError) {
       if (error.isEmergency()) {
@@ -56,18 +44,26 @@ const scrapingProcessor: ScrapingProcessor = async (scrapingJob) => {
     await redisService.closeRedis(redis)
   }
 
-  return result
+  return scrapingResult
 }
 
-const processDesktop: NameProcess = async (config, logger, redis, scrapingJob) => {
+const processDefault: ProcessDefault = async function(
+  config,
+  logger,
+  redis,
+  scrapingJob,
+  scrapingResult
+) {
   try {
     const startTime = Date.now()
+    const name = scrapingJob.name
+    const { scraperId } = scrapingJob.data
 
     const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
-      scraperId: scrapingJob.data.scraperId
+      scraperId
     })
 
-    const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis)
+    const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis, undefined)
 
     if (proxyCache === undefined) {
       throw new OnlineProxiesUnavailableError({ scraperCache })
@@ -86,7 +82,7 @@ const processDesktop: NameProcess = async (config, logger, redis, scrapingJob) =
       await scraperCacheService.renewFailedScraperCache(redis, {
         scraperId: scraperCache.id,
         proxyId: proxyCache.id,
-        sizeBytes: 0
+        sizeBytes: curlResponse.sizeBytes
       })
 
       const logData = {
@@ -95,18 +91,19 @@ const processDesktop: NameProcess = async (config, logger, redis, scrapingJob) =
         curlRequestArgs,
         curlResponse
       }
-      logger.warn(logData, `ScrapingProcessor processDesktop curlRequest failed`)
+      logger.warn(logData, `ScrapingProcessor processDefault curlRequest failed`)
 
-      return {
-        scraperId: scraperCache.id,
-        proxyId: proxyCache.id,
+      scrapingResult[name] = {
         success: false,
-        statusCode: 0,
-        sizeBytes: 0,
+        statusCode: curlResponse.statusCode,
+        sizeBytes: curlResponse.sizeBytes,
         durationTime: Date.now() - startTime,
         curlDurationTime: curlResponse.durationTime,
-        parseDurationTime: 0
+        parseDurationTime: 0,
+        totalAdverts: 0
       }
+
+      return
     }
 
     if (curlResponse.statusCode !== 200) {
@@ -116,16 +113,17 @@ const processDesktop: NameProcess = async (config, logger, redis, scrapingJob) =
         sizeBytes: curlResponse.sizeBytes
       })
 
-      return {
-        scraperId: scraperCache.id,
-        proxyId: proxyCache.id,
+      scrapingResult[name] = {
         success: false,
         statusCode: curlResponse.statusCode,
         sizeBytes: curlResponse.sizeBytes,
         durationTime: Date.now() - startTime,
         curlDurationTime: curlResponse.durationTime,
-        parseDurationTime: 0
+        parseDurationTime: 0,
+        totalAdverts: 0
       }
+
+      return
     }
 
     const parseResult = parseAttempt(curlResponse.body)
@@ -142,18 +140,19 @@ const processDesktop: NameProcess = async (config, logger, redis, scrapingJob) =
         proxyCache,
         parseResult
       }
-      logger.error(logData, `ScrapingProcessor processDesktop parseAttempt failed`)
+      logger.warn(logData, `ScrapingProcessor processDefault parseAttempt failed`)
 
-      return {
-        scraperId: scraperCache.id,
-        proxyId: proxyCache.id,
+      scrapingResult[name] = {
         success: false,
         statusCode: curlResponse.statusCode,
         sizeBytes: curlResponse.sizeBytes,
         durationTime: Date.now() - startTime,
         curlDurationTime: curlResponse.durationTime,
-        parseDurationTime: parseResult.durationTime
+        parseDurationTime: parseResult.durationTime,
+        totalAdverts: parseResult.totalAdverts
       }
+
+      return
     }
 
     await scraperCacheService.renewSuccessScraperCache(redis, {
@@ -167,20 +166,19 @@ const processDesktop: NameProcess = async (config, logger, redis, scrapingJob) =
       avitoAdverts: parseResult.avitoAdverts
     })
 
-    return {
-      scraperId: scraperCache.id,
-      proxyId: proxyCache.id,
+    scrapingResult[name] = {
       success: true,
       statusCode: curlResponse.statusCode,
       sizeBytes: curlResponse.sizeBytes,
       durationTime: Date.now() - startTime,
       curlDurationTime: curlResponse.durationTime,
-      parseDurationTime: parseResult.durationTime
+      parseDurationTime: parseResult.durationTime,
+      totalAdverts: parseResult.totalAdverts
     }
   } catch (error) {
     if (error instanceof DomainError) {
       if (error instanceof OnlineProxiesUnavailableError) {
-        logger.warn(`ScrapingProcessor processDesktop no online proxies available`)
+        logger.warn(`ScrapingProcessor processDefault no online proxies available`)
       } else {
         error.setEmergency()
       }

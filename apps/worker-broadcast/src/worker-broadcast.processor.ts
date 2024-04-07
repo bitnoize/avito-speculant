@@ -9,12 +9,13 @@ import {
   advertCacheService
 } from '@avito-speculant/redis'
 import {
-  ProcessorUnknownNameError,
   UserSubscriptionBreakError,
   BroadcastResult,
-  BroadcastProcessor
+  BroadcastProcessor,
+  queueService,
+  sendreportService
 } from '@avito-speculant/queue'
-import { Config, NameProcessSendreport } from './worker-broadcast.js'
+import { Config, ProcessDefault } from './worker-broadcast.js'
 import { configSchema } from './worker-broadcast.schema.js'
 
 const broadcastProcessor: BroadcastProcessor = async (broadcastJob) => {
@@ -27,69 +28,20 @@ const broadcastProcessor: BroadcastProcessor = async (broadcastJob) => {
   const redis = redisService.initRedis(redisOptions, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
-  const sendreportQueue = sendreportService.initQueue(queueConnection, logger)
 
-  const result: BroadcastResult = {}
+  const broadcastResult: BroadcastResult = {}
 
   try {
-    const startTime = Date.now()
+    const sendreportQueue = sendreportService.initQueue(queueConnection, logger)
 
-    const { userCache } = await userCacheService.fetchUserCache(redis, {
-      scraperId: broadcastJob.data.userId
-    })
-
-    const { subscriptionCache } =
-      await subscriptionCacheService.fetchUserSubscriptionCache(redis, {
-        userId: userCache.id
-      })
-
-    if (subscriptionCache === undefined) {
-      throw new UserSubscriptionBreakError({ userCache })
-    }
-
-    const leap = startTime > userCache.checkpoint
-
-    if (leap) {
-      userCache.checkpoint = startTime + subscriptionCache.intervalSec * 1000
-    }
-
-    await userCacheService.renewUserCache(redis, {
-      userId: userCache.id,
-      checkpoint: userCache.checkpoint
-    })
-
-    const { categoriesCache } = await categoryCacheService.fetchUserCategoriesCache(redis, {
-      userId: userCache.id
-    })
-
-    for (const categoryCache of categoriesCache) {
-      if (leap) {
-        await advertCacheService.pourCategoryAdvertsWait(redis, {
-          scraperId: categoryCache.scraperId,
-          categoryId: categoryCache.id
-        })
-      }
-
-      await advertCacheService.pourScraperAdvertsSend(redis, {
-        categoryId: categoryCache.id,
-        count: 10
-      })
-
-      const advertsCache = advertCacheService.fetchCategoryAdvertsCache(redis, {
-        categoryId: categoryCache.id,
-        'send'
-      })
-
-      for (const advertCache of advertsCache) {
-        await sendreportService.addJob(
-          categoryCache.id,
-          advertCache.id
-        )
-      }
-    }
-
-
-
+    await processDefault(
+      config,
+      logger,
+      redis,
+      broadcastJob,
+      broadcastResult,
+      sendreportQueue
+    )
   } catch (error) {
     if (error instanceof DomainError) {
       if (error.isEmergency()) {
@@ -101,28 +53,94 @@ const broadcastProcessor: BroadcastProcessor = async (broadcastJob) => {
 
     throw error
   } finally {
-    await sendreportService.closeQueue(sendreportQueue)
     await redisService.closeRedis(redis)
   }
 
-  return result
+  return broadcastResult
 }
 
-const processDefault: NameProcessSendreport = async (
+const processDefault: ProcessDefault = async function(
   config,
   logger,
   redis,
   broadcastJob,
+  broadcastResult,
   sendreportQueue
-) => {
+) {
   try {
     const startTime = Date.now()
+    const name = broadcastJob.name
+    const { userId } = broadcastJob.data
 
-    return {
-      durationTime: Date.now() - startTime,
+    const { userCache } = await userCacheService.fetchUserCache(redis, {
+      userId
+    })
+
+    const { subscriptionCache } =
+      await subscriptionCacheService.fetchUserSubscriptionCache(redis, {
+        userId: userCache.id
+      })
+
+    if (subscriptionCache === undefined) {
+      throw new UserSubscriptionBreakError({ userCache })
+    }
+
+    console.log(`001`)
+    const checkpoint = startTime > userCache.checkpointAt
+    if (checkpoint) {
+      userCache.checkpointAt = startTime + subscriptionCache.intervalSec * 1000
+    }
+
+    console.log(`002`)
+    await userCacheService.renewUserCache(redis, {
+      userId: userCache.id,
+      checkpointAt: userCache.checkpointAt
+    })
+
+    console.log(`003`)
+    const { categoriesCache } = await categoryCacheService.fetchUserCategoriesCache(redis, {
+      userId: userCache.id
+    })
+
+    console.log(`004`)
+    for (const categoryCache of categoriesCache) {
+    console.log(`005`)
+      if (checkpoint) {
+        await advertCacheService.pourCategoryAdvertsWait(redis, {
+          scraperId: categoryCache.scraperId,
+          categoryId: categoryCache.id
+        })
+      }
+    console.log(`006`)
+
+      await advertCacheService.pourCategoryAdvertsSend(redis, {
+        categoryId: categoryCache.id,
+        count: 20
+      })
+    console.log(`007`)
+
+      const { advertsCache } = await advertCacheService.fetchCategoryAdvertsCache(redis, {
+        categoryId: categoryCache.id,
+        topic: 'send'
+      })
+    console.log(`008`)
+
+      for (const advertCache of advertsCache) {
+        await sendreportService.addJob(
+          sendreportQueue,
+          categoryCache.id,
+          advertCache.id
+        )
+      }
+    }
+
+    broadcastResult[name] = {
+      durationTime: Date.now() - startTime
     }
   } catch (error) {
     if (error instanceof DomainError) {
+      logger.error(`BroadcastProcessor processDefault exception`)
+
       error.setEmergency()
     }
 

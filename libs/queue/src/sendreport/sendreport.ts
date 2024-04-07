@@ -23,7 +23,7 @@ export type SendreportData = {
 export type SendreportNameResult = {
   durationTime: number
 }
-export type SendreportResult = Record<string, SendreportNameResult>
+export type SendreportResult = Partial<Record<SendreportName, SendreportNameResult>>
 
 export type SendreportQueue = Queue<SendreportData, SendreportResult, SendreportName>
 export type SendreportJob = Job<SendreportData, SendreportResult, SendreportName>

@@ -47,14 +47,14 @@ export async function saveUserCache(
   redis: Redis,
   userId: number,
   tgFromId: string,
-  checkpoint: number
+  checkpointAt: number
 ): Promise<void> {
   await redis.saveUserCache(
     userKey(userId), // KEYS[1]
     usersKey(), // KEYS[2]
     userId, // ARGV[1]
     tgFromId, // ARGV[2]
-    checkpoint, // ARGV[3]
+    checkpointAt, // ARGV[3]
     Date.now() // ARGV[4]
   )
 }
@@ -70,11 +70,11 @@ export async function dropUserCache(redis: Redis, userId: number): Promise<void>
 export async function renewUserCache(
   redis: Redis,
   userId: number,
-  checkpoint: number
+  checkpointAt: number
 ): Promise<void> {
   await redis.renewUserCache(
     userKey(userId), // KEYS[1]
-    checkpoint, // ARGV[1]
+    checkpointAt, // ARGV[1]
     Date.now() // ARGV[2]
   )
 }
@@ -85,7 +85,7 @@ const parseModel = (result: unknown, message: string): UserCache => {
   return {
     id: parseNumber(hash[0], message),
     tgFromId: parseString(hash[1], message),
-    checkpoint: parseNumber(hash[2], message),
+    checkpointAt: parseNumber(hash[2], message),
     time: parseNumber(hash[3], message)
   }
 }

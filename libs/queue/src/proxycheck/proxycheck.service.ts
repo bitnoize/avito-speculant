@@ -33,7 +33,7 @@ export async function addJob(
 ): Promise<ProxycheckJob> {
   const jobId = 'proxy-' + proxyId
   return await queue.add(
-    'simple',
+    'default',
     {
       proxyId
     },

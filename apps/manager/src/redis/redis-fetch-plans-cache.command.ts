@@ -12,9 +12,9 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const { plansCache } = await planCacheService.fetchPlansCache(redis)
+      const { plansCache } = await planCacheService.fetchPlansCache(redis, undefined)
 
-      logger.info({ plansCache }, `PlansCache successfully fetched`)
+      logger.info({ plansCache }, `PlansCache list`)
 
       await redisService.closeRedis(redis)
     }

@@ -1,7 +1,4 @@
-import { v4 as uuidv4 } from 'uuid'
 import { RedisParseError } from './redis.errors.js'
-
-export const randomHash = (): string => uuidv4().replaceAll('-', '')
 
 export const parseNumber = (result: unknown, message: string): number => {
   if (result == null) {

@@ -34,7 +34,7 @@ export const saveUserCache: SaveUserCache = async function(redis, request) {
     redis,
     request.userId,
     request.tgFromId,
-    request.checkpoint
+    request.checkpointAt
   )
 }
 
@@ -49,5 +49,5 @@ export const dropUserCache: DropUserCache = async function(redis, request) {
  * Renew UserCache
  */
 export const renewUserCache: RenewUserCache = async function(redis, request) {
-  await userCacheRepository.renewUserCache(redis, request.userId, request.checkpoint)
+  await userCacheRepository.renewUserCache(redis, request.userId, request.checkpointAt)
 }

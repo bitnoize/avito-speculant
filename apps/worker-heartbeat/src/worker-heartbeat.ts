@@ -1,12 +1,12 @@
 import { LoggerConfig, Logger } from '@avito-speculant/logger'
 import { DatabaseConfig, KyselyDatabase } from '@avito-speculant/database'
-import { RedisConfig, Redis } from '@avito-speculant/redis'
+import { RedisConfig } from '@avito-speculant/redis'
 import {
   QueueConfig,
   HeartbeatConfig,
-  HeartbeatStepResult,
-  TreatmentQueue,
-  ScrapingQueue
+  HeartbeatResult,
+  HeartbeatJob,
+  TreatmentQueue
 } from '@avito-speculant/queue'
 
 export type Config = LoggerConfig & DatabaseConfig & RedisConfig & QueueConfig & HeartbeatConfig
@@ -15,12 +15,7 @@ export type StepProcessTreatment = (
   config: Config,
   logger: Logger,
   db: KyselyDatabase,
+  heartbeatJob: HeartbeatJob,
+  heartbeatResult: HeartbeatResult,
   treatmentQueue: TreatmentQueue
-) => Promise<HeartbeatStepResult>
-
-export type StepProcessScraping = (
-  config: Config,
-  logger: Logger,
-  redis: Redis,
-  scrapingQueue: ScrapingQueue
-) => Promise<HeartbeatStepResult>
+) => Promise<void>

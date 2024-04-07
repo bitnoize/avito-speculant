@@ -16,21 +16,20 @@ export type ProxycheckConfig = {
   PROXYCHECK_CHECK_TIMEOUT: number
 }
 
-export type ProxycheckName = 'simple'
+export type ProxycheckName = 'default'
 
 export type ProxycheckData = {
   proxyId: number
 }
 
 export type ProxycheckNameResult = {
-  proxyId: number
   success: boolean
   statusCode: number
   sizeBytes: number
   durationTime: number
   curlDurationTime: number
 }
-export type ProxycheckResult = Record<string, ProxycheckNameResult>
+export type ProxycheckResult = Partial<Record<ProxycheckName, ProxycheckNameResult>>
 
 export type ProxycheckQueue = Queue<ProxycheckData, ProxycheckResult, ProxycheckName>
 export type ProxycheckJob = Job<ProxycheckData, ProxycheckResult, ProxycheckName>

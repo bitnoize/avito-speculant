@@ -21,14 +21,20 @@ export abstract class QueueError extends DomainError {
   }
 }
 
-export class RepeatableJobLostIdError extends QueueError {
-  constructor(context: ErrorContext, code = 100, message = `Repeatable job lost id`) {
+export class QueueJobLostTokenError extends QueueError {
+  constructor(context: ErrorContext, code = 100, message = `Queue job lost token`) {
     super(context, code, message)
   }
 }
 
-export class UserSubscriptionLostError extends QueueError {
-  constructor(context: ErrorContext, code = 123, message = `User subscription lost`) {
+export class QueueJobLostIdError extends QueueError {
+  constructor(context: ErrorContext, code = 100, message = `Queue job lost id`) {
+    super(context, code, message)
+  }
+}
+
+export class UserSubscriptionBreakError extends QueueError {
+  constructor(context: ErrorContext, code = 123, message = `User subscription break`) {
     super(context, code, message)
   }
 }

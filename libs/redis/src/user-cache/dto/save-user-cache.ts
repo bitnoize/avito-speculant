@@ -3,7 +3,7 @@ import { RedisMethod } from '../../redis.js'
 export type SaveUserCacheRequest = {
   userId: number
   tgFromId: string
-  checkpoint: number
+  checkpointAt: number
 }
 
 export type SaveUserCacheResponse = void

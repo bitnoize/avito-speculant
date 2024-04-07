@@ -12,7 +12,7 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const { proxiesCache } = await proxyCacheService.fetchProxiesCache(redis)
+      const { proxiesCache } = await proxyCacheService.fetchProxiesCache(redis, undefined)
 
       logger.info({ proxiesCache }, `ProxiesCache successfully fetched`)
 

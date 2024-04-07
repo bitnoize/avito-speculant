@@ -2,12 +2,8 @@ import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
 import { redisService, proxyCacheService } from '@avito-speculant/redis'
-import {
-  ProcessorUnknownNameError,
-  ProxycheckResult,
-  ProxycheckProcessor
-} from '@avito-speculant/queue'
-import { Config, NameProcess, CurlRequestArgs } from './worker-proxycheck.js'
+import { ProxycheckResult, ProxycheckProcessor } from '@avito-speculant/queue'
+import { Config, ProcessDefault, CurlRequestArgs } from './worker-proxycheck.js'
 import { configSchema } from './worker-proxycheck.schema.js'
 import { curlRequest } from './worker-proxycheck.utils.js'
 
@@ -20,22 +16,10 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
 
-  const result: ProxycheckResult = {}
+  const proxycheckResult: ProxycheckResult = {}
 
   try {
-    const name = proxycheckJob.name
-
-    switch (name) {
-      case 'simple': {
-        result[name] = await processSimple(config, logger, redis, proxycheckJob)
-
-        break
-      }
-
-      default: {
-        throw new ProcessorUnknownNameError({ name })
-      }
-    }
+    await processDefault(config, logger, redis, proxycheckJob, proxycheckResult)
   } catch (error) {
     if (error instanceof DomainError) {
       if (error.isEmergency()) {
@@ -50,15 +34,23 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
     await redisService.closeRedis(redis)
   }
 
-  return result
+  return proxycheckResult
 }
 
-const processSimple: NameProcess = async (config, logger, redis, proxycheckJob) => {
+const processDefault: ProcessDefault = async function(
+  config,
+  logger,
+  redis,
+  proxycheckJob,
+  proxycheckResult
+) {
   try {
     const startTime = Date.now()
+    const name = proxycheckJob.name
+    const { proxyId } = proxycheckJob.data
 
     const { proxyCache } = await proxyCacheService.fetchProxyCache(redis, {
-      proxyId: proxycheckJob.data.proxyId
+      proxyId
     })
 
     const curlRequestArgs: CurlRequestArgs = [
@@ -73,7 +65,7 @@ const processSimple: NameProcess = async (config, logger, redis, proxycheckJob) 
     if (curlResponse.error !== undefined) {
       await proxyCacheService.renewOfflineProxyCache(redis, {
         proxyId: proxyCache.id,
-        sizeBytes: 0
+        sizeBytes: curlResponse.sizeBytes
       })
 
       const logData = {
@@ -81,41 +73,42 @@ const processSimple: NameProcess = async (config, logger, redis, proxycheckJob) 
         curlRequestArgs,
         curlResponse
       }
-      logger.warn(logData, `ProxycheckProcessor processSimple curlRequest failed`)
+      logger.warn(logData, `ProxycheckProcessor processDefault curlRequest failed`)
 
-      return {
-        proxyId: proxyCache.id,
+      proxycheckResult[name] = {
         success: false,
-        statusCode: 0,
-        sizeBytes: 0,
+        statusCode: curlResponse.statusCode,
+        sizeBytes: curlResponse.sizeBytes,
         durationTime: Date.now() - startTime,
         curlDurationTime: curlResponse.durationTime
       }
+
+      return
     }
 
     if (curlResponse.statusCode !== 200) {
       await proxyCacheService.renewOfflineProxyCache(redis, {
         proxyId: proxyCache.id,
-        sizeBytes: curlResponse.body.length
+        sizeBytes: curlResponse.sizeBytes
       })
 
-      return {
-        proxyId: proxyCache.id,
+      proxycheckResult[name] = {
         success: false,
         statusCode: curlResponse.statusCode,
         sizeBytes: curlResponse.sizeBytes,
         durationTime: Date.now() - startTime,
         curlDurationTime: curlResponse.durationTime,
       }
+
+      return
     }
 
     await proxyCacheService.renewOnlineProxyCache(redis, {
       proxyId: proxyCache.id,
-      sizeBytes: curlResponse.body.length
+      sizeBytes: curlResponse.sizeBytes
     })
 
-    return {
-      proxyId: proxyCache.id,
+    proxycheckResult[name] = {
       success: true,
       statusCode: curlResponse.statusCode,
       sizeBytes: curlResponse.sizeBytes,
@@ -124,7 +117,7 @@ const processSimple: NameProcess = async (config, logger, redis, proxycheckJob) 
     }
   } catch (error) {
     if (error instanceof DomainError) {
-      logger.error(`ProxycheckProcessor processSimple exception`)
+      logger.error(`ProxycheckProcessor processDefault exception`)
 
       error.setEmergency()
     }

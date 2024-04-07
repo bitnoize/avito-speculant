@@ -20,10 +20,9 @@ export type TreatmentData = {
 }
 
 export type TreatmentNameResult = {
-  entityId: number
   durationTime: number
 }
-export type TreatmentResult = Record<string, TreatmentNameResult>
+export type TreatmentResult = Partial<Record<TreatmentName, TreatmentNameResult>>
 
 export type TreatmentQueue = Queue<TreatmentData, TreatmentResult, TreatmentName>
 export type TreatmentJob = Job<TreatmentData, TreatmentResult, TreatmentName>

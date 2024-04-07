@@ -5,7 +5,7 @@ return redis.call(
   'HMGET', KEYS[1],
   'id',
   'tg_from_id',
-  'checkpoint',
+  'checkpoint_at',
   'time'
 )
 `
@@ -19,7 +19,7 @@ redis.call(
   'HSET', KEYS[1],
   'id', ARGV[1],
   'tg_from_id', ARGV[2],
-  'checkpoint', ARGV[3],
+  'checkpoint_at', ARGV[3],
   'time', ARGV[4]
 )
 
@@ -38,7 +38,7 @@ return redis.status_reply('OK')
 
 const renewUserCache = `
 if redis.call('EXISTS', KEYS[1]) ~= 0 then
-  redis.call('HSET', KEYS[1], 'checkpoint', ARGV[1])
+  redis.call('HSET', KEYS[1], 'checkpoint_at', ARGV[1])
   redis.call('HSET', KEYS[1], 'time', ARGV[2])
 end
 

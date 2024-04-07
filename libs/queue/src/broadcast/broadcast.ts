@@ -21,7 +21,7 @@ export type BroadcastData = {
 export type BroadcastNameResult = {
   durationTime: number
 }
-export type BroadcastResult = Record<string, BroadcastNameResult>
+export type BroadcastResult = Partial<Record<BroadcastName, BroadcastNameResult>>
 
 export type BroadcastQueue = Queue<BroadcastData, BroadcastResult, BroadcastName>
 export type BroadcastJob = Job<BroadcastData, BroadcastResult, BroadcastName>

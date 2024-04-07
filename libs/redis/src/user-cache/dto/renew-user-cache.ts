@@ -2,7 +2,7 @@ import { RedisMethod } from '../../redis.js'
 
 export type RenewUserCacheRequest = {
   userId: number
-  checkpoint: number
+  checkpointAt: number
 }
 
 export type RenewUserCacheResponse = void

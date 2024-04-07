@@ -25,16 +25,16 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Scrapi
 }
 
 /**
- * Add Job
+ * Add RepeatableJob
  */
-export async function addJob(
+export async function addRepeatableJob(
   queue: ScrapingQueue,
   scraperId: string,
   everySec: number
 ): Promise<ScrapingJob> {
   const every = everySec * 1000
   return await queue.add(
-    'desktop',
+    'default',
     {
       scraperId
     },
@@ -48,16 +48,16 @@ export async function addJob(
 }
 
 /**
- * Remove Job
+ * Remove RepeatableJob
  */
-export async function removeJob(
+export async function removeRepeatableJob(
   queue: ScrapingQueue,
   scraperId: string,
   everySec: number
 ): Promise<boolean> {
   const every = everySec * 1000
   return await queue.removeRepeatable(
-    'desktop',
+    'default',
     {
       every
     },

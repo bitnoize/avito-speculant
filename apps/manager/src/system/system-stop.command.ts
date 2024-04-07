@@ -16,10 +16,16 @@ export default (config: Config, logger: Logger) => {
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const heartbeatQueue = heartbeatService.initQueue(queueConnection, logger)
 
-      const jobs = await heartbeatQueue.getRepeatableJobs()
+      const removed = await heartbeatService.removeRepeatableJob(
+        heartbeatQueue,
+        'heartbeat-pulse',
+        10_000
+      )
 
-      for (const job of jobs) {
-        heartbeatQueue.removeRepeatableByKey(job.key)
+      if (removed) {
+        logger.info(`HeartbeatJob removed`)
+      } else {
+        logger.info(`HeartbeatJob not removed`)
       }
 
       await heartbeatService.closeQueue(heartbeatQueue)

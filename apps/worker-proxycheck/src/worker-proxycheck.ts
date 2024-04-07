@@ -3,18 +3,19 @@ import { RedisConfig, Redis } from '@avito-speculant/redis'
 import {
   QueueConfig,
   ProxycheckConfig,
-  ProxycheckNameResult,
+  ProxycheckResult,
   ProxycheckJob
 } from '@avito-speculant/queue'
 
 export type Config = LoggerConfig & RedisConfig & QueueConfig & ProxycheckConfig
 
-export type NameProcess = (
+export type ProcessDefault = (
   config: Config,
   logger: Logger,
   redis: Redis,
-  proxycheckJob: ProxycheckJob
-) => Promise<ProxycheckNameResult>
+  proxycheckJob: ProxycheckJob,
+  proxycheckResult: ProxycheckResult
+) => Promise<void>
 
 export type CurlResponse = {
   statusCode: number

@@ -12,7 +12,7 @@ export default (config: Config, logger: Logger) => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis)
+      const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis, undefined)
 
       logger.info({ scrapersCache }, `ScrapersCache successfully fetched`)
 

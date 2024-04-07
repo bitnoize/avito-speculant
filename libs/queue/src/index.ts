@@ -7,8 +7,7 @@ export {
   QueueEvents,
   Worker,
   Processor,
-  Job,
-  RepeatOptions
+  Job
 } from 'bullmq'
 
 export * from './queue.js'
