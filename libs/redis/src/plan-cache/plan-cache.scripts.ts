@@ -1,11 +1,7 @@
 import { InitScripts } from '../redis.js'
 
 const fetchPlanCache = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return nil 
-end
-
-local plan_cache = redis.call(
+return redis.call(
   'HMGET', KEYS[1],
   'id',
   'categories_max',
@@ -15,10 +11,6 @@ local plan_cache = redis.call(
   'analytics_on',
   'time'
 )
-
-return {
-  unpack(plan_cache)
-}
 `
 
 const fetchPlans = `

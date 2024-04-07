@@ -56,7 +56,6 @@ const pourCategoryAdvertsSend = `
 local count = tonumber(ARGV[1]) - tonumber(redis.call('SCARD', KEYS[2]))
 
 if count > 0 then
-  --
   local send_adverts = redis.call('SRANDMEMBER', KEYS[1], count)
 
   if #send_adverts > 0 then

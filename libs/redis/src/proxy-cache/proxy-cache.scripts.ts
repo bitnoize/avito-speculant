@@ -1,11 +1,7 @@
 import { InitScripts } from '../redis.js'
 
 const fetchProxyCache = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return nil 
-end
-
-local proxy_cache = redis.call(
+return redis.call(
   'HMGET', KEYS[1],
   'id',
   'proxy_url',
@@ -15,10 +11,6 @@ local proxy_cache = redis.call(
   'size_bytes',
   'time'
 )
-
-return {
-  unpack(proxy_cache)
-}
 `
 
 const fetchProxies = `

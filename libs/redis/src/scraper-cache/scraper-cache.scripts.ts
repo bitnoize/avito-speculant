@@ -1,11 +1,7 @@
 import { InitScripts } from '../redis.js'
 
 const fetchScraperCache = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return nil 
-end
-
-local scraper_cache = redis.call(
+return redis.call(
   'HMGET', KEYS[1],
   'id',
   'avito_url',
@@ -15,10 +11,6 @@ local scraper_cache = redis.call(
   'size_bytes',
   'time'
 )
-
-return {
-  unpack(scraper_cache)
-}
 `
 
 const fetchScrapers = `

@@ -1,11 +1,7 @@
 import { InitScripts } from '../redis.js'
 
 const fetchCategoryCache = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return nil 
-end
-
-local category_cache = redis.call(
+return redis.call(
   'HMGET', KEYS[1],
   'id',
   'user_id',
@@ -13,10 +9,6 @@ local category_cache = redis.call(
   'avito_url',
   'time'
 )
-
-return {
-  unpack(category_cache)
-}
 `
 
 const fetchCategories = `

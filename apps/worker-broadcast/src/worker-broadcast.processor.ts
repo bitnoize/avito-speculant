@@ -85,45 +85,37 @@ const processDefault: ProcessDefault = async function(
       throw new UserSubscriptionBreakError({ userCache })
     }
 
-    console.log(`001`)
     const checkpoint = startTime > userCache.checkpointAt
     if (checkpoint) {
       userCache.checkpointAt = startTime + subscriptionCache.intervalSec * 1000
     }
 
-    console.log(`002`)
     await userCacheService.renewUserCache(redis, {
       userId: userCache.id,
       checkpointAt: userCache.checkpointAt
     })
 
-    console.log(`003`)
     const { categoriesCache } = await categoryCacheService.fetchUserCategoriesCache(redis, {
       userId: userCache.id
     })
 
-    console.log(`004`)
     for (const categoryCache of categoriesCache) {
-    console.log(`005`)
       if (checkpoint) {
         await advertCacheService.pourCategoryAdvertsWait(redis, {
           scraperId: categoryCache.scraperId,
           categoryId: categoryCache.id
         })
       }
-    console.log(`006`)
 
       await advertCacheService.pourCategoryAdvertsSend(redis, {
         categoryId: categoryCache.id,
         count: 20
       })
-    console.log(`007`)
 
       const { advertsCache } = await advertCacheService.fetchCategoryAdvertsCache(redis, {
         categoryId: categoryCache.id,
         topic: 'send'
       })
-    console.log(`008`)
 
       for (const advertCache of advertsCache) {
         await sendreportService.addJob(

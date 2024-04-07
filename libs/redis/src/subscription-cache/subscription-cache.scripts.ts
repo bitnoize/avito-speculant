@@ -1,11 +1,7 @@
 import { InitScripts } from '../redis.js'
 
 const fetchSubscriptionCache = `
-if redis.call('EXISTS', KEYS[1]) == 0 then
-  return nil 
-end
-
-local subscription_cache = redis.call(
+return redis.call(
   'HMGET', KEYS[1],
   'id',
   'user_id',
@@ -17,10 +13,6 @@ local subscription_cache = redis.call(
   'analytics_on',
   'time'
 )
-
-return {
-  unpack(subscription_cache)
-}
 `
 
 const fetchSubscriptions = `
