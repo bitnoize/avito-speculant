@@ -45,7 +45,9 @@ return redis.status_reply('OK')
 const pourCategoryAdvertsWait = `
 local wait_adverts = redis.call('SDIFF', KEYS[1], KEYS[2], KEYS[3], KEYS[4])
 
-redis.call('SADD', KEYS[2], unpack(wait_adverts))
+if #wait_adverts > 0 then
+  redis.call('SADD', KEYS[2], unpack(wait_adverts))
+fi
 
 return redis.status_reply('OK')
 `
@@ -54,6 +56,7 @@ const pourCategoryAdvertsSend = `
 local count = tonumber(ARGV[1]) - tonumber(redis.call('SCARD', KEYS[2]))
 
 if count > 0 then
+  --
   local send_adverts = redis.call('SRANDMEMBER', KEYS[1], count)
 
   if #send_adverts > 0 then
