@@ -47,7 +47,7 @@ local wait_adverts = redis.call('SDIFF', KEYS[1], KEYS[2], KEYS[3], KEYS[4])
 
 if #wait_adverts > 0 then
   redis.call('SADD', KEYS[2], unpack(wait_adverts))
-fi
+end
 
 return redis.status_reply('OK')
 `
