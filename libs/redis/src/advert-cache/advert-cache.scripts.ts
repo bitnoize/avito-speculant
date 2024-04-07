@@ -56,8 +56,10 @@ local count = tonumber(ARGV[1]) - tonumber(redis.call('SCARD', KEYS[2]))
 if count > 0 then
   local send_adverts = redis.call('SRANDMEMBER', KEYS[1], count)
 
-  redis.call('SREM', KEYS[1], unpack(send_adverts))
-  redis.call('SADD', KEYS[2], unpack(send_adverts))
+  if #send_adverts > 0 then
+    redis.call('SREM', KEYS[1], unpack(send_adverts))
+    redis.call('SADD', KEYS[2], unpack(send_adverts))
+  end
 end
 
 return redis.status_reply('OK')
