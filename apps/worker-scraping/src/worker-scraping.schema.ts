@@ -149,9 +149,6 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                   },
                   priceDetailed: {
                     type: 'object',
-                    required: [
-                      'value'
-                    ],
                     properties: {
                       value: {
                         type: 'integer'

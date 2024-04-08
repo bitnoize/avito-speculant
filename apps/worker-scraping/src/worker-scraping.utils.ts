@@ -94,12 +94,11 @@ export const parseAttempt: ParseAttempt = (body) => {
       }
     }
 
-    console.log(avitoRaw.data.catalog.items)
     const avitoAdverts = avitoRaw.data.catalog.items.map((item): AvitoAdvert => ([
       item.id,
       item.title,
       item.description,
-      item.priceDetailed.value,
+      item.priceDetailed.value || 0,
       'https://avito.ru' + item.urlPath,
       item.iva.DateInfoStep[0].payload.absolute,
       item.images[0]['208x156']

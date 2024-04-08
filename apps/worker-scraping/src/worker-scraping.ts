@@ -70,7 +70,7 @@ export type AvitoDataDataCatalogItem = {
 }
 
 export type AvitoDataDataCatalogItemPriceDetailed = {
-  value: number
+  value?: number
 }
 
 export type AvitoDataDataCatalogItemImage = {
