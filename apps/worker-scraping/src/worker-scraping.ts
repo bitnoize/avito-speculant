@@ -47,19 +47,51 @@ export type ParseAttempt = (body: Buffer) => ParseResult
 // Avito InitialData
 //
 
-export interface AvitoDesktop {
-  data: AvitoDesktopData
+export type AvitoData = {
+  data: AvitoDataData
 }
 
-export interface AvitoDesktopData {
-  catalog: AvitoDesktopDataCatalog
+export type AvitoDataData = {
+  catalog: AvitoDataDataCatalog
 }
 
-export interface AvitoDesktopDataCatalog {
-  items: AvitoDesktopDataCatalogItem[]
+export type AvitoDataDataCatalog = {
+  items: AvitoDataDataCatalogItem[]
 }
 
-export interface AvitoDesktopDataCatalogItem {
+export type AvitoDataDataCatalogItem = {
   id: number
   title: string
+  description: string
+  urlPath: string
+  priceDetailed: AvitoDataDataCatalogItemPriceDetailed
+  images: AvitoDataDataCatalogItemImage[]
+  iva: AvitoDataDataCatalogItemIva
+}
+
+export type AvitoDataDataCatalogItemPriceDetailed = {
+  value: number
+}
+
+export type AvitoDataDataCatalogItemImage = {
+  '208x156': string
+  '236x177': string
+  '318x238': string
+  '416x312': string
+  '432x324': string
+  '472x354': string
+  '636x476': string
+  '864x648': string
+}
+
+export type AvitoDataDataCatalogItemIva = {
+  DateInfoStep: AvitoDataDataCatalogItemIvaDateInfoStep[]
+}
+
+export type AvitoDataDataCatalogItemIvaDateInfoStep = {
+  payload: AvitoDataDataCatalogItemIvaDateInfoStepPayload
+}
+
+export type AvitoDataDataCatalogItemIvaDateInfoStepPayload = {
+  absolute: string
 }

@@ -1,7 +1,8 @@
 import _Ajv from 'ajv'
 import { curly, CurlyResult } from 'node-libcurl'
+import { AvitoAdvert } from '@avito-speculant/redis'
 import { CurlRequest, ParseAttempt } from './worker-scraping.js'
-import { avitoDesktopSchema } from './worker-scraping.schema.js'
+import { avitoDataSchema } from './worker-scraping.schema.js'
 
 const Ajv = _Ajv.default
 
@@ -52,7 +53,7 @@ export const parseAttempt: ParseAttempt = (body) => {
     const startTime = Date.now()
 
     const ajv = new Ajv()
-    const validate = ajv.compile(avitoDesktopSchema)
+    const validate = ajv.compile(avitoDataSchema)
 
     const str = body.toString()
 
@@ -61,7 +62,6 @@ export const parseAttempt: ParseAttempt = (body) => {
     const initialData = str.substring(indexStart, indexEnd).trim().slice(0, -2)
 
     const json = JSON.parse(decodeURIComponent(initialData))
-    //fs.writeFileSync('/tmp/data.json', JSON.stringify(ads))
 
     if (typeof json !== 'object') {
       return {
@@ -94,14 +94,15 @@ export const parseAttempt: ParseAttempt = (body) => {
       }
     }
 
-    const avitoAdverts = avitoRaw.data.catalog.items.map((item) => ({
-      id: item.id,
-      title: item.title,
-      priceRub: 0,
-      url: 'https://...',
-      age: 0,
-      imageUrl: 'https://...'
-    }))
+    const avitoAdverts = avitoRaw.data.catalog.items.map((item): AvitoAdvert => ([
+      item.id,
+      item.title,
+      item.description,
+      item.priceDetailed.value,
+      'https://avito.ru' + item.urlPath,
+      item.iva.DateInfoStep[0].payload.absolute,
+      item.images[0]['208x156']
+    ]))
 
     return {
       avitoAdverts,

@@ -75,15 +75,10 @@ export async function saveAdvertsCache(
 
   avitoAdverts.forEach((avitoAdvert) => {
     pipeline.saveAdvertCache(
-      advertKey(avitoAdvert.id), // KEYS[1]
+      advertKey(avitoAdvert[0]), // KEYS[1]
       scraperAdvertsKey(scraperId), // KEYS[2]
-      avitoAdvert.id, // ARGV[1]
-      avitoAdvert.title, // ARGV[2]
-      avitoAdvert.priceRub, // ARGV[3]
-      avitoAdvert.url, // ARGV[4]
-      avitoAdvert.age, // ARGV[5]
-      avitoAdvert.imageUrl, // ARGV[6]
-      Date.now() // ARGV[7]
+      ...avitoAdvert, // ARGV[1..7]
+      Date.now() // ARGV[8]
     )
   })
 
@@ -140,16 +135,17 @@ export async function pourCategoryAdvertDone(
 }
 
 const parseModel = (result: unknown, message: string): AdvertCache => {
-  const hash = parseHash(result, 7, message)
+  const hash = parseHash(result, 8, message)
 
   return {
     id: parseNumber(hash[0], message),
     title: parseString(hash[1], message),
-    priceRub: parseNumber(hash[2], message),
-    url: parseString(hash[3], message),
-    age: parseNumber(hash[4], message),
-    imageUrl: parseString(hash[5], message),
-    time: parseNumber(hash[6], message)
+    description: parseString(hash[2], message),
+    priceRub: parseNumber(hash[3], message),
+    url: parseString(hash[4], message),
+    age: parseString(hash[5], message),
+    imageUrl: parseString(hash[6], message),
+    time: parseNumber(hash[7], message)
   }
 }
 

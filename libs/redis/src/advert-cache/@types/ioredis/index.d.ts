@@ -11,9 +11,10 @@ declare module 'ioredis' {
       scraperAdvertsKey: string,
       advertId: number,
       title: string,
+      description: string,
       priceRub: number,
       url: string,
-      age: number,
+      age: string,
       imageUrl: string,
       time: number,
       callback?: Callback<string>

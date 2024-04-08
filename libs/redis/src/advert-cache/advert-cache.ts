@@ -3,21 +3,16 @@ import { REDIS_CACHE_PREFIX } from '../redis.js'
 export interface AdvertCache {
   id: number
   title: string
+  description: string
   priceRub: number
   url: string
-  age: number
+  age: string
   imageUrl: string
   time: number
 }
 
-export interface AvitoAdvert {
-  id: number
-  title: string
-  priceRub: number
-  url: string
-  age: number
-  imageUrl: string
-}
+// id, title, description, priceRub, url, age, imageUrl
+export type AvitoAdvert = [number, string, string, number, string, string, string]
 
 export const CATEGORY_ADVERTS_TOPICS = ['wait', 'send', 'done']
 export type CategoryAdvertTopic = (typeof CATEGORY_ADVERTS_TOPICS)[number]

@@ -5,6 +5,7 @@ return redis.call(
   'HMGET', KEYS[1],
   'id',
   'title',
+  'description',
   'price_rub',
   'url',
   'age',
@@ -22,11 +23,12 @@ redis.call(
   'HSET', KEYS[1],
   'id', ARGV[1],
   'title', ARGV[2],
-  'price_rub', ARGV[3],
-  'url', ARGV[4],
-  'age', ARGV[5],
-  'image_url', ARGV[6],
-  'time', ARGV[7]
+  'description', ARGV[3],
+  'price_rub', ARGV[4],
+  'url', ARGV[5],
+  'age', ARGV[6],
+  'image_url', ARGV[7],
+  'time', ARGV[8]
 )
 
 redis.call('SADD', KEYS[2], ARGV[1])

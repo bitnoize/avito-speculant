@@ -73,7 +73,7 @@ const processDefault: ProcessDefault = async function(
       scraperCache.avitoUrl,
       proxyCache.proxyUrl,
       timeoutAdjust(scraperCache.intervalSec),
-      false
+      config.SCRAPING_REQUEST_VERBOSE
     ]
 
     const curlResponse = await curlRequest(...curlRequestArgs)

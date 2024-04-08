@@ -40,7 +40,7 @@ export async function addRepeatableJob(
     {
       jobId,
       repeat: {
-        every: 5000
+        every: 1000
       }
     }
   )
@@ -57,7 +57,7 @@ export async function removeRepeatableJob(
   return await queue.removeRepeatable(
     'default',
     {
-      every: 5000
+      every: 1000
     },
     jobId
   )

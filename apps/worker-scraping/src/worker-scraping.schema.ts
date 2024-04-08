@@ -11,9 +11,10 @@ import {
   DEFAULT_QUEUE_REDIS_DATABASE,
   DEFAULT_SCRAPING_CONCURRENCY,
   DEFAULT_SCRAPING_LIMITER_MAX,
-  DEFAULT_SCRAPING_LIMITER_DURATION
+  DEFAULT_SCRAPING_LIMITER_DURATION,
+  DEFAULT_SCRAPING_REQUEST_VERBOSE
 } from '@avito-speculant/queue'
-import { Config, AvitoDesktop } from './worker-scraping.js'
+import { Config, AvitoData } from './worker-scraping.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
@@ -27,7 +28,8 @@ export const configSchema: JSONSchemaType<Config> = {
     'QUEUE_REDIS_DATABASE',
     'SCRAPING_CONCURRENCY',
     'SCRAPING_LIMITER_MAX',
-    'SCRAPING_LIMITER_DURATION'
+    'SCRAPING_LIMITER_DURATION',
+    'SCRAPING_REQUEST_VERBOSE'
   ],
   properties: {
     LOG_LEVEL: {
@@ -99,11 +101,15 @@ export const configSchema: JSONSchemaType<Config> = {
       minimum: 1000,
       maximum: 60000,
       default: DEFAULT_SCRAPING_LIMITER_DURATION
-    }
+    },
+    SCRAPING_REQUEST_VERBOSE: {
+      type: 'boolean',
+      default: DEFAULT_SCRAPING_REQUEST_VERBOSE
+    },
   }
 }
 
-export const avitoDesktopSchema: JSONSchemaType<AvitoDesktop> = {
+export const avitoDataSchema: JSONSchemaType<AvitoData> = {
   type: 'object',
   required: ['data'],
   properties: {
@@ -122,6 +128,11 @@ export const avitoDesktopSchema: JSONSchemaType<AvitoDesktop> = {
                 required: [
                   'id',
                   'title',
+                  'description',
+                  'urlPath',
+                  'priceDetailed',
+                  'images',
+                  'iva'
                 ],
                 properties: {
                   id: {
@@ -130,16 +141,101 @@ export const avitoDesktopSchema: JSONSchemaType<AvitoDesktop> = {
                   title: {
                     type: 'string'
                   },
-                },
-                additionalProperties: true
+                  description: {
+                    type: 'string'
+                  },
+                  urlPath: {
+                    type: 'string'
+                  },
+                  priceDetailed: {
+                    type: 'object',
+                    required: [
+                      'value'
+                    ],
+                    properties: {
+                      value: {
+                        type: 'integer'
+                      }
+                    },
+                  },
+                  images: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      required: [
+                        '208x156',
+                        '236x177',
+                        '318x238',
+                        '416x312',
+                        '432x324',
+                        '472x354',
+                        '636x476',
+                        '864x648',
+                      ],
+                      properties: {
+                        '208x156': {
+                          type: 'string'
+                        },
+                        '236x177': {
+                          type: 'string'
+                        },
+                        '318x238': {
+                          type: 'string'
+                        },
+                        '416x312': {
+                          type: 'string'
+                        },
+                        '432x324': {
+                          type: 'string'
+                        },
+                        '472x354': {
+                          type: 'string'
+                        },
+                        '636x476': {
+                          type: 'string'
+                        },
+                        '864x648': {
+                          type: 'string'
+                        },
+                      },
+                    }
+                  },
+                  iva: {
+                    type: 'object',
+                    required: [
+                      'DateInfoStep'
+                    ],
+                    properties: {
+                      DateInfoStep: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          required: [
+                            'payload'
+                          ],
+                          properties: {
+                            payload: {
+                              type: 'object',
+                              required: [
+                                'absolute',
+                              ],
+                              properties: {
+                                absolute: {
+                                  type: 'string'
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
-          },
-          additionalProperties: true
+          }
         }
-      },
-      additionalProperties: true
-    },
-  },
-  additionalProperties: true
+      }
+    }
+  }
 }

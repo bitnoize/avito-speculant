@@ -72,7 +72,13 @@ const processDefault: ProcessDefault = async function(
 
     await bot.api.sendMessage(
       userCache.tgFromId,
-      `Id: ${advertCache.id}\nTitle: ${advertCache.title}`
+      `Id: ${advertCache.id}\n` +
+      `Title: ${advertCache.title}\n` +
+      `Description: ${advertCache.description.slice(0, 500)}\n` +
+      `PriceRub: ${advertCache.priceRub}\n` +
+      `Url: ${advertCache.url}\n` +
+      `Age: ${advertCache.age}\n` +
+      `ImageUrl: ${advertCache.imageUrl}`
     )
 
     await advertCacheService.pourCategoryAdvertDone(redis, {

@@ -5,15 +5,17 @@ export const PROXYCHECK_QUEUE_NAME = `proxycheck`
 export const DEFAULT_PROXYCHECK_CONCURRENCY = 10
 export const DEFAULT_PROXYCHECK_LIMITER_MAX = 10
 export const DEFAULT_PROXYCHECK_LIMITER_DURATION = 1_000
-export const DEFAULT_PROXYCHECK_CHECK_URL = 'https://www.avito.ru/company'
-export const DEFAULT_PROXYCHECK_CHECK_TIMEOUT = 10_000
+export const DEFAULT_PROXYCHECK_REQUEST_URL = 'https://www.avito.ru/company'
+export const DEFAULT_PROXYCHECK_REQUEST_TIMEOUT = 10_000
+export const DEFAULT_PROXYCHECK_REQUEST_VERBOSE = false
 
 export type ProxycheckConfig = {
   PROXYCHECK_CONCURRENCY: number
   PROXYCHECK_LIMITER_MAX: number
   PROXYCHECK_LIMITER_DURATION: number
-  PROXYCHECK_CHECK_URL: string
-  PROXYCHECK_CHECK_TIMEOUT: number
+  PROXYCHECK_REQUEST_URL: string
+  PROXYCHECK_REQUEST_TIMEOUT: number
+  PROXYCHECK_REQUEST_VERBOSE: boolean
 }
 
 export type ProxycheckName = 'default'

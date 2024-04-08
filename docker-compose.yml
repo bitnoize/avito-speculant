@@ -89,6 +89,7 @@ services:
       - HEARTBEAT_CONCURRENCY
       - HEARTBEAT_LIMITER_MAX
       - HEARTBEAT_LIMITER_DURATION
+      - HEARTBEAT_FILLING_TREATMENT_MAX
       - HEARTBEAT_PRODUCE_USERS_LIMIT
       - HEARTBEAT_PRODUCE_PLANS_LIMIT
       - HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT
@@ -96,8 +97,6 @@ services:
       - HEARTBEAT_PRODUCE_PROXIES_LIMIT
     networks:
       - avito-speculant-net
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
   worker-treatment:
@@ -157,12 +156,11 @@ services:
       - PROXYCHECK_CONCURRENCY
       - PROXYCHECK_LIMITER_MAX
       - PROXYCHECK_LIMITER_DURATION
-      - PROXYCHECK_CHECK_URL
-      - PROXYCHECK_CHECK_TIMEOUT
+      - PROXYCHECK_REQUEST_URL
+      - PROXYCHECK_REQUEST_TIMEOUT
+      - PROXYCHECK_REQUEST_VERBOSE
     networks:
       - avito-speculant-net
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
   worker-scraping:
@@ -185,13 +183,12 @@ services:
       - QUEUE_REDIS_DATABASE
       - QUEUE_REDIS_USERNAME
       - QUEUE_REDIS_PASSWORD
-      - SCRAPER_CONCURRENCY
-      - SCRAPER_LIMITER_MAX
-      - SCRAPER_LIMITER_DURATION
+      - SCRAPING_CONCURRENCY
+      - SCRAPING_LIMITER_MAX
+      - SCRAPING_LIMITER_DURATION
+      - SCRAPING_REQUEST_VERBOSE
     networks:
       - avito-speculant-net
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
   worker-broadcast:
@@ -219,8 +216,6 @@ services:
       - BROADCAST_LIMITER_DURATION
     networks:
       - avito-speculant-net
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
   worker-sendreport:
@@ -249,6 +244,4 @@ services:
       - BOT_TOKEN
     networks:
       - avito-speculant-net
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped

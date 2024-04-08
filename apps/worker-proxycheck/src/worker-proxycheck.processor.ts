@@ -54,10 +54,10 @@ const processDefault: ProcessDefault = async function(
     })
 
     const curlRequestArgs: CurlRequestArgs = [
-      config.PROXYCHECK_CHECK_URL,
+      config.PROXYCHECK_REQUEST_URL,
       proxyCache.proxyUrl,
-      config.PROXYCHECK_CHECK_TIMEOUT,
-      false
+      config.PROXYCHECK_REQUEST_TIMEOUT,
+      config.PROXYCHECK_REQUEST_VERBOSE
     ]
 
     const curlResponse = await curlRequest(...curlRequestArgs)
