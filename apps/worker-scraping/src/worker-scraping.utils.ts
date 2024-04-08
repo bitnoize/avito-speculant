@@ -98,9 +98,9 @@ export const parseAttempt: ParseAttempt = (body) => {
       item.id,
       item.title,
       item.description,
-      item.priceDetailed.value || 0,
+      item.priceDetailed.value,
       'https://avito.ru' + item.urlPath,
-      item.iva.DateInfoStep[0].payload.absolute,
+      item.iva.DateInfoStep[0].payload.absolute || 'unknown',
       item.images[0]['208x156']
     ]))
 

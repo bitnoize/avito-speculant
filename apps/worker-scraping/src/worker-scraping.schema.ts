@@ -149,10 +149,12 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                   },
                   priceDetailed: {
                     type: 'object',
+                    required: [
+                      'value'
+                    ],
                     properties: {
                       value: {
-                        type: 'integer',
-                        nullable: true
+                        type: 'integer'
                       }
                     },
                   },
@@ -214,12 +216,10 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                           properties: {
                             payload: {
                               type: 'object',
-                              required: [
-                                'absolute',
-                              ],
                               properties: {
                                 absolute: {
-                                  type: 'string'
+                                  type: 'string',
+                                  nullable: true
                                 }
                               }
                             }
