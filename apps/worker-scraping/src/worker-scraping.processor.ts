@@ -178,7 +178,7 @@ const processDefault: ProcessDefault = async function(
   } catch (error) {
     if (error instanceof DomainError) {
       if (error instanceof OnlineProxiesUnavailableError) {
-        logger.warn(`ScrapingProcessor processDefault no online proxies available`)
+        // ...
       } else {
         error.setEmergency()
       }

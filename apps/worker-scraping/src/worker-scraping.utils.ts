@@ -94,6 +94,7 @@ export const parseAttempt: ParseAttempt = (body) => {
       }
     }
 
+    console.log(avitoRaw.data.catalog.items)
     const avitoAdverts = avitoRaw.data.catalog.items.map((item): AvitoAdvert => ([
       item.id,
       item.title,
