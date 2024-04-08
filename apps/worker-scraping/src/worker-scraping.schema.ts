@@ -151,7 +151,8 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                     type: 'object',
                     properties: {
                       value: {
-                        type: 'integer'
+                        type: 'integer',
+                        nullable: true
                       }
                     },
                   },
