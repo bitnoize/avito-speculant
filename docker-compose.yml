@@ -159,6 +159,7 @@ services:
       - PROXYCHECK_REQUEST_URL
       - PROXYCHECK_REQUEST_TIMEOUT
       - PROXYCHECK_REQUEST_VERBOSE
+      - CURL_IMPERSONATE
     networks:
       - avito-speculant-net
     restart: unless-stopped
@@ -187,6 +188,7 @@ services:
       - SCRAPING_LIMITER_MAX
       - SCRAPING_LIMITER_DURATION
       - SCRAPING_REQUEST_VERBOSE
+      - CURL_IMPERSONATE
     networks:
       - avito-speculant-net
     restart: unless-stopped
