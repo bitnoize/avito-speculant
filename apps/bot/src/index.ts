@@ -54,6 +54,10 @@ async function bootstrap(): Promise<void> {
     await ctx.reply(`user isPaid: ${ctx.user.isPaid}`)
   })
 
+  bot.on("message:photo", async (ctx) => {
+    console.log(ctx.message)
+  })
+
   bot.catch(async (botError) => {
     const { error, ctx } = botError
 
