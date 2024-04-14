@@ -1,5 +1,5 @@
 import { HttpsProxyAgent } from 'https-proxy-agent'
-import { Bot } from 'grammy'
+import { Bot, InputMediaBuilder } from 'grammy'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
@@ -86,15 +86,31 @@ const processDefault: ProcessDefault = async function (
         }
       })
 
-      await bot.api.sendMessage(
+      const caption = renderReport(
+        advertCache.id,
+        advertCache.title,
+        advertCache.description,
+        advertCache.priceRub,
+        advertCache.url,
+        advertCache.age,
+      )
+
+      const message = await bot.api.sendPhoto(
         reportCache.tgFromId,
-        `Id: ${advertCache.id}\n` +
-          `Title: ${advertCache.title}\n` +
-          `Description: ${advertCache.description.slice(0, 500)}\n` +
-          `PriceRub: ${advertCache.priceRub}\n` +
-          `Url: ${advertCache.url}\n` +
-          `Age: ${advertCache.age}\n` +
-          `ImageUrl: ${advertCache.imageUrl}`
+        'AAMCBQADGQEAARNXJ2JmLCEf98yfbH4IrxllIeSUBERZAAIeAAP2groPvWHPcxamOuYBAAdtAAMkBA',
+        {
+          caption,
+          parse_mode: 'MarkdownV2'
+        }
+      )
+
+      await bot.api.editMessageMedia(
+        reportCache.tgFromId,
+        message.message_id,
+        InputMediaBuilder.photo(advertCache.imageUrl, {
+          caption,
+          parse_mode: 'MarkdownV2'
+        })
       )
     }
 
@@ -124,3 +140,18 @@ const processDefault: ProcessDefault = async function (
 }
 
 export default sendreportProcessor
+
+const renderReport = (
+  id: number,
+  title: string,
+  description: string,
+  priceRub: number,
+  url: string,
+  age: string,
+): string => {
+  return `**#${id}**\n` +
+    `[${title}](${url})\n` +
+    `${description.slice(0, 250)}...\n` +
+    `Цена: **${priceRub}**\n` +
+    `Опубликовано: ${age}\n`
+}
