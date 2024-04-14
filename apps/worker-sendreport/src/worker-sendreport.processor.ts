@@ -149,7 +149,7 @@ const renderReport = (
   url: string,
   age: string,
 ): string => {
-  return `**#${id}**\n` +
+  return `**\\#${id}**\n` +
     `[${title}](${url})\n` +
     `${description.slice(0, 250)}...\n` +
     `Цена: **${priceRub}**\n` +
