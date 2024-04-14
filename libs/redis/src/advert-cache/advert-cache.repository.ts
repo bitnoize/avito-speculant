@@ -74,11 +74,12 @@ export async function saveAdvertsCache(
   const pipeline = redis.pipeline()
 
   avitoAdverts.forEach((avitoAdvert) => {
+    const advertId = avitoAdvert[0]
     pipeline.saveAdvertCache(
-      advertKey(avitoAdvert[0]), // KEYS[1]
+      advertKey(advertId), // KEYS[1]
       scraperAdvertsKey(scraperId), // KEYS[2]
-      ...avitoAdvert, // ARGV[1..7]
-      Date.now() // ARGV[8]
+      ...avitoAdvert, // ARGV[1..8]
+      Date.now() // ARGV[9]
     )
   })
 
@@ -94,6 +95,19 @@ export async function dropAdvertCache(
     advertKey(advertId), // KEYS[1]
     scraperAdvertsKey(scraperId), // KEYS[2]
     advertId // ARGV[1]
+  )
+}
+
+export async function pourCategoryAdvertsSkip(
+  redis: Redis,
+  scraperId: string,
+  categoryId: number
+): Promise<void> {
+  await redis.pourCategoryAdvertsSkip(
+    scraperAdvertsKey(scraperId), // KEYS[1]
+    categoryAdvertsKey(categoryId, 'wait'), // KEYS[2]
+    categoryAdvertsKey(categoryId, 'send'), // KEYS[3]
+    categoryAdvertsKey(categoryId, 'done') // KEYS[4]
   )
 }
 
@@ -135,7 +149,7 @@ export async function pourCategoryAdvertDone(
 }
 
 const parseModel = (result: unknown, message: string): AdvertCache => {
-  const hash = parseHash(result, 8, message)
+  const hash = parseHash(result, 9, message)
 
   return {
     id: parseNumber(hash[0], message),
@@ -145,7 +159,8 @@ const parseModel = (result: unknown, message: string): AdvertCache => {
     url: parseString(hash[4], message),
     age: parseString(hash[5], message),
     imageUrl: parseString(hash[6], message),
-    time: parseNumber(hash[7], message)
+    postedAt: parseNumber(hash[7], message),
+    time: parseNumber(hash[8], message)
   }
 }
 

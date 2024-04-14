@@ -18,6 +18,7 @@
     "apps/worker-proxycheck",
     "apps/worker-scraping",
     "apps/worker-broadcast",
+    "apps/worker-throttle",
     "apps/worker-sendreport"
   ],
   "engines": {

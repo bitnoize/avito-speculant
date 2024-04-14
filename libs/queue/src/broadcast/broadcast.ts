@@ -1,15 +1,18 @@
 import { Queue, Job, Worker, Processor } from 'bullmq'
 
 export const BROADCAST_QUEUE_NAME = `broadcast`
+export const BROADCAST_REPEAT_EVERY = 1_000
 
 export const DEFAULT_BROADCAST_CONCURRENCY = 10
 export const DEFAULT_BROADCAST_LIMITER_MAX = 10
 export const DEFAULT_BROADCAST_LIMITER_DURATION = 1_000
+export const DEFAULT_BROADCAST_ADVERTS_LIMIT = 10
 
 export type BroadcastConfig = {
   BROADCAST_CONCURRENCY: number
   BROADCAST_LIMITER_MAX: number
   BROADCAST_LIMITER_DURATION: number
+  BROADCAST_ADVERTS_LIMIT: number
 }
 
 export type BroadcastName = 'default'

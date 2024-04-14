@@ -44,3 +44,9 @@ export class OnlineProxiesUnavailableError extends QueueError {
     super(context, code, message)
   }
 }
+
+export class ReportGoneAwayError extends QueueError {
+  constructor(context: ErrorContext, code = 124, message = `Report gone away`) {
+    super(context, code, message)
+  }
+}

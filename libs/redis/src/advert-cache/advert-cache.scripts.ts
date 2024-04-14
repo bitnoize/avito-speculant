@@ -10,12 +10,13 @@ return redis.call(
   'url',
   'age',
   'image_url',
+  'posted_at',
   'time'
 )
 `
 
 const fetchAdverts = `
-return redis.call('SMEMBERS', KEYS[1])
+return redis.call('ZRANGE', KEYS[1], 0, -1)
 `
 
 const saveAdvertCache = `
@@ -28,10 +29,11 @@ redis.call(
   'url', ARGV[5],
   'age', ARGV[6],
   'image_url', ARGV[7],
-  'time', ARGV[8]
+  'posted_at', ARGV[8],
+  'time', ARGV[9]
 )
 
-redis.call('SADD', KEYS[2], ARGV[1])
+redis.call('ZADD', KEYS[2], ARGV[8], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -39,30 +41,63 @@ return redis.status_reply('OK')
 const dropAdvertCache = `
 redis.call('DEL', KEYS[1])
 
-redis.call('SREM', KEYS[2], ARGV[1])
+redis.call('ZREM', KEYS[2], ARGV[1])
+
+return redis.status_reply('OK')
+`
+
+const pourCategoryAdvertsSkip = `
+local done_adverts = redis.call(
+  'ZDIFF', 3,
+  KEYS[1],
+  KEYS[3],
+  KEYS[4],
+  'WITHSCORES'
+)
+
+if #done_adverts > 0 then
+  redis.call('ZADD', KEYS[4], unpack(done_adverts))
+end
+
+redis.call('DEL', KEYS[2])
 
 return redis.status_reply('OK')
 `
 
 const pourCategoryAdvertsWait = `
-local wait_adverts = redis.call('SDIFF', KEYS[1], KEYS[2], KEYS[3], KEYS[4])
+local wait_adverts = redis.call(
+  'ZDIFF', 4,
+  KEYS[1],
+  KEYS[2],
+  KEYS[3],
+  KEYS[4],
+  'WITHSCORES'
+)
 
-if #wait_adverts > 0 then
-  redis.call('SADD', KEYS[2], unpack(wait_adverts))
+if #wait_adverts >= 2 then
+  for i = 1, #wait_adverts/2 do
+    wait_adverts[2*i-1], wait_adverts[2*i] = wait_adverts[2*i], wait_adverts[2*i-1]
+  end
+
+  redis.call('ZADD', KEYS[2], unpack(wait_adverts))
 end
 
 return redis.status_reply('OK')
 `
 
 const pourCategoryAdvertsSend = `
-local count = tonumber(ARGV[1]) - tonumber(redis.call('SCARD', KEYS[2]))
+if redis.call('EXISTS', KEYS[1]) == 1 then
+  local count = tonumber(ARGV[1]) - tonumber(redis.call('ZCARD', KEYS[2]))
 
-if count > 0 then
-  local send_adverts = redis.call('SRANDMEMBER', KEYS[1], count)
+  if count > 0 then
+    local send_adverts = redis.call('ZPOPMIN', KEYS[1], count)
+    if #send_adverts >= 2 then
+      for i = 1, #send_adverts/2 do
+        send_adverts[2*i-1], send_adverts[2*i] = send_adverts[2*i], send_adverts[2*i-1]
+      end
 
-  if #send_adverts > 0 then
-    redis.call('SREM', KEYS[1], unpack(send_adverts))
-    redis.call('SADD', KEYS[2], unpack(send_adverts))
+      redis.call('ZADD', KEYS[2], unpack(send_adverts))
+    end
   end
 end
 
@@ -70,8 +105,12 @@ return redis.status_reply('OK')
 `
 
 const pourCategoryAdvertDone = `
-redis.call('SREM', KEYS[1], ARGV[1])
-redis.call('SADD', KEYS[2], ARGV[1])
+local score  = redis.call('ZSCORE', KEYS[1], ARGV[1])
+
+if score ~= false then
+  redis.call('ZREM', KEYS[1], ARGV[1])
+  redis.call('ZADD', KEYS[2], score, ARGV[1])
+end
 
 return redis.status_reply('OK')
 `
@@ -95,6 +134,11 @@ const initScripts: InitScripts = (redis) => {
   redis.defineCommand('dropAdvertCache', {
     numberOfKeys: 2,
     lua: dropAdvertCache
+  })
+
+  redis.defineCommand('pourCategoryAdvertsSkip', {
+    numberOfKeys: 4,
+    lua: pourCategoryAdvertsSkip
   })
 
   redis.defineCommand('pourCategoryAdvertsWait', {

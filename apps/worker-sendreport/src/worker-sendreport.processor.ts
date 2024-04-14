@@ -1,14 +1,17 @@
-import { Bot, GrammyError, HttpError } from 'grammy'
+import { HttpsProxyAgent } from 'https-proxy-agent'
+import { Bot } from 'grammy'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
 import {
   redisService,
-  userCacheService,
-  categoryCacheService,
+  proxyCacheService,
   advertCacheService,
+  reportCacheService,
 } from '@avito-speculant/redis'
 import {
+  OnlineProxiesUnavailableError,
+  ReportGoneAwayError,
   SendreportResult,
   SendreportProcessor
 } from '@avito-speculant/queue'
@@ -27,9 +30,7 @@ const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
   const sendreportResult: SendreportResult = {}
 
   try {
-    const bot = new Bot(config.BOT_TOKEN)
-
-    await processDefault(config, logger, redis, sendreportJob, sendreportResult, bot)
+    await processDefault(config, logger, redis, sendreportJob, sendreportResult)
   } catch (error) {
     if (error instanceof DomainError) {
       if (error.isEmergency()) {
@@ -50,40 +51,61 @@ const processDefault: ProcessDefault = async function(
   logger,
   redis,
   sendreportJob,
-  sendreportResult,
-  bot
+  sendreportResult
 ) {
   try {
     const startTime = Date.now()
     const name = sendreportJob.name
-    const { categoryId, advertId } = sendreportJob.data
+    const { reportId } = sendreportJob.data
 
-    const { categoryCache } = await categoryCacheService.fetchCategoryCache(redis, {
-      categoryId
+    const { reportCache } = await reportCacheService.stampReportCache(redis, {
+      reportId
     })
 
-    const { userCache } = await userCacheService.fetchUserCache(redis, {
-      userId: categoryCache.userId
-    })
+    if (reportCache === undefined) {
+      throw new ReportGoneAwayError({ reportId })
+    }
 
-    const { advertCache } = await advertCacheService.fetchAdvertCache(redis, {
-      advertId
-    })
+    if (reportCache.attempt <= config.SENDREPORT_ATTEMPTS_LIMIT) {
+      const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(
+        redis,
+        undefined
+      )
 
-    await bot.api.sendMessage(
-      userCache.tgFromId,
-      `Id: ${advertCache.id}\n` +
-      `Title: ${advertCache.title}\n` +
-      `Description: ${advertCache.description.slice(0, 500)}\n` +
-      `PriceRub: ${advertCache.priceRub}\n` +
-      `Url: ${advertCache.url}\n` +
-      `Age: ${advertCache.age}\n` +
-      `ImageUrl: ${advertCache.imageUrl}`
-    )
+      if (proxyCache === undefined) {
+        throw new OnlineProxiesUnavailableError({ reportCache })
+      }
 
-    await advertCacheService.pourCategoryAdvertDone(redis, {
-      categoryId: categoryCache.id,
-      advertId: advertCache.id
+      const { advertCache } = await advertCacheService.fetchAdvertCache(redis, {
+        advertId: reportCache.advertId
+      })
+
+      const bot = new Bot(config.BOT_TOKEN, {
+        client: {
+          baseFetchConfig: {
+            agent: new HttpsProxyAgent(proxyCache.proxyUrl),
+            compress: true
+          }
+        }
+      })
+
+      await bot.api.sendMessage(
+        reportCache.tgFromId,
+        `Id: ${advertCache.id}\n` +
+        `Title: ${advertCache.title}\n` +
+        `Description: ${advertCache.description.slice(0, 500)}\n` +
+        `PriceRub: ${advertCache.priceRub}\n` +
+        `Url: ${advertCache.url}\n` +
+        `Age: ${advertCache.age}\n` +
+        `ImageUrl: ${advertCache.imageUrl}`
+      )
+    }
+
+    await reportCacheService.dropReportCache(redis, {
+      reportId: reportCache.id,
+      categoryId: reportCache.categoryId,
+      advertId: reportCache.advertId,
+      postedAt: reportCache.postedAt,
     })
 
     sendreportResult[name] = {
@@ -91,9 +113,13 @@ const processDefault: ProcessDefault = async function(
     }
   } catch (error) {
     if (error instanceof DomainError) {
-      logger.error(`SendreportProcessor processDefault exception`)
-
-      error.setEmergency()
+      if (error instanceof OnlineProxiesUnavailableError) {
+        // ...
+      } else if (error instanceof ReportGoneAwayError) {
+        // ...
+      } else {
+        error.setEmergency()
+      }
     }
 
     throw error

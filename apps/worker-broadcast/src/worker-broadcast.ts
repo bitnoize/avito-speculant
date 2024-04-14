@@ -5,7 +5,6 @@ import {
   BroadcastConfig,
   BroadcastResult,
   BroadcastJob,
-  SendreportQueue
 } from '@avito-speculant/queue'
 
 export type Config = LoggerConfig & RedisConfig & QueueConfig & BroadcastConfig
@@ -16,5 +15,4 @@ export type ProcessDefault = (
   redis: Redis,
   broadcastJob: BroadcastJob,
   broadcastResult: BroadcastResult,
-  sendreportQueue: SendreportQueue
 ) => Promise<void>

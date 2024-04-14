@@ -11,7 +11,8 @@ import {
   DEFAULT_QUEUE_REDIS_DATABASE,
   DEFAULT_SENDREPORT_CONCURRENCY,
   DEFAULT_SENDREPORT_LIMITER_MAX,
-  DEFAULT_SENDREPORT_LIMITER_DURATION
+  DEFAULT_SENDREPORT_LIMITER_DURATION,
+  DEFAULT_SENDREPORT_ATTEMPTS_LIMIT
 } from '@avito-speculant/queue'
 import { Config } from './worker-sendreport.js'
 
@@ -28,6 +29,7 @@ export const configSchema: JSONSchemaType<Config> = {
     'SENDREPORT_CONCURRENCY',
     'SENDREPORT_LIMITER_MAX',
     'SENDREPORT_LIMITER_DURATION',
+    'SENDREPORT_ATTEMPTS_LIMIT',
     'BOT_TOKEN'
   ],
   properties: {
@@ -100,6 +102,12 @@ export const configSchema: JSONSchemaType<Config> = {
       minimum: 1000,
       maximum: 60000,
       default: DEFAULT_SENDREPORT_LIMITER_DURATION
+    },
+    SENDREPORT_ATTEMPTS_LIMIT: {
+      type: 'integer',
+      minimum: 1,
+      maximum: 100,
+      default: DEFAULT_SENDREPORT_ATTEMPTS_LIMIT
     },
     BOT_TOKEN: {
       type: 'string'

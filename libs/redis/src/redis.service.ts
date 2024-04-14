@@ -9,6 +9,7 @@ import initCategoryCacheScripts from './category-cache/category-cache.scripts.js
 import initProxyCacheScripts from './proxy-cache/proxy-cache.scripts.js'
 import initScraperCacheScripts from './scraper-cache/scraper-cache.scripts.js'
 import initAdvertCacheScripts from './advert-cache/advert-cache.scripts.js'
+import initReportCacheScripts from './report-cache/report-cache.scripts.js'
 import { RedisConfig } from './redis.js'
 
 /**
@@ -43,6 +44,7 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
   initProxyCacheScripts(redis)
   initScraperCacheScripts(redis)
   initAdvertCacheScripts(redis)
+  initReportCacheScripts(redis)
 
   return redis
 }

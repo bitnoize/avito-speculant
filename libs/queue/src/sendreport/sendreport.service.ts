@@ -29,15 +29,13 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Sendre
  */
 export async function addJob(
   queue: SendreportQueue,
-  categoryId: number,
-  advertId: number,
+  reportId: string
 ): Promise<SendreportJob> {
-  const jobId = `category-${categoryId}-advert-${advertId}`
+  const jobId = `report-${reportId}`
   return await queue.add(
     'default',
     {
-      categoryId,
-      advertId
+      reportId
     },
     {
       jobId

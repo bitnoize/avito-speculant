@@ -8,11 +8,12 @@ export interface AdvertCache {
   url: string
   age: string
   imageUrl: string
+  postedAt: number
   time: number
 }
 
-// id, title, description, priceRub, url, age, imageUrl
-export type AvitoAdvert = [number, string, string, number, string, string, string]
+// id, title, description, priceRub, url, age, imageUr, postedAt
+export type AvitoAdvert = [number, string, string, number, string, string, string, number]
 
 export const CATEGORY_ADVERTS_TOPICS = ['wait', 'send', 'done']
 export type CategoryAdvertTopic = (typeof CATEGORY_ADVERTS_TOPICS)[number]

@@ -16,6 +16,7 @@ declare module 'ioredis' {
       url: string,
       age: string,
       imageUrl: string,
+      postedAt: number,
       time: number,
       callback?: Callback<string>
     ): Result<string, Context>
@@ -24,6 +25,14 @@ declare module 'ioredis' {
       advertKey: string,
       scraperAdvertsKey: string,
       advertId: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    pourCategoryAdvertsSkip(
+      scraperAdvertsKey: string,
+      categoryAdvertsWaitKey: string,
+      categoryAdvertsSendKey: string,
+      categoryAdvertsDoneKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
 

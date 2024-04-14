@@ -63,6 +63,7 @@ export type AvitoDataDataCatalogItem = {
   id: number
   title: string
   description: string
+  sortTimeStamp: number
   urlPath: string
   priceDetailed: AvitoDataDataCatalogItemPriceDetailed
   images: AvitoDataDataCatalogItemImage[]

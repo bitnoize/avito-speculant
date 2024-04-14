@@ -1,7 +1,7 @@
 import { command } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { redisService, systemService } from '@avito-speculant/redis'
-import { queueService, heartbeatService } from '@avito-speculant/queue'
+import { queueService, heartbeatService, throttleService } from '@avito-speculant/queue'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
@@ -15,14 +15,13 @@ export default (config: Config, logger: Logger) => {
 
       const queueConnection = queueService.getQueueConnection<Config>(config)
       const heartbeatQueue = heartbeatService.initQueue(queueConnection, logger)
+      const throttleQueue = throttleService.initQueue(queueConnection, logger)
 
-      const heartbeatJob = await heartbeatService.addRepeatableJob(
-        heartbeatQueue,
-        'heartbeat-pulse',
-        10_000
-      )
+      await heartbeatService.addRepeatableJob(heartbeatQueue)
+      await throttleService.addRepeatableJob(throttleQueue)
 
       await heartbeatService.closeQueue(heartbeatQueue)
+      await throttleService.closeQueue(throttleQueue)
       await redisService.closeRedis(redis)
     }
   })

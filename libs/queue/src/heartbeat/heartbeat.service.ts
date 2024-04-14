@@ -2,6 +2,7 @@ import { Logger } from '@avito-speculant/logger'
 import { ConnectionOptions, RateLimiterOptions } from 'bullmq'
 import {
   HEARTBEAT_QUEUE_NAME,
+  HEARTBEAT_REPEAT_EVERY,
   HEARTBEAT_STEPS,
   HeartbeatConfig,
   HeartbeatName,
@@ -28,20 +29,15 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Heartb
 /**
  * Add RepeatableJob
  */
-export async function addRepeatableJob(
-  queue: HeartbeatQueue,
-  jobId: string,
-  every: number
-): Promise<HeartbeatJob> {
+export async function addRepeatableJob(queue: HeartbeatQueue): Promise<HeartbeatJob> {
   return await queue.add(
     'default',
     {
       step: HEARTBEAT_STEPS[0]
     },
     {
-      jobId,
       repeat: {
-        every
+        every: HEARTBEAT_REPEAT_EVERY
       }
     }
   )
@@ -50,17 +46,12 @@ export async function addRepeatableJob(
 /**
  * Remove RepeatableJob
  */
-export async function removeRepeatableJob(
-  queue: HeartbeatQueue,
-  jobId: string,
-  every: number
-): Promise<boolean> {
+export async function removeRepeatableJob(queue: HeartbeatQueue): Promise<boolean> {
   return await queue.removeRepeatable(
     'default',
     {
-      every
-    },
-    jobId
+      every: HEARTBEAT_REPEAT_EVERY
+    }
   )
 }
 

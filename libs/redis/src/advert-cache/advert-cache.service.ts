@@ -4,6 +4,7 @@ import {
   FetchCategoryAdvertsCache,
   SaveAdvertsCache,
   DropAdvertCache,
+  PourCategoryAdvertsSkip,
   PourCategoryAdvertsWait,
   PourCategoryAdvertsSend,
   PourCategoryAdvertDone
@@ -55,6 +56,17 @@ export const saveAdvertsCache: SaveAdvertsCache = async function (redis, request
  */
 export const dropAdvertCache: DropAdvertCache = async function (redis, request) {
   await advertCacheRepository.dropAdvertCache(redis, request.advertId, request.scraperId)
+}
+
+/*
+ * Pour CategoryAdvertsSkip
+ */
+export const pourCategoryAdvertsSkip: PourCategoryAdvertsSkip = async function(redis, request) {
+  await advertCacheRepository.pourCategoryAdvertsSkip(
+    redis,
+    request.scraperId,
+    request.categoryId
+  )
 }
 
 /*

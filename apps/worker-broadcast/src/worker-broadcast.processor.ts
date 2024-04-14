@@ -2,18 +2,18 @@ import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
 import {
+  AvitoReport,
   redisService,
   userCacheService,
   subscriptionCacheService,
   categoryCacheService,
-  advertCacheService
+  advertCacheService,
+  reportCacheService
 } from '@avito-speculant/redis'
 import {
   UserSubscriptionBreakError,
   BroadcastResult,
   BroadcastProcessor,
-  queueService,
-  sendreportService
 } from '@avito-speculant/queue'
 import { Config, ProcessDefault } from './worker-broadcast.js'
 import { configSchema } from './worker-broadcast.schema.js'
@@ -27,20 +27,15 @@ const broadcastProcessor: BroadcastProcessor = async (broadcastJob) => {
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
 
-  const queueConnection = queueService.getQueueConnection<Config>(config)
-
   const broadcastResult: BroadcastResult = {}
 
   try {
-    const sendreportQueue = sendreportService.initQueue(queueConnection, logger)
-
     await processDefault(
       config,
       logger,
       redis,
       broadcastJob,
       broadcastResult,
-      sendreportQueue
     )
   } catch (error) {
     if (error instanceof DomainError) {
@@ -65,7 +60,6 @@ const processDefault: ProcessDefault = async function(
   redis,
   broadcastJob,
   broadcastResult,
-  sendreportQueue
 ) {
   try {
     const startTime = Date.now()
@@ -109,7 +103,7 @@ const processDefault: ProcessDefault = async function(
 
       await advertCacheService.pourCategoryAdvertsSend(redis, {
         categoryId: categoryCache.id,
-        count: 20
+        count: config.BROADCAST_ADVERTS_LIMIT
       })
 
       const { advertsCache } = await advertCacheService.fetchCategoryAdvertsCache(redis, {
@@ -117,13 +111,17 @@ const processDefault: ProcessDefault = async function(
         topic: 'send'
       })
 
-      for (const advertCache of advertsCache) {
-        await sendreportService.addJob(
-          sendreportQueue,
-          categoryCache.id,
-          advertCache.id
-        )
-      }
+      const avitoReports = advertsCache.map((advertCache): AvitoReport => ([
+        categoryCache.id,
+        advertCache.id,
+        userCache.tgFromId,
+        advertCache.postedAt
+      ]))
+      console.log(avitoReports)
+
+      reportCacheService.saveReportsCache(redis, {
+        avitoReports
+      })
     }
 
     broadcastResult[name] = {
@@ -137,8 +135,6 @@ const processDefault: ProcessDefault = async function(
     }
 
     throw error
-  } finally {
-    await sendreportService.closeQueue(sendreportQueue)
   }
 }
 

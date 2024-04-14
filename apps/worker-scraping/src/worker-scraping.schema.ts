@@ -129,6 +129,7 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                   'id',
                   'title',
                   'description',
+                  'sortTimeStamp',
                   'urlPath',
                   'priceDetailed',
                   'images',
@@ -143,6 +144,9 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                   },
                   description: {
                     type: 'string'
+                  },
+                  sortTimeStamp: {
+                    type: 'integer'
                   },
                   urlPath: {
                     type: 'string'

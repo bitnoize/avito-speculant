@@ -40,13 +40,12 @@ import redisFetchOnlineProxiesCacheCommand from './redis/redis-fetch-online-prox
 import redisFetchScrapersCacheCommand from './redis/redis-fetch-scrapers-cache.command.js'
 import redisFetchScraperAdvertsCacheCommand from './redis/redis-fetch-scraper-adverts-cache.command.js'
 import queueStatusHeartbeatCommand from './queue/queue-status-heartbeat.command.js'
-import queueListenHeartbeatCommand from './queue/queue-listen-heartbeat.command.js'
 import queueStatusTreatmentCommand from './queue/queue-status-treatment.command.js'
-import queueListenTreatmentCommand from './queue/queue-listen-treatment.command.js'
 import queueStatusScrapingCommand from './queue/queue-status-scraping.command.js'
-import queueListenScrapingCommand from './queue/queue-listen-scraping.command.js'
 import queueStatusProxycheckCommand from './queue/queue-status-proxycheck.command.js'
-import queueListenProxycheckCommand from './queue/queue-listen-proxycheck.command.js'
+import queueStatusBroadcastCommand from './queue/queue-status-broadcast.command.js'
+import queueStatusThrottleCommand from './queue/queue-status-throttle.command.js'
+import queueStatusSendreportCommand from './queue/queue-status-sendreport.command.js'
 import { Config } from './manager.js'
 import { configSchema } from './manager.schema.js'
 
@@ -115,13 +114,12 @@ async function bootstrap(): Promise<void> {
     name: 'queue',
     cmds: {
       'status-heartbeat': queueStatusHeartbeatCommand(config, logger),
-      'listen-heartbeat': queueListenHeartbeatCommand(config, logger),
       'status-treatment': queueStatusTreatmentCommand(config, logger),
-      'listen-treatment': queueListenTreatmentCommand(config, logger),
       'status-scraping': queueStatusScrapingCommand(config, logger),
-      'listen-scraping': queueListenScrapingCommand(config, logger),
       'status-proxycheck': queueStatusProxycheckCommand(config, logger),
-      'listen-proxycheck': queueListenProxycheckCommand(config, logger),
+      'status-broadcast': queueStatusBroadcastCommand(config, logger),
+      'status-throttle': queueStatusThrottleCommand(config, logger),
+      'status-sendreport': queueStatusSendreportCommand(config, logger)
     }
   })
 

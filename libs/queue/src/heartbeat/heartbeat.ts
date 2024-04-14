@@ -1,6 +1,7 @@
 import { Queue, Job, Worker, Processor } from 'bullmq'
 
 export const HEARTBEAT_QUEUE_NAME = `heartbeat`
+export const HEARTBEAT_REPEAT_EVERY = 10_000
 
 export const DEFAULT_HEARTBEAT_CONCURRENCY = 1
 export const DEFAULT_HEARTBEAT_LIMITER_MAX = 1

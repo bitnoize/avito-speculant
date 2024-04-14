@@ -9,12 +9,13 @@
 
 Реализует сервисы:
 
-* queueService - Общий сервис для всех очередей
+* queueService
 * heartbeatService
 * treatmentService
 * proxycheckService
 * scrapingService
 * broadcastService
+* throttleService
 * sendreportService
 
 ```

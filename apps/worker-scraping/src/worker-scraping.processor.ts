@@ -8,7 +8,6 @@ import {
   advertCacheService
 } from '@avito-speculant/redis'
 import {
-  ProcessorUnknownNameError,
   OnlineProxiesUnavailableError,
   ScrapingResult,
   ScrapingProcessor

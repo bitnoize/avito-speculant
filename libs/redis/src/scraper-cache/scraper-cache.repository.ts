@@ -141,22 +141,3 @@ const parseCollection = (result: unknown, message: string): ScraperCache[] => {
     return parseModel(command, message)
   })
 }
-
-/*
-export async function saveScraperCache(
-  redis: Redis,
-  scraperId: string,
-  avitoUrl: string,
-  intervalSec: number
-): Promise<void> {
-  await redis.saveScraperCache(
-    scraperKey(scraperId), // KEYS[1]
-    scrapersKey(), // KEYS[2]
-    avitoUrlScrapersKey(avitoUrl), // KEYS[3]
-    scraperId, // ARGV[1]
-    avitoUrl, // ARGV[2]
-    intervalSec, // ARGV[3]
-    Date.now() // ARGV[4]
-  )
-}
-*/

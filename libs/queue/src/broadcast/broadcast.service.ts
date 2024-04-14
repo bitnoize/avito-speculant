@@ -2,6 +2,7 @@ import { Logger } from '@avito-speculant/logger'
 import { ConnectionOptions, RateLimiterOptions } from 'bullmq'
 import {
   BROADCAST_QUEUE_NAME,
+  BROADCAST_REPEAT_EVERY,
   BroadcastConfig,
   BroadcastName,
   BroadcastData,
@@ -40,7 +41,7 @@ export async function addRepeatableJob(
     {
       jobId,
       repeat: {
-        every: 1000
+        every: BROADCAST_REPEAT_EVERY
       }
     }
   )
@@ -57,7 +58,7 @@ export async function removeRepeatableJob(
   return await queue.removeRepeatable(
     'default',
     {
-      every: 1000
+      every: BROADCAST_REPEAT_EVERY
     },
     jobId
   )
