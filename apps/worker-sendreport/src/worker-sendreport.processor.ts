@@ -100,7 +100,7 @@ const processDefault: ProcessDefault = async function (
         'AAMCBQADGQEAARNXJ2JmLCEf98yfbH4IrxllIeSUBERZAAIeAAP2groPvWHPcxamOuYBAAdtAAMkBA',
         {
           caption,
-          parse_mode: 'MarkdownV2'
+          parse_mode: 'HTML'
         }
       )
 
@@ -109,7 +109,7 @@ const processDefault: ProcessDefault = async function (
         message.message_id,
         InputMediaBuilder.photo(advertCache.imageUrl, {
           caption,
-          parse_mode: 'MarkdownV2'
+          parse_mode: 'HTML'
         })
       )
     }
@@ -149,9 +149,9 @@ const renderReport = (
   url: string,
   age: string,
 ): string => {
-  return `**\\#${id}**\n` +
-    `[${title}](${url})\n` +
+  return `<b>#${id}</b>\n` +
+    `<a href="${url}">${title}</a>\n` +
     `${description.slice(0, 250)}...\n` +
-    `Цена: **${priceRub}**\n` +
-    `Опубликовано: ${age}\n`
+    `Цена: <b>${priceRub}</b>\n` +
+    `Опубликовано: <b>${age}</b>\n`
 }

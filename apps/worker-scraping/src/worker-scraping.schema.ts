@@ -164,40 +164,38 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                     type: 'array',
                     items: {
                       type: 'object',
-                      required: [
-                        '208x156',
-                        '236x177',
-                        '318x238',
-                        '416x312',
-                        '432x324',
-                        '472x354',
-                        '636x476',
-                        '864x648'
-                      ],
                       properties: {
                         '208x156': {
-                          type: 'string'
+                          type: 'string',
+                          nullable: true
                         },
                         '236x177': {
-                          type: 'string'
+                          type: 'string',
+                          nullable: true
                         },
                         '318x238': {
-                          type: 'string'
+                          type: 'string',
+                          nullable: true
                         },
                         '416x312': {
-                          type: 'string'
+                          type: 'string',
+                          nullable: true
                         },
                         '432x324': {
-                          type: 'string'
+                          type: 'string',
+                          nullable: true
                         },
                         '472x354': {
-                          type: 'string'
+                          type: 'string',
+                          nullable: true
                         },
                         '636x476': {
-                          type: 'string'
+                          type: 'string',
+                          nullable: true
                         },
                         '864x648': {
-                          type: 'string'
+                          type: 'string',
+                          nullable: true
                         }
                       }
                     }

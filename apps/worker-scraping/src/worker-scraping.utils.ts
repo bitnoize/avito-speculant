@@ -102,7 +102,7 @@ export const parseAttempt: ParseAttempt = (body) => {
         item.priceDetailed.value,
         'https://avito.ru' + item.urlPath,
         item.iva.DateInfoStep[0].payload.absolute || 'неизвестно',
-        item.images[0]['208x156'],
+        item.images[0]['208x156'] ?? item.images[0]['236x177'] ?? item.images[0]['318x238'] ?? 'https://upload.wikimedia.org/wikipedia/commons/1/14/Product_sample_icon_picture.png',
         item.sortTimeStamp
       ]
     )
