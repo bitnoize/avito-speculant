@@ -97,7 +97,7 @@ const processDefault: ProcessDefault = async function (
 
       const message = await bot.api.sendPhoto(
         reportCache.tgFromId,
-        'AAMCBQADGQEAARNXJ2JmLCEf98yfbH4IrxllIeSUBERZAAIeAAP2groPvWHPcxamOuYBAAdtAAMkBA',
+        'CAACAgUAAxkBAAETVydiZiwhH_fMn2x-CK8ZZSHklAREWQACHgAD9oK6D71hz3MWpjrmJAQ',
         {
           caption,
           parse_mode: 'HTML'
