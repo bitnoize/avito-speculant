@@ -7,6 +7,7 @@ return redis.call(
   'user_id',
   'scraper_id',
   'avito_url',
+  'skip_first',
   'time'
 )
 `
@@ -25,6 +26,8 @@ redis.call(
   'time', ARGV[5]
 )
 
+redis.call('HSETNX', KEYS[1], 'skip_first', 1)
+
 redis.call('SADD', KEYS[2], ARGV[1])
 
 redis.call('SADD', KEYS[3], ARGV[1])
@@ -38,6 +41,14 @@ redis.call('DEL', KEYS[1])
 redis.call('SREM', KEYS[2], ARGV[1])
 
 redis.call('SREM', KEYS[3], ARGV[1])
+
+return redis.status_reply('OK')
+`
+
+const resetCategoryCache = `
+if redis.call('EXISTS', KEYS[1]) == 1 then
+  redis.call('HSET', KEYS[1], 'skip_first', 0, 'time', ARGV[1])
+end
 
 return redis.status_reply('OK')
 `
@@ -61,6 +72,11 @@ const initScripts: InitScripts = (redis) => {
   redis.defineCommand('dropCategoryCache', {
     numberOfKeys: 3,
     lua: dropCategoryCache
+  })
+
+  redis.defineCommand('resetCategoryCache', {
+    numberOfKeys: 1,
+    lua: resetCategoryCache
   })
 }
 

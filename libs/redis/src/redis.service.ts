@@ -53,7 +53,7 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
  * Close Redis connection
  */
 export async function closeRedis(redis: Redis): Promise<void> {
-  await redis.disconnect()
+  await redis.quit()
 }
 
 /**
@@ -83,7 +83,7 @@ export async function publishBackLog(pubSub: Redis, backLog: Notify[]): Promise<
  * Close PubSub connection
  */
 export async function closePubSub(pubSub: Redis): Promise<void> {
-  await pubSub.disconnect()
+  await pubSub.quit()
 }
 
 export const randomHash = (): string => uuidv4().replaceAll('-', '')

@@ -15,6 +15,7 @@ import {
   parsePipeline,
   parseCommand
 } from '../redis.utils.js'
+import { categoryKey } from '../category-cache/category-cache.js'
 
 export async function fetchAdvertCache(redis: Redis, advertId: number): Promise<AdvertCache> {
   const result = await redis.fetchAdvertCache(
@@ -103,12 +104,21 @@ export async function pourCategoryAdvertsSkip(
   scraperId: string,
   categoryId: number
 ): Promise<void> {
-  await redis.pourCategoryAdvertsSkip(
+  const multi = redis.multi()
+
+  multi.pourCategoryAdvertsSkip(
     scraperAdvertsKey(scraperId), // KEYS[1]
     categoryAdvertsKey(categoryId, 'wait'), // KEYS[2]
     categoryAdvertsKey(categoryId, 'send'), // KEYS[3]
     categoryAdvertsKey(categoryId, 'done') // KEYS[4]
   )
+
+  multi.resetCategoryCache(
+    categoryKey(categoryId), // KEYS[1]
+    Date.now() // ARGV[1]
+  )
+
+  await multi.exec()
 }
 
 export async function pourCategoryAdvertsWait(

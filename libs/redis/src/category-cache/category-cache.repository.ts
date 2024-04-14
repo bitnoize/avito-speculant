@@ -109,14 +109,15 @@ export async function dropCategoryCache(
 }
 
 const parseModel = (result: unknown, message: string): CategoryCache => {
-  const hash = parseHash(result, 5, message)
+  const hash = parseHash(result, 6, message)
 
   return {
     id: parseNumber(hash[0], message),
     userId: parseNumber(hash[1], message),
     scraperId: parseString(hash[2], message),
     avitoUrl: parseString(hash[3], message),
-    time: parseNumber(hash[4], message)
+    skipFirst: !!parseNumber(hash[4], message),
+    time: parseNumber(hash[5], message)
   }
 }
 
@@ -128,24 +129,3 @@ const parseCollection = (result: unknown, message: string): CategoryCache[] => {
     return parseModel(command, message)
   })
 }
-
-/*
-export async function saveCategoryCache(
-  redis: Redis,
-  categoryId: number,
-  userId: number,
-  scraperId: string,
-  avitoUrl: string
-): Promise<void> {
-  await redis.saveCategoryCache(
-    categoryKey(categoryId), // KEYS[1]
-    userCategoriesKey(userId), // KEYS[2]
-    scraperCategoriesKey(scraperId), // KEYS[3]
-    categoryId, // ARGV[1]
-    userId, // ARGV[2]
-    scraperId, // ARGV[3]
-    avitoUrl, // ARGV[4]
-    Date.now() // ARGV[5]
-  )
-}
-*/

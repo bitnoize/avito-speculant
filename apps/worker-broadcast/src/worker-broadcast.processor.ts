@@ -87,36 +87,42 @@ const processDefault: ProcessDefault = async function (
     })
 
     for (const categoryCache of categoriesCache) {
-      if (checkpoint) {
-        await advertCacheService.pourCategoryAdvertsWait(redis, {
+      if (categoryCache.skipFirst) {
+        await advertCacheService.pourCategoryAdvertsSkip(redis, {
           scraperId: categoryCache.scraperId,
           categoryId: categoryCache.id
         })
+      } else {
+        if (checkpoint) {
+          await advertCacheService.pourCategoryAdvertsWait(redis, {
+            scraperId: categoryCache.scraperId,
+            categoryId: categoryCache.id
+          })
+        }
+
+        await advertCacheService.pourCategoryAdvertsSend(redis, {
+          categoryId: categoryCache.id,
+          count: config.BROADCAST_ADVERTS_LIMIT
+        })
+
+        const { advertsCache } = await advertCacheService.fetchCategoryAdvertsCache(redis, {
+          categoryId: categoryCache.id,
+          topic: 'send'
+        })
+
+        const avitoReports = advertsCache.map(
+          (advertCache): AvitoReport => [
+            categoryCache.id,
+            advertCache.id,
+            userCache.tgFromId,
+            advertCache.postedAt
+          ]
+        )
+
+        reportCacheService.saveReportsCache(redis, {
+          avitoReports
+        })
       }
-
-      await advertCacheService.pourCategoryAdvertsSend(redis, {
-        categoryId: categoryCache.id,
-        count: config.BROADCAST_ADVERTS_LIMIT
-      })
-
-      const { advertsCache } = await advertCacheService.fetchCategoryAdvertsCache(redis, {
-        categoryId: categoryCache.id,
-        topic: 'send'
-      })
-
-      const avitoReports = advertsCache.map(
-        (advertCache): AvitoReport => [
-          categoryCache.id,
-          advertCache.id,
-          userCache.tgFromId,
-          advertCache.postedAt
-        ]
-      )
-      console.log(avitoReports)
-
-      reportCacheService.saveReportsCache(redis, {
-        avitoReports
-      })
     }
 
     broadcastResult[name] = {

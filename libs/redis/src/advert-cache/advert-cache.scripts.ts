@@ -47,6 +47,8 @@ return redis.status_reply('OK')
 `
 
 const pourCategoryAdvertsSkip = `
+redis.call('DEL', KEYS[2])
+
 local done_adverts = redis.call(
   'ZDIFF', 3,
   KEYS[1],
@@ -56,10 +58,12 @@ local done_adverts = redis.call(
 )
 
 if #done_adverts > 0 then
+  for i = 1, #done_adverts/2 do
+    done_adverts[2*i-1], done_adverts[2*i] = done_adverts[2*i], done_adverts[2*i-1]
+  end
+
   redis.call('ZADD', KEYS[4], unpack(done_adverts))
 end
-
-redis.call('DEL', KEYS[2])
 
 return redis.status_reply('OK')
 `
@@ -86,18 +90,16 @@ return redis.status_reply('OK')
 `
 
 const pourCategoryAdvertsSend = `
-if redis.call('EXISTS', KEYS[1]) == 1 then
-  local count = tonumber(ARGV[1]) - tonumber(redis.call('ZCARD', KEYS[2]))
+local count = tonumber(ARGV[1]) - tonumber(redis.call('ZCARD', KEYS[2]))
 
-  if count > 0 then
-    local send_adverts = redis.call('ZPOPMIN', KEYS[1], count)
-    if #send_adverts >= 2 then
-      for i = 1, #send_adverts/2 do
-        send_adverts[2*i-1], send_adverts[2*i] = send_adverts[2*i], send_adverts[2*i-1]
-      end
-
-      redis.call('ZADD', KEYS[2], unpack(send_adverts))
+if count > 0 then
+  local send_adverts = redis.call('ZPOPMIN', KEYS[1], count)
+  if #send_adverts >= 2 then
+    for i = 1, #send_adverts/2 do
+      send_adverts[2*i-1], send_adverts[2*i] = send_adverts[2*i], send_adverts[2*i-1]
     end
+
+    redis.call('ZADD', KEYS[2], unpack(send_adverts))
   end
 end
 

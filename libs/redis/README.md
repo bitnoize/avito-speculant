@@ -20,6 +20,14 @@
 * scraperCacheService - Парсер
 * advertCacheService - Объявления
 
+Смена пароля для юзера default Редиса:
+
+```
+ACL SETUSER default on >secret sanitize-payload ~* &* +@all
+
+```
+
+
 ```
 # Собрать модуль
 npm -w @avito-speculant/redis run build

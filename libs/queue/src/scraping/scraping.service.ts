@@ -32,7 +32,6 @@ export async function addRepeatableJob(
   scraperId: string,
   everySec: number
 ): Promise<ScrapingJob> {
-  const every = everySec * 1000
   return await queue.add(
     'default',
     {
@@ -41,7 +40,7 @@ export async function addRepeatableJob(
     {
       jobId: scraperId,
       repeat: {
-        every
+        every: everySec * 1000
       }
     }
   )

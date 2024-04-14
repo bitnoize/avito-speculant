@@ -5,6 +5,7 @@ export interface CategoryCache {
   userId: number
   scraperId: string
   avitoUrl: string
+  skipFirst: boolean
   time: number
 }
 

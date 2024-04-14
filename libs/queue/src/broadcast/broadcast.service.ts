@@ -32,14 +32,13 @@ export async function addRepeatableJob(
   queue: BroadcastQueue,
   userId: number
 ): Promise<BroadcastJob> {
-  const jobId = `user-${userId}`
   return await queue.add(
     'default',
     {
       userId
     },
     {
-      jobId,
+      jobId: `user-${userId}`,
       repeat: {
         every: BROADCAST_REPEAT_EVERY
       }
@@ -51,13 +50,12 @@ export async function addRepeatableJob(
  * Remove RepeatableJob
  */
 export async function removeRepeatableJob(queue: BroadcastQueue, userId: number): Promise<boolean> {
-  const jobId = `user-${userId}`
   return await queue.removeRepeatable(
     'default',
     {
       every: BROADCAST_REPEAT_EVERY
     },
-    jobId
+    `user-${userId}`
   )
 }
 

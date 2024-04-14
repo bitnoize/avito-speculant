@@ -166,12 +166,12 @@ export function initQueueEvents(
 
   queueEvents.on('added', (args, id) => {
     const logData = { args, id }
-    logger.info(logData, `${logQueueName} enter added state`)
+    logger.debug(logData, `${logQueueName} enter added state`)
   })
 
   queueEvents.on('duplicated', (args, id) => {
     const logData = { args, id }
-    logger.warn(logData, `${logQueueName} enter duplicated state`)
+    logger.debug(logData, `${logQueueName} enter duplicated state`)
   })
 
   queueEvents.on('delayed', (args, id) => {
@@ -196,7 +196,7 @@ export function initQueueEvents(
 
   queueEvents.on('progress', (args, id) => {
     const logData = { args, id }
-    logger.info(logData, `${logQueueName} enter progress state`)
+    logger.debug(logData, `${logQueueName} enter progress state`)
   })
 
   queueEvents.on('failed', (args, id) => {
@@ -206,7 +206,7 @@ export function initQueueEvents(
 
   queueEvents.on('stalled', (args, id) => {
     const logData = { args, id }
-    logger.warn(logData, `${logQueueName} enter stalled state`)
+    logger.error(logData, `${logQueueName} enter stalled state`)
   })
 
   queueEvents.on('removed', (args, id) => {
@@ -313,7 +313,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
       },
       prev
     }
-    logger.info(logData, `${logWorkerName} enter active state`)
+    logger.debug(logData, `${logWorkerName} enter active state`)
   })
 
   worker.on('progress', (job, progress) => {
@@ -326,7 +326,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
       },
       progress
     }
-    logger.info(logData, `${logWorkerName} enter progress state`)
+    logger.debug(logData, `${logWorkerName} enter progress state`)
   })
 
   worker.on('completed', (job, result, prev) => {
@@ -365,7 +365,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
         context: error.context,
         code: error.code
       }
-      logger.error(logData, error.message)
+      logger.error(logData, error.stack ?? error.message)
     } else {
       logger.error(error.stack ?? error.message)
     }

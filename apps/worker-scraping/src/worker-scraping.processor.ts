@@ -68,8 +68,12 @@ const processDefault: ProcessDefault = async function (
       throw new OnlineProxiesUnavailableError({ scraperCache })
     }
 
+    const avitoUrl = new URL(scraperCache.avitoUrl, 'https://www.avito.ru')
+
+    avitoUrl.searchParams.set('s', '104')
+
     const curlRequestArgs: CurlRequestArgs = [
-      scraperCache.avitoUrl,
+      avitoUrl.toString(),
       proxyCache.proxyUrl,
       timeoutAdjust(scraperCache.intervalSec),
       config.SCRAPING_REQUEST_VERBOSE

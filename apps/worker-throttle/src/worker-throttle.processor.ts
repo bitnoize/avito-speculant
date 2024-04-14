@@ -61,9 +61,10 @@ const processDefault: ProcessDefault = async function (
       limit: config.THROTTLE_REPORTS_LIMIT
     })
 
-    for (const reportCache of reportsCache) {
-      await sendreportService.addJob(sendreportQueue, reportCache.id)
-    }
+    await sendreportService.addJobs(
+      sendreportQueue,
+      reportsCache.map((reportCache) => reportCache.id)
+    )
 
     throttleResult[name] = {
       durationTime: Date.now() - startTime

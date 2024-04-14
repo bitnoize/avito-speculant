@@ -32,14 +32,13 @@ export async function addJob(
   name: TreatmentName,
   entityId: number
 ): Promise<TreatmentJob> {
-  const jobId = `${name}-${entityId}`
   return await queue.add(
     name,
     {
       entityId
     },
     {
-      jobId
+      jobId: `${name}-${entityId}`
     }
   )
 }
@@ -53,18 +52,15 @@ export async function addJobs(
   entityIds: number[]
 ): Promise<TreatmentJob[]> {
   return await queue.addBulk(
-    entityIds.map((entityId) => {
-      const jobId = `${name}-${entityId}`
-      return {
-        name,
-        data: {
-          entityId
-        },
-        opts: {
-          jobId
-        }
+    entityIds.map((entityId) => ({
+      name,
+      data: {
+        entityId
+      },
+      opts: {
+        jobId: `${name}-${entityId}`
       }
-    })
+    }))
   )
 }
 

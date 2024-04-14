@@ -25,5 +25,11 @@ declare module 'ioredis' {
       categoryId: number,
       callback?: Callback<string>
     ): Result<string, Context>
+
+    resetCategoryCache(
+      categoryKey: string,
+      time: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
   }
 }
