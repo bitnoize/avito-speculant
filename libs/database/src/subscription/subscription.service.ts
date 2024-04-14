@@ -24,7 +24,7 @@ import * as planRepository from '../plan/plan.repository.js'
 /**
  * Create Subscription
  */
-export const createSubscription: CreateSubscription = async function(db, request) {
+export const createSubscription: CreateSubscription = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -97,7 +97,7 @@ export const createSubscription: CreateSubscription = async function(db, request
 /**
  * Activate Subscription
  */
-export const activateSubscription: ActivateSubscription = async function(db, request) {
+export const activateSubscription: ActivateSubscription = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -163,7 +163,7 @@ export const activateSubscription: ActivateSubscription = async function(db, req
 /**
  * Cancel Subscription
  */
-export const cancelSubscription: CancelSubscription = async function(db, request) {
+export const cancelSubscription: CancelSubscription = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -221,7 +221,7 @@ export const cancelSubscription: CancelSubscription = async function(db, request
 /**
  * List Subscriptions
  */
-export const listSubscriptions: ListSubscriptions = async function(db, request) {
+export const listSubscriptions: ListSubscriptions = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
@@ -244,7 +244,7 @@ export const listSubscriptions: ListSubscriptions = async function(db, request) 
 /**
  * Produce Subscriptions
  */
-export const produceSubscriptions: ProduceSubscriptions = async function(db, request) {
+export const produceSubscriptions: ProduceSubscriptions = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const subscriptions: Subscription[] = []
 
@@ -266,7 +266,7 @@ export const produceSubscriptions: ProduceSubscriptions = async function(db, req
 /**
  * Consume Subscription
  */
-export const consumeSubscription: ConsumeSubscription = async function(db, request) {
+export const consumeSubscription: ConsumeSubscription = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false

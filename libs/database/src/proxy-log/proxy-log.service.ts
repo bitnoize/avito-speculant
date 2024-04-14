@@ -6,7 +6,7 @@ import * as proxyRepository from '../proxy/proxy.repository.js'
 /*
  * List ProxyLogs
  */
-export const listProxyLogs: ListProxyLogs = async function(db, request) {
+export const listProxyLogs: ListProxyLogs = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const proxyRow = await proxyRepository.selectRowByIdForShare(trx, request.proxyId)
 

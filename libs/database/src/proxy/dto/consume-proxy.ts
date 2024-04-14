@@ -14,4 +14,3 @@ export type ConsumeProxyResponse = {
 }
 
 export type ConsumeProxy = DatabaseMethod<ConsumeProxyRequest, ConsumeProxyResponse>
-

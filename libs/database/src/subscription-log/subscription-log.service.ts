@@ -6,7 +6,7 @@ import * as subscriptionRepository from '../subscription/subscription.repository
 /*
  * List SubscriptionLogs
  */
-export const listSubscriptionLogs: ListSubscriptionLogs = async function(db, request) {
+export const listSubscriptionLogs: ListSubscriptionLogs = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const subscriptionRow = await subscriptionRepository.selectRowByIdForShare(
       trx,

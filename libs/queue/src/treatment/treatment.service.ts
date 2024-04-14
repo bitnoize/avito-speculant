@@ -50,7 +50,7 @@ export async function addJob(
 export async function addJobs(
   queue: TreatmentQueue,
   name: TreatmentName,
-  entityIds: number[],
+  entityIds: number[]
 ): Promise<TreatmentJob[]> {
   return await queue.addBulk(
     entityIds.map((entityId) => {

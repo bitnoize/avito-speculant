@@ -27,10 +27,7 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Sendre
 /**
  * Add Job
  */
-export async function addJob(
-  queue: SendreportQueue,
-  reportId: string
-): Promise<SendreportJob> {
+export async function addJob(queue: SendreportQueue, reportId: string): Promise<SendreportJob> {
   const jobId = `report-${reportId}`
   return await queue.add(
     'default',

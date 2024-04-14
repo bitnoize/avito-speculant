@@ -8,4 +8,3 @@ export type FetchPlansCacheResponse = {
 }
 
 export type FetchPlansCache = RedisMethod<FetchPlansCacheRequest, FetchPlansCacheResponse>
-

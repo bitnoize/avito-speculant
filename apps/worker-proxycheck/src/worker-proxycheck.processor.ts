@@ -37,7 +37,7 @@ export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) =>
   return proxycheckResult
 }
 
-const processDefault: ProcessDefault = async function(
+const processDefault: ProcessDefault = async function (
   config,
   logger,
   redis,
@@ -97,7 +97,7 @@ const processDefault: ProcessDefault = async function(
         statusCode: curlResponse.statusCode,
         sizeBytes: curlResponse.sizeBytes,
         durationTime: Date.now() - startTime,
-        curlDurationTime: curlResponse.durationTime,
+        curlDurationTime: curlResponse.durationTime
       }
 
       return
@@ -113,7 +113,7 @@ const processDefault: ProcessDefault = async function(
       statusCode: curlResponse.statusCode,
       sizeBytes: curlResponse.sizeBytes,
       durationTime: Date.now() - startTime,
-      curlDurationTime: curlResponse.durationTime,
+      curlDurationTime: curlResponse.durationTime
     }
   } catch (error) {
     if (error instanceof DomainError) {

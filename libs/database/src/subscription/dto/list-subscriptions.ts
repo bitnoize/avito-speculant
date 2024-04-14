@@ -10,7 +10,4 @@ export type ListSubscriptionsResponse = {
   subscriptions: Subscription[]
 }
 
-export type ListSubscriptions = DatabaseMethod<
-  ListSubscriptionsRequest,
-  ListSubscriptionsResponse
->
+export type ListSubscriptions = DatabaseMethod<ListSubscriptionsRequest, ListSubscriptionsResponse>

@@ -33,7 +33,10 @@ export const fetchScraperAdvertsCache: FetchScraperAdvertsCache = async function
 /*
  * Fetch CategoryAdvertsCache
  */
-export const fetchCategoryAdvertsCache: FetchCategoryAdvertsCache = async function (redis, request) {
+export const fetchCategoryAdvertsCache: FetchCategoryAdvertsCache = async function (
+  redis,
+  request
+) {
   const advertIds = await advertCacheRepository.fetchCategoryAdverts(
     redis,
     request.categoryId,
@@ -61,43 +64,27 @@ export const dropAdvertCache: DropAdvertCache = async function (redis, request) 
 /*
  * Pour CategoryAdvertsSkip
  */
-export const pourCategoryAdvertsSkip: PourCategoryAdvertsSkip = async function(redis, request) {
-  await advertCacheRepository.pourCategoryAdvertsSkip(
-    redis,
-    request.scraperId,
-    request.categoryId
-  )
+export const pourCategoryAdvertsSkip: PourCategoryAdvertsSkip = async function (redis, request) {
+  await advertCacheRepository.pourCategoryAdvertsSkip(redis, request.scraperId, request.categoryId)
 }
 
 /*
  * Pour CategoryAdvertsWait
  */
-export const pourCategoryAdvertsWait: PourCategoryAdvertsWait = async function(redis, request) {
-  await advertCacheRepository.pourCategoryAdvertsWait(
-    redis,
-    request.scraperId,
-    request.categoryId
-  )
+export const pourCategoryAdvertsWait: PourCategoryAdvertsWait = async function (redis, request) {
+  await advertCacheRepository.pourCategoryAdvertsWait(redis, request.scraperId, request.categoryId)
 }
 
 /*
  * Pour CategoryAdvertsSend
  */
-export const pourCategoryAdvertsSend: PourCategoryAdvertsSend = async function(redis, request) {
-  await advertCacheRepository.pourCategoryAdvertsSend(
-    redis,
-    request.categoryId,
-    request.count
-  )
+export const pourCategoryAdvertsSend: PourCategoryAdvertsSend = async function (redis, request) {
+  await advertCacheRepository.pourCategoryAdvertsSend(redis, request.categoryId, request.count)
 }
 
 /*
  * Pour CategoryAdvertDone
  */
-export const pourCategoryAdvertDone: PourCategoryAdvertDone = async function(redis, request) {
-  await advertCacheRepository.pourCategoryAdvertDone(
-    redis,
-    request.categoryId,
-    request.advertId
-  )
+export const pourCategoryAdvertDone: PourCategoryAdvertDone = async function (redis, request) {
+  await advertCacheRepository.pourCategoryAdvertDone(redis, request.categoryId, request.advertId)
 }

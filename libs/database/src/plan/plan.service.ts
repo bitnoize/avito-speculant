@@ -6,7 +6,7 @@ import {
   DisablePlan,
   ListPlans,
   ProducePlans,
-  ConsumePlan,
+  ConsumePlan
 } from './dto/index.js'
 import { Plan } from './plan.js'
 import { PlanNotFoundError, PlanIsEnabledError } from './plan.errors.js'
@@ -17,7 +17,7 @@ import * as subscriptionRepository from '../subscription/subscription.repository
 /**
  * Create Plan
  */
-export const createPlan: CreatePlan = async function(db, request) {
+export const createPlan: CreatePlan = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -58,7 +58,7 @@ export const createPlan: CreatePlan = async function(db, request) {
 /**
  * Update Plan
  */
-export const updatePlan: UpdatePlan = async function(db, request) {
+export const updatePlan: UpdatePlan = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -125,7 +125,7 @@ export const updatePlan: UpdatePlan = async function(db, request) {
 /**
  * Enable Plan
  */
-export const enablePlan: EnablePlan = async function(db, request) {
+export const enablePlan: EnablePlan = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -172,7 +172,7 @@ export const enablePlan: EnablePlan = async function(db, request) {
 /**
  * Disable Plan
  */
-export const disablePlan: DisablePlan = async function(db, request) {
+export const disablePlan: DisablePlan = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -219,7 +219,7 @@ export const disablePlan: DisablePlan = async function(db, request) {
 /**
  * List Plans
  */
-export const listPlans: ListPlans = async function(db, request) {
+export const listPlans: ListPlans = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const planRows = await planRepository.selectRowsList(trx, request.all ?? false)
 
@@ -232,7 +232,7 @@ export const listPlans: ListPlans = async function(db, request) {
 /**
  * Produce Plans
  */
-export const producePlans: ProducePlans = async function(db, request) {
+export const producePlans: ProducePlans = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const plans: Plan[] = []
 
@@ -251,7 +251,7 @@ export const producePlans: ProducePlans = async function(db, request) {
 /**
  * Consume Plan
  */
-export const consumePlan: ConsumePlan = async function(db, request) {
+export const consumePlan: ConsumePlan = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false

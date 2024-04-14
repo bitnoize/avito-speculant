@@ -105,7 +105,7 @@ export const configSchema: JSONSchemaType<Config> = {
     SCRAPING_REQUEST_VERBOSE: {
       type: 'boolean',
       default: DEFAULT_SCRAPING_REQUEST_VERBOSE
-    },
+    }
   }
 }
 
@@ -153,14 +153,12 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                   },
                   priceDetailed: {
                     type: 'object',
-                    required: [
-                      'value'
-                    ],
+                    required: ['value'],
                     properties: {
                       value: {
                         type: 'integer'
                       }
-                    },
+                    }
                   },
                   images: {
                     type: 'array',
@@ -174,7 +172,7 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                         '432x324',
                         '472x354',
                         '636x476',
-                        '864x648',
+                        '864x648'
                       ],
                       properties: {
                         '208x156': {
@@ -200,23 +198,19 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                         },
                         '864x648': {
                           type: 'string'
-                        },
-                      },
+                        }
+                      }
                     }
                   },
                   iva: {
                     type: 'object',
-                    required: [
-                      'DateInfoStep'
-                    ],
+                    required: ['DateInfoStep'],
                     properties: {
                       DateInfoStep: {
                         type: 'array',
                         items: {
                           type: 'object',
-                          required: [
-                            'payload'
-                          ],
+                          required: ['payload'],
                           properties: {
                             payload: {
                               type: 'object',

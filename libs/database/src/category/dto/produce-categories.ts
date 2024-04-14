@@ -10,4 +10,3 @@ export type ProduceCategoriesResponse = {
 }
 
 export type ProduceCategories = DatabaseMethod<ProduceCategoriesRequest, ProduceCategoriesResponse>
-

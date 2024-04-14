@@ -7,7 +7,7 @@ import {
   redisService,
   proxyCacheService,
   advertCacheService,
-  reportCacheService,
+  reportCacheService
 } from '@avito-speculant/redis'
 import {
   OnlineProxiesUnavailableError,
@@ -46,7 +46,7 @@ const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
   return sendreportResult
 }
 
-const processDefault: ProcessDefault = async function(
+const processDefault: ProcessDefault = async function (
   config,
   logger,
   redis,
@@ -67,10 +67,7 @@ const processDefault: ProcessDefault = async function(
     }
 
     if (reportCache.attempt <= config.SENDREPORT_ATTEMPTS_LIMIT) {
-      const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(
-        redis,
-        undefined
-      )
+      const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis, undefined)
 
       if (proxyCache === undefined) {
         throw new OnlineProxiesUnavailableError({ reportCache })
@@ -92,12 +89,12 @@ const processDefault: ProcessDefault = async function(
       await bot.api.sendMessage(
         reportCache.tgFromId,
         `Id: ${advertCache.id}\n` +
-        `Title: ${advertCache.title}\n` +
-        `Description: ${advertCache.description.slice(0, 500)}\n` +
-        `PriceRub: ${advertCache.priceRub}\n` +
-        `Url: ${advertCache.url}\n` +
-        `Age: ${advertCache.age}\n` +
-        `ImageUrl: ${advertCache.imageUrl}`
+          `Title: ${advertCache.title}\n` +
+          `Description: ${advertCache.description.slice(0, 500)}\n` +
+          `PriceRub: ${advertCache.priceRub}\n` +
+          `Url: ${advertCache.url}\n` +
+          `Age: ${advertCache.age}\n` +
+          `ImageUrl: ${advertCache.imageUrl}`
       )
     }
 
@@ -105,7 +102,7 @@ const processDefault: ProcessDefault = async function(
       reportId: reportCache.id,
       categoryId: reportCache.categoryId,
       advertId: reportCache.advertId,
-      postedAt: reportCache.postedAt,
+      postedAt: reportCache.postedAt
     })
 
     sendreportResult[name] = {

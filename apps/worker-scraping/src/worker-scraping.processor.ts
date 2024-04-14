@@ -46,7 +46,7 @@ const scrapingProcessor: ScrapingProcessor = async (scrapingJob) => {
   return scrapingResult
 }
 
-const processDefault: ProcessDefault = async function(
+const processDefault: ProcessDefault = async function (
   config,
   logger,
   redis,

@@ -5,7 +5,7 @@ import {
   DisableCategory,
   ListCategories,
   ProduceCategories,
-  ConsumeCategory,
+  ConsumeCategory
 } from './dto/index.js'
 import { Category } from './category.js'
 import { CategoryNotFoundError, CategoriesLimitExceedError } from './category.errors.js'
@@ -19,7 +19,7 @@ import * as subscriptionRepository from '../subscription/subscription.repository
 /**
  * Create Category
  */
-export const createCategory: CreateCategory = async function(db, request) {
+export const createCategory: CreateCategory = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -57,7 +57,7 @@ export const createCategory: CreateCategory = async function(db, request) {
 /**
  * Enable Category
  */
-export const enableCategory: EnableCategory = async function(db, request) {
+export const enableCategory: EnableCategory = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -128,7 +128,7 @@ export const enableCategory: EnableCategory = async function(db, request) {
 /**
  * Disable Category
  */
-export const disableCategory: DisableCategory = async function(db, request) {
+export const disableCategory: DisableCategory = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -173,7 +173,7 @@ export const disableCategory: DisableCategory = async function(db, request) {
 /**
  * List Categories
  */
-export const listCategories: ListCategories = async function(db, request) {
+export const listCategories: ListCategories = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 
@@ -198,7 +198,7 @@ export const listCategories: ListCategories = async function(db, request) {
 /**
  * Produce Categories
  */
-export const produceCategories: ProduceCategories = async function(db, request) {
+export const produceCategories: ProduceCategories = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const categories: Category[] = []
 
@@ -217,7 +217,7 @@ export const produceCategories: ProduceCategories = async function(db, request) 
 /**
  * Consume Category
  */
-export const consumeCategory: ConsumeCategory = async function(db, request) {
+export const consumeCategory: ConsumeCategory = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false

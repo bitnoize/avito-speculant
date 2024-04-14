@@ -27,14 +27,14 @@ import {
   queueService,
   proxycheckService,
   scrapingService,
-  broadcastService,
+  broadcastService
 } from '@avito-speculant/queue'
 import {
   Config,
   NameProcess,
   NameProcessProxycheck,
   NameProcessScraping,
-  NameProcessBroadcast,
+  NameProcessBroadcast
 } from './worker-treatment.js'
 import { configSchema } from './worker-treatment.schema.js'
 
@@ -83,15 +83,7 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
       }
 
       case 'subscription': {
-        await processSubscription(
-          config,
-          logger,
-          db,
-          redis,
-          pubSub,
-          treatmentJob,
-          treatmentResult
-        )
+        await processSubscription(config, logger, db, redis, pubSub, treatmentJob, treatmentResult)
 
         break
       }
@@ -153,7 +145,7 @@ const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
   return treatmentResult
 }
 
-const processUser: NameProcessBroadcast = async function(
+const processUser: NameProcessBroadcast = async function (
   config,
   logger,
   db,
@@ -217,7 +209,7 @@ const processUser: NameProcessBroadcast = async function(
   }
 }
 
-const processPlan: NameProcess = async function(
+const processPlan: NameProcess = async function (
   config,
   logger,
   db,
@@ -273,7 +265,7 @@ const processPlan: NameProcess = async function(
   }
 }
 
-const processSubscription: NameProcess = async function(
+const processSubscription: NameProcess = async function (
   config,
   logger,
   db,
@@ -333,7 +325,7 @@ const processSubscription: NameProcess = async function(
   }
 }
 
-const processCategory: NameProcessScraping = async function(
+const processCategory: NameProcessScraping = async function (
   config,
   logger,
   db,
@@ -402,7 +394,11 @@ const processCategory: NameProcessScraping = async function(
           intervalSec: scraperCache.intervalSec
         })
 
-        await scrapingService.addRepeatableJob(scrapingQueue, scraperCache.id, scraperCache.intervalSec)
+        await scrapingService.addRepeatableJob(
+          scrapingQueue,
+          scraperCache.id,
+          scraperCache.intervalSec
+        )
       } else {
         // Scraper does not exists yet
         // Create new scraper and save it with category
@@ -479,7 +475,7 @@ const processCategory: NameProcessScraping = async function(
   }
 }
 
-const processProxy: NameProcessProxycheck = async function(
+const processProxy: NameProcessProxycheck = async function (
   config,
   logger,
   db,

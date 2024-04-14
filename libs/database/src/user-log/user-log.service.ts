@@ -6,7 +6,7 @@ import * as userRepository from '../user/user.repository.js'
 /*
  * List UserLogs
  */
-export const listUserLogs: ListUserLogs = async function(db, request) {
+export const listUserLogs: ListUserLogs = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
 

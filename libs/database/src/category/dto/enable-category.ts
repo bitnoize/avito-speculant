@@ -14,4 +14,3 @@ export type EnableCategoryResponse = {
 }
 
 export type EnableCategory = DatabaseMethod<EnableCategoryRequest, EnableCategoryResponse>
-

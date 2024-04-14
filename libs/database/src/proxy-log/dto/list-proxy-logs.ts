@@ -11,4 +11,3 @@ export type ListProxyLogsResponse = {
 }
 
 export type ListProxyLogs = DatabaseMethod<ListProxyLogsRequest, ListProxyLogsResponse>
-

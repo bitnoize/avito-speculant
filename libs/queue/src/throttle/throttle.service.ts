@@ -29,27 +29,20 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Thrott
  * Add RepeatableJob
  */
 export async function addRepeatableJob(queue: ThrottleQueue): Promise<ThrottleJob> {
-  return await queue.add(
-    'default',
-    undefined,
-    {
-      repeat: {
-        every: THROTTLE_REPEAT_EVERY
-      }
+  return await queue.add('default', undefined, {
+    repeat: {
+      every: THROTTLE_REPEAT_EVERY
     }
-  )
+  })
 }
 
 /**
  * Remove RepeatableJob
  */
 export async function removeRepeatableJob(queue: ThrottleQueue): Promise<boolean> {
-  return await queue.removeRepeatable(
-    'default',
-    {
-      every: THROTTLE_REPEAT_EVERY
-    }
-  )
+  return await queue.removeRepeatable('default', {
+    every: THROTTLE_REPEAT_EVERY
+  })
 }
 
 /**

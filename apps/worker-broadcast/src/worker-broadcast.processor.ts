@@ -13,7 +13,7 @@ import {
 import {
   UserSubscriptionBreakError,
   BroadcastResult,
-  BroadcastProcessor,
+  BroadcastProcessor
 } from '@avito-speculant/queue'
 import { Config, ProcessDefault } from './worker-broadcast.js'
 import { configSchema } from './worker-broadcast.schema.js'
@@ -30,13 +30,7 @@ const broadcastProcessor: BroadcastProcessor = async (broadcastJob) => {
   const broadcastResult: BroadcastResult = {}
 
   try {
-    await processDefault(
-      config,
-      logger,
-      redis,
-      broadcastJob,
-      broadcastResult,
-    )
+    await processDefault(config, logger, redis, broadcastJob, broadcastResult)
   } catch (error) {
     if (error instanceof DomainError) {
       if (error.isEmergency()) {
@@ -54,12 +48,12 @@ const broadcastProcessor: BroadcastProcessor = async (broadcastJob) => {
   return broadcastResult
 }
 
-const processDefault: ProcessDefault = async function(
+const processDefault: ProcessDefault = async function (
   config,
   logger,
   redis,
   broadcastJob,
-  broadcastResult,
+  broadcastResult
 ) {
   try {
     const startTime = Date.now()
@@ -70,10 +64,9 @@ const processDefault: ProcessDefault = async function(
       userId
     })
 
-    const { subscriptionCache } =
-      await subscriptionCacheService.fetchUserSubscriptionCache(redis, {
-        userId: userCache.id
-      })
+    const { subscriptionCache } = await subscriptionCacheService.fetchUserSubscriptionCache(redis, {
+      userId: userCache.id
+    })
 
     if (subscriptionCache === undefined) {
       throw new UserSubscriptionBreakError({ userCache })
@@ -111,12 +104,14 @@ const processDefault: ProcessDefault = async function(
         topic: 'send'
       })
 
-      const avitoReports = advertsCache.map((advertCache): AvitoReport => ([
-        categoryCache.id,
-        advertCache.id,
-        userCache.tgFromId,
-        advertCache.postedAt
-      ]))
+      const avitoReports = advertsCache.map(
+        (advertCache): AvitoReport => [
+          categoryCache.id,
+          advertCache.id,
+          userCache.tgFromId,
+          advertCache.postedAt
+        ]
+      )
       console.log(avitoReports)
 
       reportCacheService.saveReportsCache(redis, {

@@ -9,7 +9,4 @@ export type FetchReportsCacheResponse = {
   reportsCache: ReportCache[]
 }
 
-export type FetchReportsCache = RedisMethod<
-  FetchReportsCacheRequest,
-  FetchReportsCacheResponse
->
+export type FetchReportsCache = RedisMethod<FetchReportsCacheRequest, FetchReportsCacheResponse>

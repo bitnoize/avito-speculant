@@ -10,4 +10,3 @@ export type FetchCategoryCacheResponse = {
 }
 
 export type FetchCategoryCache = RedisMethod<FetchCategoryCacheRequest, FetchCategoryCacheResponse>
-

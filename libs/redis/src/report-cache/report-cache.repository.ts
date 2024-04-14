@@ -1,10 +1,5 @@
 import { Redis } from 'ioredis'
-import {
-  ReportCache,
-  AvitoReport,
-  reportKey,
-  reportsKey
-} from './report-cache.js'
+import { ReportCache, AvitoReport, reportKey, reportsKey } from './report-cache.js'
 import {
   parseNumber,
   parseString,
@@ -67,10 +62,7 @@ export async function fetchReportsCache(redis: Redis, reportIds: string[]): Prom
   return parseCollection(result, `ReportCache fetchReportsCache malformed result`)
 }
 
-export async function saveReportsCache(
-  redis: Redis,
-  avitoReports: AvitoReport[]
-): Promise<void> {
+export async function saveReportsCache(redis: Redis, avitoReports: AvitoReport[]): Promise<void> {
   if (avitoReports.length === 0) {
     return
   }

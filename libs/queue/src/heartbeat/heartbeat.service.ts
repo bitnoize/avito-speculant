@@ -47,12 +47,9 @@ export async function addRepeatableJob(queue: HeartbeatQueue): Promise<Heartbeat
  * Remove RepeatableJob
  */
 export async function removeRepeatableJob(queue: HeartbeatQueue): Promise<boolean> {
-  return await queue.removeRepeatable(
-    'default',
-    {
-      every: HEARTBEAT_REPEAT_EVERY
-    }
-  )
+  return await queue.removeRepeatable('default', {
+    every: HEARTBEAT_REPEAT_EVERY
+  })
 }
 
 /**

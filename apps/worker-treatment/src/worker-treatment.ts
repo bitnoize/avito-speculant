@@ -8,7 +8,7 @@ import {
   TreatmentJob,
   ScrapingQueue,
   ProxycheckQueue,
-  BroadcastQueue,
+  BroadcastQueue
 } from '@avito-speculant/queue'
 
 export type Config = LoggerConfig & DatabaseConfig & RedisConfig & QueueConfig & TreatmentConfig
@@ -20,7 +20,7 @@ export type NameProcess = (
   redis: Redis,
   pubSub: Redis,
   treatmentJob: TreatmentJob,
-  treatmentResult: TreatmentResult,
+  treatmentResult: TreatmentResult
 ) => Promise<void>
 
 export type NameProcessBroadcast = (

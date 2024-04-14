@@ -15,4 +15,3 @@ export type CreateCategoryResponse = {
 }
 
 export type CreateCategory = DatabaseMethod<CreateCategoryRequest, CreateCategoryResponse>
-

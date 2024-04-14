@@ -9,10 +9,7 @@ import {
   categoryService,
   proxyService
 } from '@avito-speculant/database'
-import {
-  redisService,
-  systemService,
-} from '@avito-speculant/redis'
+import { redisService, systemService } from '@avito-speculant/redis'
 import {
   ProcessorUnknownStepError,
   HeartbeatResult,
@@ -87,14 +84,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
         case 'categories': {
           const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-          await processCategories(
-            config,
-            logger,
-            db,
-            heartbeatJob,
-            heartbeatResult,
-            treatmentQueue
-          )
+          await processCategories(config, logger, db, heartbeatJob, heartbeatResult, treatmentQueue)
 
           step = 'proxies'
           await heartbeatJob.updateData({ step })
@@ -136,7 +126,7 @@ const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
   return heartbeatResult
 }
 
-const processUsers: StepProcessTreatment = async function(
+const processUsers: StepProcessTreatment = async function (
   config,
   logger,
   db,
@@ -185,7 +175,7 @@ const processUsers: StepProcessTreatment = async function(
   }
 }
 
-const processPlans: StepProcessTreatment = async function(
+const processPlans: StepProcessTreatment = async function (
   config,
   logger,
   db,
@@ -234,7 +224,7 @@ const processPlans: StepProcessTreatment = async function(
   }
 }
 
-const processSubscriptions: StepProcessTreatment = async function(
+const processSubscriptions: StepProcessTreatment = async function (
   config,
   logger,
   db,
@@ -283,7 +273,7 @@ const processSubscriptions: StepProcessTreatment = async function(
   }
 }
 
-const processCategories: StepProcessTreatment = async function(
+const processCategories: StepProcessTreatment = async function (
   config,
   logger,
   db,
@@ -332,7 +322,7 @@ const processCategories: StepProcessTreatment = async function(
   }
 }
 
-const processProxies: StepProcessTreatment = async function(
+const processProxies: StepProcessTreatment = async function (
   config,
   logger,
   db,

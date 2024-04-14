@@ -10,4 +10,3 @@ export type FetchProxyCacheResponse = {
 }
 
 export type FetchProxyCache = RedisMethod<FetchProxyCacheRequest, FetchProxyCacheResponse>
-

@@ -6,7 +6,7 @@ import * as categoryRepository from '../category/category.repository.js'
 /*
  * List CategoryLogs
  */
-export const listCategoryLogs: ListCategoryLogs = async function(db, request) {
+export const listCategoryLogs: ListCategoryLogs = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const categoryRow = await categoryRepository.selectRowByIdForShare(trx, request.categoryId)
 

@@ -50,10 +50,7 @@ export async function addRepeatableJob(
 /**
  * Remove RepeatableJob
  */
-export async function removeRepeatableJob(
-  queue: BroadcastQueue,
-  userId: number,
-): Promise<boolean> {
+export async function removeRepeatableJob(queue: BroadcastQueue, userId: number): Promise<boolean> {
   const jobId = `user-${userId}`
   return await queue.removeRepeatable(
     'default',

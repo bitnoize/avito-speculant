@@ -1,10 +1,7 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
-import {
-  redisService,
-  reportCacheService
-} from '@avito-speculant/redis'
+import { redisService, reportCacheService } from '@avito-speculant/redis'
 import {
   ThrottleResult,
   ThrottleProcessor,
@@ -30,14 +27,7 @@ const throttleProcessor: ThrottleProcessor = async (throttleJob) => {
   try {
     const sendreportQueue = sendreportService.initQueue(queueConnection, logger)
 
-    await processDefault(
-      config,
-      logger,
-      redis,
-      throttleJob,
-      throttleResult,
-      sendreportQueue
-    )
+    await processDefault(config, logger, redis, throttleJob, throttleResult, sendreportQueue)
   } catch (error) {
     if (error instanceof DomainError) {
       if (error.isEmergency()) {
@@ -55,7 +45,7 @@ const throttleProcessor: ThrottleProcessor = async (throttleJob) => {
   return throttleResult
 }
 
-const processDefault: ProcessDefault = async function(
+const processDefault: ProcessDefault = async function (
   config,
   logger,
   redis,

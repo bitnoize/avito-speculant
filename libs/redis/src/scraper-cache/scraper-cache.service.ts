@@ -14,7 +14,7 @@ import * as scraperCacheRepository from './scraper-cache.repository.js'
 /*
  * Fetch ScraperCache
  */
-export const fetchScraperCache: FetchScraperCache = async function(redis, request) {
+export const fetchScraperCache: FetchScraperCache = async function (redis, request) {
   const scraperCache = await scraperCacheRepository.fetchScraperCache(redis, request.scraperId)
 
   return { scraperCache }
@@ -23,7 +23,7 @@ export const fetchScraperCache: FetchScraperCache = async function(redis, reques
 /*
  * Fetch ScrapersCache
  */
-export const fetchScrapersCache: FetchScrapersCache = async function(redis) {
+export const fetchScrapersCache: FetchScrapersCache = async function (redis) {
   const scraperIds = await scraperCacheRepository.fetchScrapers(redis)
   const scrapersCache = await scraperCacheRepository.fetchScrapersCache(redis, scraperIds)
 
@@ -33,7 +33,10 @@ export const fetchScrapersCache: FetchScrapersCache = async function(redis) {
 /*
  * Fetch AvitoUrlScraperCache
  */
-export const fetchAvitoUrlScraperCache: FetchAvitoUrlScraperCache = async function(redis, request) {
+export const fetchAvitoUrlScraperCache: FetchAvitoUrlScraperCache = async function (
+  redis,
+  request
+) {
   const scraperIds = await scraperCacheRepository.fetchAvitoUrlScrapers(redis, request.avitoUrl)
 
   if (scraperIds.length === 0) {
@@ -54,7 +57,10 @@ export const fetchAvitoUrlScraperCache: FetchAvitoUrlScraperCache = async functi
 /*
  * Fetch CategoryScrapersCache
  */
-export const fetchCategoryScrapersCache: FetchCategoryScrapersCache = async function(redis, request) {
+export const fetchCategoryScrapersCache: FetchCategoryScrapersCache = async function (
+  redis,
+  request
+) {
   const scraperIds = await scraperCacheRepository.fetchCategoryScrapers(redis, request.categoryId)
   const scrapersCache = await scraperCacheRepository.fetchScrapersCache(redis, scraperIds)
 
@@ -64,7 +70,7 @@ export const fetchCategoryScrapersCache: FetchCategoryScrapersCache = async func
 /*
  * Fetch AdvertScrapersCache
  */
-export const fetchAdvertScrapersCache: FetchAdvertScrapersCache = async function(redis, request) {
+export const fetchAdvertScrapersCache: FetchAdvertScrapersCache = async function (redis, request) {
   const scraperIds = await scraperCacheRepository.fetchAdvertScrapers(redis, request.advertId)
   const scrapersCache = await scraperCacheRepository.fetchScrapersCache(redis, scraperIds)
 
@@ -74,14 +80,14 @@ export const fetchAdvertScrapersCache: FetchAdvertScrapersCache = async function
 /*
  * Drop ScraperCache
  */
-export const dropScraperCache: DropScraperCache = async function(redis, request) {
+export const dropScraperCache: DropScraperCache = async function (redis, request) {
   await scraperCacheRepository.dropScraperCache(redis, request.scraperId, request.avitoUrl)
 }
 
 /*
  * Renew SuccessScraperCache
  */
-export const renewSuccessScraperCache: RenewSuccessScraperCache = async function(redis, request) {
+export const renewSuccessScraperCache: RenewSuccessScraperCache = async function (redis, request) {
   await scraperCacheRepository.renewSuccessScraperCache(
     redis,
     request.scraperId,
@@ -93,7 +99,7 @@ export const renewSuccessScraperCache: RenewSuccessScraperCache = async function
 /*
  * Renew FailedScraperCache
  */
-export const renewFailedScraperCache: RenewFailedScraperCache = async function(redis, request) {
+export const renewFailedScraperCache: RenewFailedScraperCache = async function (redis, request) {
   await scraperCacheRepository.renewFailedScraperCache(
     redis,
     request.scraperId,

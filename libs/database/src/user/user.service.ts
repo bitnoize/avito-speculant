@@ -10,7 +10,7 @@ import * as categoryRepository from '../category/category.repository.js'
 /**
  * Authorize User
  */
-export const authorizeUser: AuthorizeUser = async function(db, request) {
+export const authorizeUser: AuthorizeUser = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -60,7 +60,7 @@ export const authorizeUser: AuthorizeUser = async function(db, request) {
 /**
  * List Users
  */
-export const listUsers: ListUsers = async function(db, request) {
+export const listUsers: ListUsers = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     // ...
 
@@ -75,7 +75,7 @@ export const listUsers: ListUsers = async function(db, request) {
 /**
  * Produce Users
  */
-export const produceUsers: ProduceUsers = async function(db, request) {
+export const produceUsers: ProduceUsers = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const users: User[] = []
 
@@ -94,7 +94,7 @@ export const produceUsers: ProduceUsers = async function(db, request) {
 /**
  * Consume User
  */
-export const consumeUser: ConsumeUser = async function(db, request) {
+export const consumeUser: ConsumeUser = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false

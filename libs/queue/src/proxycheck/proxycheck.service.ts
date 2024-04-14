@@ -27,10 +27,7 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Proxyc
 /**
  * Add Job
  */
-export async function addJob(
-  queue: ProxycheckQueue,
-  proxyId: number
-): Promise<ProxycheckJob> {
+export async function addJob(queue: ProxycheckQueue, proxyId: number): Promise<ProxycheckJob> {
   const jobId = 'proxy-' + proxyId
   return await queue.add(
     'default',

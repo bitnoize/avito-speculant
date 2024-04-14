@@ -9,7 +9,4 @@ export type StampReportCacheResponse = {
   reportCache: ReportCache | undefined
 }
 
-export type StampReportCache = RedisMethod<
-  StampReportCacheRequest,
-  StampReportCacheResponse
->
+export type StampReportCache = RedisMethod<StampReportCacheRequest, StampReportCacheResponse>

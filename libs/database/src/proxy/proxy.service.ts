@@ -5,7 +5,7 @@ import {
   DisableProxy,
   ListProxies,
   ProduceProxies,
-  ConsumeProxy,
+  ConsumeProxy
 } from './dto/index.js'
 import { Proxy } from './proxy.js'
 import { ProxyNotFoundError, ProxyAllreadyExistsError } from './proxy.errors.js'
@@ -15,7 +15,7 @@ import * as proxyLogRepository from '../proxy-log/proxy-log.repository.js'
 /**
  * Create Proxy
  */
-export const createProxy: CreateProxy = async function(db, request) {
+export const createProxy: CreateProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -49,7 +49,7 @@ export const createProxy: CreateProxy = async function(db, request) {
 /**
  * Enable Proxy
  */
-export const enableProxy: EnableProxy = async function(db, request) {
+export const enableProxy: EnableProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -90,7 +90,7 @@ export const enableProxy: EnableProxy = async function(db, request) {
 /**
  * Disable Proxy
  */
-export const disableProxy: DisableProxy = async function(db, request) {
+export const disableProxy: DisableProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
@@ -131,7 +131,7 @@ export const disableProxy: DisableProxy = async function(db, request) {
 /**
  * List Proxies
  */
-export const listProxies: ListProxies = async function(db, request) {
+export const listProxies: ListProxies = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const proxyRows = await proxyRepository.selectRowsList(trx, request.all ?? false)
 
@@ -144,7 +144,7 @@ export const listProxies: ListProxies = async function(db, request) {
 /**
  * Produce Proxies
  */
-export const produceProxies: ProduceProxies = async function(db, request) {
+export const produceProxies: ProduceProxies = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const proxies: Proxy[] = []
 
@@ -163,7 +163,7 @@ export const produceProxies: ProduceProxies = async function(db, request) {
 /**
  * Consume Proxy
  */
-export const consumeProxy: ConsumeProxy = async function(db, request) {
+export const consumeProxy: ConsumeProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
     let isChanged = false

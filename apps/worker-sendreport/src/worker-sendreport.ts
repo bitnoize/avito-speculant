@@ -20,5 +20,5 @@ export type ProcessDefault = (
   logger: Logger,
   redis: Redis,
   sendreportJob: SendreportJob,
-  sendreportResult: SendreportResult,
+  sendreportResult: SendreportResult
 ) => Promise<void>

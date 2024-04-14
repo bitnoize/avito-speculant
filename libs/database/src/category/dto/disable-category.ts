@@ -14,4 +14,3 @@ export type DisableCategoryResponse = {
 }
 
 export type DisableCategory = DatabaseMethod<DisableCategoryRequest, DisableCategoryResponse>
-

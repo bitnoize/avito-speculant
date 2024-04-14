@@ -3,7 +3,7 @@ import {
   StampReportCache,
   FetchReportsCache,
   SaveReportsCache,
-  DropReportCache,
+  DropReportCache
 } from './dto/index.js'
 import * as reportCacheRepository from './report-cache.repository.js'
 

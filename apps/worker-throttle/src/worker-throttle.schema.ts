@@ -12,7 +12,7 @@ import {
   DEFAULT_THROTTLE_CONCURRENCY,
   DEFAULT_THROTTLE_LIMITER_MAX,
   DEFAULT_THROTTLE_LIMITER_DURATION,
-  DEFAULT_THROTTLE_REPORTS_LIMIT,
+  DEFAULT_THROTTLE_REPORTS_LIMIT
 } from '@avito-speculant/queue'
 import { Config } from './worker-throttle.js'
 
@@ -29,7 +29,7 @@ export const configSchema: JSONSchemaType<Config> = {
     'THROTTLE_CONCURRENCY',
     'THROTTLE_LIMITER_MAX',
     'THROTTLE_LIMITER_DURATION',
-    'THROTTLE_REPORTS_LIMIT',
+    'THROTTLE_REPORTS_LIMIT'
   ],
   properties: {
     LOG_LEVEL: {

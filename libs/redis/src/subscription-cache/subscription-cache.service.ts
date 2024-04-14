@@ -11,7 +11,7 @@ import * as subscriptionCacheRepository from './subscription-cache.repository.js
 /*
  * Fetch SubscriptionCache
  */
-export const fetchSubscriptionCache: FetchSubscriptionCache = async function(redis, request) {
+export const fetchSubscriptionCache: FetchSubscriptionCache = async function (redis, request) {
   const subscriptionCache = await subscriptionCacheRepository.fetchSubscriptionCache(
     redis,
     request.subscriptionId
@@ -23,7 +23,10 @@ export const fetchSubscriptionCache: FetchSubscriptionCache = async function(red
 /*
  * Fetch UserSubscriptionCache
  */
-export const fetchUserSubscriptionCache: FetchUserSubscriptionCache = async function(redis, request) {
+export const fetchUserSubscriptionCache: FetchUserSubscriptionCache = async function (
+  redis,
+  request
+) {
   const subscriptionIds = await subscriptionCacheRepository.fetchUserSubscriptions(
     redis,
     request.userId
@@ -50,7 +53,10 @@ export const fetchUserSubscriptionCache: FetchUserSubscriptionCache = async func
 /*
  * Fetch PlanSubscriptionsCache
  */
-export const fetchPlanSubscriptionsCache: FetchPlanSubscriptionsCache = async function(redis, request) {
+export const fetchPlanSubscriptionsCache: FetchPlanSubscriptionsCache = async function (
+  redis,
+  request
+) {
   const subscriptionIds = await subscriptionCacheRepository.fetchPlanSubscriptions(
     redis,
     request.planId
@@ -66,7 +72,7 @@ export const fetchPlanSubscriptionsCache: FetchPlanSubscriptionsCache = async fu
 /*
  * Save SubscriptionCache
  */
-export const saveSubscriptionCache: SaveSubscriptionCache = async function(redis, request) {
+export const saveSubscriptionCache: SaveSubscriptionCache = async function (redis, request) {
   await subscriptionCacheRepository.saveSubscriptionCache(
     redis,
     request.subscriptionId,
@@ -83,7 +89,7 @@ export const saveSubscriptionCache: SaveSubscriptionCache = async function(redis
 /*
  * Drop SubscriptionCache
  */
-export const dropSubscriptionCache: DropSubscriptionCache = async function(redis, request) {
+export const dropSubscriptionCache: DropSubscriptionCache = async function (redis, request) {
   await subscriptionCacheRepository.dropSubscriptionCache(
     redis,
     request.subscriptionId,
