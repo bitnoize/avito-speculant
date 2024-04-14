@@ -70,14 +70,14 @@ export type AvitoDataDataCatalogItemPriceDetailed = {
 }
 
 export type AvitoDataDataCatalogItemImage = {
-  '208x156'?: string
-  '236x177'?: string
-  '318x238'?: string
-  '416x312'?: string
-  '432x324'?: string
-  '472x354'?: string
-  '636x476'?: string
-  '864x648'?: string
+  '208x156': string
+  '236x177': string
+  '318x238': string
+  '416x312': string
+  '432x324': string
+  '472x354': string
+  '636x476': string
+  '864x648': string
 }
 
 export type AvitoDataDataCatalogItemIva = {
