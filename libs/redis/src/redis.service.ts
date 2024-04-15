@@ -53,7 +53,7 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
  * Close Redis connection
  */
 export async function closeRedis(redis: Redis): Promise<void> {
-  await redis.quit()
+  redis.disconnect()
 }
 
 /**
