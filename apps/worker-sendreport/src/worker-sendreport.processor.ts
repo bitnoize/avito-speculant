@@ -18,6 +18,10 @@ import {
 import { Config, ProcessDefault } from './worker-sendreport.js'
 import { configSchema } from './worker-sendreport.schema.js'
 
+const placeholder =
+  'AgACAgIAAxkBAAIUwWYcePjD-IS7okQN3rZsiYZ49HeZAAIM3DEb3b_hSOSCzTy15IYdAQADAgADbQADNAQ'
+
+
 const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
   const config = configService.initConfig<Config>(configSchema)
 
@@ -90,6 +94,7 @@ const processDefault: ProcessDefault = async function (
         advertCache.id,
         advertCache.title,
         advertCache.description,
+        advertCache.categoryName,
         advertCache.priceRub,
         advertCache.url,
         advertCache.age,
@@ -97,21 +102,23 @@ const processDefault: ProcessDefault = async function (
 
       const message = await bot.api.sendPhoto(
         reportCache.tgFromId,
-        'AgACAgIAAxkBAAIUDWYcbFrSbVam7ZaBln2nHfxKXK0yAALS1DEbxrHoSJOX7C_9q5SsAQADAgADcwADNAQ',
+        placeholder,
         {
           caption,
           parse_mode: 'HTML'
         }
       )
 
-      await bot.api.editMessageMedia(
-        reportCache.tgFromId,
-        message.message_id,
-        InputMediaBuilder.photo(advertCache.imageUrl, {
-          caption,
-          parse_mode: 'HTML'
-        })
-      )
+      if (advertCache.imageUrl !== '') {
+        await bot.api.editMessageMedia(
+          reportCache.tgFromId,
+          message.message_id,
+          InputMediaBuilder.photo(advertCache.imageUrl, {
+            caption,
+            parse_mode: 'HTML'
+          })
+        )
+      }
     }
 
     await reportCacheService.dropReportCache(redis, {
@@ -145,13 +152,15 @@ const renderReport = (
   id: number,
   title: string,
   description: string,
+  categoryName: string,
   priceRub: number,
   url: string,
   age: string,
 ): string => {
   return `<b>#${id}</b>\n` +
     `<a href="${url}">${title}</a>\n` +
-    `${description.slice(0, 250)}...\n` +
+    `${description}\n` +
+    `Категория: <b>${categoryName}</b>\n` +
     `Цена: <b>${priceRub}</b>\n` +
     `Опубликовано: <b>${age}</b>\n`
 }

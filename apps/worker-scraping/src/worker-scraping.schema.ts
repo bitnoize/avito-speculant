@@ -131,6 +131,7 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                   'description',
                   'sortTimeStamp',
                   'urlPath',
+                  'category',
                   'priceDetailed',
                   'images',
                   'iva'
@@ -150,6 +151,18 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                   },
                   urlPath: {
                     type: 'string'
+                  },
+                  category: {
+                    type: 'object',
+                    required: ['id', 'name'],
+                    properties: {
+                      id: {
+                        type: 'integer'
+                      },
+                      name: {
+                        type: 'string'
+                      }
+                    }
                   },
                   priceDetailed: {
                     type: 'object',
@@ -214,10 +227,10 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                           properties: {
                             payload: {
                               type: 'object',
+                              required: ['absolute'],
                               properties: {
                                 absolute: {
-                                  type: 'string',
-                                  nullable: true
+                                  type: 'string'
                                 }
                               }
                             }

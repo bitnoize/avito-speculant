@@ -60,6 +60,7 @@ export type AvitoDataDataCatalogItem = {
   description: string
   sortTimeStamp: number
   urlPath: string
+  category: AvitoDataDataCatalogItemCategory
   priceDetailed: AvitoDataDataCatalogItemPriceDetailed
   images: AvitoDataDataCatalogItemImage[]
   iva: AvitoDataDataCatalogItemIva
@@ -67,6 +68,11 @@ export type AvitoDataDataCatalogItem = {
 
 export type AvitoDataDataCatalogItemPriceDetailed = {
   value: number
+}
+
+export type AvitoDataDataCatalogItemCategory = {
+  id: number
+  name: string
 }
 
 export type AvitoDataDataCatalogItemImage = {
@@ -89,5 +95,5 @@ export type AvitoDataDataCatalogItemIvaDateInfoStep = {
 }
 
 export type AvitoDataDataCatalogItemIvaDateInfoStepPayload = {
-  absolute?: string
+  absolute: string
 }

@@ -79,8 +79,8 @@ export async function saveAdvertsCache(
     pipeline.saveAdvertCache(
       advertKey(advertId), // KEYS[1]
       scraperAdvertsKey(scraperId), // KEYS[2]
-      ...avitoAdvert, // ARGV[1..8]
-      Date.now() // ARGV[9]
+      ...avitoAdvert, // ARGV[1..9]
+      Date.now() // ARGV[10]
     )
   })
 
@@ -159,18 +159,19 @@ export async function pourCategoryAdvertDone(
 }
 
 const parseModel = (result: unknown, message: string): AdvertCache => {
-  const hash = parseHash(result, 9, message)
+  const hash = parseHash(result, 10, message)
 
   return {
     id: parseNumber(hash[0], message),
     title: parseString(hash[1], message),
     description: parseString(hash[2], message),
-    priceRub: parseNumber(hash[3], message),
-    url: parseString(hash[4], message),
-    age: parseString(hash[5], message),
-    imageUrl: parseString(hash[6], message),
-    postedAt: parseNumber(hash[7], message),
-    time: parseNumber(hash[8], message)
+    categoryName: parseString(hash[3], message),
+    priceRub: parseNumber(hash[4], message),
+    url: parseString(hash[5], message),
+    age: parseString(hash[6], message),
+    imageUrl: parseString(hash[7], message),
+    postedAt: parseNumber(hash[8], message),
+    time: parseNumber(hash[9], message)
   }
 }
 

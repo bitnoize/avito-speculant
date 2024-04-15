@@ -6,6 +6,7 @@ return redis.call(
   'id',
   'title',
   'description',
+  'category_name',
   'price_rub',
   'url',
   'age',
@@ -25,15 +26,16 @@ redis.call(
   'id', ARGV[1],
   'title', ARGV[2],
   'description', ARGV[3],
-  'price_rub', ARGV[4],
-  'url', ARGV[5],
-  'age', ARGV[6],
-  'image_url', ARGV[7],
-  'posted_at', ARGV[8],
-  'time', ARGV[9]
+  'category_name', ARGV[4],
+  'price_rub', ARGV[5],
+  'url', ARGV[6],
+  'age', ARGV[7],
+  'image_url', ARGV[8],
+  'posted_at', ARGV[9],
+  'time', ARGV[10]
 )
 
-redis.call('ZADD', KEYS[2], ARGV[8], ARGV[1])
+redis.call('ZADD', KEYS[2], ARGV[9], ARGV[1])
 
 return redis.status_reply('OK')
 `

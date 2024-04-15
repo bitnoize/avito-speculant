@@ -12,6 +12,7 @@ declare module 'ioredis' {
       advertId: number,
       title: string,
       description: string,
+      categoryName: string,
       priceRub: number,
       url: string,
       age: string,

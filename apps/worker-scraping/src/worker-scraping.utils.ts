@@ -86,7 +86,7 @@ export const parseAttempt: ParseAttempt = (body) => {
     const avitoRaw = json[avitoKey]
 
     if (!validate(avitoRaw)) {
-      console.log(validate.errors)
+      console.error(validate.errors)
 
       return {
         avitoAdverts: [],
@@ -98,17 +98,26 @@ export const parseAttempt: ParseAttempt = (body) => {
 
     const avitoAdverts = avitoRaw.data.catalog.items.map(
       (item): AvitoAdvert => {
-        const imageUrl = item.images.length > 0
-          ? item.images[0]['208x156']
-          : 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png'
+        const description = item.description.length > 250
+          ? item.description.slice(0, 250) + '...'
+          : item.description
+
+        const url = 'https://avito.ru' + item.urlPath
+
+        const age = item.iva.DateInfoStep.length > 0
+          ? item.iva.DateInfoStep[0].payload.absolute
+          : 'неизвестно'
+
+        const imageUrl = item.images.length > 0 ? item.images[0]['864x648'] : ''
 
         return [
           item.id,
           item.title,
-          item.description,
+          description,
+          item.category.name,
           item.priceDetailed.value,
-          'https://avito.ru' + item.urlPath,
-          item.iva.DateInfoStep[0].payload.absolute || 'неизвестно',
+          url,
+          age,
           imageUrl,
           item.sortTimeStamp
         ]
