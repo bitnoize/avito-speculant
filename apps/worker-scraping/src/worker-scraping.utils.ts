@@ -86,6 +86,8 @@ export const parseAttempt: ParseAttempt = (body) => {
     const avitoRaw = json[avitoKey]
 
     if (!validate(avitoRaw)) {
+      console.log(validate.errors)
+
       return {
         avitoAdverts: [],
         totalAdverts: 0,
