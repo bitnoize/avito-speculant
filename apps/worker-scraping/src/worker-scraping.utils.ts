@@ -105,7 +105,7 @@ export const parseAttempt: ParseAttempt = (body) => {
         const url = 'https://avito.ru' + item.urlPath
 
         const age = item.iva.DateInfoStep.length > 0
-          ? item.iva.DateInfoStep[0].payload.absolute
+          ? item.iva.DateInfoStep[0].payload.absolute ?? 'неизвестно'
           : 'неизвестно'
 
         const imageUrl = item.images.length > 0 ? item.images[0]['864x648'] : ''

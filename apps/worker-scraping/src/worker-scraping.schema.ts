@@ -227,10 +227,10 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
                           properties: {
                             payload: {
                               type: 'object',
-                              required: ['absolute'],
                               properties: {
                                 absolute: {
-                                  type: 'string'
+                                  type: 'string',
+                                  nullable: true
                                 }
                               }
                             }

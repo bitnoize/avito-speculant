@@ -95,5 +95,5 @@ export type AvitoDataDataCatalogItemIvaDateInfoStep = {
 }
 
 export type AvitoDataDataCatalogItemIvaDateInfoStepPayload = {
-  absolute: string
+  absolute?: string
 }
