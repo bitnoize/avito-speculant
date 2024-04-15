@@ -45,6 +45,8 @@ const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
     }
 
     throw error
+  } finally {
+    await redisService.closeRedis(redis)
   }
 
   return sendreportResult
