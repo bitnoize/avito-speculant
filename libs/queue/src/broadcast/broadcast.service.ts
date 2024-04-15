@@ -12,7 +12,7 @@ import {
   BroadcastWorker,
   BroadcastProcessor
 } from './broadcast.js'
-import { initBaseQueue, initBaseWorker } from '../queue.service.js'
+import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
@@ -106,13 +106,6 @@ export function initWorker(
 /**
  * Run Worker
  */
-export async function runWorker(worker: BroadcastWorker): Promise<void> {
-  await worker.run()
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(worker: BroadcastWorker): Promise<void> {
-  await worker.close()
+export async function runWorker(worker: BroadcastWorker, logger: Logger): Promise<void> {
+  await runBaseWorker<BroadcastData, BroadcastResult, BroadcastName>(worker, logger)
 }

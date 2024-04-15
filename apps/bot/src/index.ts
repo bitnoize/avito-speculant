@@ -1,3 +1,4 @@
+import Fastify from 'fastify'
 import { Bot, GrammyError, HttpError, session } from 'grammy'
 import { RedisAdapter } from '@grammyjs/storage-redis'
 import { configService } from '@avito-speculant/config'
@@ -54,7 +55,7 @@ async function bootstrap(): Promise<void> {
     await ctx.reply(`user isPaid: ${ctx.user.isPaid}`)
   })
 
-  bot.on("message:photo", async (ctx) => {
+  bot.on('message:photo', async (ctx) => {
     console.log(ctx.message)
   })
 
@@ -65,10 +66,8 @@ async function bootstrap(): Promise<void> {
       logger.error(error, `Grammy error`)
     } else if (error instanceof HttpError) {
       logger.error(error, `HTTP error`)
-    } else if (error instanceof Error) {
-      logger.error(error, `Internal error`)
     } else {
-      logger.error(error, `Unknown error`)
+      logger.error(error, `Internal error`)
     }
   })
 

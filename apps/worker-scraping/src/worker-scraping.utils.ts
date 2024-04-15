@@ -96,33 +96,31 @@ export const parseAttempt: ParseAttempt = (body) => {
       }
     }
 
-    const avitoAdverts = avitoRaw.data.catalog.items.map(
-      (item): AvitoAdvert => {
-        const description = item.description.length > 250
-          ? item.description.slice(0, 250) + '...'
-          : item.description
+    const avitoAdverts = avitoRaw.data.catalog.items.map((item): AvitoAdvert => {
+      const description =
+        item.description.length > 250 ? item.description.slice(0, 250) + '...' : item.description
 
-        const url = 'https://avito.ru' + item.urlPath
+      const url = 'https://avito.ru' + item.urlPath
 
-        const age = item.iva.DateInfoStep.length > 0
+      const age =
+        item.iva.DateInfoStep.length > 0
           ? item.iva.DateInfoStep[0].payload.absolute ?? 'неизвестно'
           : 'неизвестно'
 
-        const imageUrl = item.images.length > 0 ? item.images[0]['864x648'] : ''
+      const imageUrl = item.images.length > 0 ? item.images[0]['864x648'] : ''
 
-        return [
-          item.id,
-          item.title,
-          description,
-          item.category.name,
-          item.priceDetailed.value,
-          url,
-          age,
-          imageUrl,
-          item.sortTimeStamp
-        ]
-      }
-    )
+      return [
+        item.id,
+        item.title,
+        description,
+        item.category.name,
+        item.priceDetailed.value,
+        url,
+        age,
+        imageUrl,
+        item.sortTimeStamp
+      ]
+    })
 
     return {
       avitoAdverts,

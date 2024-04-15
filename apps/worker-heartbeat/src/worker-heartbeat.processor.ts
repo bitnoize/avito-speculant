@@ -20,7 +20,7 @@ import {
 import { Config, StepProcessTreatment } from './worker-heartbeat.js'
 import { configSchema } from './worker-heartbeat.schema.js'
 
-const heartbeatProcessor: HeartbeatProcessor = async (heartbeatJob) => {
+const heartbeatProcessor: HeartbeatProcessor = async function (heartbeatJob) {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)

@@ -11,7 +11,7 @@ import {
 import { Config, ProcessDefault } from './worker-throttle.js'
 import { configSchema } from './worker-throttle.schema.js'
 
-const throttleProcessor: ThrottleProcessor = async (throttleJob) => {
+const throttleProcessor: ThrottleProcessor = async function (throttleJob) {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)

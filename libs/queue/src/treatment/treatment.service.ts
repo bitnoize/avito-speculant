@@ -11,7 +11,7 @@ import {
   TreatmentWorker,
   TreatmentProcessor
 } from './treatment.js'
-import { initBaseQueue, initBaseWorker } from '../queue.service.js'
+import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
@@ -111,13 +111,6 @@ export function initWorker(
 /**
  * Run Worker
  */
-export async function runWorker(worker: TreatmentWorker): Promise<void> {
-  await worker.run()
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(worker: TreatmentWorker): Promise<void> {
-  await worker.close()
+export async function runWorker(worker: TreatmentWorker, logger: Logger): Promise<void> {
+  await runBaseWorker<TreatmentData, TreatmentResult, TreatmentName>(worker, logger)
 }

@@ -379,6 +379,26 @@ export function initBaseWorker<DT, RT, NT extends string>(
   return worker
 }
 
+/**
+ * Run BaseWorker
+ */
+export async function runBaseWorker<DT, RT, NT extends string>(
+  worker: Worker<DT, RT, NT>,
+  logger: Logger
+): Promise<void> {
+  const gracefulShutdown = async (signal: string): Promise<void> => {
+    logger.warn(`Received ${signal}, worker closing...`)
+
+    await worker.close()
+    process.exit(0)
+  }
+
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'))
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'))
+
+  await worker.run()
+}
+
 const toLogQueueName = (name: string): string => toLogName(name, 'Queue')
 const toLogWorkerName = (name: string): string => toLogName(name, 'Worker')
 

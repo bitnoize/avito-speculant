@@ -7,7 +7,7 @@ import { Config, ProcessDefault, CurlRequestArgs } from './worker-proxycheck.js'
 import { configSchema } from './worker-proxycheck.schema.js'
 import { curlRequest } from './worker-proxycheck.utils.js'
 
-export const proxycheckProcessor: ProxycheckProcessor = async (proxycheckJob) => {
+export const proxycheckProcessor: ProxycheckProcessor = async function (proxycheckJob) {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)

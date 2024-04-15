@@ -21,7 +21,6 @@ import { configSchema } from './worker-sendreport.schema.js'
 const placeholder =
   'AgACAgIAAxkBAAIUwWYcePjD-IS7okQN3rZsiYZ49HeZAAIM3DEb3b_hSOSCzTy15IYdAQADAgADbQADNAQ'
 
-
 const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
   const config = configService.initConfig<Config>(configSchema)
 
@@ -99,17 +98,13 @@ const processDefault: ProcessDefault = async function (
         advertCache.categoryName,
         advertCache.priceRub,
         advertCache.url,
-        advertCache.age,
+        advertCache.age
       )
 
-      const message = await bot.api.sendPhoto(
-        reportCache.tgFromId,
-        placeholder,
-        {
-          caption,
-          parse_mode: 'HTML'
-        }
-      )
+      const message = await bot.api.sendPhoto(reportCache.tgFromId, placeholder, {
+        caption,
+        parse_mode: 'HTML'
+      })
 
       if (advertCache.imageUrl !== '') {
         await bot.api.editMessageMedia(
@@ -157,12 +152,14 @@ const renderReport = (
   categoryName: string,
   priceRub: number,
   url: string,
-  age: string,
+  age: string
 ): string => {
-  return `<b>#${id}</b>\n` +
+  return (
+    `<b>#${id}</b>\n` +
     `<a href="${url}">${title}</a>\n` +
     `${description}\n` +
     `Категория: <b>${categoryName}</b>\n` +
     `Цена: <b>${priceRub}</b>\n` +
     `Опубликовано: <b>${age}</b>\n`
+  )
 }

@@ -5,6 +5,15 @@ import { Config } from './worker-throttle.js'
 import { configSchema } from './worker-throttle.schema.js'
 import throttleProcessor from './worker-throttle.processor.js'
 
+process.on('unhandledRejection', (reason, p) => {
+  console.error(reason, 'Unhandled Rejection at promise', p)
+})
+
+process.on('uncaughtException', (error) => {
+  console.error(error, 'Uncaught Exception thrown')
+  process.exit(1)
+})
+
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
 
@@ -23,7 +32,7 @@ async function bootstrap(): Promise<void> {
     logger
   )
 
-  await throttleService.runWorker(throttleWorker)
+  await throttleService.runWorker(throttleWorker, logger)
 }
 
 bootstrap().catch((error) => {

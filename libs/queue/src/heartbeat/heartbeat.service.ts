@@ -13,7 +13,7 @@ import {
   HeartbeatWorker,
   HeartbeatProcessor
 } from './heartbeat.js'
-import { initBaseQueue, initBaseWorker } from '../queue.service.js'
+import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
@@ -99,13 +99,6 @@ export function initWorker(
 /**
  * Run Worker
  */
-export async function runWorker(worker: HeartbeatWorker): Promise<void> {
-  await worker.run()
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(worker: HeartbeatWorker): Promise<void> {
-  await worker.close()
+export async function runWorker(worker: HeartbeatWorker, logger: Logger): Promise<void> {
+  await runBaseWorker<HeartbeatData, HeartbeatResult, HeartbeatName>(worker, logger)
 }

@@ -11,7 +11,7 @@ import {
   ScrapingWorker,
   ScrapingProcessor
 } from './scraping.js'
-import { initBaseQueue, initBaseWorker } from '../queue.service.js'
+import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
@@ -111,13 +111,6 @@ export function initWorker(
 /**
  * Run Worker
  */
-export async function runWorker(worker: ScrapingWorker): Promise<void> {
-  await worker.run()
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(worker: ScrapingWorker): Promise<void> {
-  await worker.close()
+export async function runWorker(worker: ScrapingWorker, logger: Logger): Promise<void> {
+  await runBaseWorker<ScrapingData, ScrapingResult, ScrapingName>(worker, logger)
 }

@@ -38,7 +38,7 @@ import {
 } from './worker-treatment.js'
 import { configSchema } from './worker-treatment.schema.js'
 
-const treatmentProcessor: TreatmentProcessor = async (treatmentJob) => {
+const treatmentProcessor: TreatmentProcessor = async function (treatmentJob) {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)

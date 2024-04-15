@@ -12,7 +12,7 @@ import {
   ThrottleWorker,
   ThrottleProcessor
 } from './throttle.js'
-import { initBaseQueue, initBaseWorker } from '../queue.service.js'
+import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
@@ -92,13 +92,6 @@ export function initWorker(
 /**
  * Run Worker
  */
-export async function runWorker(worker: ThrottleWorker): Promise<void> {
-  await worker.run()
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(worker: ThrottleWorker): Promise<void> {
-  await worker.close()
+export async function runWorker(worker: ThrottleWorker, logger: Logger): Promise<void> {
+  await runBaseWorker<ThrottleData, ThrottleResult, ThrottleName>(worker, logger)
 }

@@ -11,7 +11,7 @@ import {
   ProxycheckWorker,
   ProxycheckProcessor
 } from './proxycheck.js'
-import { initBaseQueue, initBaseWorker } from '../queue.service.js'
+import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
@@ -86,13 +86,6 @@ export function initWorker(
 /**
  * Run Worker
  */
-export async function runWorker(worker: ProxycheckWorker): Promise<void> {
-  await worker.run()
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(worker: ProxycheckWorker): Promise<void> {
-  await worker.close()
+export async function runWorker(worker: ProxycheckWorker, logger: Logger): Promise<void> {
+  await runBaseWorker<ProxycheckData, ProxycheckResult, ProxycheckName>(worker, logger)
 }

@@ -11,7 +11,7 @@ import {
   SendreportWorker,
   SendreportProcessor
 } from './sendreport.js'
-import { initBaseQueue, initBaseWorker } from '../queue.service.js'
+import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
 
 /**
  * Initialize Queue
@@ -91,13 +91,6 @@ export function initWorker(
 /**
  * Run Worker
  */
-export async function runWorker(worker: SendreportWorker): Promise<void> {
-  await worker.run()
-}
-
-/**
- * Close Worker
- */
-export async function closeWorker(worker: SendreportWorker): Promise<void> {
-  await worker.close()
+export async function runWorker(worker: SendreportWorker, logger: Logger): Promise<void> {
+  await runBaseWorker<SendreportData, SendreportResult, SendreportName>(worker, logger)
 }

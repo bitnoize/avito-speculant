@@ -16,7 +16,7 @@ import { Config, ProcessDefault, CurlRequestArgs } from './worker-scraping.js'
 import { configSchema } from './worker-scraping.schema.js'
 import { timeoutAdjust, curlRequest, parseAttempt } from '././worker-scraping.utils.js'
 
-const scrapingProcessor: ScrapingProcessor = async (scrapingJob) => {
+const scrapingProcessor: ScrapingProcessor = async function (scrapingJob) {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)

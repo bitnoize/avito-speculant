@@ -5,6 +5,15 @@ import { Config } from './worker-heartbeat.js'
 import { configSchema } from './worker-heartbeat.schema.js'
 import heartbeatProcessor from './worker-heartbeat.processor.js'
 
+process.on('unhandledRejection', (reason, p) => {
+  console.error(reason, 'Unhandled Rejection at promise', p)
+})
+
+process.on('uncaughtException', (error) => {
+  console.error(error, 'Uncaught Exception thrown')
+  process.exit(1)
+})
+
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
 
@@ -23,7 +32,7 @@ async function bootstrap(): Promise<void> {
     logger
   )
 
-  await heartbeatService.runWorker(heartbeatWorker)
+  await heartbeatService.runWorker(heartbeatWorker, logger)
 }
 
 bootstrap().catch((error) => {

@@ -18,7 +18,7 @@ import {
 import { Config, ProcessDefault } from './worker-broadcast.js'
 import { configSchema } from './worker-broadcast.schema.js'
 
-const broadcastProcessor: BroadcastProcessor = async (broadcastJob) => {
+const broadcastProcessor: BroadcastProcessor = async function (broadcastJob) {
   const config = configService.initConfig<Config>(configSchema)
 
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
