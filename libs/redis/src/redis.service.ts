@@ -83,7 +83,7 @@ export async function publishBackLog(pubSub: Redis, backLog: Notify[]): Promise<
  * Close PubSub connection
  */
 export async function closePubSub(pubSub: Redis): Promise<void> {
-  await pubSub.quit()
+  pubSub.disconnect()
 }
 
 export const randomHash = (): string => uuidv4().replaceAll('-', '')
