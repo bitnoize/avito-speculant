@@ -7,6 +7,7 @@ export interface UserLog {
   isPaid: boolean
   subscriptions: number
   categories: number
+  bots: number
   data: UserLogData
   createdAt: number
 }

@@ -8,13 +8,17 @@ import * as userRepository from '../user/user.repository.js'
  */
 export const listUserLogs: ListUserLogs = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const userRow = await userRepository.selectRowByIdForShare(trx, request.userId)
+    const userRow = await userRepository.selectRowById(trx, request.userId)
 
     if (userRow === undefined) {
       throw new UserNotFoundError({ request })
     }
 
-    const userLogRows = await userLogRepository.selectRowsList(trx, userRow.id, request.limit)
+    const userLogRows = await userLogRepository.selectRowsByUserId(
+      trx,
+      userRow.id,
+      request.limit
+    )
 
     return {
       userLogs: userLogRepository.buildCollection(userLogRows)

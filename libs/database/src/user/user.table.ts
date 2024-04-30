@@ -6,6 +6,7 @@ export interface UserTable {
   is_paid: ColumnType<boolean, boolean, boolean | undefined>
   subscriptions: ColumnType<number, number, number | undefined>
   categories: ColumnType<number, number, number | undefined>
+  bots: ColumnType<number, number, number | undefined>
   created_at: ColumnType<number, number, never>
   updated_at: ColumnType<number, number, number | undefined>
   queued_at: ColumnType<number, number, number | undefined>

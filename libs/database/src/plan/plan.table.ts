@@ -2,11 +2,11 @@ import { Generated, ColumnType, Selectable, Insertable, Updateable } from 'kysel
 
 export interface PlanTable {
   id: Generated<number>
-  categories_max: ColumnType<number, number, number | undefined>
+  categories_max: ColumnType<number, number, never>
+  duration_days: ColumnType<number, number, never>
+  interval_sec: ColumnType<number, number, never>
+  analytics_on: ColumnType<boolean, boolean, never>
   price_rub: ColumnType<number, number, number | undefined>
-  duration_days: ColumnType<number, number, number | undefined>
-  interval_sec: ColumnType<number, number, number | undefined>
-  analytics_on: ColumnType<boolean, boolean, boolean | undefined>
   is_enabled: ColumnType<boolean, boolean, boolean | undefined>
   subscriptions: ColumnType<number, number, number | undefined>
   created_at: ColumnType<number, number, never>

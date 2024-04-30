@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/queue",
   "type": "module",
-  "version": "0.0.12",
+  "version": "0.0.14",
   "description": "Avito-speculant queue library",
   "private": true,
   "main": "dist/index.js",

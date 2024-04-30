@@ -12,13 +12,20 @@ import {
   BroadcastWorker,
   BroadcastProcessor
 } from './broadcast.js'
-import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
+import { QueueSummary } from '../queue.js'
+import {
+  initQueueBase,
+  getQueueSummaryBase,
+  closeQueueBase,
+  initWorkerBase,
+  runWorkerBase
+} from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): BroadcastQueue {
-  return initBaseQueue<BroadcastData, BroadcastResult, BroadcastName>(
+  return initQueueBase<BroadcastData, BroadcastResult, BroadcastName>(
     BROADCAST_QUEUE_NAME,
     connection,
     logger
@@ -38,7 +45,7 @@ export async function addRepeatableJob(
       userId
     },
     {
-      jobId: `user-${userId}`,
+      jobId: `default-${userId}`,
       repeat: {
         every: BROADCAST_REPEAT_EVERY
       }
@@ -55,15 +62,22 @@ export async function removeRepeatableJob(queue: BroadcastQueue, userId: number)
     {
       every: BROADCAST_REPEAT_EVERY
     },
-    `user-${userId}`
+    `default-${userId}`
   )
+}
+
+/**
+ * Get QueueSummary
+ */
+export async function getQueueSummary(queue: BroadcastQueue): Promise<QueueSummary> {
+  return await getQueueSummaryBase<BroadcastData, BroadcastResult, BroadcastName>(queue)
 }
 
 /**
  * Close Queue
  */
 export async function closeQueue(queue: BroadcastQueue): Promise<void> {
-  await queue.close()
+  await closeQueueBase<BroadcastData, BroadcastResult, BroadcastName>(queue)
 }
 
 /**
@@ -93,7 +107,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): BroadcastWorker {
-  return initBaseWorker<BroadcastData, BroadcastResult, BroadcastName>(
+  return initWorkerBase<BroadcastData, BroadcastResult, BroadcastName>(
     BROADCAST_QUEUE_NAME,
     processor,
     connection,
@@ -107,5 +121,5 @@ export function initWorker(
  * Run Worker
  */
 export async function runWorker(worker: BroadcastWorker, logger: Logger): Promise<void> {
-  await runBaseWorker<BroadcastData, BroadcastResult, BroadcastName>(worker, logger)
+  await runWorkerBase<BroadcastData, BroadcastResult, BroadcastName>(worker, logger)
 }

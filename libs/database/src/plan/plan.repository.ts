@@ -1,48 +1,61 @@
 import { sql } from 'kysely'
-import { Plan } from './plan.js'
+import { Plan, PLAN_PRODUCE_AFTER } from './plan.js'
 import { PlanRow } from './plan.table.js'
 import { TransactionDatabase } from '../database.js'
 
-export async function selectRowByIdForShare(
+export async function selectRowById(
   trx: TransactionDatabase,
-  plan_id: number
+  plan_id: number,
+  writeLock: boolean = false
+): Promise<PlanRow | undefined> {
+  const queryBase = trx
+    .selectFrom('plan')
+    .selectAll()
+    .where('id', '=', plan_id)
+
+  const queryLock = writeLock ? queryBase.forUpdate() : queryBase.forShare()
+
+  return await queryLock.executeTakeFirst()
+}
+
+export async function selectRowByUnique(
+  trx: TransactionDatabase,
+  categories_max: number,
+  duration_days: number,
+  interval_sec: number,
+  analytics_on: boolean
 ): Promise<PlanRow | undefined> {
   return await trx
     .selectFrom('plan')
     .selectAll()
-    .where('id', '=', plan_id)
+    .where('categories_max', '=', categories_max)
+    .where('duration_days', '=', duration_days)
+    .where('interval_sec', '=', interval_sec)
+    .where('analytics_on', '=', analytics_on)
     .forShare()
     .executeTakeFirst()
 }
 
-export async function selectRowByIdForUpdate(
-  trx: TransactionDatabase,
-  plan_id: number
-): Promise<PlanRow | undefined> {
-  return await trx
-    .selectFrom('plan')
-    .selectAll()
-    .where('id', '=', plan_id)
-    .forUpdate()
-    .executeTakeFirst()
+export async function selectRows(trx: TransactionDatabase): Promise<PlanRow[]> {
+  return await trx.selectFrom('plan').selectAll().orderBy('created_at', 'asc').forShare().execute()
 }
 
 export async function insertRow(
   trx: TransactionDatabase,
   categories_max: number,
-  price_rub: number,
   duration_days: number,
   interval_sec: number,
-  analytics_on: boolean
+  analytics_on: boolean,
+  price_rub: number
 ): Promise<PlanRow> {
   return await trx
     .insertInto('plan')
     .values(() => ({
       categories_max,
-      price_rub,
       duration_days,
       interval_sec,
       analytics_on,
+      price_rub,
       is_enabled: false,
       subscriptions: 0,
       created_at: sql<number>`now()`,
@@ -53,23 +66,15 @@ export async function insertRow(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRow(
+export async function updateRowPriceRub(
   trx: TransactionDatabase,
   plan_id: number,
-  categories_max?: number,
-  price_rub?: number,
-  duration_days?: number,
-  interval_sec?: number,
-  analytics_on?: boolean
+  price_rub: number
 ): Promise<PlanRow> {
   return await trx
     .updateTable('plan')
     .set(() => ({
-      categories_max,
       price_rub,
-      duration_days,
-      interval_sec,
-      analytics_on,
       updated_at: sql<number>`now()`
     }))
     .where('id', '=', plan_id)
@@ -77,7 +82,7 @@ export async function updateRow(
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowIsEnabled(
+export async function updateRowState(
   trx: TransactionDatabase,
   plan_id: number,
   is_enabled: boolean
@@ -93,16 +98,6 @@ export async function updateRowIsEnabled(
     .executeTakeFirstOrThrow()
 }
 
-export async function selectRowsList(trx: TransactionDatabase, all: boolean): Promise<PlanRow[]> {
-  return await trx
-    .selectFrom('plan')
-    .selectAll()
-    .where('is_enabled', 'in', all ? [true, false] : [true])
-    .forShare()
-    .orderBy('id', 'asc')
-    .execute()
-}
-
 export async function selectRowsProduce(
   trx: TransactionDatabase,
   limit: number
@@ -110,54 +105,50 @@ export async function selectRowsProduce(
   return await trx
     .selectFrom('plan')
     .selectAll()
-    .where('queued_at', '<', sql<number>`now() - interval '1 MINUTE'`)
-    .orderBy('queued_at', 'desc')
+    .where('queued_at', '<', sql<number>`now() - interval '${PLAN_PRODUCE_AFTER}'`)
+    .orderBy('queued_at', 'asc')
+    .limit(limit)
     .forUpdate()
     .skipLocked()
-    .limit(limit)
     .execute()
 }
 
-export async function updateRowProduce(
+export async function updateRowsProduce(
   trx: TransactionDatabase,
-  plan_id: number
-): Promise<PlanRow> {
+  plan_ids: number[]
+): Promise<PlanRow[]> {
   return await trx
     .updateTable('plan')
     .set(() => ({
       queued_at: sql<number>`now()`
     }))
-    .where('id', '=', plan_id)
+    .where('id', 'in', plan_ids)
     .returningAll()
-    .executeTakeFirstOrThrow()
+    .execute()
 }
 
-export async function updateRowConsume(
+export async function updateRowCounters(
   trx: TransactionDatabase,
   plan_id: number,
-  is_enabled: boolean,
   subscriptions: number
-): Promise<PlanRow> {
-  return await trx
+): Promise<void> {
+  await trx
     .updateTable('plan')
     .set(() => ({
-      is_enabled,
-      subscriptions,
-      updated_at: sql<number>`now()`
+      subscriptions
     }))
     .where('id', '=', plan_id)
-    .returningAll()
-    .executeTakeFirstOrThrow()
+    .execute()
 }
 
 export const buildModel = (row: PlanRow): Plan => {
   return {
     id: row.id,
     categoriesMax: row.categories_max,
-    priceRub: row.price_rub,
     durationDays: row.duration_days,
     intervalSec: row.interval_sec,
     analyticsOn: row.analytics_on,
+    priceRub: row.price_rub,
     isEnabled: row.is_enabled,
     subscriptions: row.subscriptions,
     createdAt: row.created_at,

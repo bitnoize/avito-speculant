@@ -25,8 +25,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema.createIndex('user_created_at_key').on('user').column('created_at').execute()
 
-  await db.schema.createIndex('user_updated_at_key').on('user').column('updated_at').execute()
-
   await db.schema.createIndex('user_queued_at_key').on('user').column('queued_at').execute()
 }
 

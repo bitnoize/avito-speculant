@@ -1,33 +1,24 @@
 import { sql } from 'kysely'
-import { Proxy } from './proxy.js'
+import { Proxy, PROXY_PRODUCE_AFTER } from './proxy.js'
 import { ProxyRow } from './proxy.table.js'
 import { TransactionDatabase } from '../database.js'
 
-export async function selectRowByIdForShare(
+export async function selectRowById(
   trx: TransactionDatabase,
-  proxy_id: number
+  proxy_id: number,
+  writeLock: boolean = false
 ): Promise<ProxyRow | undefined> {
-  return await trx
+  const queryBase = trx
     .selectFrom('proxy')
     .selectAll()
     .where('id', '=', proxy_id)
-    .forShare()
-    .executeTakeFirst()
+
+  const queryLock = writeLock ? queryBase.forUpdate() : queryBase.forShare()
+
+  return await queryLock.executeTakeFirst()
 }
 
-export async function selectRowByIdForUpdate(
-  trx: TransactionDatabase,
-  proxy_id: number
-): Promise<ProxyRow | undefined> {
-  return await trx
-    .selectFrom('proxy')
-    .selectAll()
-    .where('id', '=', proxy_id)
-    .forUpdate()
-    .executeTakeFirst()
-}
-
-export async function selectRowByProxyUrlForShare(
+export async function selectRowByProxyUrl(
   trx: TransactionDatabase,
   proxy_url: string
 ): Promise<ProxyRow | undefined> {
@@ -37,6 +28,10 @@ export async function selectRowByProxyUrlForShare(
     .where('proxy_url', '=', proxy_url)
     .forShare()
     .executeTakeFirst()
+}
+
+export async function selectRows(trx: TransactionDatabase): Promise<ProxyRow[]> {
+  return await trx.selectFrom('proxy').selectAll().orderBy('created_at', 'asc').forShare().execute()
 }
 
 export async function insertRow(trx: TransactionDatabase, proxy_url: string): Promise<ProxyRow> {
@@ -53,7 +48,7 @@ export async function insertRow(trx: TransactionDatabase, proxy_url: string): Pr
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowIsEnabled(
+export async function updateRowState(
   trx: TransactionDatabase,
   proxy_id: number,
   is_enabled: boolean
@@ -67,16 +62,6 @@ export async function updateRowIsEnabled(
     .where('id', '=', proxy_id)
     .returningAll()
     .executeTakeFirstOrThrow()
-}
-
-export async function selectRowsList(trx: TransactionDatabase, all: boolean): Promise<ProxyRow[]> {
-  return await trx
-    .selectFrom('proxy')
-    .selectAll()
-    .where('is_enabled', 'in', all ? [true, false] : [true])
-    .forShare()
-    .orderBy('id', 'asc')
-    .execute()
 }
 
 export async function selectRowsProduce(
@@ -86,42 +71,26 @@ export async function selectRowsProduce(
   return await trx
     .selectFrom('proxy')
     .selectAll()
-    .where('queued_at', '<', sql<number>`now() - interval '1 MINUTE'`)
-    .orderBy('queued_at', 'desc')
+    .where('queued_at', '<', sql<number>`now() - interval '${PROXY_PRODUCE_AFTER}'`)
+    .orderBy('queued_at', 'asc')
+    .limit(limit)
     .forUpdate()
     .skipLocked()
-    .limit(limit)
     .execute()
 }
 
-export async function updateRowProduce(
+export async function updateRowsProduce(
   trx: TransactionDatabase,
-  proxy_id: number
-): Promise<ProxyRow> {
+  proxy_ids: number[]
+): Promise<ProxyRow[]> {
   return await trx
     .updateTable('proxy')
     .set(() => ({
       queued_at: sql<number>`now()`
     }))
-    .where('id', '=', proxy_id)
+    .where('id', 'in', proxy_ids)
     .returningAll()
-    .executeTakeFirstOrThrow()
-}
-
-export async function updateRowConsume(
-  trx: TransactionDatabase,
-  proxy_id: number,
-  is_enabled: boolean
-): Promise<ProxyRow> {
-  return await trx
-    .updateTable('proxy')
-    .set(() => ({
-      is_enabled,
-      updated_at: sql<number>`now()`
-    }))
-    .where('id', '=', proxy_id)
-    .returningAll()
-    .executeTakeFirstOrThrow()
+    .execute()
 }
 
 export const buildModel = (row: ProxyRow): Proxy => {

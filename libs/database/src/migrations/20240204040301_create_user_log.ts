@@ -10,13 +10,12 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('is_paid', 'boolean', (col) => col.notNull())
     .addColumn('subscriptions', 'integer', (col) => col.notNull())
     .addColumn('categories', 'integer', (col) => col.notNull())
+    .addColumn('bots', 'integer', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
   await db.schema.createIndex('user_log_user_id_key').on('user_log').column('user_id').execute()
-
-  await db.schema.createIndex('user_log_action_key').on('user_log').column('action').execute()
 
   await db.schema
     .createIndex('user_log_created_at_key')

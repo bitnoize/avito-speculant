@@ -25,9 +25,8 @@ export type ScrapingNameResult = {
   statusCode: number
   sizeBytes: number
   durationTime: number
-  curlDurationTime: number
-  parseDurationTime: number
-  totalAdverts: number
+  requestTime: number
+  parsingTime: number
 }
 export type ScrapingResult = Partial<Record<ScrapingName, ScrapingNameResult>>
 

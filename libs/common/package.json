@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/common",
   "type": "module",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Avito-speculant common library",
   "private": true,
   "main": "dist/index.js",

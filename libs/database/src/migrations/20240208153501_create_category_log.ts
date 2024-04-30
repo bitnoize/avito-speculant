@@ -7,6 +7,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'uuid', (col) => col.primaryKey().defaultTo(sql`gen_random_uuid()`))
     .addColumn('category_id', 'integer', (col) => col.notNull().references('category.id'))
     .addColumn('action', 'varchar', (col) => col.notNull())
+    .addColumn('bot_id', 'integer', (col) => col.references('bot.id'))
     .addColumn('is_enabled', 'boolean', (col) => col.notNull())
     .addColumn('data', 'jsonb', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
@@ -16,12 +17,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createIndex('category_log_category_id_key')
     .on('category_log')
     .column('category_id')
-    .execute()
-
-  await db.schema
-    .createIndex('category_log_action_key')
-    .on('category_log')
-    .column('action')
     .execute()
 
   await db.schema

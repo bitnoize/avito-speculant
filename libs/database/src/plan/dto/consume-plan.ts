@@ -10,7 +10,6 @@ export type ConsumePlanRequest = {
 
 export type ConsumePlanResponse = {
   plan: Plan
-  backLog: Notify[]
 }
 
 export type ConsumePlan = DatabaseMethod<ConsumePlanRequest, ConsumePlanResponse>

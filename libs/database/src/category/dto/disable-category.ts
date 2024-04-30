@@ -4,6 +4,7 @@ import { CategoryLogData } from '../../category-log/category-log.js'
 import { DatabaseMethod } from '../../database.js'
 
 export type DisableCategoryRequest = {
+  userId: number
   categoryId: number
   data: CategoryLogData
 }

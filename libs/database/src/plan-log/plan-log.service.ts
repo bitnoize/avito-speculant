@@ -8,13 +8,17 @@ import * as planRepository from '../plan/plan.repository.js'
  */
 export const listPlanLogs: ListPlanLogs = async function listPlanLogs(db, request) {
   return await db.transaction().execute(async (trx) => {
-    const planRow = await planRepository.selectRowByIdForShare(trx, request.planId)
+    const planRow = await planRepository.selectRowById(trx, request.planId)
 
     if (planRow === undefined) {
       throw new PlanNotFoundError({ request })
     }
 
-    const planLogRows = await planLogRepository.selectRowsList(trx, planRow.id, request.limit)
+    const planLogRows = await planLogRepository.selectRowsByPlanId(
+      trx,
+      planRow.id,
+      request.limit
+    )
 
     return {
       planLogs: planLogRepository.buildCollection(planLogRows)

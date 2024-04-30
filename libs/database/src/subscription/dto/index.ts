@@ -1,4 +1,5 @@
 export * from './create-subscription.js'
+export * from './read-subscription.js'
 export * from './activate-subscription.js'
 export * from './cancel-subscription.js'
 export * from './list-subscriptions.js'

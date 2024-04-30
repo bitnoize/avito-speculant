@@ -5,6 +5,21 @@ import { SubscriptionLogRow } from './subscription-log.table.js'
 import { SubscriptionStatus } from '../subscription/subscription.js'
 import { TransactionDatabase } from '../database.js'
 
+export async function selectRowsBySubscriptionId(
+  trx: TransactionDatabase,
+  subscription_id: number,
+  limit: number
+): Promise<SubscriptionLogRow[]> {
+  return await trx
+    .selectFrom('subscription_log')
+    .selectAll()
+    .where('subscription_id', '=', subscription_id)
+    .orderBy('created_at', 'desc')
+    .limit(limit)
+    .forShare()
+    .execute()
+}
+
 export async function insertRow(
   trx: TransactionDatabase,
   subscription_id: number,
@@ -23,20 +38,6 @@ export async function insertRow(
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
-}
-
-export async function selectRowsList(
-  trx: TransactionDatabase,
-  subscription_id: number,
-  limit: number
-): Promise<SubscriptionLogRow[]> {
-  return await trx
-    .selectFrom('subscription_log')
-    .selectAll()
-    .where('subscription_id', '=', subscription_id)
-    .orderBy('created_at', 'desc')
-    .limit(limit)
-    .execute()
 }
 
 export const buildModel = (row: SubscriptionLogRow): SubscriptionLog => {

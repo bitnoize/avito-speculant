@@ -10,7 +10,7 @@ import {
 } from 'bullmq'
 import { Logger } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
-import { QueueConfig } from './queue.js'
+import { QueueConfig, QueueSummary } from './queue.js'
 
 /**
  * Get QueueConnection from config
@@ -28,9 +28,9 @@ export function getQueueConnection<T extends QueueConfig>(config: T): Connection
 }
 
 /*
- * Initialize BaseQueue
+ * Initialize QueueBase
  */
-export function initBaseQueue<DT, RT, NT extends string>(
+export function initQueueBase<DT, RT, NT extends string>(
   name: string,
   connection: ConnectionOptions,
   logger: Logger
@@ -39,23 +39,21 @@ export function initBaseQueue<DT, RT, NT extends string>(
     connection
   })
 
-  const logQueueName = toLogQueueName(name)
-
   queue.on('error', (error) => {
-    logger.fatal(`${logQueueName} enter error state`)
+    logger.fatal(`Queue '${name}' enter error state`)
     logger.fatal(error.stack ?? error.message)
   })
 
   queue.on('ioredis:close', () => {
-    logger.debug(`${logQueueName} enter ioredis:close state`)
+    logger.debug(`Queue '${name}' enter ioredis:close state`)
   })
 
   queue.on('paused', () => {
-    logger.debug(`${logQueueName} enter paused state`)
+    logger.debug(`Queue '${name}' enter paused state`)
   })
 
   queue.on('resumed', () => {
-    logger.debug(`${logQueueName} enter resumed state`)
+    logger.debug(`Queue '${name}' enter resumed state`)
   })
 
   queue.on('waiting', (job) => {
@@ -67,7 +65,7 @@ export function initBaseQueue<DT, RT, NT extends string>(
         data: job.data
       }
     }
-    logger.debug(logData, `${logQueueName} enter waiting state`)
+    logger.debug(logData, `Queue '${name}' enter waiting state`)
   })
 
   queue.on('progress', (job, progress) => {
@@ -80,7 +78,7 @@ export function initBaseQueue<DT, RT, NT extends string>(
       },
       progress
     }
-    logger.debug(logData, `${logQueueName} enter progress state`)
+    logger.debug(logData, `Queue '${name}' enter progress state`)
   })
 
   queue.on('removed', (job) => {
@@ -92,159 +90,30 @@ export function initBaseQueue<DT, RT, NT extends string>(
         data: job.data
       }
     }
-    logger.debug(logData, `${logQueueName} enter removed state`)
+    logger.debug(logData, `Queue '${name}' enter removed state`)
   })
 
   queue.on('cleaned', (jobs, type) => {
     const logData = { jobs, type }
-    logger.debug(logData, `${logQueueName} enter cleaned state`)
+    logger.debug(logData, `Queue '${name}' enter cleaned state`)
   })
 
   return queue
 }
 
 /**
- * Initialize FlowProducer
+ * Close QueueBase
  */
-export function initFlowProducer(connection: ConnectionOptions, logger: Logger): FlowProducer {
-  const flowProducer = new FlowProducer({
-    connection
-  })
-
-  flowProducer.on('error', (error) => {
-    logger.fatal(`FlowProducer enter error state`)
-    logger.fatal(error.stack ?? error.message)
-  })
-
-  flowProducer.on('ioredis:close', () => {
-    logger.debug(`FlowProducer enter ioredis:close state`)
-  })
-
-  return flowProducer
+export async function closeQueueBase<DT, RT, NT extends string>(
+  queue: Queue<DT, RT, NT>,
+): Promise<void> {
+  await queue.close()
 }
 
 /**
- * Close FlowProducer
+ * Initialize WorkerBase
  */
-export async function closeFlowProducer(flowProducer: FlowProducer): Promise<void> {
-  await flowProducer.close()
-}
-
-/**
- * Initialize QueueEvents
- */
-export function initQueueEvents(
-  name: string,
-  connection: ConnectionOptions,
-  logger: Logger
-): QueueEvents {
-  const queueEvents = new QueueEvents(name, {
-    connection,
-    autorun: false
-  })
-
-  const logQueueName = toLogQueueName(name)
-
-  queueEvents.on('error', (error) => {
-    logger.fatal(`${logQueueName} enter error state`)
-    logger.fatal(error.message)
-  })
-
-  queueEvents.on('ioredis:close', () => {
-    logger.debug(`${logQueueName} enter ioredis:close state`)
-  })
-
-  queueEvents.on('paused', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter paused state`)
-  })
-
-  queueEvents.on('resumed', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter resumed state`)
-  })
-
-  queueEvents.on('added', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter added state`)
-  })
-
-  queueEvents.on('duplicated', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter duplicated state`)
-  })
-
-  queueEvents.on('delayed', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter delayed state`)
-  })
-
-  queueEvents.on('waiting', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter waiting state`)
-  })
-
-  queueEvents.on('active', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter active state`)
-  })
-
-  queueEvents.on('completed', (args, id) => {
-    const logData = { args, id }
-    logger.info(logData, `${logQueueName} enter completed state`)
-  })
-
-  queueEvents.on('progress', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter progress state`)
-  })
-
-  queueEvents.on('failed', (args, id) => {
-    const logData = { args, id }
-    logger.error(logData, `${logQueueName} enter failed state`)
-  })
-
-  queueEvents.on('stalled', (args, id) => {
-    const logData = { args, id }
-    logger.error(logData, `${logQueueName} enter stalled state`)
-  })
-
-  queueEvents.on('removed', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter removed state`)
-  })
-
-  queueEvents.on('cleaned', (args, id) => {
-    const logData = { args, id }
-    logger.debug(logData, `${logQueueName} enter cleaned state`)
-  })
-
-  queueEvents.on('drained', (id) => {
-    const logData = { id }
-    logger.debug(logData, `${logQueueName} enter drained state`)
-  })
-
-  return queueEvents
-}
-
-/**
- * Run QueueEvents
- */
-export async function runQueueEvents(queueEvents: QueueEvents): Promise<void> {
-  await queueEvents.run()
-}
-
-/**
- * Close QueueEvents
- */
-export async function closeQueueEvents(queueEvents: QueueEvents): Promise<void> {
-  await queueEvents.close()
-}
-
-/**
- * Initialize BaseWorker
- */
-export function initBaseWorker<DT, RT, NT extends string>(
+export function initWorkerBase<DT, RT, NT extends string>(
   name: string,
   processor: Processor<DT, RT, NT>,
   connection: ConnectionOptions,
@@ -268,39 +137,37 @@ export function initBaseWorker<DT, RT, NT extends string>(
     }
   })
 
-  const logWorkerName = toLogWorkerName(name)
-
   worker.on('error', (error) => {
-    logger.fatal(`${logWorkerName} enter error state`)
+    logger.fatal(`Worker '${name}' enter error state`)
     logger.fatal(error.stack ?? error.message)
   })
 
   worker.on('ready', () => {
-    logger.debug(`${logWorkerName} enter ready state`)
+    logger.debug(`Worker '${name}' enter ready state`)
   })
 
   worker.on('closing', () => {
-    logger.debug(`${logWorkerName} enter closing state`)
+    logger.debug(`Worker '${name}' enter closing state`)
   })
 
   worker.on('closed', () => {
-    logger.debug(`${logWorkerName} enter closed state`)
+    logger.debug(`Worker '${name}' enter closed state`)
   })
 
   worker.on('ioredis:close', () => {
-    logger.debug(`${logWorkerName} enter ioredis:close state`)
+    logger.debug(`Worker '${name}' enter ioredis:close state`)
   })
 
   worker.on('paused', () => {
-    logger.debug(`${logWorkerName} enter paused state`)
+    logger.debug(`Worker '${name}' enter paused state`)
   })
 
   worker.on('resumed', () => {
-    logger.debug(`${logWorkerName} enter resumed state`)
+    logger.debug(`Worker '${name}' enter resumed state`)
   })
 
   worker.on('drained', () => {
-    logger.debug(`${logWorkerName} enter drained state`)
+    logger.debug(`Worker '${name}' enter drained state`)
   })
 
   worker.on('active', (job, prev) => {
@@ -313,7 +180,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
       },
       prev
     }
-    logger.debug(logData, `${logWorkerName} enter active state`)
+    logger.debug(logData, `Worker '${name}' enter active state`)
   })
 
   worker.on('progress', (job, progress) => {
@@ -326,7 +193,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
       },
       progress
     }
-    logger.debug(logData, `${logWorkerName} enter progress state`)
+    logger.debug(logData, `Worker '${name}' enter progress state`)
   })
 
   worker.on('completed', (job, result, prev) => {
@@ -340,7 +207,7 @@ export function initBaseWorker<DT, RT, NT extends string>(
       result,
       prev
     }
-    logger.info(logData, `${logWorkerName} enter completed state`)
+    logger.info(logData, `Worker '${name}' enter completed state`)
   })
 
   worker.on('failed', (job, error, prev) => {
@@ -354,10 +221,10 @@ export function initBaseWorker<DT, RT, NT extends string>(
         },
         prev
       }
-      logger.error(logData, `${logWorkerName} enter failed state`)
+      logger.error(logData, `Worker '${name}' enter failed state`)
     } else {
       const logData = { prev }
-      logger.error(logData, `${logWorkerName} stalled job reaches limit`)
+      logger.error(logData, `Worker '${name}' stalled job reaches limit`)
     }
 
     if (error instanceof DomainError) {
@@ -373,21 +240,21 @@ export function initBaseWorker<DT, RT, NT extends string>(
 
   worker.on('stalled', (jobId, prev) => {
     const logData = { jobId, prev }
-    logger.error(logData, `${logWorkerName} enter stalled state`)
+    logger.warn(logData, `Worker '${name}' enter stalled state`)
   })
 
   return worker
 }
 
 /**
- * Run BaseWorker
+ * Run WorkerBase
  */
-export async function runBaseWorker<DT, RT, NT extends string>(
+export async function runWorkerBase<DT, RT, NT extends string>(
   worker: Worker<DT, RT, NT>,
   logger: Logger
 ): Promise<void> {
   const gracefulShutdown = async (signal: string): Promise<void> => {
-    logger.warn(`Received ${signal}, worker closing...`)
+    logger.warn(`Worker '${worker.name}' received ${signal}`)
 
     await worker.close()
     process.exit(0)
@@ -399,8 +266,26 @@ export async function runBaseWorker<DT, RT, NT extends string>(
   await worker.run()
 }
 
-const toLogQueueName = (name: string): string => toLogName(name, 'Queue')
-const toLogWorkerName = (name: string): string => toLogName(name, 'Worker')
+/**
+ * Get QueueSummaryBase
+ */
+export async function getQueueSummaryBase<DT, RT, NT extends string>(
+  queue: Queue<DT, RT, NT>,
+): Promise<QueueSummary> {
+  const isPaused = await queue.isPaused()
+  const jobCounts = await queue.getJobCounts(
+    'delayed',
+    'waiting',
+    'waiting-children',
+    'active',
+    'completed',
+    'failed',
+  )
+  const workersCount = await queue.getWorkersCount()
 
-const toLogName = (name: string, suffix: string): string =>
-  name[0].toUpperCase() + name.slice(1).toLowerCase() + suffix
+  return {
+    isPaused,
+    jobCounts,
+    workersCount
+  }
+}

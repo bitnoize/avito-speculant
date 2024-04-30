@@ -19,12 +19,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema
-    .createIndex('subscription_log_action_key')
-    .on('subscription_log')
-    .column('action')
-    .execute()
-
-  await db.schema
     .createIndex('subscription_log_created_at_key')
     .on('subscription_log')
     .column('created_at')

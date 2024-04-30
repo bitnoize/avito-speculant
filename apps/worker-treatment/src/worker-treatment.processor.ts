@@ -53,7 +53,9 @@ const treatmentProcessor: TreatmentProcessor = async function (treatmentJob) {
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
 
-  const treatmentResult: TreatmentResult = {}
+  const treatmentResult: TreatmentResult = {
+    durationTime: 0
+  }
 
   try {
     const name = treatmentJob.name

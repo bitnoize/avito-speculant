@@ -7,8 +7,8 @@ export class ProxyNotFoundError extends DatabaseError {
   }
 }
 
-export class ProxyAllreadyExistsError extends DatabaseError {
-  constructor(context: ErrorContext, code = 103, message = `Proxy allready exists`) {
+export class ProxyExistsError extends DatabaseError {
+  constructor(context: ErrorContext, code = 102, message = `Proxy allready exists`) {
     super(context, code, message)
   }
 }

@@ -6,7 +6,8 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('category')
     .addColumn('id', 'serial', (col) => col.primaryKey())
     .addColumn('user_id', 'integer', (col) => col.notNull().references('user.id'))
-    .addColumn('avito_url', 'varchar', (col) => col.notNull())
+    .addColumn('url_path', 'varchar', (col) => col.notNull())
+    .addColumn('bot_id', 'integer', (col) => col.references('bot.id'))
     .addColumn('is_enabled', 'boolean', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .addColumn('updated_at', 'timestamptz', (col) => col.notNull())
@@ -14,6 +15,20 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema.createIndex('category_user_id_key').on('category').column('user_id').execute()
+
+  await db.schema
+    .createIndex('category_user_id_url_path_key')
+    .on('category')
+    .columns(['user_id', 'url_path'])
+    .unique()
+    .execute()
+
+  await db.schema
+    .createIndex('category_bot_id_key')
+    .on('category')
+    .column('bot_id')
+    .unique()
+    .execute()
 
   await db.schema
     .createIndex('category_is_enabled_key')
@@ -25,12 +40,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createIndex('category_created_at_key')
     .on('category')
     .column('created_at')
-    .execute()
-
-  await db.schema
-    .createIndex('category_updated_at_key')
-    .on('category')
-    .column('updated_at')
     .execute()
 
   await db.schema.createIndex('category_queued_at_key').on('category').column('queued_at').execute()

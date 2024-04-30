@@ -12,15 +12,13 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'serial', (col) => col.primaryKey())
     .addColumn('user_id', 'integer', (col) => col.notNull().references('user.id'))
     .addColumn('plan_id', 'integer', (col) => col.notNull().references('plan.id'))
-    .addColumn('categories_max', 'integer', (col) => col.notNull())
     .addColumn('price_rub', 'integer', (col) => col.notNull())
-    .addColumn('duration_days', 'integer', (col) => col.notNull())
-    .addColumn('interval_sec', 'integer', (col) => col.notNull())
-    .addColumn('analytics_on', 'boolean', (col) => col.notNull())
     .addColumn('status', sql`subscription_status`, (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .addColumn('updated_at', 'timestamptz', (col) => col.notNull())
     .addColumn('queued_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('timeout_at', 'timestamptz', (col) => col.notNull())
+    .addColumn('finish_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
   await db.schema
@@ -50,7 +48,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute()
 
   await db.schema
-    .createIndex('subscription_user_id_status_paid_key')
+    .createIndex('subscription_user_id_status_active_key')
     .on('subscription')
     .columns(['user_id', 'status'])
     .where('status', '=', 'active')
@@ -61,12 +59,6 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createIndex('subscription_created_at_key')
     .on('subscription')
     .column('created_at')
-    .execute()
-
-  await db.schema
-    .createIndex('subscription_updated_at_key')
-    .on('subscription')
-    .column('updated_at')
     .execute()
 
   await db.schema

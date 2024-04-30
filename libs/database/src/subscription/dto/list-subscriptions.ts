@@ -3,7 +3,6 @@ import { DatabaseMethod } from '../../database.js'
 
 export type ListSubscriptionsRequest = {
   userId: number
-  all?: boolean
 }
 
 export type ListSubscriptionsResponse = {

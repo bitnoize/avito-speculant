@@ -11,13 +11,20 @@ import {
   SendreportWorker,
   SendreportProcessor
 } from './sendreport.js'
-import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
+import { QueueSummary } from '../queue.js'
+import {
+  initQueueBase,
+  getQueueSummaryBase,
+  closeQueueBase,
+  initWorkerBase,
+  runWorkerBase
+} from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): SendreportQueue {
-  return initBaseQueue<SendreportData, SendreportResult, SendreportName>(
+  return initQueueBase<SendreportData, SendreportResult, SendreportName>(
     SENDREPORT_QUEUE_NAME,
     connection,
     logger
@@ -38,17 +45,24 @@ export async function addJobs(
         reportId
       },
       opts: {
-        jobId: `report-${reportId}`
+        jobId: `default-${reportId}`
       }
     }))
   )
 }
 
 /**
+ * Get QueueSummary
+ */
+export async function getQueueSummary(queue: SendreportQueue): Promise<QueueSummary> {
+  return await getQueueSummaryBase<SendreportData, SendreportResult, SendreportName>(queue)
+}
+
+/**
  * Close Queue
  */
 export async function closeQueue(queue: SendreportQueue): Promise<void> {
-  await queue.close()
+  await closeQueueBase<SendreportData, SendreportResult, SendreportName>(queue)
 }
 
 /**
@@ -78,7 +92,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): SendreportWorker {
-  return initBaseWorker<SendreportData, SendreportResult, SendreportName>(
+  return initWorkerBase<SendreportData, SendreportResult, SendreportName>(
     SENDREPORT_QUEUE_NAME,
     processor,
     connection,
@@ -92,5 +106,5 @@ export function initWorker(
  * Run Worker
  */
 export async function runWorker(worker: SendreportWorker, logger: Logger): Promise<void> {
-  await runBaseWorker<SendreportData, SendreportResult, SendreportName>(worker, logger)
+  await runWorkerBase<SendreportData, SendreportResult, SendreportName>(worker, logger)
 }

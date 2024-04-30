@@ -8,13 +8,13 @@ import * as categoryRepository from '../category/category.repository.js'
  */
 export const listCategoryLogs: ListCategoryLogs = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const categoryRow = await categoryRepository.selectRowByIdForShare(trx, request.categoryId)
+    const categoryRow = await categoryRepository.selectRowById(trx, request.categoryId)
 
     if (categoryRow === undefined) {
       throw new CategoryNotFoundError({ request })
     }
 
-    const categoryLogRows = await categoryLogRepository.selectRowsList(
+    const categoryLogRows = await categoryLogRepository.selectRowsByCategoryId(
       trx,
       categoryRow.id,
       request.limit

@@ -27,18 +27,3 @@ ACL SETUSER default on >secret sanitize-payload ~* &* +@all
 
 ```
 
-
-```
-# Собрать модуль
-npm -w @avito-speculant/redis run build
-
-# Отформатировать код
-npm -w @avito-speculant/redis run format
-
-# Статический анализ кода
-npm -w @avito-speculant/redis run lint
-
-# Удалить временные файлы
-npm -w @avito-speculant/redis run clean
-```
-

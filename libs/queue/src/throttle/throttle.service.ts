@@ -12,13 +12,20 @@ import {
   ThrottleWorker,
   ThrottleProcessor
 } from './throttle.js'
-import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
+import { QueueSummary } from '../queue.js'
+import {
+  initQueueBase,
+  getQueueSummaryBase,
+  closeQueueBase,
+  initWorkerBase,
+  runWorkerBase
+} from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): ThrottleQueue {
-  return initBaseQueue<ThrottleData, ThrottleResult, ThrottleName>(
+  return initQueueBase<ThrottleData, ThrottleResult, ThrottleName>(
     THROTTLE_QUEUE_NAME,
     connection,
     logger
@@ -46,10 +53,17 @@ export async function removeRepeatableJob(queue: ThrottleQueue): Promise<boolean
 }
 
 /**
+ * Get QueueSummary
+ */
+export async function getQueueSummary(queue: ThrottleQueue): Promise<QueueSummary> {
+  return await getQueueSummaryBase<ThrottleData, ThrottleResult, ThrottleName>(queue)
+}
+
+/**
  * Close Queue
  */
 export async function closeQueue(queue: ThrottleQueue): Promise<void> {
-  await queue.close()
+  await closeQueueBase<ThrottleData, ThrottleResult, ThrottleName>(queue)
 }
 
 /**
@@ -79,7 +93,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): ThrottleWorker {
-  return initBaseWorker<ThrottleData, ThrottleResult, ThrottleName>(
+  return initWorkerBase<ThrottleData, ThrottleResult, ThrottleName>(
     THROTTLE_QUEUE_NAME,
     processor,
     connection,
@@ -93,5 +107,5 @@ export function initWorker(
  * Run Worker
  */
 export async function runWorker(worker: ThrottleWorker, logger: Logger): Promise<void> {
-  await runBaseWorker<ThrottleData, ThrottleResult, ThrottleName>(worker, logger)
+  await runWorkerBase<ThrottleData, ThrottleResult, ThrottleName>(worker, logger)
 }

@@ -5,6 +5,7 @@ export interface CategoryLogTable {
   id: Generated<string>
   category_id: ColumnType<number, number, never>
   action: ColumnType<string, string, never>
+  bot_id: ColumnType<number | null, number | null, never>
   is_enabled: ColumnType<boolean, boolean, never>
   data: ColumnType<CategoryLogData, CategoryLogData, never>
   created_at: ColumnType<number, number, never>

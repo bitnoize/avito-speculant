@@ -8,7 +8,7 @@ import * as subscriptionRepository from '../subscription/subscription.repository
  */
 export const listSubscriptionLogs: ListSubscriptionLogs = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const subscriptionRow = await subscriptionRepository.selectRowByIdForShare(
+    const subscriptionRow = await subscriptionRepository.selectRowById(
       trx,
       request.subscriptionId
     )
@@ -17,7 +17,7 @@ export const listSubscriptionLogs: ListSubscriptionLogs = async function (db, re
       throw new SubscriptionNotFoundError({ request })
     }
 
-    const subscriptionLogRows = await subscriptionLogRepository.selectRowsList(
+    const subscriptionLogRows = await subscriptionLogRepository.selectRowsBySubscriptionId(
       trx,
       subscriptionRow.id,
       request.limit

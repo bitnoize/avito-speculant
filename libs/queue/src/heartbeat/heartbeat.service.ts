@@ -13,13 +13,20 @@ import {
   HeartbeatWorker,
   HeartbeatProcessor
 } from './heartbeat.js'
-import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
+import { QueueSummary } from '../queue.js'
+import {
+  initQueueBase,
+  getQueueSummaryBase,
+  closeQueueBase,
+  initWorkerBase,
+  runWorkerBase
+} from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): HeartbeatQueue {
-  return initBaseQueue<HeartbeatData, HeartbeatResult, HeartbeatName>(
+  return initQueueBase<HeartbeatData, HeartbeatResult, HeartbeatName>(
     HEARTBEAT_QUEUE_NAME,
     connection,
     logger
@@ -53,10 +60,17 @@ export async function removeRepeatableJob(queue: HeartbeatQueue): Promise<boolea
 }
 
 /**
+ * Get QueueSummary
+ */
+export async function getQueueSummary(queue: HeartbeatQueue): Promise<QueueSummary> {
+  return await getQueueSummaryBase<HeartbeatData, HeartbeatResult, HeartbeatName>(queue)
+}
+
+/**
  * Close Queue
  */
 export async function closeQueue(queue: HeartbeatQueue): Promise<void> {
-  await queue.close()
+  await closeQueueBase<HeartbeatData, HeartbeatResult, HeartbeatName>(queue)
 }
 
 /**
@@ -86,7 +100,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): HeartbeatWorker {
-  return initBaseWorker<HeartbeatData, HeartbeatResult, HeartbeatName>(
+  return initWorkerBase<HeartbeatData, HeartbeatResult, HeartbeatName>(
     HEARTBEAT_QUEUE_NAME,
     processor,
     connection,
@@ -100,5 +114,5 @@ export function initWorker(
  * Run Worker
  */
 export async function runWorker(worker: HeartbeatWorker, logger: Logger): Promise<void> {
-  await runBaseWorker<HeartbeatData, HeartbeatResult, HeartbeatName>(worker, logger)
+  await runWorkerBase<HeartbeatData, HeartbeatResult, HeartbeatName>(worker, logger)
 }

@@ -1,14 +1,14 @@
 import { Notify } from '@avito-speculant/common'
 import {
   CreateProxy,
+  ReadProxy,
   EnableProxy,
   DisableProxy,
   ListProxies,
   ProduceProxies,
   ConsumeProxy
 } from './dto/index.js'
-import { Proxy } from './proxy.js'
-import { ProxyNotFoundError, ProxyAllreadyExistsError } from './proxy.errors.js'
+import { ProxyNotFoundError, ProxyExistsError } from './proxy.errors.js'
 import * as proxyRepository from './proxy.repository.js'
 import * as proxyLogRepository from '../proxy-log/proxy-log.repository.js'
 
@@ -19,13 +19,11 @@ export const createProxy: CreateProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const existsProxyRow = await proxyRepository.selectRowByProxyUrlForShare(trx, request.proxyUrl)
+    const existsProxyRow = await proxyRepository.selectRowByProxyUrl(trx, request.proxyUrl)
 
     if (existsProxyRow !== undefined) {
-      throw new ProxyAllreadyExistsError({ request })
+      throw new ProxyExistsError({ request })
     }
-
-    // ...
 
     const insertedProxyRow = await proxyRepository.insertRow(trx, request.proxyUrl)
 
@@ -47,13 +45,30 @@ export const createProxy: CreateProxy = async function (db, request) {
 }
 
 /**
+ * Read Proxy
+ */
+export const readProxy: ReadProxy = async function (db, request) {
+  return await db.transaction().execute(async (trx) => {
+    const proxyRow = await proxyRepository.selectRowById(trx, request.proxyId)
+
+    if (proxyRow === undefined) {
+      throw new ProxyNotFoundError({ request })
+    }
+
+    return {
+      proxy: proxyRepository.buildModel(proxyRow)
+    }
+  })
+}
+
+/**
  * Enable Proxy
  */
 export const enableProxy: EnableProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
+    const proxyRow = await proxyRepository.selectRowById(trx, request.proxyId, true)
 
     if (proxyRow === undefined) {
       throw new ProxyNotFoundError({ request })
@@ -66,9 +81,13 @@ export const enableProxy: EnableProxy = async function (db, request) {
       }
     }
 
-    // ...
+    proxyRow.is_enabled = true
 
-    const updatedProxyRow = await proxyRepository.updateRowIsEnabled(trx, proxyRow.id, true)
+    const updatedProxyRow = await proxyRepository.updateRowState(
+      trx,
+      proxyRow.id,
+      proxyRow.is_enabled
+    )
 
     const proxyLogRow = await proxyLogRepository.insertRow(
       trx,
@@ -94,7 +113,7 @@ export const disableProxy: DisableProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
+    const proxyRow = await proxyRepository.selectRowById(trx, request.proxyId, true)
 
     if (proxyRow === undefined) {
       throw new ProxyNotFoundError({ request })
@@ -107,9 +126,13 @@ export const disableProxy: DisableProxy = async function (db, request) {
       }
     }
 
-    // ...
+    proxyRow.is_enabled = false
 
-    const updatedProxyRow = await proxyRepository.updateRowIsEnabled(trx, proxyRow.id, false)
+    const updatedProxyRow = await proxyRepository.updateRowState(
+      trx,
+      proxyRow.id,
+      proxyRow.is_enabled
+    )
 
     const proxyLogRow = await proxyLogRepository.insertRow(
       trx,
@@ -131,9 +154,9 @@ export const disableProxy: DisableProxy = async function (db, request) {
 /**
  * List Proxies
  */
-export const listProxies: ListProxies = async function (db, request) {
+export const listProxies: ListProxies = async function (db) {
   return await db.transaction().execute(async (trx) => {
-    const proxyRows = await proxyRepository.selectRowsList(trx, request.all ?? false)
+    const proxyRows = await proxyRepository.selectRows(trx)
 
     return {
       proxies: proxyRepository.buildCollection(proxyRows)
@@ -146,17 +169,16 @@ export const listProxies: ListProxies = async function (db, request) {
  */
 export const produceProxies: ProduceProxies = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const proxies: Proxy[] = []
-
     const proxyRows = await proxyRepository.selectRowsProduce(trx, request.limit)
 
-    for (const proxyRow of proxyRows) {
-      const updatedProxyRow = await proxyRepository.updateRowProduce(trx, proxyRow.id)
+    const updatedProxyRows = await proxyRepository.updateRowsProduce(
+      trx,
+      proxyRows.map((proxyRow) => proxyRow.id)
+    )
 
-      proxies.push(proxyRepository.buildModel(updatedProxyRow))
+    return {
+      proxies: proxyRepository.buildCollection(updatedProxyRows)
     }
-
-    return { proxies }
   })
 }
 
@@ -165,47 +187,14 @@ export const produceProxies: ProduceProxies = async function (db, request) {
  */
 export const consumeProxy: ConsumeProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const backLog: Notify[] = []
-    let isChanged = false
-
-    const proxyRow = await proxyRepository.selectRowByIdForUpdate(trx, request.proxyId)
+    const proxyRow = await proxyRepository.selectRowById(trx, request.proxyId)
 
     if (proxyRow === undefined) {
       throw new ProxyNotFoundError({ request })
     }
 
-    if (proxyRow.is_enabled) {
-      // ...
-    }
-
-    // ...
-
-    if (!isChanged) {
-      return {
-        proxy: proxyRepository.buildModel(proxyRow),
-        backLog
-      }
-    }
-
-    const updatedProxyRow = await proxyRepository.updateRowConsume(
-      trx,
-      proxyRow.id,
-      proxyRow.is_enabled
-    )
-
-    const proxyLogRow = await proxyLogRepository.insertRow(
-      trx,
-      updatedProxyRow.id,
-      'consume_proxy',
-      updatedProxyRow.is_enabled,
-      request.data
-    )
-
-    backLog.push(proxyLogRepository.buildNotify(proxyLogRow))
-
     return {
-      proxy: proxyRepository.buildModel(updatedProxyRow),
-      backLog
+      proxy: proxyRepository.buildModel(proxyRow)
     }
   })
 }

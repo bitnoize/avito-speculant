@@ -5,7 +5,7 @@ import { DatabaseMethod } from '../../database.js'
 
 export type CreateCategoryRequest = {
   userId: number
-  avitoUrl: string
+  urlPath: string
   data: CategoryLogData
 }
 

@@ -1,39 +1,61 @@
 import { Notify } from '@avito-speculant/common'
 import { AuthorizeUser, ListUsers, ProduceUsers, ConsumeUser } from './dto/index.js'
-import { User } from './user.js'
 import { UserNotFoundError } from './user.errors.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
+import { Plan } from '../plan/plan.js'
+import { PlanNotFoundError } from '../plan/plan.errors.js'
+import * as planRepository from '../plan/plan.repository.js'
+import { Subscription } from '../subscription/subscription.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as categoryRepository from '../category/category.repository.js'
+import * as botRepository from '../bot/bot.repository.js'
 
 /**
  * Authorize User
  */
 export const authorizeUser: AuthorizeUser = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
+    let subscription: Subscription | undefined = undefined
+    let plan: Plan | undefined = undefined
+
     const backLog: Notify[] = []
 
-    const existsUserRow = await userRepository.selectRowByTgFromIdForShare(trx, request.tgFromId)
+    const existsUserRow = await userRepository.selectRowByTgFromId(trx, request.tgFromId)
 
     if (existsUserRow !== undefined) {
-      const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
+      const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatus(
         trx,
         existsUserRow.id,
         'active'
       )
 
+      if (activeSubscriptionRow !== undefined) {
+        subscription = subscriptionRepository.buildModel(activeSubscriptionRow)
+
+        const planRow = await planRepository.selectRowById(
+          trx,
+          activeSubscriptionRow.plan_id
+        )
+
+        if (planRow === undefined) {
+          throw new PlanNotFoundError({ request }, 100)
+        }
+
+        plan = planRepository.buildModel(planRow)
+
+        existsUserRow.is_paid = true
+      } else {
+        existsUserRow.is_paid = false
+      }
+
       return {
         user: userRepository.buildModel(existsUserRow),
-        subscription:
-          subscriptionRow !== undefined
-            ? subscriptionRepository.buildModel(subscriptionRow)
-            : undefined,
+        subscription,
+        plan,
         backLog
       }
     }
-
-    // ...
 
     const instertedUserRow = await userRepository.insertRow(trx, request.tgFromId)
 
@@ -44,6 +66,7 @@ export const authorizeUser: AuthorizeUser = async function (db, request) {
       instertedUserRow.is_paid,
       instertedUserRow.subscriptions,
       instertedUserRow.categories,
+      instertedUserRow.bots,
       request.data
     )
 
@@ -51,7 +74,8 @@ export const authorizeUser: AuthorizeUser = async function (db, request) {
 
     return {
       user: userRepository.buildModel(instertedUserRow),
-      subscription: undefined,
+      subscription,
+      plan,
       backLog
     }
   })
@@ -60,11 +84,9 @@ export const authorizeUser: AuthorizeUser = async function (db, request) {
 /**
  * List Users
  */
-export const listUsers: ListUsers = async function (db, request) {
+export const listUsers: ListUsers = async function (db) {
   return await db.transaction().execute(async (trx) => {
-    // ...
-
-    const userRows = await userRepository.selectRowsList(trx, request.all ?? false)
+    const userRows = await userRepository.selectRows(trx)
 
     return {
       users: userRepository.buildCollection(userRows)
@@ -77,17 +99,16 @@ export const listUsers: ListUsers = async function (db, request) {
  */
 export const produceUsers: ProduceUsers = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const users: User[] = []
-
     const userRows = await userRepository.selectRowsProduce(trx, request.limit)
 
-    for (const userRow of userRows) {
-      const updatedUserRow = await userRepository.updateRowProduce(trx, userRow.id)
+    const updatedUserRows = await userRepository.updateRowsProduce(
+      trx,
+      userRows.map((userRow) => userRow.id)
+    )
 
-      users.push(userRepository.buildModel(updatedUserRow))
+    return {
+      users: userRepository.buildCollection(updatedUserRows)
     }
-
-    return { users }
   })
 }
 
@@ -96,65 +117,74 @@ export const produceUsers: ProduceUsers = async function (db, request) {
  */
 export const consumeUser: ConsumeUser = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const backLog: Notify[] = []
-    let isChanged = false
+    let subscription: Subscription | undefined = undefined
+    let plan: Plan | undefined = undefined
 
-    const userRow = await userRepository.selectRowByIdForUpdate(trx, request.userId)
+    const backLog: Notify[] = []
+
+    let modified = false
+
+    const userRow = await userRepository.selectRowById(trx, request.userId, true)
 
     if (userRow === undefined) {
       throw new UserNotFoundError({ request })
     }
 
-    const subscriptionRow = await subscriptionRepository.selectRowByUserIdStatusForShare(
+    const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatus(
       trx,
       userRow.id,
       'active'
     )
 
-    if (userRow.is_paid) {
-      if (subscriptionRow === undefined) {
-        isChanged = true
+    if (activeSubscriptionRow !== undefined) {
+      subscription = subscriptionRepository.buildModel(activeSubscriptionRow)
 
+      const planRow = await planRepository.selectRowById(
+        trx,
+        activeSubscriptionRow.plan_id
+      )
+
+      if (planRow === undefined) {
+        throw new PlanNotFoundError({ request }, 100)
+      }
+
+      plan = planRepository.buildModel(planRow)
+
+      if (!userRow.is_paid) {
+        userRow.is_paid = true
+
+        modified = true
+      }
+    } else {
+      if (userRow.is_paid) {
         userRow.is_paid = false
+
+        modified = true
       }
     }
 
-    const { subscriptions } = await subscriptionRepository.selectCountByUserId(trx, userRow.id)
+    userRow.subscriptions = await subscriptionRepository.selectCountByUserId(trx, userRow.id)
+    userRow.categories = await categoryRepository.selectCountByUserId(trx, userRow.id)
+    userRow.bots = await botRepository.selectCountByUserId(trx, userRow.id)
 
-    if (userRow.subscriptions !== subscriptions) {
-      isChanged = true
+    await userRepository.updateRowCounters(
+      trx,
+      userRow.id,
+      userRow.subscriptions,
+      userRow.categories,
+      userRow.bots
+    )
 
-      userRow.subscriptions = subscriptions
-    }
-
-    const { categories } = await categoryRepository.selectCountByUserId(trx, userRow.id)
-
-    if (userRow.categories !== categories) {
-      isChanged = true
-
-      userRow.categories = categories
-    }
-
-    // ...
-
-    if (!isChanged) {
+    if (!modified) {
       return {
         user: userRepository.buildModel(userRow),
-        subscription:
-          subscriptionRow !== undefined
-            ? subscriptionRepository.buildModel(subscriptionRow)
-            : undefined,
+        subscription,
+        plan,
         backLog
       }
     }
 
-    const updatedUserRow = await userRepository.updateRowConsume(
-      trx,
-      userRow.id,
-      userRow.is_paid,
-      userRow.subscriptions,
-      userRow.categories
-    )
+    const updatedUserRow = await userRepository.updateRowState(trx, userRow.id, userRow.is_paid)
 
     const userLogRow = await userLogRepository.insertRow(
       trx,
@@ -163,6 +193,7 @@ export const consumeUser: ConsumeUser = async function (db, request) {
       updatedUserRow.is_paid,
       updatedUserRow.subscriptions,
       updatedUserRow.categories,
+      updatedUserRow.bots,
       request.data
     )
 
@@ -170,10 +201,8 @@ export const consumeUser: ConsumeUser = async function (db, request) {
 
     return {
       user: userRepository.buildModel(updatedUserRow),
-      subscription:
-        subscriptionRow !== undefined
-          ? subscriptionRepository.buildModel(subscriptionRow)
-          : undefined,
+      subscription,
+      plan,
       backLog
     }
   })

@@ -7,11 +7,6 @@ import {
   DEFAULT_POSTGRES_USERNAME
 } from '@avito-speculant/database'
 import {
-  DEFAULT_REDIS_HOST,
-  DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE
-} from '@avito-speculant/redis'
-import {
   DEFAULT_QUEUE_REDIS_HOST,
   DEFAULT_QUEUE_REDIS_PORT,
   DEFAULT_QUEUE_REDIS_DATABASE,
@@ -23,7 +18,8 @@ import {
   DEFAULT_HEARTBEAT_PRODUCE_PLANS_LIMIT,
   DEFAULT_HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT,
   DEFAULT_HEARTBEAT_PRODUCE_CATEGORIES_LIMIT,
-  DEFAULT_HEARTBEAT_PRODUCE_PROXIES_LIMIT
+  DEFAULT_HEARTBEAT_PRODUCE_BOTS_LIMIT,
+  DEFAULT_HEARTBEAT_PRODUCE_PROXIES_LIMIT,
 } from '@avito-speculant/queue'
 import { Config } from './worker-heartbeat.js'
 
@@ -35,9 +31,6 @@ export const configSchema: JSONSchemaType<Config> = {
     'POSTGRES_PORT',
     'POSTGRES_DATABASE',
     'POSTGRES_USERNAME',
-    'REDIS_HOST',
-    'REDIS_PORT',
-    'REDIS_DATABASE',
     'QUEUE_REDIS_HOST',
     'QUEUE_REDIS_PORT',
     'QUEUE_REDIS_DATABASE',
@@ -49,7 +42,8 @@ export const configSchema: JSONSchemaType<Config> = {
     'HEARTBEAT_PRODUCE_PLANS_LIMIT',
     'HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT',
     'HEARTBEAT_PRODUCE_CATEGORIES_LIMIT',
-    'HEARTBEAT_PRODUCE_PROXIES_LIMIT'
+    'HEARTBEAT_PRODUCE_BOTS_LIMIT',
+    'HEARTBEAT_PRODUCE_PROXIES_LIMIT',
   ],
   properties: {
     LOG_LEVEL: {
@@ -75,30 +69,6 @@ export const configSchema: JSONSchemaType<Config> = {
       default: DEFAULT_POSTGRES_USERNAME
     },
     POSTGRES_PASSWORD: {
-      type: 'string',
-      nullable: true
-    },
-    REDIS_HOST: {
-      type: 'string',
-      default: DEFAULT_REDIS_HOST
-    },
-    REDIS_PORT: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 65535,
-      default: DEFAULT_REDIS_PORT
-    },
-    REDIS_DATABASE: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 15,
-      default: DEFAULT_REDIS_DATABASE
-    },
-    REDIS_USERNAME: {
-      type: 'string',
-      nullable: true
-    },
-    REDIS_PASSWORD: {
       type: 'string',
       nullable: true
     },
@@ -174,11 +144,17 @@ export const configSchema: JSONSchemaType<Config> = {
       maximum: 100,
       default: DEFAULT_HEARTBEAT_PRODUCE_CATEGORIES_LIMIT
     },
+    HEARTBEAT_PRODUCE_BOTS_LIMIT: {
+      type: 'integer',
+      minimum: 1,
+      maximum: 100,
+      default: DEFAULT_HEARTBEAT_PRODUCE_BOTS_LIMIT
+    },
     HEARTBEAT_PRODUCE_PROXIES_LIMIT: {
       type: 'integer',
       minimum: 1,
       maximum: 100,
       default: DEFAULT_HEARTBEAT_PRODUCE_PROXIES_LIMIT
-    }
+    },
   }
 }

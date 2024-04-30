@@ -18,7 +18,6 @@ COPY libs/config/package*.json libs/config/tsconfig*.json libs/config/
 COPY libs/logger/package*.json libs/logger/tsconfig*.json libs/logger/
 COPY libs/common/package*.json libs/common/tsconfig*.json libs/common/
 COPY libs/database/package*.json libs/database/tsconfig*.json libs/database/
-COPY libs/redis/package*.json libs/redis/tsconfig*.json libs/redis/
 COPY libs/queue/package*.json libs/queue/tsconfig*.json libs/queue/
 
 COPY apps/worker-heartbeat/package*.json apps/worker-heartbeat/tsconfig*.json apps/worker-heartbeat/
@@ -30,7 +29,6 @@ COPY libs/config/ libs/config/
 COPY libs/logger/ libs/logger/
 COPY libs/common/ libs/common/
 COPY libs/database/ libs/database/
-COPY libs/redis/ libs/redis/
 COPY libs/queue/ libs/queue/
 
 COPY apps/worker-heartbeat/ apps/worker-heartbeat/
@@ -40,7 +38,6 @@ RUN set -eux; \
     npm run -w @avito-speculant/logger build; \
     npm run -w @avito-speculant/common build; \
     npm run -w @avito-speculant/database build; \
-    npm run -w @avito-speculant/redis build; \
     npm run -w @avito-speculant/queue build; \
     npm run -w @avito-speculant/worker-heartbeat build
 

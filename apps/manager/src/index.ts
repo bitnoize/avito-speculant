@@ -2,52 +2,25 @@ import { binary, subcommands, run } from 'cmd-ts'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
-import systemStartCommand from './system/system-start.command.js'
-import systemStopCommand from './system/system-stop.command.js'
-import systemStatusCommand from './system/system-status.command.js'
-import databaseMigrationsCommand from './database/database-migrations.command.js'
-import databaseListUsersCommand from './database/database-list-users.command.js'
-import databaseListUserLogsCommand from './database/database-list-user-logs.command.js'
-import databaseCreatePlanCommand from './database/database-create-plan.command.js'
-import databaseUpdatePlanCommand from './database/database-update-plan.command.js'
-import databaseEnablePlanCommand from './database/database-enable-plan.command.js'
-import databaseDisablePlanCommand from './database/database-disable-plan.command.js'
-import databaseListPlansCommand from './database/database-list-plans.command.js'
-import databaseListPlanLogsCommand from './database/database-list-plan-logs.command.js'
-import databaseCreateSubscriptionCommand from './database/database-create-subscription.command.js'
-import databaseActivateSubscriptionCommand from './database/database-activate-subscription.command.js'
-import databaseCancelSubscriptionCommand from './database/database-cancel-subscription.command.js'
-import databaseListSubscriptionsCommand from './database/database-list-subscriptions.command.js'
-import databaseListSubscriptionLogsCommand from './database/database-list-subscription-logs.command.js'
-import databaseCreateCategoryCommand from './database/database-create-category.command.js'
-import databaseEnableCategoryCommand from './database/database-enable-category.command.js'
-import databaseDisableCategoryCommand from './database/database-disable-category.command.js'
-import databaseListCategoriesCommand from './database/database-list-categories.command.js'
-import databaseListCategoryLogsCommand from './database/database-list-category-logs.command.js'
-import databaseCreateProxyCommand from './database/database-create-proxy.command.js'
-import databaseEnableProxyCommand from './database/database-enable-proxy.command.js'
-import databaseDisableProxyCommand from './database/database-disable-proxy.command.js'
-import databaseListProxiesCommand from './database/database-list-proxies.command.js'
-import databaseListProxyLogsCommand from './database/database-list-proxy-logs.command.js'
-import redisFetchUsersCacheCommand from './redis/redis-fetch-users-cache.command.js'
-import redisFetchPlansCacheCommand from './redis/redis-fetch-plans-cache.command.js'
-import redisFetchUserSubscriptionCacheCommand from './redis/redis-fetch-user-subscription-cache.command.js'
-import redisFetchPlanSubscriptionsCacheCommand from './redis/redis-fetch-plan-subscriptions-cache.command.js'
-import redisFetchUserCategoriesCacheCommand from './redis/redis-fetch-user-categories-cache.command.js'
-import redisFetchScraperCategoriesCacheCommand from './redis/redis-fetch-scraper-categories-cache.command.js'
-import redisFetchProxiesCacheCommand from './redis/redis-fetch-proxies-cache.command.js'
-import redisFetchOnlineProxiesCacheCommand from './redis/redis-fetch-online-proxies-cache.command.js'
-import redisFetchScrapersCacheCommand from './redis/redis-fetch-scrapers-cache.command.js'
-import redisFetchScraperAdvertsCacheCommand from './redis/redis-fetch-scraper-adverts-cache.command.js'
-import queueStatusHeartbeatCommand from './queue/queue-status-heartbeat.command.js'
-import queueStatusTreatmentCommand from './queue/queue-status-treatment.command.js'
-import queueStatusScrapingCommand from './queue/queue-status-scraping.command.js'
-import queueStatusProxycheckCommand from './queue/queue-status-proxycheck.command.js'
-import queueStatusBroadcastCommand from './queue/queue-status-broadcast.command.js'
-import queueStatusThrottleCommand from './queue/queue-status-throttle.command.js'
-import queueStatusSendreportCommand from './queue/queue-status-sendreport.command.js'
-import { Config } from './manager.js'
+import { Config, InitSubcommands } from './manager.js'
 import { configSchema } from './manager.schema.js'
+import systemSubcommands from './system/index.js'
+import databaseSubcommands from './database/index.js'
+import redisSubcommands from './redis/index.js'
+import queueSubcommands from './queue/index.js'
+
+const initSubcommands: InitSubcommands = (config, logger) => {
+  return subcommands({
+    name: 'avito-speculant-manager',
+    description: `manage Avito-Speculant distributed cluster`,
+    cmds: {
+      system: systemSubcommands(config, logger),
+      database: databaseSubcommands(config, logger),
+      redis: redisSubcommands(config, logger),
+      queue: queueSubcommands(config, logger)
+    }
+  })
+}
 
 async function bootstrap(): Promise<void> {
   const config = configService.initConfig<Config>(configSchema)
@@ -55,85 +28,9 @@ async function bootstrap(): Promise<void> {
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
   const logger = loggerService.initLogger(loggerOptions)
 
-  const systemCommand = subcommands({
-    name: 'system',
-    cmds: {
-      start: systemStartCommand(config, logger),
-      stop: systemStopCommand(config, logger),
-      status: systemStatusCommand(config, logger)
-    }
-  })
-
-  const databaseCommand = subcommands({
-    name: 'database',
-    cmds: {
-      migrations: databaseMigrationsCommand(config, logger),
-      'list-users': databaseListUsersCommand(config, logger),
-      'list-user-logs': databaseListUserLogsCommand(config, logger),
-      'create-plan': databaseCreatePlanCommand(config, logger),
-      'update-plan': databaseUpdatePlanCommand(config, logger),
-      'enable-plan': databaseEnablePlanCommand(config, logger),
-      'disable-plan': databaseDisablePlanCommand(config, logger),
-      'list-plans': databaseListPlansCommand(config, logger),
-      'list-plan-logs': databaseListPlanLogsCommand(config, logger),
-      'create-subscription': databaseCreateSubscriptionCommand(config, logger),
-      'activate-subscription': databaseActivateSubscriptionCommand(config, logger),
-      'cancel-subscription': databaseCancelSubscriptionCommand(config, logger),
-      'list-subscriptions': databaseListSubscriptionsCommand(config, logger),
-      'list-subscription-logs': databaseListSubscriptionLogsCommand(config, logger),
-      'create-category': databaseCreateCategoryCommand(config, logger),
-      'enable-category': databaseEnableCategoryCommand(config, logger),
-      'disable-category': databaseDisableCategoryCommand(config, logger),
-      'list-categories': databaseListCategoriesCommand(config, logger),
-      'list-category-logs': databaseListCategoryLogsCommand(config, logger),
-      'create-proxy': databaseCreateProxyCommand(config, logger),
-      'enable-proxy': databaseEnableProxyCommand(config, logger),
-      'disable-proxy': databaseDisableProxyCommand(config, logger),
-      'list-proxies': databaseListProxiesCommand(config, logger),
-      'list-proxy-logs': databaseListProxyLogsCommand(config, logger)
-    }
-  })
-
-  const redisCommand = subcommands({
-    name: 'redis',
-    cmds: {
-      'fetch-users-cache': redisFetchUsersCacheCommand(config, logger),
-      'fetch-plans-cache': redisFetchPlansCacheCommand(config, logger),
-      'fetch-user-subscription-cache': redisFetchUserSubscriptionCacheCommand(config, logger),
-      'fetch-plan-subscriptions-cache': redisFetchPlanSubscriptionsCacheCommand(config, logger),
-      'fetch-user-categories-cache': redisFetchUserCategoriesCacheCommand(config, logger),
-      'fetch-scraper-categories-cache': redisFetchScraperCategoriesCacheCommand(config, logger),
-      'fetch-proxies-cache': redisFetchProxiesCacheCommand(config, logger),
-      'fetch-online-proxies-cache': redisFetchOnlineProxiesCacheCommand(config, logger),
-      'fetch-scrapers-cache': redisFetchScrapersCacheCommand(config, logger),
-      'fetch-scraper-adverts-cache': redisFetchScraperAdvertsCacheCommand(config, logger)
-    }
-  })
-
-  const queueCommand = subcommands({
-    name: 'queue',
-    cmds: {
-      'status-heartbeat': queueStatusHeartbeatCommand(config, logger),
-      'status-treatment': queueStatusTreatmentCommand(config, logger),
-      'status-scraping': queueStatusScrapingCommand(config, logger),
-      'status-proxycheck': queueStatusProxycheckCommand(config, logger),
-      'status-broadcast': queueStatusBroadcastCommand(config, logger),
-      'status-throttle': queueStatusThrottleCommand(config, logger),
-      'status-sendreport': queueStatusSendreportCommand(config, logger)
-    }
-  })
-
-  const app = subcommands({
-    name: 'avito-speculant-manager',
-    cmds: {
-      system: systemCommand,
-      database: databaseCommand,
-      redis: redisCommand,
-      queue: queueCommand
-    }
-  })
-
   try {
+    const app = initSubcommands(config, logger)
+
     const binaryApp = binary(app)
 
     await run(binaryApp, process.argv)
@@ -143,8 +40,6 @@ async function bootstrap(): Promise<void> {
     } else {
       logger.fatal(error.stack ?? error.message)
     }
-
-    //process.exit(1)
   }
 }
 

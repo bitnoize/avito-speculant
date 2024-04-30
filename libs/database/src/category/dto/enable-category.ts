@@ -4,7 +4,9 @@ import { CategoryLogData } from '../../category-log/category-log.js'
 import { DatabaseMethod } from '../../database.js'
 
 export type EnableCategoryRequest = {
+  userId: number
   categoryId: number
+  botId: number
   data: CategoryLogData
 }
 

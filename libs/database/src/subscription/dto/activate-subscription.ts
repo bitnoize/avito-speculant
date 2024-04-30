@@ -1,17 +1,17 @@
 import { Notify } from '@avito-speculant/common'
 import { Subscription } from '../subscription.js'
 import { SubscriptionLogData } from '../../subscription-log/subscription-log.js'
-import { User } from '../../user/user.js'
 import { DatabaseMethod } from '../../database.js'
 
 export type ActivateSubscriptionRequest = {
+  userId: number
   subscriptionId: number
   data: SubscriptionLogData
 }
 
 export type ActivateSubscriptionResponse = {
   subscription: Subscription
-  user: User
+  previousSubscription: Subscription | undefined
   backLog: Notify[]
 }
 

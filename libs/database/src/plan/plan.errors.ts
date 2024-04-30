@@ -7,14 +7,20 @@ export class PlanNotFoundError extends DatabaseError {
   }
 }
 
-export class PlanIsEnabledError extends DatabaseError {
-  constructor(context: ErrorContext, code = 103, message = `Plan is enabled`) {
+export class PlanExistsError extends DatabaseError {
+  constructor(context: ErrorContext, code = 102, message = `Plan allready exists`) {
     super(context, code, message)
   }
 }
 
 export class PlanIsDisabledError extends DatabaseError {
   constructor(context: ErrorContext, code = 103, message = `Plan is disabled`) {
+    super(context, code, message)
+  }
+}
+
+export class PlanIsEnabledError extends DatabaseError {
+  constructor(context: ErrorContext, code = 104, message = `Plan is enabled`) {
     super(context, code, message)
   }
 }

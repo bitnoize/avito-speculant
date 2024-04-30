@@ -8,19 +8,19 @@ export class SubscriptionNotFoundError extends DatabaseError {
 }
 
 export class SubscriptionExistsError extends DatabaseError {
-  constructor(context: ErrorContext, code = 103, message = `Subscription exists`) {
+  constructor(context: ErrorContext, code = 106, message = `Subscription allready exists`) {
     super(context, code, message)
   }
 }
 
 export class SubscriptionNotWaitError extends DatabaseError {
-  constructor(context: ErrorContext, code = 103, message = `Subscription not wait`) {
+  constructor(context: ErrorContext, code = 103, message = `Subscription not wait status`) {
     super(context, code, message)
   }
 }
 
 export class SubscriptionNotActiveError extends DatabaseError {
-  constructor(context: ErrorContext, code = 103, message = `Subscription not active`) {
+  constructor(context: ErrorContext, code = 103, message = `Subscription not active status`) {
     super(context, code, message)
   }
 }

@@ -11,13 +11,20 @@ import {
   ScrapingWorker,
   ScrapingProcessor
 } from './scraping.js'
-import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
+import { QueueSummary } from '../queue.js'
+import {
+  initQueueBase,
+  getQueueSummaryBase,
+  closeQueueBase,
+  initWorkerBase,
+  runWorkerBase
+} from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): ScrapingQueue {
-  return initBaseQueue<ScrapingData, ScrapingResult, ScrapingName>(
+  return initQueueBase<ScrapingData, ScrapingResult, ScrapingName>(
     SCRAPING_QUEUE_NAME,
     connection,
     logger
@@ -54,21 +61,27 @@ export async function removeRepeatableJob(
   scraperId: string,
   everySec: number
 ): Promise<boolean> {
-  const every = everySec * 1000
   return await queue.removeRepeatable(
     'default',
     {
-      every
+      every: everySec * 1000
     },
     scraperId
   )
 }
 
 /**
+ * Get QueueSummary
+ */
+export async function getQueueSummary(queue: ScrapingQueue): Promise<QueueSummary> {
+  return await getQueueSummaryBase<ScrapingData, ScrapingResult, ScrapingName>(queue)
+}
+
+/**
  * Close Queue
  */
 export async function closeQueue(queue: ScrapingQueue): Promise<void> {
-  await queue.close()
+  await closeQueueBase<ScrapingData, ScrapingResult, ScrapingName>(queue)
 }
 
 /**
@@ -98,7 +111,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): ScrapingWorker {
-  return initBaseWorker<ScrapingData, ScrapingResult, ScrapingName>(
+  return initWorkerBase<ScrapingData, ScrapingResult, ScrapingName>(
     SCRAPING_QUEUE_NAME,
     processor,
     connection,
@@ -112,5 +125,5 @@ export function initWorker(
  * Run Worker
  */
 export async function runWorker(worker: ScrapingWorker, logger: Logger): Promise<void> {
-  await runBaseWorker<ScrapingData, ScrapingResult, ScrapingName>(worker, logger)
+  await runWorkerBase<ScrapingData, ScrapingResult, ScrapingName>(worker, logger)
 }

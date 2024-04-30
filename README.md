@@ -18,6 +18,7 @@ Avito-Speculant
 * [@avito-speculant/worker-proxycheck](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-proxycheck) - Воркер для очереди **proxycheck**
 * [@avito-speculant/worker-scraping](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-scraping) - Воркер для очереди **scraping**
 * [@avito-speculant/worker-broadcast](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-broadcast) - Воркер для очереди **broadcast**
+* [@avito-speculant/worker-throttle](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-throttle) - Воркер для очереди **throttle**
 * [@avito-speculant/worker-sendreport](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-sendreport) - Воркер для очереди **sendreport**
 
 ```

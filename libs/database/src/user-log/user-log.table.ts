@@ -8,6 +8,7 @@ export interface UserLogTable {
   is_paid: ColumnType<boolean, boolean, never>
   subscriptions: ColumnType<number, number, never>
   categories: ColumnType<number, number, never>
+  bots: ColumnType<number, number, never>
   data: ColumnType<UserLogData, UserLogData, never>
   created_at: ColumnType<number, number, never>
 }

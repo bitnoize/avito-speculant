@@ -1,4 +1,5 @@
 export * from './create-proxy.js'
+export * from './read-proxy.js'
 export * from './enable-proxy.js'
 export * from './disable-proxy.js'
 export * from './list-proxies.js'

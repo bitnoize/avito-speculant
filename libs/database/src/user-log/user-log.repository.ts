@@ -4,31 +4,7 @@ import { UserLog, UserLogData } from './user-log.js'
 import { UserLogRow } from './user-log.table.js'
 import { TransactionDatabase } from '../database.js'
 
-export async function insertRow(
-  trx: TransactionDatabase,
-  user_id: number,
-  action: string,
-  is_paid: boolean,
-  subscriptions: number,
-  categories: number,
-  data: UserLogData
-): Promise<UserLogRow> {
-  return await trx
-    .insertInto('user_log')
-    .values(() => ({
-      user_id,
-      action,
-      is_paid,
-      subscriptions,
-      categories,
-      data,
-      created_at: sql<number>`now()`
-    }))
-    .returningAll()
-    .executeTakeFirstOrThrow()
-}
-
-export async function selectRowsList(
+export async function selectRowsByUserId(
   trx: TransactionDatabase,
   user_id: number,
   limit: number
@@ -39,7 +15,34 @@ export async function selectRowsList(
     .where('user_id', '=', user_id)
     .orderBy('created_at', 'desc')
     .limit(limit)
+    .forShare()
     .execute()
+}
+
+export async function insertRow(
+  trx: TransactionDatabase,
+  user_id: number,
+  action: string,
+  is_paid: boolean,
+  subscriptions: number,
+  categories: number,
+  bots: number,
+  data: UserLogData
+): Promise<UserLogRow> {
+  return await trx
+    .insertInto('user_log')
+    .values(() => ({
+      user_id,
+      action,
+      is_paid,
+      subscriptions,
+      categories,
+      bots,
+      data,
+      created_at: sql<number>`now()`
+    }))
+    .returningAll()
+    .executeTakeFirstOrThrow()
 }
 
 export const buildModel = (row: UserLogRow): UserLog => {
@@ -50,6 +53,7 @@ export const buildModel = (row: UserLogRow): UserLog => {
     isPaid: row.is_paid,
     subscriptions: row.subscriptions,
     categories: row.categories,
+    bots: row.bots,
     data: row.data,
     createdAt: row.created_at
   }

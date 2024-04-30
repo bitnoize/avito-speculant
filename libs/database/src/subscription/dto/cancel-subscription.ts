@@ -4,6 +4,7 @@ import { SubscriptionLogData } from '../../subscription-log/subscription-log.js'
 import { DatabaseMethod } from '../../database.js'
 
 export type CancelSubscriptionRequest = {
+  userId: number
   subscriptionId: number
   data: SubscriptionLogData
 }

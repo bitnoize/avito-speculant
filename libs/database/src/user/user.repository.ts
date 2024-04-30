@@ -1,33 +1,24 @@
 import { sql } from 'kysely'
-import { User } from './user.js'
+import { User, USER_PRODUCE_AFTER } from './user.js'
 import { UserRow } from './user.table.js'
 import { TransactionDatabase } from '../database.js'
 
-export async function selectRowByIdForShare(
+export async function selectRowById(
   trx: TransactionDatabase,
-  user_id: number
+  user_id: number,
+  writeLock: boolean = false
 ): Promise<UserRow | undefined> {
-  return await trx
+  const queryBase = trx
     .selectFrom('user')
     .selectAll()
     .where('id', '=', user_id)
-    .forShare()
-    .executeTakeFirst()
+
+  const queryLock = writeLock ? queryBase.forUpdate() : queryBase.forShare()
+
+  return await queryLock.executeTakeFirst()
 }
 
-export async function selectRowByIdForUpdate(
-  trx: TransactionDatabase,
-  user_id: number
-): Promise<UserRow | undefined> {
-  return await trx
-    .selectFrom('user')
-    .selectAll()
-    .where('id', '=', user_id)
-    .forUpdate()
-    .executeTakeFirst()
-}
-
-export async function selectRowByTgFromIdForShare(
+export async function selectRowByTgFromId(
   trx: TransactionDatabase,
   tg_from_id: string
 ): Promise<UserRow | undefined> {
@@ -39,6 +30,10 @@ export async function selectRowByTgFromIdForShare(
     .executeTakeFirst()
 }
 
+export async function selectRows(trx: TransactionDatabase): Promise<UserRow[]> {
+  return await trx.selectFrom('user').selectAll().orderBy('created_at', 'asc').forShare().execute()
+}
+
 export async function insertRow(trx: TransactionDatabase, tg_from_id: string): Promise<UserRow> {
   return await trx
     .insertInto('user')
@@ -47,6 +42,7 @@ export async function insertRow(trx: TransactionDatabase, tg_from_id: string): P
       is_paid: false,
       subscriptions: 0,
       categories: 0,
+      bots: 0,
       created_at: sql<number>`now()`,
       updated_at: sql<number>`now()`,
       queued_at: sql<number>`now()`
@@ -55,7 +51,7 @@ export async function insertRow(trx: TransactionDatabase, tg_from_id: string): P
     .executeTakeFirstOrThrow()
 }
 
-export async function updateRowIsPaid(
+export async function updateRowState(
   trx: TransactionDatabase,
   user_id: number,
   is_paid: boolean
@@ -71,18 +67,6 @@ export async function updateRowIsPaid(
     .executeTakeFirstOrThrow()
 }
 
-export async function selectRowsList(trx: TransactionDatabase, all: boolean): Promise<UserRow[]> {
-  const filter = all ? [true, false] : [true]
-
-  return await trx
-    .selectFrom('user')
-    .selectAll()
-    .where('is_paid', 'in', filter)
-    .forShare()
-    .orderBy('id', 'asc')
-    .execute()
-}
-
 export async function selectRowsProduce(
   trx: TransactionDatabase,
   limit: number
@@ -90,46 +74,44 @@ export async function selectRowsProduce(
   return await trx
     .selectFrom('user')
     .selectAll()
-    .where('queued_at', '<', sql<number>`now() - interval '1 MINUTE'`)
-    .orderBy('queued_at', 'desc')
+    .where('queued_at', '<', sql<number>`now() - interval '${USER_PRODUCE_AFTER}'`)
+    .orderBy('queued_at', 'asc')
+    .limit(limit)
     .forUpdate()
     .skipLocked()
-    .limit(limit)
     .execute()
 }
 
-export async function updateRowProduce(
+export async function updateRowsProduce(
   trx: TransactionDatabase,
-  user_id: number
-): Promise<UserRow> {
+  user_ids: number[]
+): Promise<UserRow[]> {
   return await trx
     .updateTable('user')
     .set(() => ({
       queued_at: sql<number>`now()`
     }))
-    .where('id', '=', user_id)
+    .where('id', 'in', user_ids)
     .returningAll()
-    .executeTakeFirstOrThrow()
+    .execute()
 }
 
-export async function updateRowConsume(
+export async function updateRowCounters(
   trx: TransactionDatabase,
   user_id: number,
-  is_paid: boolean,
   subscriptions: number,
-  categories: number
-): Promise<UserRow> {
-  return await trx
+  categories: number,
+  bots: number
+): Promise<void> {
+  await trx
     .updateTable('user')
     .set(() => ({
-      is_paid,
       subscriptions,
       categories,
-      updated_at: sql<number>`now()`
+      bots
     }))
     .where('id', '=', user_id)
-    .returningAll()
-    .executeTakeFirstOrThrow()
+    .execute()
 }
 
 export const buildModel = (row: UserRow): User => {
@@ -139,6 +121,7 @@ export const buildModel = (row: UserRow): User => {
     isPaid: row.is_paid,
     subscriptions: row.subscriptions,
     categories: row.categories,
+    bots: row.bots,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     queuedAt: row.queued_at

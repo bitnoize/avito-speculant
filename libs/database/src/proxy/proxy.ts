@@ -6,3 +6,5 @@ export interface Proxy {
   updatedAt: number
   queuedAt: number
 }
+
+export const PROXY_PRODUCE_AFTER = '5 minutes'

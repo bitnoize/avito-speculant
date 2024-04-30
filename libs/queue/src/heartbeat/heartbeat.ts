@@ -11,6 +11,7 @@ export const DEFAULT_HEARTBEAT_PRODUCE_USERS_LIMIT = 10
 export const DEFAULT_HEARTBEAT_PRODUCE_PLANS_LIMIT = 2
 export const DEFAULT_HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT = 10
 export const DEFAULT_HEARTBEAT_PRODUCE_CATEGORIES_LIMIT = 10
+export const DEFAULT_HEARTBEAT_PRODUCE_BOTS_LIMIT = 10
 export const DEFAULT_HEARTBEAT_PRODUCE_PROXIES_LIMIT = 10
 
 export type HeartbeatConfig = {
@@ -22,6 +23,7 @@ export type HeartbeatConfig = {
   HEARTBEAT_PRODUCE_PLANS_LIMIT: number
   HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT: number
   HEARTBEAT_PRODUCE_CATEGORIES_LIMIT: number
+  HEARTBEAT_PRODUCE_BOTS_LIMIT: number
   HEARTBEAT_PRODUCE_PROXIES_LIMIT: number
 }
 
@@ -32,6 +34,7 @@ export const HEARTBEAT_STEPS = [
   'plans',
   'subscriptions',
   'categories',
+  'bots',
   'proxies',
   'complete'
 ]
@@ -42,10 +45,10 @@ export type HeartbeatData = {
 }
 
 export type HeartbeatStepResult = {
-  produceCount: number
+  entities: number
   durationTime: number
 }
-export type HeartbeatResult = Partial<Record<HeartbeatStep, HeartbeatStepResult>>
+export type HeartbeatResult = Record<HeartbeatStep, HeartbeatStepResult>
 
 export type HeartbeatQueue = Queue<HeartbeatData, HeartbeatResult, HeartbeatName>
 export type HeartbeatJob = Job<HeartbeatData, HeartbeatResult, HeartbeatName>

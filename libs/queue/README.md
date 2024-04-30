@@ -12,23 +12,10 @@
 * queueService
 * heartbeatService
 * treatmentService
-* proxycheckService
+* checkbotService
+* checkproxyService
 * scrapingService
 * broadcastService
 * throttleService
 * sendreportService
-
-```
-# Собрать модуль
-npm -w @avito-speculant/queue run build
-
-# Отформатировать код
-npm -w @avito-speculant/queue run format
-
-# Статический анализ кода
-npm -w @avito-speculant/queue run lint
-
-# Удалить временные файлы
-npm -w @avito-speculant/queue run clean
-```
 

@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/worker-heartbeat",
   "type": "module",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Avito-speculant worker-heartbeat application",
   "private": true,
   "main": "dist/index.js",
@@ -20,7 +20,6 @@
     "@avito-speculant/logger": "*",
     "@avito-speculant/common": "*",
     "@avito-speculant/database": "*",
-    "@avito-speculant/redis": "*",
     "@avito-speculant/queue": "*"
   }
 }

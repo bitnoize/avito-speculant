@@ -23,8 +23,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 
   await db.schema.createIndex('proxy_created_at_key').on('proxy').column('created_at').execute()
 
-  await db.schema.createIndex('proxy_updated_at_key').on('proxy').column('updated_at').execute()
-
   await db.schema.createIndex('proxy_queued_at_key').on('proxy').column('queued_at').execute()
 }
 

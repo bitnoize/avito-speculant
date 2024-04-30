@@ -6,9 +6,3 @@ export class UserNotFoundError extends DatabaseError {
     super(context, code, message)
   }
 }
-
-export class UserNotPaidError extends DatabaseError {
-  constructor(context: ErrorContext, code = 103, message = `User not paid`) {
-    super(context, code, message)
-  }
-}

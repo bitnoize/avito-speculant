@@ -11,13 +11,20 @@ import {
   TreatmentWorker,
   TreatmentProcessor
 } from './treatment.js'
-import { initBaseQueue, initBaseWorker, runBaseWorker } from '../queue.service.js'
+import { QueueSummary } from '../queue.js'
+import {
+  initQueueBase,
+  getQueueSummaryBase,
+  closeQueueBase,
+  initWorkerBase,
+  runWorkerBase
+} from '../queue.service.js'
 
 /**
  * Initialize Queue
  */
 export function initQueue(connection: ConnectionOptions, logger: Logger): TreatmentQueue {
-  return initBaseQueue<TreatmentData, TreatmentResult, TreatmentName>(
+  return initQueueBase<TreatmentData, TreatmentResult, TreatmentName>(
     TREATMENT_QUEUE_NAME,
     connection,
     logger
@@ -65,10 +72,17 @@ export async function addJobs(
 }
 
 /**
+ * Get QueueSummary
+ */
+export async function getQueueSummary(queue: TreatmentQueue): Promise<QueueSummary> {
+  return await getQueueSummaryBase<TreatmentData, TreatmentResult, TreatmentName>(queue)
+}
+
+/**
  * Close Queue
  */
 export async function closeQueue(queue: TreatmentQueue): Promise<void> {
-  await queue.close()
+  await closeQueueBase<TreatmentData, TreatmentResult, TreatmentName>(queue)
 }
 
 /**
@@ -98,7 +112,7 @@ export function initWorker(
   limiter: RateLimiterOptions,
   logger: Logger
 ): TreatmentWorker {
-  return initBaseWorker<TreatmentData, TreatmentResult, TreatmentName>(
+  return initWorkerBase<TreatmentData, TreatmentResult, TreatmentName>(
     TREATMENT_QUEUE_NAME,
     processor,
     connection,
@@ -112,5 +126,5 @@ export function initWorker(
  * Run Worker
  */
 export async function runWorker(worker: TreatmentWorker, logger: Logger): Promise<void> {
-  await runBaseWorker<TreatmentData, TreatmentResult, TreatmentName>(worker, logger)
+  await runWorkerBase<TreatmentData, TreatmentResult, TreatmentName>(worker, logger)
 }

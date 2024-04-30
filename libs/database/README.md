@@ -1,7 +1,7 @@
 @avito-speculant/database
 -------------------------
 
-Модели и коллекции в базе данных.
+Модели и коллекции базы данных.
 
 Стек:
 
@@ -21,18 +21,6 @@
 * categoryLogService - Логи категорий
 * proxyService - Прокси
 * proxyLogService - Логи проксей
-
-```
-# Собрать модуль
-npm -w @avito-speculant/database run build
-
-# Отформатировать код
-npm -w @avito-speculant/database run format
-
-# Статический анализ кода
-npm -w @avito-speculant/database run lint
-
-# Удалить временные файлы
-npm -w @avito-speculant/database run clean
-```
+* botService - Боты
+* botLogService - Логи ботов
 

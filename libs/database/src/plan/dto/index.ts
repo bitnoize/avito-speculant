@@ -1,5 +1,6 @@
 export * from './create-plan.js'
-export * from './update-plan.js'
+export * from './read-plan.js'
+export * from './update-plan-price.js'
 export * from './enable-plan.js'
 export * from './disable-plan.js'
 export * from './list-plans.js'
