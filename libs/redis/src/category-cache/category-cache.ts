@@ -4,9 +4,13 @@ export interface CategoryCache {
   id: number
   userId: number
   scraperId: string
-  avitoUrl: string
+  urlPath: string
+  botId: number | null
+  isEnabled: boolean
   skipFirst: boolean
-  time: number
+  createdAt: number
+  updatedAt: number
+  queuedAt: number
 }
 
 export const categoryKey = (categoryId: number) =>

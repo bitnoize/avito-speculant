@@ -11,12 +11,9 @@ import { TransactionDatabase } from '../database.js'
 export async function selectRowById(
   trx: TransactionDatabase,
   subscription_id: number,
-  writeLock: boolean = false
+  writeLock = false
 ): Promise<SubscriptionRow | undefined> {
-  const queryBase = trx
-    .selectFrom('subscription')
-    .selectAll()
-    .where('id', '=', subscription_id)
+  const queryBase = trx.selectFrom('subscription').selectAll().where('id', '=', subscription_id)
 
   const queryLock = writeLock ? queryBase.forUpdate() : queryBase.forShare()
 
@@ -27,7 +24,7 @@ export async function selectRowByIdUserId(
   trx: TransactionDatabase,
   subscription_id: number,
   user_id: number,
-  writeLock: boolean = false
+  writeLock = false
 ): Promise<SubscriptionRow | undefined> {
   const queryBase = trx
     .selectFrom('subscription')
@@ -44,7 +41,7 @@ export async function selectRowByUserIdStatus(
   trx: TransactionDatabase,
   user_id: number,
   status: 'wait' | 'active',
-  writeLock: boolean = false
+  writeLock = false
 ): Promise<SubscriptionRow | undefined> {
   const queryBase = trx
     .selectFrom('subscription')
@@ -116,8 +113,8 @@ export async function insertRow(
       created_at: sql<number>`now()`,
       updated_at: sql<number>`now()`,
       queued_at: sql<number>`now()`,
-      timeout_at: sql<number>`now() + interval '${SUBSCRIPTION_TIMEOUT_AFTER}'`,
-      finish_at: sql<number>`now() + interval '${duration_days} days'`
+      timeout_at: sql<number>`now() + ${SUBSCRIPTION_TIMEOUT_AFTER}::interval`,
+      finish_at: sql<number>`now() + ${duration_days + ' days'}::interval`
     }))
     .returningAll()
     .executeTakeFirstOrThrow()
@@ -146,8 +143,8 @@ export async function selectRowsProduce(
   return await trx
     .selectFrom('subscription')
     .selectAll()
-    .where('queued_at', '<', sql<number>`now() - interval '${SUBSCRIPTION_PRODUCE_AFTER}'`)
-    .orderBy('queued_at', 'desc')
+    .where('queued_at', '<', sql<number>`now() - ${SUBSCRIPTION_PRODUCE_AFTER}::interval`)
+    .orderBy('queued_at', 'asc')
     .limit(limit)
     .forUpdate()
     .skipLocked()
@@ -158,6 +155,10 @@ export async function updateRowsProduce(
   trx: TransactionDatabase,
   subscription_ids: number[]
 ): Promise<SubscriptionRow[]> {
+  if (subscription_ids.length === 0) {
+    return []
+  }
+
   return await trx
     .updateTable('subscription')
     .set(() => ({

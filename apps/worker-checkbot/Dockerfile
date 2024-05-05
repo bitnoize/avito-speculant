@@ -8,7 +8,18 @@ RUN set -eux; \
     # User home
     usermod -d /home/avito-speculant node; \
     mkdir -m 0750 /home/avito-speculant; \
-    chown node:node /home/avito-speculant
+    chown node:node /home/avito-speculant; \
+    # Debian packages
+    apt-get update -q; \
+    apt-get install -yq \
+        python3 \
+        libcurl4-openssl-dev; \
+    # Curl-impersonate
+    wget -q -O- "https://github.com/lwthiker/curl-impersonate/releases/download/v0.6.1/libcurl-impersonate-v0.6.1.x86_64-linux-gnu.tar.gz" | \
+        tar xz -C /usr/local/lib; \
+    ln -s /usr/local/lib/libcurl-impersonate-chrome.so \
+        /usr/local/lib/libcurl.so; \
+    echo "/usr/local/lib/libcurl-impersonate-chrome.so" >> /etc/ld.so.preload
 
 WORKDIR /usr/src/avito-speculant
 
@@ -20,10 +31,13 @@ COPY libs/common/package*.json libs/common/tsconfig*.json libs/common/
 COPY libs/redis/package*.json libs/redis/tsconfig*.json libs/redis/
 COPY libs/queue/package*.json libs/queue/tsconfig*.json libs/queue/
 
-COPY apps/worker-throttle/package*.json apps/worker-throttle/tsconfig*.json apps/worker-throttle/
+COPY apps/worker-checkproxy/package*.json apps/worker-checkproxy/tsconfig*.json apps/worker-checkproxy/
 
 RUN set -eux; \
-    npm install
+    npm install; \
+    npm rebuild node-libcurl \
+        --build-from-source \
+        --curl_libraries='-Wl,-rpath /usr/local/lib -lcurl'
 
 COPY libs/config/ libs/config/
 COPY libs/logger/ libs/logger/
@@ -31,7 +45,7 @@ COPY libs/common/ libs/common/
 COPY libs/redis/ libs/redis/
 COPY libs/queue/ libs/queue/
 
-COPY apps/worker-throttle/ apps/worker-throttle/
+COPY apps/worker-checkproxy/ apps/worker-checkproxy/
 
 RUN set -eux; \
     npm run -w @avito-speculant/config build; \
@@ -39,9 +53,9 @@ RUN set -eux; \
     npm run -w @avito-speculant/common build; \
     npm run -w @avito-speculant/redis build; \
     npm run -w @avito-speculant/queue build; \
-    npm run -w @avito-speculant/worker-throttle build
+    npm run -w @avito-speculant/worker-checkproxy build
 
 COPY docker-entrypoint/ /lib/entrypoint/
 
-CMD ["npm", "-w", "@avito-speculant/worker-throttle", "run", "start"]
+CMD ["npm", "-w", "@avito-speculant/worker-checkproxy", "run", "start"]
 

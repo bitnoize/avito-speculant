@@ -14,11 +14,7 @@ export const listUserLogs: ListUserLogs = async function (db, request) {
       throw new UserNotFoundError({ request })
     }
 
-    const userLogRows = await userLogRepository.selectRowsByUserId(
-      trx,
-      userRow.id,
-      request.limit
-    )
+    const userLogRows = await userLogRepository.selectRowsByUserId(trx, userRow.id, request.limit)
 
     return {
       userLogs: userLogRepository.buildCollection(userLogRows)

@@ -9,12 +9,17 @@ return redis.call(
   'duration_days',
   'interval_sec',
   'analytics_on',
-  'time'
+  'price_rub',
+  'is_enabled',
+  'subscriptions',
+  'created_at',
+  'updated_at',
+  'queued_at'
 )
 `
 
-const fetchPlans = `
-return redis.call('SMEMBERS', KEYS[1])
+const fetchPlansIndex = `
+return redis.call('ZRANGE', KEYS[1], 0, -1)
 `
 
 const savePlanCache = `
@@ -22,22 +27,22 @@ redis.call(
   'HSET', KEYS[1],
   'id', ARGV[1],
   'categories_max', ARGV[2],
-  'price_rub', ARGV[3],
-  'duration_days', ARGV[4],
-  'interval_sec', ARGV[5],
-  'analytics_on', ARGV[6],
-  'time', ARGV[7]
+  'duration_days', ARGV[3],
+  'interval_sec', ARGV[4],
+  'analytics_on', ARGV[5],
+  'price_rub', ARGV[6],
+  'is_enabled', ARGV[7],
+  'subscriptions', ARGV[8],
+  'created_at', ARGV[9],
+  'updated_at', ARGV[10],
+  'queued_at', ARGV[11]
 )
-
-redis.call('SADD', KEYS[2], ARGV[1])
 
 return redis.status_reply('OK')
 `
 
-const dropPlanCache = `
-redis.call('DEL', KEYS[1])
-
-redis.call('SREM', KEYS[2], ARGV[1])
+const appendPlansIndex = `
+redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -48,19 +53,19 @@ const initScripts: InitScripts = (redis) => {
     lua: fetchPlanCache
   })
 
-  redis.defineCommand('fetchPlans', {
+  redis.defineCommand('fetchPlansIndex', {
     numberOfKeys: 1,
-    lua: fetchPlans
+    lua: fetchPlansIndex
   })
 
   redis.defineCommand('savePlanCache', {
-    numberOfKeys: 2,
+    numberOfKeys: 1,
     lua: savePlanCache
   })
 
-  redis.defineCommand('dropPlanCache', {
-    numberOfKeys: 2,
-    lua: dropPlanCache
+  redis.defineCommand('appendPlansIndex', {
+    numberOfKeys: 1,
+    lua: appendPlansIndex
   })
 }
 

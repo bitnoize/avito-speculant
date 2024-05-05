@@ -11,13 +11,18 @@ const initCommand: InitCommand = (config, logger) => {
     name: 'database-subscription-activate',
     description: 'activate user subscription',
     args: {
+      userId: positional({
+        type: Serial,
+        displayName: 'userId',
+        description: `user identifier`
+      }),
       subscriptionId: positional({
         type: Serial,
         displayName: 'subscriptionId',
         description: `subscription identifier`
       })
     },
-    handler: async ({ subscriptionId }) => {
+    handler: async ({ userId, subscriptionId }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
@@ -28,7 +33,15 @@ const initCommand: InitCommand = (config, logger) => {
       const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
       try {
-        const { subscription, user, backLog } = await subscriptionService.activateSubscription(db, {
+        const {
+          user,
+          subscription,
+          plan,
+          previousSubscription,
+          previousPlan,
+          backLog
+        } = await subscriptionService.activateSubscription(db, {
+          userId,
           subscriptionId,
           data: {
             message: `Activate subscription via Manager`
@@ -37,10 +50,26 @@ const initCommand: InitCommand = (config, logger) => {
 
         await redisService.publishBackLog(pubSub, backLog)
 
-        await treatmentService.addJob(treatmentQueue, 'subscription', subscription.id)
         await treatmentService.addJob(treatmentQueue, 'user', user.id)
+        await treatmentService.addJob(treatmentQueue, 'subscription', subscription.id)
+        await treatmentService.addJob(treatmentQueue, 'plan', plan.id)
 
-        logger.info({ subscription, user, backLog }, `Subscription activated`)
+        if (previousSubscription !== undefined) {
+          await treatmentService.addJob(treatmentQueue, 'subscription', previousSubscription.id)
+        }
+
+        if (previousPlan !== undefined) {
+          await treatmentService.addJob(treatmentQueue, 'plan', previousPlan.id)
+        }
+
+        logger.info({
+          user,
+          subscription,
+          plan,
+          previousSubscription,
+          previousPlan,
+          backLog
+        }, `Subscription activated`)
       } finally {
         await treatmentService.closeQueue(treatmentQueue)
         await redisService.closePubSub(pubSub)

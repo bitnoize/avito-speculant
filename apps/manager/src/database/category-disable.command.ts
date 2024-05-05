@@ -11,13 +11,18 @@ const initCommand: InitCommand = (config, logger) => {
     name: 'database-category-disable',
     description: 'disable user category',
     args: {
+      userId: positional({
+        type: Serial,
+        displayName: 'userId',
+        description: 'user identifier'
+      }),
       categoryId: positional({
         type: Serial,
         displayName: 'categoryId',
         description: 'category identifier'
       })
     },
-    handler: async ({ categoryId }) => {
+    handler: async ({ categoryId, userId }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
@@ -28,7 +33,8 @@ const initCommand: InitCommand = (config, logger) => {
       const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
       try {
-        const { category, backLog } = await categoryService.disableCategory(db, {
+        const { user, category, bot, backLog } = await categoryService.disableCategory(db, {
+          userId,
           categoryId,
           data: {
             message: `Disable category via Manager`
@@ -37,9 +43,11 @@ const initCommand: InitCommand = (config, logger) => {
 
         await redisService.publishBackLog(pubSub, backLog)
 
+        await treatmentService.addJob(treatmentQueue, 'user', user.id)
         await treatmentService.addJob(treatmentQueue, 'category', category.id)
+        await treatmentService.addJob(treatmentQueue, 'bot', bot.id)
 
-        logger.info({ category, backLog }, `Category disabled`)
+        logger.info({ user, category, bot, backLog }, `Category disabled`)
       } finally {
         await treatmentService.closeQueue(treatmentQueue)
         await redisService.closePubSub(pubSub)

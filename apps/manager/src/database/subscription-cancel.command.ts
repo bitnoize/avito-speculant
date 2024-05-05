@@ -11,13 +11,18 @@ const initCommand: InitCommand = (config, logger) => {
     name: 'database-subscription-cancel',
     description: 'cancel user subscription',
     args: {
+      userId: positional({
+        type: Serial,
+        displayName: 'userId',
+        description: 'user identifier'
+      }),
       subscriptionId: positional({
         type: Serial,
         displayName: 'subscriptionId',
         description: 'subscription identifier'
-      })
+      }),
     },
-    handler: async ({ subscriptionId }) => {
+    handler: async ({ userId, subscriptionId }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
@@ -29,6 +34,7 @@ const initCommand: InitCommand = (config, logger) => {
 
       try {
         const { subscription, backLog } = await subscriptionService.cancelSubscription(db, {
+          userId,
           subscriptionId,
           data: {
             message: `Cancel subscription via Manager`

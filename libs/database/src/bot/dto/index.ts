@@ -1,4 +1,5 @@
 export * from './create-bot.js'
+export * from './read-bot.js'
 export * from './enable-bot.js'
 export * from './disable-bot.js'
 export * from './list-bots.js'

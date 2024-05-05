@@ -18,3 +18,20 @@ export class BotIsLinkedError extends DatabaseError {
     super(context, code, message)
   }
 }
+
+export class BotNotLinkedError extends DatabaseError {
+  constructor(context: ErrorContext, code = 104, message = `Bot not linked`) {
+    super(context, code, message)
+  }
+}
+
+export class BotIsEnabledError extends DatabaseError {
+  constructor(context: ErrorContext, code = 105, message = `Bot is enabled`) {
+    super(context, code, message)
+  }
+}
+export class BotIsDisabledError extends DatabaseError {
+  constructor(context: ErrorContext, code = 105, message = `Bot is disabled`) {
+    super(context, code, message)
+  }
+}

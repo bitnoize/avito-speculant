@@ -9,12 +9,14 @@ import {
   DEFAULT_QUEUE_REDIS_HOST,
   DEFAULT_QUEUE_REDIS_PORT,
   DEFAULT_QUEUE_REDIS_DATABASE,
-  DEFAULT_THROTTLE_CONCURRENCY,
-  DEFAULT_THROTTLE_LIMITER_MAX,
-  DEFAULT_THROTTLE_LIMITER_DURATION,
-  DEFAULT_THROTTLE_REPORTS_LIMIT
+  DEFAULT_CHECKBOT_CONCURRENCY,
+  DEFAULT_CHECKBOT_LIMITER_MAX,
+  DEFAULT_CHECKBOT_LIMITER_DURATION,
+  DEFAULT_CHECKBOT_REQUEST_URL,
+  DEFAULT_CHECKBOT_REQUEST_TIMEOUT,
+  DEFAULT_CHECKBOT_REQUEST_VERBOSE
 } from '@avito-speculant/queue'
-import { Config } from './worker-throttle.js'
+import { Config } from './worker-checkbot.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
@@ -26,10 +28,9 @@ export const configSchema: JSONSchemaType<Config> = {
     'QUEUE_REDIS_HOST',
     'QUEUE_REDIS_PORT',
     'QUEUE_REDIS_DATABASE',
-    'THROTTLE_CONCURRENCY',
-    'THROTTLE_LIMITER_MAX',
-    'THROTTLE_LIMITER_DURATION',
-    'THROTTLE_REPORTS_LIMIT'
+    'CHECKBOT_CONCURRENCY',
+    'CHECKBOT_LIMITER_MAX',
+    'CHECKBOT_LIMITER_DURATION',
   ],
   properties: {
     LOG_LEVEL: {
@@ -84,29 +85,23 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'string',
       nullable: true
     },
-    THROTTLE_CONCURRENCY: {
+    CHECKBOT_CONCURRENCY: {
       type: 'integer',
       minimum: 1,
       maximum: 100,
-      default: DEFAULT_THROTTLE_CONCURRENCY
+      default: DEFAULT_CHECKBOT_CONCURRENCY
     },
-    THROTTLE_LIMITER_MAX: {
+    CHECKBOT_LIMITER_MAX: {
       type: 'integer',
       minimum: 1,
       maximum: 1000,
-      default: DEFAULT_THROTTLE_LIMITER_MAX
+      default: DEFAULT_CHECKBOT_LIMITER_MAX
     },
-    THROTTLE_LIMITER_DURATION: {
+    CHECKBOT_LIMITER_DURATION: {
       type: 'integer',
       minimum: 1000,
       maximum: 60000,
-      default: DEFAULT_THROTTLE_LIMITER_DURATION
-    },
-    THROTTLE_REPORTS_LIMIT: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 1000,
-      default: DEFAULT_THROTTLE_REPORTS_LIMIT
+      default: DEFAULT_CHECKBOT_LIMITER_DURATION
     }
   }
 }

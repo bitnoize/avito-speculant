@@ -25,6 +25,18 @@ export class CategoryBotWasteError extends DatabaseError {
   }
 }
 
+export class CategoryIsEnabledError extends DatabaseError {
+  constructor(context: ErrorContext, code = 110, message = `Category is enabled`) {
+    super(context, code, message)
+  }
+}
+
+export class CategoryIsDisabledError extends DatabaseError {
+  constructor(context: ErrorContext, code = 110, message = `Category is disabled`) {
+    super(context, code, message)
+  }
+}
+
 export class CategoriesLimitExceedError extends DatabaseError {
   constructor(context: ErrorContext, code = 110, message = `Categories limit exceed`) {
     super(context, code, message)

@@ -8,10 +8,7 @@ import * as subscriptionRepository from '../subscription/subscription.repository
  */
 export const listSubscriptionLogs: ListSubscriptionLogs = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const subscriptionRow = await subscriptionRepository.selectRowById(
-      trx,
-      request.subscriptionId
-    )
+    const subscriptionRow = await subscriptionRepository.selectRowById(trx, request.subscriptionId)
 
     if (subscriptionRow === undefined) {
       throw new SubscriptionNotFoundError({ request })

@@ -15,10 +15,10 @@
     "apps/bot",
     "apps/worker-heartbeat",
     "apps/worker-treatment",
-    "apps/worker-proxycheck",
+    "apps/worker-checkbot",
+    "apps/worker-checkproxy",
     "apps/worker-scraping",
     "apps/worker-broadcast",
-    "apps/worker-throttle",
     "apps/worker-sendreport"
   ],
   "engines": {

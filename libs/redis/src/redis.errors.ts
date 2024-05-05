@@ -5,12 +5,12 @@ import { DomainError, ErrorContext } from '@avito-speculant/common'
  */
 export abstract class RedisError extends DomainError {
   constructor(context: ErrorContext, code: number, message: string) {
-    super(false, context, code, message)
+    super(context, code, message)
   }
 }
 
-export class RedisParseError extends RedisError {
-  constructor(context: ErrorContext, code = 100, message = `Redis parse error`) {
+export class RedisInternalError extends RedisError {
+  constructor(context: ErrorContext, code = 100, message = `Redis internal error`) {
     super(context, code, message)
   }
 }

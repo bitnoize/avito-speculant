@@ -7,22 +7,13 @@ const initCommand: InitCommand = (config, logger) => {
   return command({
     name: 'database-proxies-list',
     description: 'list proxies',
-    args: {
-      all: flag({
-        type: boolean,
-        long: 'all',
-        short: 'a',
-        description: 'include disabled proxies',
-        defaultValue: () => false
-        //defaultValueIsSerializable: true
-      })
-    },
-    handler: async ({ all }) => {
+    args: {},
+    handler: async () => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
       try {
-        const { proxies } = await proxyService.listProxies(db, { all })
+        const { proxies } = await proxyService.listProxies(db)
 
         logger.info({ proxies }, `Proxies listed`)
       } finally {

@@ -11,10 +11,10 @@
     { "path": "apps/bot" },
     { "path": "apps/worker-heartbeat" },
     { "path": "apps/worker-treatment" },
-    { "path": "apps/worker-proxycheck" },
+    { "path": "apps/worker-checkbot" },
+    { "path": "apps/worker-checkproxy" },
     { "path": "apps/worker-scraping" },
     { "path": "apps/worker-broadcast" },
-    { "path": "apps/worker-throttle" },
     { "path": "apps/worker-sendreport" }
   ]
 }

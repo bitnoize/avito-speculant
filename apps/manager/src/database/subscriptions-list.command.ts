@@ -13,24 +13,15 @@ const initCommand: InitCommand = (config, logger) => {
         type: Serial,
         displayName: 'userId',
         description: 'user identifier'
-      }),
-      all: flag({
-        type: boolean,
-        long: 'all',
-        short: 'a',
-        description: 'include canceled subscriptions',
-        defaultValue: () => false
-        //defaultValueIsSerializable: true
       })
     },
-    handler: async ({ userId, all }) => {
+    handler: async ({ userId }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
       try {
         const { subscriptions } = await subscriptionService.listSubscriptions(db, {
           userId,
-          all
         })
 
         logger.info({ subscriptions }, `Subscriptions listed`)

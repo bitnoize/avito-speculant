@@ -42,7 +42,7 @@ export const createSubscription: CreateSubscription = async function (db, reques
     }
 
     if (!planRow.is_enabled) {
-      throw new PlanIsDisabledError({ request })
+      throw new PlanIsDisabledError({ request, planRow })
     }
 
     const waitSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatus(
@@ -52,7 +52,7 @@ export const createSubscription: CreateSubscription = async function (db, reques
     )
 
     if (waitSubscriptionRow !== undefined) {
-      throw new SubscriptionExistsError({ request })
+      throw new SubscriptionExistsError({ request, waitSubscriptionRow })
     }
 
     const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatus(
@@ -114,13 +114,10 @@ export const readSubscription: ReadSubscription = async function (db, request) {
       throw new SubscriptionNotFoundError({ request })
     }
 
-    const planRow = await planRepository.selectRowById(
-      trx,
-      subscriptionRow.plan_id
-    )
+    const planRow = await planRepository.selectRowById(trx, subscriptionRow.plan_id)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError({ request }, 100)
+      throw new PlanNotFoundError({ request, subscriptionRow }, 100)
     }
 
     return {
@@ -136,6 +133,7 @@ export const readSubscription: ReadSubscription = async function (db, request) {
 export const activateSubscription: ActivateSubscription = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     let previousSubscription: Subscription | undefined = undefined
+    let previousPlan: Plan | undefined = undefined
 
     const backLog: Notify[] = []
 
@@ -156,16 +154,28 @@ export const activateSubscription: ActivateSubscription = async function (db, re
       throw new SubscriptionNotFoundError({ request })
     }
 
+    const planRow = await planRepository.selectRowById(
+      trx,
+      subscriptionRow.plan_id
+    )
+
+    if (planRow === undefined) {
+      throw new PlanNotFoundError({ request, subscriptionRow }, 100)
+    }
+
     if (subscriptionRow.status === 'active') {
       return {
+        user: userRepository.buildModel(userRow),
         subscription: subscriptionRepository.buildModel(subscriptionRow),
+        plan: planRepository.buildModel(planRow),
         previousSubscription,
+        previousPlan,
         backLog
       }
     }
 
     if (subscriptionRow.status !== 'wait') {
-      throw new SubscriptionNotWaitError({ request })
+      throw new SubscriptionNotWaitError({ request, subscriptionRow })
     }
 
     const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatus(
@@ -176,6 +186,8 @@ export const activateSubscription: ActivateSubscription = async function (db, re
     )
 
     if (activeSubscriptionRow !== undefined) {
+      userRow.subscriptions -= 1
+
       activeSubscriptionRow.status = 'finish'
 
       const updatedSubscriptionRow = await subscriptionRepository.updateRowState(
@@ -195,9 +207,27 @@ export const activateSubscription: ActivateSubscription = async function (db, re
       )
 
       backLog.push(subscriptionLogRepository.buildNotify(subscriptionLogRow))
+
+      const activePlanRow = await planRepository.selectRowById(
+        trx,
+        activeSubscriptionRow.plan_id
+      )
+
+      if (activePlanRow === undefined) {
+        throw new PlanNotFoundError({ request, activeSubscriptionRow }, 100)
+      }
+
+      activePlanRow.subscriptions -= 1
+
+      previousPlan = planRepository.buildModel(activePlanRow)
     }
 
+    userRow.is_paid = true
+    userRow.subscriptions += 1
+
     subscriptionRow.status = 'active'
+
+    planRow.subscriptions += 1
 
     const updatedSubscriptionRow = await subscriptionRepository.updateRowState(
       trx,
@@ -216,8 +246,11 @@ export const activateSubscription: ActivateSubscription = async function (db, re
     backLog.push(subscriptionLogRepository.buildNotify(subscriptionLogRow))
 
     return {
+      user: userRepository.buildModel(userRow),
       subscription: subscriptionRepository.buildModel(updatedSubscriptionRow),
+      plan: planRepository.buildModel(planRow),
       previousSubscription,
+      previousPlan,
       backLog
     }
   })
@@ -240,7 +273,7 @@ export const cancelSubscription: CancelSubscription = async function (db, reques
       trx,
       request.subscriptionId,
       userRow.id,
-      true // writeLock
+      true
     )
 
     if (subscriptionRow === undefined) {
@@ -255,7 +288,7 @@ export const cancelSubscription: CancelSubscription = async function (db, reques
     }
 
     if (subscriptionRow.status !== 'wait') {
-      throw new SubscriptionNotWaitError({ request })
+      throw new SubscriptionNotWaitError({ request, subscriptionRow })
     }
 
     subscriptionRow.status = 'cancel'
@@ -294,10 +327,7 @@ export const listSubscriptions: ListSubscriptions = async function (db, request)
       throw new UserNotFoundError({ request })
     }
 
-    const subscriptionRows = await subscriptionRepository.selectRowsByUserId(
-      trx,
-      userRow.id
-    )
+    const subscriptionRows = await subscriptionRepository.selectRowsByUserId(trx, userRow.id)
 
     return {
       subscriptions: subscriptionRepository.buildCollection(subscriptionRows)
@@ -335,7 +365,7 @@ export const consumeSubscription: ConsumeSubscription = async function (db, requ
     const subscriptionRow = await subscriptionRepository.selectRowById(
       trx,
       request.subscriptionId,
-      true // writeLock
+      true
     )
 
     if (subscriptionRow === undefined) {
@@ -345,13 +375,13 @@ export const consumeSubscription: ConsumeSubscription = async function (db, requ
     const userRow = await userRepository.selectRowById(trx, subscriptionRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError({ request }, 100)
+      throw new UserNotFoundError({ request, subscriptionRow }, 100)
     }
 
     const planRow = await planRepository.selectRowById(trx, subscriptionRow.plan_id)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError({ request }, 100)
+      throw new PlanNotFoundError({ request, subscriptionRow }, 100)
     }
 
     if (subscriptionRow.status === 'wait') {
@@ -363,6 +393,11 @@ export const consumeSubscription: ConsumeSubscription = async function (db, requ
     } else if (subscriptionRow.status === 'active') {
       if (subscriptionRow.queued_at > subscriptionRow.finish_at) {
         subscriptionRow.status = 'finish'
+
+        userRow.is_paid = false
+        userRow.subscriptions -= 1
+
+        planRow.subscriptions -= 1
 
         modified = true
       }

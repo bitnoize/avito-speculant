@@ -1,6 +1,7 @@
 import { Notify } from '@avito-speculant/common'
 import {
   CreateCategory,
+  ReadCategory,
   EnableCategory,
   DisableCategory,
   ListCategories,
@@ -12,11 +13,12 @@ import {
   CategoryExistsError,
   CategoryBotLooseError,
   CategoryBotWasteError,
-  CategoriesLimitExceedError
+  CategoryIsEnabledError,
+  CategoryIsDisabledError,
+  CategoriesLimitExceedError,
 } from './category.errors.js'
 import * as categoryRepository from './category.repository.js'
 import * as categoryLogRepository from '../category-log/category-log.repository.js'
-import { User } from '../user/user.js'
 import { UserNotFoundError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
 import { Plan } from '../plan/plan.js'
@@ -26,7 +28,7 @@ import { Subscription } from '../subscription/subscription.js'
 import { SubscriptionNotFoundError } from '../subscription/subscription.errors.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import { Bot } from '../bot/bot.js'
-import { BotNotFoundError, BotIsLinkedError } from '../bot/bot.errors.js'
+import { BotNotFoundError, BotIsLinkedError, BotIsDisabledError } from '../bot/bot.errors.js'
 import * as botRepository from '../bot/bot.repository.js'
 
 /**
@@ -49,7 +51,7 @@ export const createCategory: CreateCategory = async function (db, request) {
     )
 
     if (existsCategoryRow !== undefined) {
-      throw new CategoryExistsError({ request })
+      throw new CategoryExistsError({ request, existsCategoryRow })
     }
 
     const insertedCategoryRow = await categoryRepository.insertRow(trx, userRow.id, request.urlPath)
@@ -68,6 +70,60 @@ export const createCategory: CreateCategory = async function (db, request) {
     return {
       category: categoryRepository.buildModel(insertedCategoryRow),
       backLog
+    }
+  })
+}
+
+/**
+ * Read Category
+ */
+export const readCategory: ReadCategory = async function (db, request) {
+  return await db.transaction().execute(async (trx) => {
+    const userRow = await userRepository.selectRowById(trx, request.userId)
+
+    if (userRow === undefined) {
+      throw new UserNotFoundError({ request })
+    }
+
+    const categoryRow = await categoryRepository.selectRowByIdUserId(
+      trx,
+      request.categoryId,
+      userRow.id
+    )
+
+    if (categoryRow === undefined) {
+      throw new CategoryNotFoundError({ request })
+    }
+
+    let bot: Bot | undefined = undefined
+
+    if (categoryRow.is_enabled) {
+      if (categoryRow.bot_id === null) {
+        throw new CategoryBotLooseError({ request, categoryRow }, 100)
+      }
+
+      const botRow = await botRepository.selectRowByIdUserId(
+        trx,
+        categoryRow.bot_id,
+        userRow.id
+      )
+
+      if (botRow === undefined) {
+        throw new BotNotFoundError({ request, categoryRow }, 100)
+      }
+
+      botRow.is_linked = true
+
+      bot = botRepository.buildModel(botRow)
+    } else {
+      if (categoryRow.bot_id !== null) {
+        throw new CategoryBotWasteError({ request }, 100)
+      }
+    }
+
+    return {
+      category: categoryRepository.buildModel(categoryRow),
+      bot
     }
   })
 }
@@ -97,10 +153,11 @@ export const enableCategory: EnableCategory = async function (db, request) {
     }
 
     if (categoryRow.is_enabled) {
-      return {
-        category: categoryRepository.buildModel(categoryRow),
-        backLog
-      }
+      throw new CategoryIsEnabledError({ request, categoryRow })
+    }
+
+    if (categoryRow.bot_id !== null) {
+      throw new CategoryBotWasteError({ request, categoryRow }, 100)
     }
 
     const botRow = await botRepository.selectRowById(trx, request.botId)
@@ -112,7 +169,7 @@ export const enableCategory: EnableCategory = async function (db, request) {
     const linkedCategoryRow = await categoryRepository.selectRowByBotId(trx, botRow.id)
 
     if (linkedCategoryRow !== undefined) {
-      throw new BotIsLinkedError({ request })
+      throw new BotIsLinkedError({ request, botRow, linkedCategoryRow })
     }
 
     const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatus(
@@ -122,23 +179,27 @@ export const enableCategory: EnableCategory = async function (db, request) {
     )
 
     if (activeSubscriptionRow === undefined) {
-      throw new SubscriptionNotFoundError({ request })
+      throw new SubscriptionNotFoundError({ request, userRow })
     }
 
     const planRow = await planRepository.selectRowById(trx, activeSubscriptionRow.plan_id)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError({ request }, 100)
+      throw new PlanNotFoundError({ request, activeSubscriptionRow }, 100)
     }
 
     userRow.categories = await categoryRepository.selectCountByUserId(trx, userRow.id)
 
     if (userRow.categories >= planRow.categories_max) {
-      throw new CategoriesLimitExceedError({ request })
+      throw new CategoriesLimitExceedError({ request, userRow, planRow })
     }
+
+    userRow.categories += 1
 
     categoryRow.bot_id = botRow.id
     categoryRow.is_enabled = true
+
+    botRow.is_linked = true
 
     const updatedCategoryRow = await categoryRepository.updateRowState(
       trx,
@@ -159,7 +220,9 @@ export const enableCategory: EnableCategory = async function (db, request) {
     backLog.push(categoryLogRepository.buildNotify(categoryLogRow))
 
     return {
+      user: userRepository.buildModel(userRow),
       category: categoryRepository.buildModel(updatedCategoryRow),
+      bot: botRepository.buildModel(botRow),
       backLog
     }
   })
@@ -190,14 +253,25 @@ export const disableCategory: DisableCategory = async function (db, request) {
     }
 
     if (!categoryRow.is_enabled) {
-      return {
-        category: categoryRepository.buildModel(categoryRow),
-        backLog
-      }
+      throw new CategoryIsDisabledError({ request, categoryRow })
     }
+
+    if (categoryRow.bot_id === null) {
+      throw new CategoryBotWasteError({ request, categoryRow }, 100)
+    }
+
+    const botRow = await botRepository.selectRowById(trx, categoryRow.bot_id)
+
+    if (botRow === undefined) {
+      throw new BotNotFoundError({ request, categoryRow })
+    }
+
+    userRow.categories -= 1
 
     categoryRow.bot_id = null
     categoryRow.is_enabled = false
+
+    botRow.is_linked = false
 
     const updatedCategoryRow = await categoryRepository.updateRowState(
       trx,
@@ -218,7 +292,9 @@ export const disableCategory: DisableCategory = async function (db, request) {
     backLog.push(categoryLogRepository.buildNotify(categoryLogRow))
 
     return {
+      user: userRepository.buildModel(userRow),
       category: categoryRepository.buildModel(updatedCategoryRow),
+      bot: botRepository.buildModel(botRow),
       backLog
     }
   })
@@ -266,10 +342,6 @@ export const produceCategories: ProduceCategories = async function (db, request)
  */
 export const consumeCategory: ConsumeCategory = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    let subscription: Subscription | undefined = undefined
-    let plan: Plan | undefined = undefined
-    let bot: Bot | undefined = undefined
-
     const backLog: Notify[] = []
 
     let modified = false
@@ -283,8 +355,12 @@ export const consumeCategory: ConsumeCategory = async function (db, request) {
     const userRow = await userRepository.selectRowById(trx, categoryRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError({ request }, 100)
+      throw new UserNotFoundError({ request, categoryRow }, 100)
     }
+
+    let subscription: Subscription | undefined = undefined
+    let plan: Plan | undefined = undefined
+    let bot: Bot | undefined = undefined
 
     const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatus(
       trx,
@@ -293,61 +369,87 @@ export const consumeCategory: ConsumeCategory = async function (db, request) {
     )
 
     if (activeSubscriptionRow !== undefined) {
+      userRow.is_paid = true
+
       subscription = subscriptionRepository.buildModel(activeSubscriptionRow)
 
-      const planRow = await planRepository.selectRowById(
-        trx,
-        activeSubscriptionRow.plan_id
-      )
+      const planRow = await planRepository.selectRowById(trx, activeSubscriptionRow.plan_id)
 
       if (planRow === undefined) {
-        throw new PlanNotFoundError({ request }, 100)
+        throw new PlanNotFoundError({ request, categoryRow, activeSubscriptionRow }, 100)
       }
 
       plan = planRepository.buildModel(planRow)
 
       if (categoryRow.is_enabled) {
         if (categoryRow.bot_id === null) {
-          throw new CategoryBotLooseError({ request })
+          throw new CategoryBotLooseError({ request, categoryRow })
+        }
+
+        const botRow = await botRepository.selectRowById(trx, categoryRow.bot_id)
+
+        if (botRow === undefined) {
+          throw new BotNotFoundError({ request, categoryRow }, 100)
+        }
+
+        if (!botRow.is_enabled) {
+          throw new BotIsDisabledError({ request, categoryRow, botRow })
         }
 
         userRow.categories = await categoryRepository.selectCountByUserId(trx, userRow.id)
 
         if (userRow.categories <= planRow.categories_max) {
-          const botRow = await botRepository.selectRowById(
-            trx,
-            categoryRow.bot_id
-          )
-
-          if (botRow === undefined) {
-            throw new BotNotFoundError({ request }, 100)
-          }
+          botRow.is_linked = true
 
           bot = botRepository.buildModel(botRow)
         } else {
+          userRow.categories -= 1
+
           categoryRow.bot_id = null
           categoryRow.is_enabled = false
+
+          botRow.is_linked = false
+
+          bot = botRepository.buildModel(botRow)
 
           modified = true
         }
       } else {
         if (categoryRow.bot_id !== null) {
-          throw new CategoryBotWasteError({ request })
+          throw new CategoryBotWasteError({ request, categoryRow })
         }
       }
     } else {
+      userRow.is_paid = false
+
       if (categoryRow.is_enabled) {
         if (categoryRow.bot_id === null) {
-          throw new CategoryBotLooseError({ request })
+          throw new CategoryBotLooseError({ request, categoryRow })
         }
+
+        const botRow = await botRepository.selectRowById(trx, categoryRow.bot_id)
+
+        if (botRow === undefined) {
+          throw new BotNotFoundError({ request, categoryRow }, 100)
+        }
+
+        if (!botRow.is_enabled) {
+          throw new BotIsDisabledError({ request, categoryRow, botRow })
+        }
+
+        userRow.categories -= 1
 
         categoryRow.bot_id = null
         categoryRow.is_enabled = false
 
+        botRow.is_linked = false
+
+        bot = botRepository.buildModel(botRow)
+
         modified = true
       } else {
         if (categoryRow.bot_id !== null) {
-          throw new CategoryBotWasteError({ request })
+          throw new CategoryBotWasteError({ request, categoryRow })
         }
       }
     }
@@ -367,7 +469,7 @@ export const consumeCategory: ConsumeCategory = async function (db, request) {
       trx,
       categoryRow.id,
       categoryRow.bot_id,
-      categoryRow.is_enabled,
+      categoryRow.is_enabled
     )
 
     const categoryLogRow = await categoryLogRepository.insertRow(

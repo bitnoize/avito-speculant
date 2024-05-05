@@ -1,4 +1,3 @@
-import { Notify } from '@avito-speculant/common'
 import { Plan } from '../plan.js'
 import { PlanLogData } from '../../plan-log/plan-log.js'
 import { DatabaseMethod } from '../../database.js'

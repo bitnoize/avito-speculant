@@ -30,7 +30,7 @@ export const createPlan: CreatePlan = async function (db, request) {
     )
 
     if (existsPlanRow !== undefined) {
-      throw new PlanExistsError({ request })
+      throw new PlanExistsError({ request, existsPlanRow })
     }
 
     const insertedPlanRow = await planRepository.insertRow(
@@ -92,7 +92,7 @@ export const updatePlanPrice: UpdatePlanPrice = async function (db, request) {
     }
 
     if (planRow.is_enabled) {
-      throw new PlanIsEnabledError({ request })
+      throw new PlanIsEnabledError({ request, planRow })
     }
 
     planRow.price_rub = request.priceRub
@@ -144,11 +144,7 @@ export const enablePlan: EnablePlan = async function (db, request) {
 
     planRow.is_enabled = true
 
-    const updatedPlanRow = await planRepository.updateRowState(
-      trx,
-      planRow.id,
-      planRow.is_enabled
-    )
+    const updatedPlanRow = await planRepository.updateRowState(trx, planRow.id, planRow.is_enabled)
 
     const planLogRow = await planLogRepository.insertRow(
       trx,
@@ -191,11 +187,7 @@ export const disablePlan: DisablePlan = async function (db, request) {
 
     planRow.is_enabled = false
 
-    const updatedPlanRow = await planRepository.updateRowState(
-      trx,
-      planRow.id,
-      planRow.is_enabled
-    )
+    const updatedPlanRow = await planRepository.updateRowState(trx, planRow.id, planRow.is_enabled)
 
     const planLogRow = await planLogRepository.insertRow(
       trx,

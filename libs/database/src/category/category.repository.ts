@@ -6,12 +6,9 @@ import { TransactionDatabase } from '../database.js'
 export async function selectRowById(
   trx: TransactionDatabase,
   category_id: number,
-  writeLock: boolean = false
+  writeLock = false
 ): Promise<CategoryRow | undefined> {
-  const queryBase = trx
-    .selectFrom('category')
-    .selectAll()
-    .where('id', '=', category_id)
+  const queryBase = trx.selectFrom('category').selectAll().where('id', '=', category_id)
 
   const queryLock = writeLock ? queryBase.forUpdate() : queryBase.forShare()
 
@@ -22,7 +19,7 @@ export async function selectRowByIdUserId(
   trx: TransactionDatabase,
   category_id: number,
   user_id: number,
-  writeLock: boolean = false
+  writeLock = false
 ): Promise<CategoryRow | undefined> {
   const queryBase = trx
     .selectFrom('category')
@@ -133,7 +130,7 @@ export async function selectRowsProduce(
   return await trx
     .selectFrom('category')
     .selectAll()
-    .where('queued_at', '<', sql<number>`now() - interval '${CATEGORY_PRODUCE_AFTER}'`)
+    .where('queued_at', '<', sql<number>`now() - ${CATEGORY_PRODUCE_AFTER}::interval`)
     .orderBy('queued_at', 'asc')
     .limit(limit)
     .forUpdate()
@@ -145,6 +142,10 @@ export async function updateRowsProduce(
   trx: TransactionDatabase,
   category_ids: number[]
 ): Promise<CategoryRow[]> {
+  if (category_ids.length === 0) {
+    return []
+  }
+
   return await trx
     .updateTable('category')
     .set(() => ({

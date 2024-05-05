@@ -5,12 +5,12 @@ import { PlanTable } from './plan/plan.table.js'
 import { PlanLogTable } from './plan-log/plan-log.table.js'
 import { SubscriptionTable } from './subscription/subscription.table.js'
 import { SubscriptionLogTable } from './subscription-log/subscription-log.table.js'
+import { BotTable } from './bot/bot.table.js'
+import { BotLogTable } from './bot-log/bot-log.table.js'
 import { CategoryTable } from './category/category.table.js'
 import { CategoryLogTable } from './category-log/category-log.table.js'
 import { ProxyTable } from './proxy/proxy.table.js'
 import { ProxyLogTable } from './proxy-log/proxy-log.table.js'
-import { BotTable } from './bot/bot.table.js'
-import { BotLogTable } from './bot-log/bot-log.table.js'
 
 export const DEFAULT_POSTGRES_HOST = 'localhost'
 export const DEFAULT_POSTGRES_PORT = 5432
@@ -32,12 +32,12 @@ export interface Database {
   plan_log: PlanLogTable
   subscription: SubscriptionTable
   subscription_log: SubscriptionLogTable
+  bot: BotTable
+  bot_log: BotLogTable
   category: CategoryTable
   category_log: CategoryLogTable
   proxy: ProxyTable
   proxy_log: ProxyLogTable
-  bot: BotTable
-  bot_log: BotLogTable
 }
 
 export type KyselyDatabase = Kysely<Database>

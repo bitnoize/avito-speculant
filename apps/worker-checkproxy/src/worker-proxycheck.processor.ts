@@ -12,7 +12,13 @@ export const checkproxyProcessor: CheckproxyProcessor = async function (checkpro
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
   const logger = loggerService.initLogger(loggerOptions)
 
-  const checkproxyResult: CheckproxyResult = {}
+  const checkproxyResult: CheckproxyResult = {
+    success: false,
+    statusCode: 0,
+    sizeBytes: 0,
+    requestTime: 0,
+    durationTime: 0
+  }
 
   await processDefault(config, logger, checkproxyJob, checkproxyResult)
 
@@ -25,12 +31,11 @@ const processDefault: ProcessDefault = async function (
   checkproxyJob,
   checkproxyResult
 ) {
+  const startTime = Date.now()
+  const { proxyId } = checkproxyJob.data
+
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
-
-  const startTime = Date.now()
-  const name = checkproxyJob.name
-  const { proxyId } = checkproxyJob.data
 
   try {
     const { proxyCache } = await proxyCacheService.fetchProxyCache(redis, {
@@ -57,49 +62,34 @@ const processDefault: ProcessDefault = async function (
         curlRequestArgs,
         curlResponse
       }
-      logger.warn(logData, `CheckproxyProcessor processDefault curlRequest failed`)
+      logger.warn(logData, `Curl request failed`)
 
-      checkproxyResult[name] = {
-        success: false,
-        statusCode: curlResponse.statusCode,
-        sizeBytes: curlResponse.sizeBytes,
-        durationTime: Date.now() - startTime,
-        curlDurationTime: curlResponse.durationTime
-      }
-
-      return
-    }
-
-    if (curlResponse.statusCode !== 200) {
+      checkproxyResult.statusCode = curlResponse.statusCode
+      checkproxyResult.sizeBytes = curlResponse.sizeBytes
+      checkproxyResult.requestTime = curlResponse.requestTime
+    } else if (curlResponse.statusCode !== 200) {
       await proxyCacheService.renewOfflineProxyCache(redis, {
         proxyId: proxyCache.id,
         sizeBytes: curlResponse.sizeBytes
       })
 
-      checkproxyResult[name] = {
-        success: false,
-        statusCode: curlResponse.statusCode,
-        sizeBytes: curlResponse.sizeBytes,
-        durationTime: Date.now() - startTime,
-        curlDurationTime: curlResponse.durationTime
-      }
+      checkproxyResult.statusCode = curlResponse.statusCode
+      checkproxyResult.sizeBytes = curlResponse.sizeBytes
+      checkproxyResult.requestTime = curlResponse.requestTime
+    } else {
+      await proxyCacheService.renewOnlineProxyCache(redis, {
+        proxyId: proxyCache.id,
+        sizeBytes: curlResponse.sizeBytes
+      })
 
-      return
-    }
-
-    await proxyCacheService.renewOnlineProxyCache(redis, {
-      proxyId: proxyCache.id,
-      sizeBytes: curlResponse.sizeBytes
-    })
-
-    checkproxyResult[name] = {
-      success: true,
-      statusCode: curlResponse.statusCode,
-      sizeBytes: curlResponse.sizeBytes,
-      durationTime: Date.now() - startTime,
-      curlDurationTime: curlResponse.durationTime
+      checkproxyResult.success = true
+      checkproxyResult.statusCode = curlResponse.statusCode
+      checkproxyResult.sizeBytes = curlResponse.sizeBytes
+      checkproxyResult.requestTime = curlResponse.requestTime
     }
   } finally {
     await redisService.closeRedis(redis)
+
+    checkproxyResult.durationTime = Date.now() - startTime
   }
 }

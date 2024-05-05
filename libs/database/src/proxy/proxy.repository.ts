@@ -6,12 +6,9 @@ import { TransactionDatabase } from '../database.js'
 export async function selectRowById(
   trx: TransactionDatabase,
   proxy_id: number,
-  writeLock: boolean = false
+  writeLock = false
 ): Promise<ProxyRow | undefined> {
-  const queryBase = trx
-    .selectFrom('proxy')
-    .selectAll()
-    .where('id', '=', proxy_id)
+  const queryBase = trx.selectFrom('proxy').selectAll().where('id', '=', proxy_id)
 
   const queryLock = writeLock ? queryBase.forUpdate() : queryBase.forShare()
 
@@ -71,7 +68,7 @@ export async function selectRowsProduce(
   return await trx
     .selectFrom('proxy')
     .selectAll()
-    .where('queued_at', '<', sql<number>`now() - interval '${PROXY_PRODUCE_AFTER}'`)
+    .where('queued_at', '<', sql<number>`now() - ${PROXY_PRODUCE_AFTER}::interval`)
     .orderBy('queued_at', 'asc')
     .limit(limit)
     .forUpdate()
@@ -83,6 +80,10 @@ export async function updateRowsProduce(
   trx: TransactionDatabase,
   proxy_ids: number[]
 ): Promise<ProxyRow[]> {
+  if (proxy_ids.length === 0) {
+    return []
+  }
+
   return await trx
     .updateTable('proxy')
     .set(() => ({

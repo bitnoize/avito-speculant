@@ -16,14 +16,14 @@ const initCommand: InitCommand = (config, logger) => {
         displayName: 'userId',
         description: 'user identifier'
       }),
-      avitoUrl: option({
+      urlPath: option({
         type: string,
-        long: 'avito-url',
-        short: 'v',
+        long: 'url-path',
+        short: 'p',
         description: 'avito url path'
       })
     },
-    handler: async ({ userId, avitoUrl }) => {
+    handler: async ({ userId, urlPath }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
@@ -36,7 +36,7 @@ const initCommand: InitCommand = (config, logger) => {
       try {
         const { category, backLog } = await categoryService.createCategory(db, {
           userId,
-          avitoUrl,
+          urlPath,
           data: {
             message: `Create category via Manager`
           }

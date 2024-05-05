@@ -14,11 +14,7 @@ export const listPlanLogs: ListPlanLogs = async function listPlanLogs(db, reques
       throw new PlanNotFoundError({ request })
     }
 
-    const planLogRows = await planLogRepository.selectRowsByPlanId(
-      trx,
-      planRow.id,
-      request.limit
-    )
+    const planLogRows = await planLogRepository.selectRowsByPlanId(trx, planRow.id, request.limit)
 
     return {
       planLogs: planLogRepository.buildCollection(planLogRows)

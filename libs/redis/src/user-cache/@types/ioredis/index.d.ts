@@ -2,31 +2,52 @@ import { Result, Callback } from 'ioredis'
 
 declare module 'ioredis' {
   interface RedisCommander<Context> {
-    fetchUserCache(userKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchUserCache(userCacheKey: string, callback?: Callback<string>): Result<string, Context>
 
-    fetchUsers(usersKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchTelegramUserId(
+      telegramUserIdKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+    
+    fetchWebappUserId(
+      webappUserIdKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchUsersIndex(usersIndexKey: string, callback?: Callback<string>): Result<string, Context>
 
     saveUserCache(
       userKey: string,
-      usersKey: string,
       userId: number,
       tgFromId: string,
-      checkpointAt: number,
-      time: number,
+      isPaid: number,
+      subscriptionId: number | null,
+      subscriptions: number,
+      categories: number,
+      bots: number,
+      createdAt: number,
+      updatedAt: number,
+      queuedAt: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    dropUserCache(
-      userKey: string,
-      usersKey: string,
+    appendUsersIndex(
+      usersIndexKey: string,
+      userId: number,
+      createdAt: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveTelegramUserId(
+      telegramUserIdKey: string,
       userId: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    renewUserCache(
-      userKey: string,
-      checkpointAt: number,
-      time: number,
+    saveWebappUserId(
+      webappUserIdKey: string,
+      userId: number,
+      timeout: number,
       callback?: Callback<string>
     ): Result<string, Context>
   }

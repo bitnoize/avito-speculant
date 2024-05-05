@@ -1,4 +1,6 @@
 import { UserCache } from '../user-cache.js'
+import { PlanCache } from '../../plan-cache/plan-cache.js'
+import { SubscriptionCache } from '../../subscription-cache/subscription-cache.js'
 import { RedisMethod } from '../../redis.js'
 
 export type FetchUserCacheRequest = {
@@ -7,6 +9,8 @@ export type FetchUserCacheRequest = {
 
 export type FetchUserCacheResponse = {
   userCache: UserCache
+  subscriptionCache: SubscriptionCache | undefined
+  planCache: PlanCache | undefined
 }
 
 export type FetchUserCache = RedisMethod<FetchUserCacheRequest, FetchUserCacheResponse>

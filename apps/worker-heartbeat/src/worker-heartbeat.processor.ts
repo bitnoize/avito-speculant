@@ -58,17 +58,17 @@ const heartbeatProcessor: HeartbeatProcessor = async function (heartbeatJob) {
         break
       }
 
-      case 'categories': {
-        await processCategories(config, logger, heartbeatJob, heartbeatResult)
+      case 'bots': {
+        await processBots(config, logger, heartbeatJob, heartbeatResult)
 
-        step = 'bots'
+        step = 'categories'
         await heartbeatJob.updateData({ step })
 
         break
       }
 
-      case 'bots': {
-        await processBots(config, logger, heartbeatJob, heartbeatResult)
+      case 'categories': {
+        await processCategories(config, logger, heartbeatJob, heartbeatResult)
 
         step = 'proxies'
         await heartbeatJob.updateData({ step })
@@ -100,16 +100,22 @@ const processUsers: ProcessStep = async function (
   heartbeatJob,
   heartbeatResult
 ) {
+  const startTime = Date.now()
+
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
   const db = databaseService.initDatabase(databaseConfig, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
   const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-  try {
-    const startTime = Date.now()
-    const { step } = heartbeatJob.data
+  const { step } = heartbeatJob.data
 
+  const heartbeatStepResult = heartbeatResult[step] = {
+    entities: 0,
+    durationTime: 0
+  }
+
+  try {
     const jobsCount = await treatmentQueue.count()
 
     if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
@@ -126,12 +132,12 @@ const processUsers: ProcessStep = async function (
       users.map((user) => user.id)
     )
 
-    heartbeatResult[step] = {
-      durationTime: Date.now() - startTime
-    }
+    heartbeatStepResult.entities = users.length
   } finally {
     await treatmentService.closeQueue(treatmentQueue)
     await databaseService.closeDatabase(db)
+
+    heartbeatStepResult.durationTime = Date.now() - startTime
   }
 }
 
@@ -141,16 +147,22 @@ const processPlans: ProcessStep = async function (
   heartbeatJob,
   heartbeatResult
 ) {
+  const startTime = Date.now()
+
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
   const db = databaseService.initDatabase(databaseConfig, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
   const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-  try {
-    const startTime = Date.now()
-    const { step } = heartbeatJob.data
+  const { step } = heartbeatJob.data
 
+  const heartbeatStepResult = heartbeatResult[step] = {
+    entities: 0,
+    durationTime: 0
+  }
+
+  try {
     const jobsCount = await treatmentQueue.count()
 
     if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
@@ -167,12 +179,12 @@ const processPlans: ProcessStep = async function (
       plans.map((plan) => plan.id)
     )
 
-    heartbeatResult[step] = {
-      durationTime: Date.now() - startTime
-    }
+    heartbeatStepResult.entities = plans.length
   } finally {
     await treatmentService.closeQueue(treatmentQueue)
     await databaseService.closeDatabase(db)
+
+    heartbeatStepResult.durationTime = Date.now() - startTime
   }
 }
 
@@ -182,16 +194,22 @@ const processSubscriptions: ProcessStep = async function (
   heartbeatJob,
   heartbeatResult,
 ) {
+  const startTime = Date.now()
+
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
   const db = databaseService.initDatabase(databaseConfig, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
   const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-  try {
-    const startTime = Date.now()
-    const { step } = heartbeatJob.data
+  const { step } = heartbeatJob.data
 
+  const heartbeatStepResult = heartbeatResult[step] = {
+    entities: 0,
+    durationTime: 0
+  }
+
+  try {
     const jobsCount = await treatmentQueue.count()
 
     if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
@@ -208,31 +226,37 @@ const processSubscriptions: ProcessStep = async function (
       subscriptions.map((subscription) => subscription.id)
     )
 
-    heartbeatResult[step] = {
-      durationTime: Date.now() - startTime
-    }
+    heartbeatStepResult.entities = subscriptions.length
   } finally {
     await treatmentService.closeQueue(treatmentQueue)
     await databaseService.closeDatabase(db)
+
+    heartbeatStepResult.durationTime = Date.now() - startTime
   }
 }
 
-const processCategories: StepProcessTreatment = async function (
+const processCategories: ProcessStep = async function (
   config,
   logger,
   heartbeatJob,
   heartbeatResult,
 ) {
+  const startTime = Date.now()
+
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
   const db = databaseService.initDatabase(databaseConfig, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
   const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-  try {
-    const startTime = Date.now()
-    const { step } = heartbeatJob.data
+  const { step } = heartbeatJob.data
 
+  const heartbeatStepResult = heartbeatResult[step] = {
+    entities: 0,
+    durationTime: 0
+  }
+
+  try {
     const jobsCount = await treatmentQueue.count()
 
     if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
@@ -249,12 +273,12 @@ const processCategories: StepProcessTreatment = async function (
       categories.map((category) => category.id)
     )
 
-    heartbeatResult[step] = {
-      durationTime: Date.now() - startTime
-    }
+    heartbeatStepResult.entities = categories.length
   } finally {
     await treatmentService.closeQueue(treatmentQueue)
     await databaseService.closeDatabase(db)
+
+    heartbeatStepResult.durationTime = Date.now() - startTime
   }
 }
 
@@ -264,16 +288,22 @@ const processBots: ProcessStep = async function (
   heartbeatJob,
   heartbeatResult,
 ) {
+  const startTime = Date.now()
+
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
   const db = databaseService.initDatabase(databaseConfig, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
   const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-  try {
-    const startTime = Date.now()
-    const { step } = heartbeatJob.data
+  const { step } = heartbeatJob.data
 
+  const heartbeatStepResult = heartbeatResult[step] = {
+    entities: 0,
+    durationTime: 0
+  }
+
+  try {
     const jobsCount = await treatmentQueue.count()
 
     if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
@@ -290,12 +320,12 @@ const processBots: ProcessStep = async function (
       bots.map((bot) => bot.id)
     )
 
-    heartbeatResult[step] = {
-      durationTime: Date.now() - startTime
-    }
+    heartbeatStepResult.entities = bots.length
   } finally {
     await treatmentService.closeQueue(treatmentQueue)
     await databaseService.closeDatabase(db)
+
+    heartbeatStepResult.durationTime = Date.now() - startTime
   }
 }
 
@@ -305,16 +335,22 @@ const processProxies: ProcessStep = async function (
   heartbeatJob,
   heartbeatResult,
 ) {
+  const startTime = Date.now()
+
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
   const db = databaseService.initDatabase(databaseConfig, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
   const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
-  try {
-    const startTime = Date.now()
-    const { step } = heartbeatJob.data
+  const { step } = heartbeatJob.data
 
+  const heartbeatStepResult = heartbeatResult[step] = {
+    entities: 0,
+    durationTime: 0
+  }
+
+  try {
     const jobsCount = await treatmentQueue.count()
 
     if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
@@ -331,12 +367,12 @@ const processProxies: ProcessStep = async function (
       proxies.map((proxy) => proxy.id)
     )
 
-    heartbeatResult[step] = {
-      durationTime: Date.now() - startTime
-    }
+    heartbeatStepResult.entities = proxies.length
   } finally {
     await treatmentService.closeQueue(treatmentQueue)
     await databaseService.closeDatabase(db)
+
+    heartbeatStepResult.durationTime = Date.now() - startTime
   }
 }
 

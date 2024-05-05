@@ -105,7 +105,7 @@ export function initQueueBase<DT, RT, NT extends string>(
  * Close QueueBase
  */
 export async function closeQueueBase<DT, RT, NT extends string>(
-  queue: Queue<DT, RT, NT>,
+  queue: Queue<DT, RT, NT>
 ): Promise<void> {
   await queue.close()
 }
@@ -270,7 +270,7 @@ export async function runWorkerBase<DT, RT, NT extends string>(
  * Get QueueSummaryBase
  */
 export async function getQueueSummaryBase<DT, RT, NT extends string>(
-  queue: Queue<DT, RT, NT>,
+  queue: Queue<DT, RT, NT>
 ): Promise<QueueSummary> {
   const isPaused = await queue.isPaused()
   const jobCounts = await queue.getJobCounts(
@@ -279,7 +279,7 @@ export async function getQueueSummaryBase<DT, RT, NT extends string>(
     'waiting-children',
     'active',
     'completed',
-    'failed',
+    'failed'
   )
   const workersCount = await queue.getWorkersCount()
 

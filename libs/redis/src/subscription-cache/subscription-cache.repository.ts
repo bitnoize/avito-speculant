@@ -16,12 +16,12 @@ import {
 export async function fetchSubscriptionCache(
   redis: Redis,
   subscriptionId: number
-): Promise<SubscriptionCache> {
+): Promise<SubscriptionCache | undefined> {
   const result = await redis.fetchSubscriptionCache(
     subscriptionKey(subscriptionId) // KEYS[1]
   )
 
-  return parseModel(result, `SubscriptionCache fetchSubscriptionCache malformed result`)
+  return parseModel(result, `Script fetchSubscriptionCache malformed result`)
 }
 
 export async function fetchUserSubscriptions(redis: Redis, userId: number): Promise<number[]> {

@@ -5,6 +5,7 @@ import { Notify } from '@avito-speculant/common'
 import initUserCacheScripts from './user-cache/user-cache.scripts.js'
 import initPlanCacheScripts from './plan-cache/plan-cache.scripts.js'
 import initSubscriptionCacheScripts from './subscription-cache/subscription-cache.scripts.js'
+import initBotCacheScripts from './bot-cache/bot-cache.scripts.js'
 import initCategoryCacheScripts from './category-cache/category-cache.scripts.js'
 import initProxyCacheScripts from './proxy-cache/proxy-cache.scripts.js'
 import initScraperCacheScripts from './scraper-cache/scraper-cache.scripts.js'
@@ -40,6 +41,7 @@ export function initRedis(options: RedisOptions, logger: Logger): Redis {
   initUserCacheScripts(redis)
   initPlanCacheScripts(redis)
   initSubscriptionCacheScripts(redis)
+  initBotCacheScripts(redis)
   initCategoryCacheScripts(redis)
   initProxyCacheScripts(redis)
   initScraperCacheScripts(redis)

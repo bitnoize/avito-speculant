@@ -33,13 +33,10 @@ export const authorizeUser: AuthorizeUser = async function (db, request) {
       if (activeSubscriptionRow !== undefined) {
         subscription = subscriptionRepository.buildModel(activeSubscriptionRow)
 
-        const planRow = await planRepository.selectRowById(
-          trx,
-          activeSubscriptionRow.plan_id
-        )
+        const planRow = await planRepository.selectRowById(trx, activeSubscriptionRow.plan_id)
 
         if (planRow === undefined) {
-          throw new PlanNotFoundError({ request }, 100)
+          throw new PlanNotFoundError({ request, activeSubscriptionRow }, 100)
         }
 
         plan = planRepository.buildModel(planRow)
@@ -139,13 +136,10 @@ export const consumeUser: ConsumeUser = async function (db, request) {
     if (activeSubscriptionRow !== undefined) {
       subscription = subscriptionRepository.buildModel(activeSubscriptionRow)
 
-      const planRow = await planRepository.selectRowById(
-        trx,
-        activeSubscriptionRow.plan_id
-      )
+      const planRow = await planRepository.selectRowById(trx, activeSubscriptionRow.plan_id)
 
       if (planRow === undefined) {
-        throw new PlanNotFoundError({ request }, 100)
+        throw new PlanNotFoundError({ request, activeSubscriptionRow }, 100)
       }
 
       plan = planRepository.buildModel(planRow)

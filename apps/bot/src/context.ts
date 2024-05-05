@@ -1,7 +1,8 @@
 import { Context, SessionFlavor } from 'grammy'
-import { User, Subscription } from '@avito-speculant/database'
+import { User, Subscription, Plan } from '@avito-speculant/database'
 
 export type BotContext = Context & {
   user: User
-  subscription?: Subscription
+  subscription: Subscription | undefined
+  plan: Plan | undefined
 }

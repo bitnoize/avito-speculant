@@ -36,7 +36,7 @@ async function bootstrap(): Promise<void> {
     await run(binaryApp, process.argv)
   } catch (error) {
     if (error instanceof DomainError) {
-      logger.error(error)
+      logger.error({ context: error.context }, error.message)
     } else {
       logger.fatal(error.stack ?? error.message)
     }

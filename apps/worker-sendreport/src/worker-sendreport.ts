@@ -8,17 +8,11 @@ import {
   SendreportJob
 } from '@avito-speculant/queue'
 
-export type Config = LoggerConfig &
-  RedisConfig &
-  QueueConfig &
-  SendreportConfig & {
-    BOT_TOKEN: string
-  }
+export type Config = LoggerConfig & RedisConfig & QueueConfig & SendreportConfig
 
 export type ProcessDefault = (
   config: Config,
   logger: Logger,
-  redis: Redis,
   sendreportJob: SendreportJob,
   sendreportResult: SendreportResult
 ) => Promise<void>

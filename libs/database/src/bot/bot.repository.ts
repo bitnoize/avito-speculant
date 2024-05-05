@@ -6,12 +6,9 @@ import { TransactionDatabase } from '../database.js'
 export async function selectRowById(
   trx: TransactionDatabase,
   bot_id: number,
-  writeLock: boolean = false
+  writeLock = false
 ): Promise<BotRow | undefined> {
-  const queryBase = trx
-    .selectFrom('bot')
-    .selectAll()
-    .where('id', '=', bot_id)
+  const queryBase = trx.selectFrom('bot').selectAll().where('id', '=', bot_id)
 
   const queryLock = writeLock ? queryBase.forUpdate() : queryBase.forShare()
 
@@ -34,7 +31,7 @@ export async function selectRowByIdUserId(
   trx: TransactionDatabase,
   bot_id: number,
   user_id: number,
-  writeLock: boolean = false
+  writeLock = false
 ): Promise<BotRow | undefined> {
   const queryBase = trx
     .selectFrom('bot')
@@ -119,7 +116,7 @@ export async function selectRowsProduce(
   return await trx
     .selectFrom('bot')
     .selectAll()
-    .where('queued_at', '<', sql<number>`now() - interval '${BOT_PRODUCE_AFTER}'`)
+    .where('queued_at', '<', sql<number>`now() - ${BOT_PRODUCE_AFTER}::interval`)
     .orderBy('queued_at', 'asc')
     .forUpdate()
     .skipLocked()
@@ -131,6 +128,10 @@ export async function updateRowsProduce(
   trx: TransactionDatabase,
   bot_ids: number[]
 ): Promise<BotRow[]> {
+  if (bot_ids.length === 0) {
+    return []
+  }
+
   return await trx
     .updateTable('bot')
     .set(() => ({

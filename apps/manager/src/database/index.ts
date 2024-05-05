@@ -3,6 +3,7 @@ import migrationsCommand from './migrations.command.js'
 import usersListCommand from './users-list.command.js'
 import userLogsListCommand from './user-logs-list.command.js'
 import planCreateCommand from './plan-create.command.js'
+import planReadCommand from './plan-read.command.js'
 import planUpdatePriceCommand from './plan-update-price.command.js'
 import planEnableCommand from './plan-enable.command.js'
 import planDisableCommand from './plan-disable.command.js'
@@ -34,7 +35,8 @@ const initSubcommands: InitSubcommands = (config, logger) => {
       'users-list': usersListCommand(config, logger),
       'user-logs-list': userLogsListCommand(config, logger),
       'plan-create': planCreateCommand(config, logger),
-      'plan-update': planUpdateCommand(config, logger),
+      'plan-read': planReadCommand(config, logger),
+      'plan-update-price': planUpdatePriceCommand(config, logger),
       'plan-enable': planEnableCommand(config, logger),
       'plan-disable': planDisableCommand(config, logger),
       'plans-list': plansListCommand(config, logger),

@@ -11,13 +11,23 @@ const initCommand: InitCommand = (config, logger) => {
     name: 'database-category-enable',
     description: 'enable user category',
     args: {
+      userId: positional({
+        type: Serial,
+        displayName: 'userId',
+        description: 'user identifier'
+      }),
       categoryId: positional({
         type: Serial,
         displayName: 'categoryId',
         description: 'category identifier'
+      }),
+      botId: positional({
+        type: Serial,
+        displayName: 'botId',
+        description: 'bot identifier'
       })
     },
-    handler: async ({ categoryId }) => {
+    handler: async ({ userId, categoryId, botId }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
@@ -28,8 +38,10 @@ const initCommand: InitCommand = (config, logger) => {
       const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
       try {
-        const { category, backLog } = await categoryService.enableCategory(db, {
+        const { user, category, bot, backLog } = await categoryService.enableCategory(db, {
+          userId,
           categoryId,
+          botId,
           data: {
             message: `Enable category via Manager`
           }
@@ -37,9 +49,11 @@ const initCommand: InitCommand = (config, logger) => {
 
         await redisService.publishBackLog(pubSub, backLog)
 
+        await treatmentService.addJob(treatmentQueue, 'user', user.id)
         await treatmentService.addJob(treatmentQueue, 'category', category.id)
+        await treatmentService.addJob(treatmentQueue, 'bot', bot.id)
 
-        logger.info({ category, backLog }, `Category enabled`)
+        logger.info({ user, category, bot, backLog }, `Category enabled`)
       } finally {
         await treatmentService.closeQueue(treatmentQueue)
         await redisService.closePubSub(pubSub)

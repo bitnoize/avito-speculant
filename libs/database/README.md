@@ -17,10 +17,10 @@
 * planLogService - Логи тарифных планов
 * subscriptionService - Подписки
 * subscriptionLogService - Логи подписок
+* botService - Боты
+* botLogService - Логи ботов
 * categoryService - Категории
 * categoryLogService - Логи категорий
 * proxyService - Прокси
 * proxyLogService - Логи проксей
-* botService - Боты
-* botLogService - Логи ботов
 

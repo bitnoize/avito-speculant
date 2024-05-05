@@ -1,9 +1,14 @@
 import Fastify from 'fastify'
-import { Bot, GrammyError, HttpError, session } from 'grammy'
+import { Bot, GrammyError, HttpError, session, webhookCallback } from 'grammy'
 import { RedisAdapter } from '@grammyjs/storage-redis'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { AuthorizeUserRequest, databaseService, userService } from '@avito-speculant/database'
+import {
+  AuthorizeUserRequest,
+  databaseService,
+  userService,
+  planService
+} from '@avito-speculant/database'
 import { redisService } from '@avito-speculant/redis'
 import { Config } from './bot.js'
 import { configSchema } from './bot.schema.js'
@@ -34,7 +39,7 @@ async function bootstrap(): Promise<void> {
 
   bot.use(async (ctx, next) => {
     if (ctx.from) {
-      const { user, subscription, backLog } = await userService.authorizeUser(db, {
+      const { user, subscription, plan, backLog } = await userService.authorizeUser(db, {
         tgFromId: ctx.from.id.toString(),
         data: {
           from: ctx.from,
@@ -43,7 +48,19 @@ async function bootstrap(): Promise<void> {
       })
 
       ctx.user = user
-      ctx.subscription = subscription
+
+      if (user.isPaid) {
+        if (subscription === undefined) {
+          throw new Error(`subscription`)
+        }
+
+        if (plan === undefined) {
+          throw new Error(`plan`)
+        }
+
+        ctx.subscription = subscription
+        ctx.plan = plan
+      }
 
       await redisService.publishBackLog(pubSub, backLog)
 
@@ -72,6 +89,34 @@ async function bootstrap(): Promise<void> {
   })
 
   bot.start()
+
+  const server = Fastify({ logger })
+
+  server.setErrorHandler(async (error, request, response) => {
+    logger.error(error)
+
+    await response.status(500).send({
+      code: 100,
+      error: 'Internal server error'
+    })
+  })
+
+  server.get('/plans', async function (request, reply) {
+    try {
+      const { plans } = await planService.listPlans(db)
+
+      return { plans }
+    } catch (error) {
+      return {
+        code: 100,
+        message: 'Internal server error'
+      }
+    }
+  })
+
+  server.post(`/${bot.token}`, webhookCallback(bot, 'fastify'))
+
+  await server.listen({ port: 3000 })
 }
 
 bootstrap()

@@ -1,26 +1,25 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { DomainError } from '@avito-speculant/common'
 import {
   databaseService,
   userService,
   planService,
   subscriptionService,
   categoryService,
+  botService,
   proxyService
 } from '@avito-speculant/database'
 import {
   redisService,
-  systemService,
   userCacheService,
   planCacheService,
   subscriptionCacheService,
   categoryCacheService,
+  botCacheService,
   proxyCacheService,
   scraperCacheService
 } from '@avito-speculant/redis'
 import {
-  ProcessorUnknownNameError,
   UserSubscriptionBreakError,
   TreatmentResult,
   TreatmentProcessor,
@@ -44,6 +43,65 @@ const treatmentProcessor: TreatmentProcessor = async function (treatmentJob) {
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
   const logger = loggerService.initLogger(loggerOptions)
 
+  const treatmentResult: TreatmentResult = {
+    durationTime: 0
+  }
+
+  const name = treatmentJob.name
+
+  switch (name) {
+    case 'user': {
+      await processUser(config, logger, treatmentJob, treatmentResult)
+
+      break
+    }
+
+    case 'plan': {
+      await processPlan(config, logger, treatmentJob, treatmentResult)
+
+      break
+    }
+
+    case 'subscription': {
+      await processSubscription(config, logger, treatmentJob, treatmentResult)
+
+      break
+    }
+
+    case 'bot': {
+      await processBot(config, logger, treatmentJob, treatmentResult)
+
+      break
+    }
+
+    case 'category': {
+      await processCategory(config, logger, treatmentJob, treatmentResult)
+
+      break
+    }
+
+    case 'proxy': {
+      await processProxy(config, logger, treatmentJob, treatmentResult)
+
+      break
+    }
+
+    default: {
+      throw new Error(`Processor name '${name}' unknown`)
+    }
+  }
+
+  return treatmentResult
+}
+
+const processUser: ProcessName = async function (
+  config,
+  logger,
+  treatmentJob,
+  treatmentResult,
+) {
+  const startTime = Date.now()
+
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
   const db = databaseService.initDatabase(databaseConfig, logger)
 
@@ -52,130 +110,19 @@ const treatmentProcessor: TreatmentProcessor = async function (treatmentJob) {
   const pubSub = redisService.initPubSub(redisOptions, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
+  const broadcastQueue = broadcastService.initQueue(queueConnection, logger)
 
-  const treatmentResult: TreatmentResult = {
-    durationTime: 0
-  }
+  const { entityId } = treatmentJob.data
 
   try {
-    const name = treatmentJob.name
-
-    switch (name) {
-      case 'user': {
-        const broadcastQueue = broadcastService.initQueue(queueConnection, logger)
-
-        await processUser(
-          config,
-          logger,
-          db,
-          redis,
-          pubSub,
-          treatmentJob,
-          treatmentResult,
-          broadcastQueue
-        )
-
-        break
-      }
-
-      case 'plan': {
-        await processPlan(config, logger, db, redis, pubSub, treatmentJob, treatmentResult)
-
-        break
-      }
-
-      case 'subscription': {
-        await processSubscription(config, logger, db, redis, pubSub, treatmentJob, treatmentResult)
-
-        break
-      }
-
-      case 'category': {
-        const scrapingQueue = scrapingService.initQueue(queueConnection, logger)
-
-        await processCategory(
-          config,
-          logger,
-          db,
-          redis,
-          pubSub,
-          treatmentJob,
-          treatmentResult,
-          scrapingQueue
-        )
-
-        break
-      }
-
-      case 'proxy': {
-        const proxycheckQueue = proxycheckService.initQueue(queueConnection, logger)
-
-        await processProxy(
-          config,
-          logger,
-          db,
-          redis,
-          pubSub,
-          treatmentJob,
-          treatmentResult,
-          proxycheckQueue
-        )
-
-        break
-      }
-
-      default: {
-        throw new ProcessorUnknownNameError({ name })
-      }
-    }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      if (error.isEmergency()) {
-        // ...
-
-        logger.fatal(`TreatmentWorker emergency shutdown`)
-      }
-    }
-
-    throw error
-  } finally {
-    await redisService.closePubSub(pubSub)
-    await redisService.closeRedis(redis)
-    await databaseService.closeDatabase(db)
-  }
-
-  return treatmentResult
-}
-
-const processUser: NameProcessBroadcast = async function (
-  config,
-  logger,
-  db,
-  redis,
-  pubSub,
-  treatmentJob,
-  treatmentResult,
-  broadcastQueue
-) {
-  try {
-    const startTime = Date.now()
-    const name = treatmentJob.name
-
-    const { user, subscription, backLog } = await userService.consumeUser(db, {
-      userId: treatmentJob.data.entityId,
-      data: {
-        queue: treatmentJob.queueName,
-        job: {
-          id: treatmentJob.id,
-          name: treatmentJob.name,
-          data: treatmentJob.data
-        }
-      }
+    const { user, subscription, plan, backLog } = await userService.consumeUser(db, {
+      userId: entityId,
+      data: {}
     })
 
     if (user.isPaid) {
-      if (subscription === undefined) {
-        throw new UserSubscriptionBreakError({ user })
+      if (subscription === undefined || plan === undefined) {
+        throw new ConsumeWrongResultError({ user })
       }
 
       await userCacheService.saveUserCache(redis, {
@@ -194,20 +141,13 @@ const processUser: NameProcessBroadcast = async function (
     }
 
     await redisService.publishBackLog(pubSub, backLog)
-
-    treatmentResult[name] = {
-      durationTime: Date.now() - startTime
-    }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      logger.error(`TreatmentProcessor processUser exception`)
-
-      error.setEmergency()
-    }
-
-    throw error
   } finally {
     await broadcastService.closeQueue(broadcastQueue)
+    await redisService.closePubSub(pubSub)
+    await redisService.closeRedis(redis)
+    await databaseService.closeDatabase(db)
+
+    treatmentResult.durationTime = Date.now() - startTime
   }
 }
 
@@ -337,6 +277,8 @@ const processCategory: NameProcessScraping = async function (
   treatmentResult,
   scrapingQueue
 ) {
+  const scrapingQueue = scrapingService.initQueue(queueConnection, logger)
+
   try {
     const startTime = Date.now()
     const name = treatmentJob.name
@@ -487,6 +429,8 @@ const processProxy: NameProcessProxycheck = async function (
   treatmentResult,
   proxycheckQueue
 ) {
+  const proxycheckQueue = proxycheckService.initQueue(queueConnection, logger)
+
   try {
     const startTime = Date.now()
     const name = treatmentJob.name

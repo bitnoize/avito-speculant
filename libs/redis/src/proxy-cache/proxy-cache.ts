@@ -2,12 +2,15 @@ import { REDIS_CACHE_PREFIX } from '../redis.js'
 
 export interface ProxyCache {
   id: number
-  proxyUrl: string
+  url: string
+  isEnabled: boolean
   isOnline: boolean
   totalCount: number
   successCount: number
   sizeBytes: number
-  time: number
+  createdAt: number
+  updatedAt: number
+  queuedAt: number
 }
 
 export const proxyKey = (proxyId: number) => [REDIS_CACHE_PREFIX, 'proxy', proxyId].join(':')

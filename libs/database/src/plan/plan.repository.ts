@@ -6,12 +6,9 @@ import { TransactionDatabase } from '../database.js'
 export async function selectRowById(
   trx: TransactionDatabase,
   plan_id: number,
-  writeLock: boolean = false
+  writeLock = false
 ): Promise<PlanRow | undefined> {
-  const queryBase = trx
-    .selectFrom('plan')
-    .selectAll()
-    .where('id', '=', plan_id)
+  const queryBase = trx.selectFrom('plan').selectAll().where('id', '=', plan_id)
 
   const queryLock = writeLock ? queryBase.forUpdate() : queryBase.forShare()
 
@@ -105,7 +102,7 @@ export async function selectRowsProduce(
   return await trx
     .selectFrom('plan')
     .selectAll()
-    .where('queued_at', '<', sql<number>`now() - interval '${PLAN_PRODUCE_AFTER}'`)
+    .where('queued_at', '<', sql<number>`now() - ${PLAN_PRODUCE_AFTER}::interval`)
     .orderBy('queued_at', 'asc')
     .limit(limit)
     .forUpdate()
@@ -117,6 +114,10 @@ export async function updateRowsProduce(
   trx: TransactionDatabase,
   plan_ids: number[]
 ): Promise<PlanRow[]> {
+  if (plan_ids.length === 0) {
+    return []
+  }
+
   return await trx
     .updateTable('plan')
     .set(() => ({

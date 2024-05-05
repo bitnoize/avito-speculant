@@ -34,7 +34,7 @@ const initCommand: InitCommand = (config, logger) => {
       const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
       try {
-        const { plan, backLog } = await planService.updatePlanPriceRub(db, {
+        const { plan, backLog } = await planService.updatePlanPrice(db, {
           planId,
           priceRub,
           data: {

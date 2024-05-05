@@ -27,9 +27,6 @@ const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
   const logger = loggerService.initLogger(loggerOptions)
 
-  const redisOptions = redisService.getRedisOptions<Config>(config)
-  const redis = redisService.initRedis(redisOptions, logger)
-
   const sendreportResult: SendreportResult = {}
 
   try {
@@ -54,10 +51,12 @@ const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
 const processDefault: ProcessDefault = async function (
   config,
   logger,
-  redis,
   sendreportJob,
   sendreportResult
 ) {
+  const redisOptions = redisService.getRedisOptions<Config>(config)
+  const redis = redisService.initRedis(redisOptions, logger)
+
   try {
     const startTime = Date.now()
     const name = sendreportJob.name
@@ -140,6 +139,8 @@ const processDefault: ProcessDefault = async function (
     }
 
     throw error
+  } finally {
+    await redisService.closeRedis(redis)
   }
 }
 
