@@ -6,6 +6,9 @@ export interface BotCache {
   token: string
   isLinked: boolean
   isEnabled: boolean
+  isOnline: boolean
+  totalCount: number
+  successCount: number
   createdAt: number
   updatedAt: number
   queuedAt: number

@@ -50,21 +50,39 @@ export async function savePlanCache(
   intervalSec: number,
   analyticsOn: boolean,
   priceRub: number,
+  isEnabled: boolean,
+  subscriptions: number,
+  createdAt: number,
+  updatedAt: number,
+  queuedAt: number
 ): Promise<void> {
-  await redis.savePlanCache(
-    planKey(planId), // KEYS[1]
-    plansKey(), // KEYS[2]
+  const multi = redis.multi()
+
+  multi.savePlanCache(
+    planCacheKey(planId), // KEYS[1]
     planId, // ARGV[1]
     categoriesMax, // ARGV[2]
-    durationDays, // ARGV[4]
-    intervalSec, // ARGV[5]
-    analyticsOn ? 1 : 0, // ARGV[6]
-    priceRub, // ARGV[3]
-    Date.now() // ARGV[7]
+    durationDays, // ARGV[3]
+    intervalSec, // ARGV[4]
+    analyticsOn ? 1 : 0, // ARGV[5]
+    priceRub, // ARGV[6]
+    isEnabled ? 1 : 0, // ARGV[7]
+    subscriptions, // ARGV[8]
+    createdAt, // ARGV[9]
+    updatedAt, // ARGV[10]
+    queuedAt // ARGV[11]
   )
+
+  multi.savePlansIndex(
+    plansIndexKey(), // KEYS[1]
+    planId, // ARGV[1]
+    createdAt // ARGV[2]
+  )
+
+  await multi.exec()
 }
 
-const parseModel = (result: unknown, message: string): PlanCache => {
+const parseModel = (result: unknown, message: string): PlanCache | undefined => {
   if (result === null) {
     return undefined
   }

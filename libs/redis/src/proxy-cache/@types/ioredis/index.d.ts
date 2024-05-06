@@ -2,44 +2,45 @@ import { Result, Callback } from 'ioredis'
 
 declare module 'ioredis' {
   interface RedisCommander<Context> {
-    fetchProxyCache(proxyKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchProxyCache(proxyCacheKey: string, callback?: Callback<string>): Result<string, Context>
 
-    fetchProxies(proxiesKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchProxiesIndex(proxiesIndexKey: string, callback?: Callback<string>): Result<string, Context>
 
     fetchRandomProxy(proxiesKey: string, callback?: Callback<string>): Result<string, Context>
 
     saveProxyCache(
-      proxyKey: string,
-      proxiesKey: string,
+      proxyCacheKey: string,
       proxyId: number,
-      proxyUrl: string,
-      time: number,
+      url: string,
+      isEnabled: number,
+      createdAt: number,
+      updatedAt: number,
+      queuedAt: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    dropProxyCache(
-      proxyKey: string,
-      proxiesKey: string,
-      onlineProxiesKey: string,
+    saveProxiesIndex(
+      proxiesIndexKey: string,
+      proxyId: number,
+      createdAt: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropProxiesIndex(
+      proxiesIndexKey: string,
       proxyId: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    renewOnlineProxyCache(
-      proxyKey: string,
-      onlineProxiesKey: string,
-      proxyId: number,
+    saveOnlineProxyCache(
+      proxyCacheKey: string,
       sizeBytes: number,
-      time: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    renewOfflineProxyCache(
-      proxyKey: string,
-      onlineProxiesKey: string,
-      proxyId: number,
+    saveOfflineProxyCache(
+      proxyCacheKey: string,
       sizeBytes: number,
-      time: number,
       callback?: Callback<string>
     ): Result<string, Context>
   }

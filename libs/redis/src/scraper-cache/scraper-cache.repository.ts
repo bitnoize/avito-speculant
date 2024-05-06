@@ -1,13 +1,12 @@
 import { Redis } from 'ioredis'
 import {
   ScraperCache,
-  scraperKey,
-  scrapersKey,
-  avitoUrlScrapersKey,
-  categoryScrapersKey,
-  advertScrapersKey
+  scraperCacheKey,
+  scrapersIndexKey,
+  urlPathScraperIdKey,
+  advertScrapersIndexKey
 } from './scraper-cache.js'
-import { proxyKey } from '../proxy-cache/proxy-cache.js'
+import { proxyCacheKey } from '../proxy-cache/proxy-cache.js'
 import {
   parseNumber,
   parseString,
@@ -17,44 +16,46 @@ import {
   parseCommand
 } from '../redis.utils.js'
 
-export async function fetchScraperCache(redis: Redis, scraperId: string): Promise<ScraperCache> {
+export async function fetchScraperCache(
+  redis: Redis,
+  scraperId: string
+): Promise<ScraperCache | undefined> {
   const result = await redis.fetchScraperCache(
-    scraperKey(scraperId) // KEYS[1]
+    scraperCacheKey(scraperId) // KEYS[1]
   )
 
-  return parseModel(result, `ScraperCache fetchScraperCache malformed result`)
+  return parseModel(result, `fetchScraperCache malformed result`)
 }
 
-export async function fetchScrapers(redis: Redis): Promise<string[]> {
+export async function fetchScrapersIndex(redis: Redis): Promise<string[]> {
   const result = await redis.fetchScrapers(
-    scrapersKey() // KEYS[1]
+    scrapersIndexKey() // KEYS[1]
   )
 
-  return parseManyStrings(result, `ScraperCache fetchScrapers malformed result`)
+  return parseManyStrings(result, `fetchScrapersIndex malformed result`)
 }
 
-export async function fetchAvitoUrlScrapers(redis: Redis, avitoUrl: string): Promise<string[]> {
-  const result = await redis.fetchScrapers(
-    avitoUrlScrapersKey(avitoUrl) // KEYS[1]
+export async function fetchUrlPathScraperId(
+  redis: Redis,
+  urlPath: string
+): Promise<string | undefined> {
+  const result = await redis.fetchUrlPathScraperId(
+    urlPathScraperIdKey(urlPath) // KEYS[1]
   )
 
-  return parseManyStrings(result, `ScraperCache fetchAvitoUrlScrapers malformed result`)
+  if (result === null) {
+    return undefined
+  }
+
+  return parseString(result, `fetchUrlPathScraperId malformed result`)
 }
 
-export async function fetchCategoryScrapers(redis: Redis, categoryId: number): Promise<string[]> {
-  const result = await redis.fetchScrapers(
-    categoryScrapersKey(categoryId) // KEYS[1]
+export async function fetchAdvertScrapersIndex(redis: Redis, advertId: number): Promise<string[]> {
+  const result = await redis.fetchAdvertScrapersIndex(
+    advertScrapersIndexKey(advertId) // KEYS[1]
   )
 
-  return parseManyStrings(result, `ScraperCache fetchCategoryScrapers malformed result`)
-}
-
-export async function fetchAdvertScrapers(redis: Redis, advertId: number): Promise<string[]> {
-  const result = await redis.fetchScrapers(
-    advertScrapersKey(advertId) // KEYS[1]
-  )
-
-  return parseManyStrings(result, `ScraperCache fetchAdvertScrapers malformed result`)
+  return parseManyStrings(result, `fetchAdvertScrapersIndex malformed result`)
 }
 
 export async function fetchScrapersCache(
@@ -69,75 +70,68 @@ export async function fetchScrapersCache(
 
   scraperIds.forEach((scraperId) => {
     pipeline.fetchScraperCache(
-      scraperKey(scraperId) // KEYS[1]
+      scraperCacheKey(scraperId) // KEYS[1]
     )
   })
 
   const result = await pipeline.exec()
 
-  return parseCollection(result, `ScraperCache fetchScrapersCache malformed result`)
+  return parseCollection(result, `fetchScrapersCache malformed result`)
 }
 
-export async function dropScraperCache(
-  redis: Redis,
-  scraperId: string,
-  avitoUrl: string
-): Promise<void> {
-  await redis.dropScraperCache(
-    scraperKey(scraperId), // KEYS[1]
-    scrapersKey(), // KEYS[2]
-    avitoUrlScrapersKey(avitoUrl), // KEYS[3]
-    scraperId // ARGV[1]
-  )
-}
-
-export async function renewSuccessScraperCache(
+export async function saveSuccessScraperCache(
   redis: Redis,
   scraperId: string,
   proxyId: number,
   sizeBytes: number
 ): Promise<void> {
-  await redis.renewSuccessScraperCache(
-    scraperKey(scraperId), // KEYS[1]
-    proxyKey(proxyId), // KEYS[2]
-    sizeBytes, // ARGV[1]
-    Date.now() // ARGV[2]
+  const multi = redis.multi()
+
+  multi.saveSuccessScraperCache(
+    scraperCacheKey(scraperId), // KEYS[1]
+    proxyCacheKey(proxyId), // KEYS[2]
+    sizeBytes // ARGV[1]
   )
+
+  await multi.exec()
 }
 
-export async function renewFailedScraperCache(
+export async function saveFailedScraperCache(
   redis: Redis,
   scraperId: string,
   proxyId: number,
   sizeBytes: number
 ): Promise<void> {
-  await redis.renewFailedScraperCache(
-    scraperKey(scraperId), // KEYS[1]
-    proxyKey(proxyId), // KEYS[2]
-    sizeBytes, // ARGV[1]
-    Date.now() // ARGV[2]
+  const multi = redis.multi()
+
+  multi.saveFailedScraperCache(
+    scraperCacheKey(scraperId), // KEYS[1]
+    proxyCacheKey(proxyId), // KEYS[2]
+    sizeBytes // ARGV[1]
   )
+
+  await multi.exec()
 }
 
 const parseModel = (result: unknown, message: string): ScraperCache => {
-  const hash = parseHash(result, 7, message)
+  const hash = parseHash(result, 5, message)
 
   return {
     id: parseString(hash[0], message),
-    avitoUrl: parseString(hash[1], message),
-    intervalSec: parseNumber(hash[2], message),
-    totalCount: parseNumber(hash[3], message),
-    successCount: parseNumber(hash[4], message),
-    sizeBytes: parseNumber(hash[5], message),
-    time: parseNumber(hash[6], message)
+    urlPath: parseString(hash[1], message),
+    totalCount: parseNumber(hash[2], message),
+    successCount: parseNumber(hash[3], message),
+    sizeBytes: parseNumber(hash[4], message),
   }
 }
 
 const parseCollection = (result: unknown, message: string): ScraperCache[] => {
   const pipeline = parsePipeline(result, message)
 
-  return pipeline.map((pl) => {
-    const command = parseCommand(pl, message)
-    return parseModel(command, message)
-  })
+  return pipeline
+    .map((pl) => {
+      const command = parseCommand(pl, message)
+      return parseModel(command, message)
+    })
+    .filter((model) => model !== undefined)
 }

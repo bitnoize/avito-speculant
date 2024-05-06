@@ -20,21 +20,15 @@ import {
   scraperCacheService
 } from '@avito-speculant/redis'
 import {
-  UserSubscriptionBreakError,
+  ConsumeMalformedResponseError,
   TreatmentResult,
   TreatmentProcessor,
   queueService,
-  proxycheckService,
+  broadcastService,
   scrapingService,
-  broadcastService
+  checkproxyService,
 } from '@avito-speculant/queue'
-import {
-  Config,
-  NameProcess,
-  NameProcessProxycheck,
-  NameProcessScraping,
-  NameProcessBroadcast
-} from './worker-treatment.js'
+import { Config, ProcessName } from './worker-treatment.js'
 import { configSchema } from './worker-treatment.schema.js'
 
 const treatmentProcessor: TreatmentProcessor = async function (treatmentJob) {
@@ -98,6 +92,206 @@ const processUser: ProcessName = async function (
   config,
   logger,
   treatmentJob,
+  treatmentResult
+) {
+  const startTime = Date.now()
+
+  const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
+  const db = databaseService.initDatabase(databaseConfig, logger)
+
+  const redisOptions = redisService.getRedisOptions<Config>(config)
+  const redis = redisService.initRedis(redisOptions, logger)
+  const pubSub = redisService.initPubSub(redisOptions, logger)
+
+  const { entityId } = treatmentJob.data
+
+  try {
+    const { user, subscription, plan, backLog } = await userService.consumeUser(db, {
+      userId: entityId,
+      data: {}
+    })
+
+    if (user.isPaid) {
+      if (subscription === undefined || plan === undefined) {
+        throw new ConsumeMalformedResponseError({ user })
+      }
+
+      await userCacheService.savePaidUserCache(redis, {
+        userId: user.id,
+        userTgFromId: user.tgFromId,
+        userSubscriptions: user.subscriptions,
+        userCategories: user.categories,
+        userBots: user.bots,
+        userCreatedAt: user.createdAt,
+        userUpdatedAt: user.updatedAt,
+        userQueuedAt: user.queuedAt,
+        planId: plan.id,
+        planCategoriesMax: plan.categoriesMax,
+        planDurationDays: plan.durationDays,
+        planIntervalSec: plan.intervalSec,
+        planAnalyticsOn: plan.analyticsOn,
+        planPriceRub: plan.priceRub,
+        planIsEnabled: plan.isEnabled,
+        planSubscriptions: plan.subscriptions,
+        planCreatedAt: plan.createdAt,
+        planUpdatedAt: plan.updatedAt,
+        planQueuedAt: plan.queuedAt,
+        subscriptionId: subscription.id,
+        subscriptionPriceRub: subscription.priceRub,
+        subscriptionStatus: subscription.status
+        subscriptionCreatedAt: subscription.createdAt,
+        subscriptionUpdatedAt: subscription.updatedAt,
+        subscriptionQueuedAt: subscription.queuedAt,
+        subscriptionTimeoutAt: subscription.timeoutAt,
+        subscriptionFinishedAt: subscription.finishedAt,
+      })
+    } else {
+      if (subscription !== undefined || plan !== undefined) {
+        throw new ConsumeMalformedResponseError({ user, subscription, plan })
+      }
+
+      await userCacheService.saveUnpaidUserCache(redis, {
+        userId: user.id,
+        tgFromId: user.tgFromId,
+        subscriptions: user.subscriptions,
+        categories: user.categories,
+        bots: user.bots,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        queuedAt: user.queuedAt,
+      })
+    }
+
+    await redisService.publishBackLog(pubSub, backLog)
+  } finally {
+    await redisService.closePubSub(pubSub)
+    await redisService.closeRedis(redis)
+    await databaseService.closeDatabase(db)
+
+    treatmentResult.durationTime = Date.now() - startTime
+  }
+}
+
+const processPlan: ProcessName = async function (
+  config,
+  logger,
+  treatmentJob,
+  treatmentResult
+) {
+  const startTime = Date.now()
+
+  const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
+  const db = databaseService.initDatabase(databaseConfig, logger)
+
+  const redisOptions = redisService.getRedisOptions<Config>(config)
+  const redis = redisService.initRedis(redisOptions, logger)
+  const pubSub = redisService.initPubSub(redisOptions, logger)
+
+  const { entityId } = treatmentJob.data
+
+  try {
+    const { plan, backLog } = await planService.consumePlan(db, {
+      planId: entityId,
+      data: {}
+    })
+
+    await planCacheService.savePlanCache(redis, {
+      planId: plan.id,
+      planCategoriesMax: plan.categoriesMax,
+      planDurationDays: plan.durationDays,
+      planIntervalSec: plan.intervalSec,
+      planAnalyticsOn: plan.analyticsOn,
+      planPriceRub: plan.priceRub,
+      planIsEnabled: plan.isEnabled,
+      planSubscriptions: plan.subscriptions,
+      planCreatedAt: plan.createdAt,
+      planUpdatedAt: plan.updatedAt,
+      planQueuedAt: plan.queuedAt
+    })
+
+    await redisService.publishBackLog(pubSub, backLog)
+  } finally {
+    await redisService.closePubSub(pubSub)
+    await redisService.closeRedis(redis)
+    await databaseService.closeDatabase(db)
+
+    treatmentResult.durationTime = Date.now() - startTime
+  }
+}
+
+const processSubscription: ProcessName = async function (
+  config,
+  logger,
+  treatmentJob,
+  treatmentResult
+) {
+  const startTime = Date.now()
+
+  const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
+  const db = databaseService.initDatabase(databaseConfig, logger)
+
+  const redisOptions = redisService.getRedisOptions<Config>(config)
+  const redis = redisService.initRedis(redisOptions, logger)
+  const pubSub = redisService.initPubSub(redisOptions, logger)
+
+  const { entityId } = treatmentJob.data
+
+  try {
+    const {
+      subscription,
+      user,
+      plan,
+      backLog
+    } = await subscriptionService.consumeSubscription(db, {
+      subscriptionId: entityId,
+      data: {}
+    })
+
+    await subscriptionCacheService.saveSubscriptionCache(redis, {
+      userId: user.id,
+      userTgFromId: user.tgFromId,
+      userIsPaid: user.isPaid,
+      userSubscriptions: user.subscriptions,
+      userCategories: user.categories,
+      userBots: user.bots,
+      userCreatedAt: user.createdAt,
+      userUpdatedAt: user.updatedAt,
+      userQueuedAt: user.queuedAt,
+      planId: plan.id,
+      planCategoriesMax: plan.categoriesMax,
+      planDurationDays: plan.durationDays,
+      planIntervalSec: plan.intervalSec,
+      planAnalyticsOn: plan.analyticsOn,
+      planPriceRub: plan.priceRub,
+      planIsEnabled: plan.isEnabled,
+      planSubscriptions: plan.subscriptions,
+      planCreatedAt: plan.createdAt,
+      planUpdatedAt: plan.updatedAt,
+      planQueuedAt: plan.queuedAt,
+      subscriptionId: subscription.id,
+      subscriptionPriceRub: subscription.priceRub,
+      subscriptionStatus: subscription.status
+      subscriptionCreatedAt: subscription.createdAt,
+      subscriptionUpdatedAt: subscription.updatedAt,
+      subscriptionQueuedAt: subscription.queuedAt,
+      subscriptionTimeoutAt: subscription.timeoutAt,
+      subscriptionFinishedAt: subscription.finishedAt,
+    })
+
+    await redisService.publishBackLog(pubSub, backLog)
+  } finally {
+    await redisService.closePubSub(pubSub)
+    await redisService.closeRedis(redis)
+    await databaseService.closeDatabase(db)
+
+    treatmentResult.durationTime = Date.now() - startTime
+  }
+}
+
+const processBot: ProcessName = async function (
+  config,
+  logger,
+  treatmentJob,
   treatmentResult,
 ) {
   const startTime = Date.now()
@@ -110,38 +304,199 @@ const processUser: ProcessName = async function (
   const pubSub = redisService.initPubSub(redisOptions, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
-  const broadcastQueue = broadcastService.initQueue(queueConnection, logger)
+  const checkbotQueue = checkbotService.initQueue(queueConnection, logger)
 
   const { entityId } = treatmentJob.data
 
   try {
-    const { user, subscription, plan, backLog } = await userService.consumeUser(db, {
-      userId: entityId,
+    const { bot, user, category, backLog } = await botService.consumeBot(db, {
+      proxyId: entityId,
       data: {}
     })
 
-    if (user.isPaid) {
-      if (subscription === undefined || plan === undefined) {
-        throw new ConsumeWrongResultError({ user })
+    if (bot.isLinked) {
+      if (!bot.isEnabled) {
+        throw new ConsumeMalformedResponseError({ bot, user })
       }
 
-      await userCacheService.saveUserCache(redis, {
+      if (!user.isPaid) {
+        throw new ConsumeMalformedResponseError({ bot, user })
+      }
+
+      if (category === undefined) {
+        throw new ConsumeMalformedResponseError({ bot, user })
+      }
+
+      if (!category.isEnabled) {
+        throw new ConsumeMalformedResponseError({ bot, user, category })
+      }
+
+      await botCacheService.saveLinkedBotCache(redis, {
         userId: user.id,
-        tgFromId: user.tgFromId,
-        checkpointAt: startTime + subscription.intervalSec * 1000
+        userTgFromId: user.tgFromId,
+        userIsPaid: user.isPaid,
+        userSubscriptions: user.subscriptions,
+        userCategories: user.categories,
+        userBots: user.bots,
+        userCreatedAt: user.createdAt,
+        userUpdatedAt: user.updatedAt,
+        userQueuedAt: user.queuedAt,
+        botId: bot.id,
+        botCreatedAt: bot.createdAt,
+        botUpdatedAt: bot.updatedAt,
+        botQueuedAt: bot.queuedAt,
+        categoryId: category.id,
+        categoryIsEnabled: category.isEnabled,
+        categoryCreatedAt: category.createdAt,
+        categoryUpdatedAt: category.updatedAt,
+        categoryQueuedAt: category.queuedAt,
       })
-
-      await broadcastService.addRepeatableJob(broadcastQueue, user.id)
     } else {
-      await broadcastService.removeRepeatableJob(broadcastQueue, user.id)
+      if (category !== undefined) {
+        throw new ConsumeMalformedResponseError({ bot, user, category })
+      }
 
-      await userCacheService.dropUserCache(redis, {
-        userId: user.id
+      await botCacheService.saveUnlinkedBotCache(redis, {
+        userId: user.id,
+        userTgFromId: user.tgFromId,
+        userSubscriptions: user.subscriptions,
+        userCategories: user.categories,
+        userBots: user.bots,
+        userCreatedAt: user.createdAt,
+        userUpdatedAt: user.updatedAt,
+        userQueuedAt: user.queuedAt,
+        botId: bot.id,
+        botIsEnabled: bot.isEnabled,
+        botCreatedAt: bot.createdAt,
+        botUpdatedAt: bot.updatedAt,
+        botQueuedAt: bot.queuedAt,
       })
+    }
+
+    if (bot.isEnabled) {
+      await checkbotService.addJob(checkbotQueue, bot.id)
     }
 
     await redisService.publishBackLog(pubSub, backLog)
   } finally {
+    await checkbotService.closeQueue(checkbotQueue)
+    await redisService.closePubSub(pubSub)
+    await redisService.closeRedis(redis)
+    await databaseService.closeDatabase(db)
+
+    treatmentResult.durationTime = Date.now() - startTime
+  }
+}
+
+const processCategory: ProcessName = async function (
+  config,
+  logger,
+  treatmentJob,
+  treatmentResult
+) {
+  const startTime = Date.now()
+
+  const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
+  const db = databaseService.initDatabase(databaseConfig, logger)
+
+  const redisOptions = redisService.getRedisOptions<Config>(config)
+  const redis = redisService.initRedis(redisOptions, logger)
+  const pubSub = redisService.initPubSub(redisOptions, logger)
+
+  const queueConnection = queueService.getQueueConnection<Config>(config)
+  const broadcastQueue = broadcastService.initQueue(queueConnection, logger)
+  const scrapingQueue = scrapingService.initQueue(queueConnection, logger)
+
+  const { entityId } = treatmentJob.data
+
+  try {
+    const {
+      category,
+      user,
+      subscription,
+      plan,
+      bot,
+      backLog
+    } = await categoryService.consumeCategory(db, {
+      categoryId: entityId,
+      data: {}
+    })
+
+    const scraperId = await scraperCacheService.fetchUrlPathScraperId(redis, {
+      urlPath: category.urlPath
+    })
+
+    if (category.isEnabled) {
+      if (category.bot_id === null) {
+        throw new ConsumeMalformedResponseError({ category, user })
+      }
+
+      if (!user.isPaid) {
+        throw new ConsumeMalformedResponseError({ category, user })
+      }
+
+      if (subscription === undefined) {
+        throw new ConsumeMalformedResponseError({ category, user })
+      }
+
+      if (plan === undefined) {
+        throw new ConsumeMalformedResponseError({ category, user })
+      }
+
+      if (bot === undefined) {
+        throw new ConsumeMalformedResponseError({ category, user })
+      }
+
+      if (scraperId !== undefined) {
+        const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
+          urlPath: category.urlPath
+        })
+
+        await categoryCacheService.saveEnabledCategoryCache(redis, {
+          categoryId: category.id,
+          userId: category.userId,
+          urlPath: category.urlPath,
+          scraperId: scraperCache.id,
+        })
+      } else {
+        const scraperId = redisService.randomHash()
+
+        await categoryCacheService.saveEnabledCategoryCache(redis, {
+          categoryId: category,
+          userId: category.userId,
+          urlPath: category.urlPath,
+          scraperId: scraperId,
+        })
+      }
+
+      await scrapingService.addRepeatableJob(
+        scrapingQueue,
+        scraperCache.id,
+        scraperCache.intervalSec
+      )
+    } else {
+      if (category.bot_id !== null) {
+        throw new ConsumeMalformedResponseError({ category, user })
+      }
+
+      if (subscription !== undefined) {
+        throw new ConsumeMalformedResponseError({ category, user, subscription })
+      }
+
+      if (plan !== undefined) {
+        throw new ConsumeMalformedResponseError({ category, user, plan })
+      }
+
+      if (bot !== undefined) {
+        throw new ConsumeMalformedResponseError({ category, user, bot })
+      }
+
+
+    }
+
+    await redisService.publishBackLog(pubSub, backLog)
+  } finally {
+    await scrapingService.closeQueue(scrapingQueue)
     await broadcastService.closeQueue(broadcastQueue)
     await redisService.closePubSub(pubSub)
     await redisService.closeRedis(redis)
@@ -151,157 +506,68 @@ const processUser: ProcessName = async function (
   }
 }
 
-const processPlan: NameProcess = async function (
+const processProxy: ProcessName = async function (
   config,
   logger,
-  db,
-  redis,
-  pubSub,
-  treatmentJob,
-  treatmentResult
-) {
-  try {
-    const startTime = Date.now()
-    const name = treatmentJob.name
-
-    const { plan, backLog } = await planService.consumePlan(db, {
-      planId: treatmentJob.data.entityId,
-      data: {
-        queue: treatmentJob.queueName,
-        job: {
-          id: treatmentJob.id,
-          name: treatmentJob.name,
-          data: treatmentJob.data
-        }
-      }
-    })
-
-    if (plan.isEnabled) {
-      await planCacheService.savePlanCache(redis, {
-        planId: plan.id,
-        categoriesMax: plan.categoriesMax,
-        priceRub: plan.priceRub,
-        durationDays: plan.durationDays,
-        intervalSec: plan.intervalSec,
-        analyticsOn: plan.analyticsOn
-      })
-    } else {
-      await planCacheService.dropPlanCache(redis, {
-        planId: plan.id
-      })
-    }
-
-    await redisService.publishBackLog(pubSub, backLog)
-
-    treatmentResult[name] = {
-      durationTime: Date.now() - startTime
-    }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      logger.error(`TreatmentProcessor processPlan exception`)
-
-      error.setEmergency()
-    }
-
-    throw error
-  }
-}
-
-const processSubscription: NameProcess = async function (
-  config,
-  logger,
-  db,
-  redis,
-  pubSub,
-  treatmentJob,
-  treatmentResult
-) {
-  try {
-    const startTime = Date.now()
-    const name = treatmentJob.name
-
-    const { subscription, backLog } = await subscriptionService.consumeSubscription(db, {
-      subscriptionId: treatmentJob.data.entityId,
-      data: {
-        queue: treatmentJob.queueName,
-        job: {
-          id: treatmentJob.id,
-          name: treatmentJob.name,
-          data: treatmentJob.data
-        }
-      }
-    })
-
-    if (subscription.status === 'active') {
-      await subscriptionCacheService.saveSubscriptionCache(redis, {
-        subscriptionId: subscription.id,
-        userId: subscription.userId,
-        planId: subscription.planId,
-        categoriesMax: subscription.categoriesMax,
-        priceRub: subscription.priceRub,
-        durationDays: subscription.durationDays,
-        intervalSec: subscription.intervalSec,
-        analyticsOn: subscription.analyticsOn
-      })
-    } else {
-      await subscriptionCacheService.dropSubscriptionCache(redis, {
-        subscriptionId: subscription.id,
-        userId: subscription.userId,
-        planId: subscription.planId
-      })
-    }
-
-    await redisService.publishBackLog(pubSub, backLog)
-
-    treatmentResult[name] = {
-      durationTime: Date.now() - startTime
-    }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      logger.error(`TreatmentProcessor processSubscription exception`)
-
-      error.setEmergency()
-    }
-
-    throw error
-  }
-}
-
-const processCategory: NameProcessScraping = async function (
-  config,
-  logger,
-  db,
-  redis,
-  pubSub,
   treatmentJob,
   treatmentResult,
-  scrapingQueue
 ) {
-  const scrapingQueue = scrapingService.initQueue(queueConnection, logger)
+  const startTime = Date.now()
+
+  const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
+  const db = databaseService.initDatabase(databaseConfig, logger)
+
+  const redisOptions = redisService.getRedisOptions<Config>(config)
+  const redis = redisService.initRedis(redisOptions, logger)
+  const pubSub = redisService.initPubSub(redisOptions, logger)
+
+  const queueConnection = queueService.getQueueConnection<Config>(config)
+  const checkproxyQueue = checkproxyService.initQueue(queueConnection, logger)
+
+  const { entityId } = treatmentJob.data
 
   try {
-    const startTime = Date.now()
-    const name = treatmentJob.name
-
-    const { category, subscription, backLog } = await categoryService.consumeCategory(db, {
-      categoryId: treatmentJob.data.entityId,
-      data: {
-        queue: treatmentJob.queueName,
-        job: {
-          id: treatmentJob.id,
-          name: treatmentJob.name,
-          data: treatmentJob.data
-        }
-      }
+    const { proxy, backLog } = await proxyService.consumeProxy(db, {
+      proxyId: entityId,
+      data: {}
     })
 
-    const { scraperCache } = await scraperCacheService.fetchAvitoUrlScraperCache(redis, {
-      avitoUrl: category.avitoUrl
+    await proxyCacheService.saveProxyCache(redis, {
+      proxyId: proxy.id,
+      proxyProxyUrl: proxy.proxyUrl,
+      proxyIsEnabled: proxy.isEnabled,
+      proxyCreatedAt: proxy.createdAt,
+      proxyUpdatedAt: proxy.updatedAt,
+      proxyQueuedAt: proxy.queuedAt
     })
+
+    if (proxy.isEnabled) {
+      await checkproxyService.addJob(checkproxyQueue, proxy.id)
+    }
+
+    await redisService.publishBackLog(pubSub, backLog)
+  } finally {
+    await checkproxyService.closeQueue(checkproxyQueue)
+    await redisService.closePubSub(pubSub)
+    await redisService.closeRedis(redis)
+    await databaseService.closeDatabase(db)
+
+    treatmentResult.durationTime = Date.now() - startTime
+  }
+}
+
+export default treatmentProcessor
+
+
+
+      await broadcastService.addRepeatableJob(broadcastQueue, user.id)
+      await broadcastService.removeRepeatableJob(broadcastQueue, user.id)
+
+
 
     if (category.isEnabled) {
-      if (subscription === undefined) {
-        throw new UserSubscriptionBreakError({ category })
+      if (subscription === undefined || plan === undefined) {
+        throw new ConsumeWrongParamsError({ category, user })
       }
 
       if (scraperCache !== undefined) {
@@ -309,7 +575,7 @@ const processCategory: NameProcessScraping = async function (
         // Save scraper and category
         // Ensure scraping job is running
 
-        if (subscription.intervalSec < scraperCache.intervalSec) {
+        if (plan.intervalSec < scraperCache.intervalSec) {
           // Category subscription interval is less then scraper interval
           // Scraper needs to be updated and restarted
 
@@ -401,81 +667,4 @@ const processCategory: NameProcessScraping = async function (
       }
     }
 
-    await redisService.publishBackLog(pubSub, backLog)
 
-    treatmentResult[name] = {
-      durationTime: Date.now() - startTime
-    }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      logger.error(`TreatmentProcessor processCategory exception`)
-
-      error.setEmergency()
-    }
-
-    throw error
-  } finally {
-    await scrapingService.closeQueue(scrapingQueue)
-  }
-}
-
-const processProxy: NameProcessProxycheck = async function (
-  config,
-  logger,
-  db,
-  redis,
-  pubSub,
-  treatmentJob,
-  treatmentResult,
-  proxycheckQueue
-) {
-  const proxycheckQueue = proxycheckService.initQueue(queueConnection, logger)
-
-  try {
-    const startTime = Date.now()
-    const name = treatmentJob.name
-
-    const { proxy, backLog } = await proxyService.consumeProxy(db, {
-      proxyId: treatmentJob.data.entityId,
-      data: {
-        queue: treatmentJob.queueName,
-        job: {
-          id: treatmentJob.id,
-          name: treatmentJob.name,
-          data: treatmentJob.data
-        }
-      }
-    })
-
-    if (proxy.isEnabled) {
-      await proxyCacheService.saveProxyCache(redis, {
-        proxyId: proxy.id,
-        proxyUrl: proxy.proxyUrl
-      })
-
-      await proxycheckService.addJob(proxycheckQueue, proxy.id)
-    } else {
-      await proxyCacheService.dropProxyCache(redis, {
-        proxyId: proxy.id
-      })
-    }
-
-    await redisService.publishBackLog(pubSub, backLog)
-
-    treatmentResult[name] = {
-      durationTime: Date.now() - startTime
-    }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      logger.error(`TreatmentProcessor processProxy exception`)
-
-      error.setEmergency()
-    }
-
-    throw error
-  } finally {
-    await proxycheckService.closeQueue(proxycheckQueue)
-  }
-}
-
-export default treatmentProcessor

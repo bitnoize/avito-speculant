@@ -2,7 +2,11 @@ import { RedisMethod } from '../../redis.js'
 
 export type SaveProxyCacheRequest = {
   proxyId: number
-  proxyUrl: string
+  url: string
+  isEnabled: boolean
+  createdAt: number
+  updatedAt: number
+  queuedAt: number
 }
 
 export type SaveProxyCacheResponse = void

@@ -1,7 +1,7 @@
 import { ProxyCache } from '../proxy-cache.js'
 import { RedisMethod } from '../../redis.js'
 
-export type FetchRandomOnlineProxyCacheRequest = undefined
+export type FetchRandomOnlineProxyCacheRequest = void
 
 export type FetchRandomOnlineProxyCacheResponse = {
   proxyCache: ProxyCache | undefined

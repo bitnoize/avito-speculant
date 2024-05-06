@@ -1,6 +1,7 @@
 import { Redis } from 'ioredis'
 import {
   UserCache,
+  WEBAPP_USER_ID_TIMEOUT,
   userCacheKey,
   telegramUserIdKey,
   webappUserIdKey,
@@ -131,15 +132,15 @@ export async function savePaidUserCache(
     userQueuedAt // ARGV[10]
   )
 
-  multi.appendUsersIndex(
+  multi.saveTelegramUserId(
+    telegramUserIdKey(userTgFromId), // KEYS[1]
+    userId // ARGV[1]
+  )
+
+  multi.saveUsersIndex(
     usersIndexKey(), // KEYS[1]
     userId, // ARGV[1]
     userCreatedAt // ARGV[2]
-  )
-
-  multi.saveTelegramUserId(
-    telegramUserIdKey(userTgFromId), // KEYS[1]
-    userId, // ARGV[1]
   )
 
   multi.savePlanCache(
@@ -148,16 +149,16 @@ export async function savePaidUserCache(
     planCategoriesMax, // ARGV[2]
     planDurationDays, // ARGV[3]
     planIntervalSec, // ARGV[4]
-    planAnalyticsOn, // ARGV[5]
+    planAnalyticsOn ? 1 : 0, // ARGV[5]
     planPriceRub, // ARGV[6]
-    planIsEnabled, // ARGV[7]
+    planIsEnabled ? 1 : 0, // ARGV[7]
     planSubscriptions, // ARGV[8]
     planCreatedAt, // ARGV[9]
     planUpdatedAt, // ARGV[10]
     planQueuedAt // ARGV[11]
   )
 
-  multi.appendPlansIndex(
+  multi.savePlansIndex(
     plansIndexKey(), // KEYS[1]
     planId, // ARGV[1]
     planCreatedAt // ARGV[2]
@@ -177,7 +178,7 @@ export async function savePaidUserCache(
     subscriptionFinishAt // ARGV[10]
   )
 
-  multi.appendUserSubscriptionsIndex(
+  multi.saveUserSubscriptionsIndex(
     userSubscriptionsIndexKey(userId), // KEYS[1]
     subscriptionId, // ARGV[1]
     subscriptionCreatedAt // ARGV[2]
@@ -189,37 +190,54 @@ export async function savePaidUserCache(
 export async function saveUnpaidUserCache(
   redis: Redis,
   userId: number,
-  userTgFromId: string,
-  userSubscriptions: number,
-  userCategories: number,
-  userBots: number,
-  userCreatedAt: number,
-  userUpdatedAt: number,
-  userQueuedAt: number,
+  tgFromId: string,
+  subscriptions: number,
+  categories: number,
+  bots: number,
+  createdAt: number,
+  updatedAt: number,
+  queuedAt: number,
 ): Promise<void> {
   const multi = redis.multi()
 
   multi.saveUserCache(
     userCacheKey(userId), // KEYS[1]
     userId, // ARGV[1]
-    userTgFromId, // ARGV[2]
+    tgFromId, // ARGV[2]
     0, // ARGV[3]
     null, // ARGV[4]
-    userSubscriptions, // ARGV[5]
-    userCategories, // ARGV[6]
-    userBots, // ARGV[7]
-    userCreatedAt, // ARGV[8]
-    userUpdatedAt, // ARGV[9]
-    userQueuedAt // ARGV[10]
+    subscriptions, // ARGV[5]
+    categories, // ARGV[6]
+    bots, // ARGV[7]
+    createdAt, // ARGV[8]
+    updatedAt, // ARGV[9]
+    queuedAt // ARGV[10]
   )
 
-  multi.appendUsersIndex(
+  multi.saveTelegramUserId(
+    telegramUserIdKey(tgFromId), // KEYS[1]
+    userId // ARGV[1]
+  )
+
+  multi.saveUsersIndex(
     usersIndexKey(), // KEYS[1]
     userId, // ARGV[1]
-    userCreatedAt // ARGV[2]
+    createdAt // ARGV[2]
   )
 
   await multi.exec()
+}
+
+export async function saveWebappUserId(
+  redis: Redis,
+  token: string,
+  userId: number
+): Promise<void> {
+  await redis.saveWebappUserId(
+    webappUserIdKey(token), // KEYS[1]
+    userId, // ARGV[1]
+    WEBAPP_USER_ID_TIMEOUT // ARGV[2]
+  )
 }
 
 const parseModel = (result: unknown, message: string): UserCache | undefined => {
@@ -253,21 +271,3 @@ const parseCollection = (result: unknown, message: string): UserCache[] => {
     })
     .filter((model) => model !== undefined)
 }
-
-
-
-/*
-export async function renewUserCache(
-  redis: Redis,
-  userId: number,
-  checkpointAt: number
-): Promise<void> {
-  await redis.renewUserCache(
-    userKey(userId), // KEYS[1]
-    checkpointAt, // ARGV[1]
-    Date.now() // ARGV[2]
-  )
-}
-*/
-
-

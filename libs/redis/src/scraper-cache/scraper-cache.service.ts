@@ -1,14 +1,14 @@
 import {
   FetchScraperCache,
   FetchScrapersCache,
-  FetchAvitoUrlScraperCache,
+  FetchUrlPathScraperCache,
   FetchCategoryScrapersCache,
   FetchAdvertScrapersCache,
   DropScraperCache,
-  RenewSuccessScraperCache,
-  RenewFailedScraperCache
+  SaveSuccessScraperCache,
+  SaveFailedScraperCache
 } from './dto/index.js'
-import { AvitoUrlScraperError } from './scraper-cache.errors.js'
+import { UrlPathScraperError } from './scraper-cache.errors.js'
 import * as scraperCacheRepository from './scraper-cache.repository.js'
 
 /*
@@ -17,51 +17,25 @@ import * as scraperCacheRepository from './scraper-cache.repository.js'
 export const fetchScraperCache: FetchScraperCache = async function (redis, request) {
   const scraperCache = await scraperCacheRepository.fetchScraperCache(redis, request.scraperId)
 
+  if (scraperCache === undefined) {
+    throw new ScraperCacheNotFoundError({ request })
+  }
+
   return { scraperCache }
+}
+
+/*
+ * Fetch UrlPathScraperId
+ */
+export const fetchUrlPathScraperId: FetchUrlPathScraperId = async function (redis, request) {
+  return await scraperCacheRepository.fetchUrlPathScraperId(redis, request.urlPath)
 }
 
 /*
  * Fetch ScrapersCache
  */
 export const fetchScrapersCache: FetchScrapersCache = async function (redis) {
-  const scraperIds = await scraperCacheRepository.fetchScrapers(redis)
-  const scrapersCache = await scraperCacheRepository.fetchScrapersCache(redis, scraperIds)
-
-  return { scrapersCache }
-}
-
-/*
- * Fetch AvitoUrlScraperCache
- */
-export const fetchAvitoUrlScraperCache: FetchAvitoUrlScraperCache = async function (
-  redis,
-  request
-) {
-  const scraperIds = await scraperCacheRepository.fetchAvitoUrlScrapers(redis, request.avitoUrl)
-
-  if (scraperIds.length === 0) {
-    return {
-      scraperCache: undefined
-    }
-  }
-
-  if (scraperIds.length !== 1) {
-    throw new AvitoUrlScraperError({ request })
-  }
-
-  const scraperCache = await scraperCacheRepository.fetchScraperCache(redis, scraperIds[0])
-
-  return { scraperCache }
-}
-
-/*
- * Fetch CategoryScrapersCache
- */
-export const fetchCategoryScrapersCache: FetchCategoryScrapersCache = async function (
-  redis,
-  request
-) {
-  const scraperIds = await scraperCacheRepository.fetchCategoryScrapers(redis, request.categoryId)
+  const scraperIds = await scraperCacheRepository.fetchScrapersIndex(redis)
   const scrapersCache = await scraperCacheRepository.fetchScrapersCache(redis, scraperIds)
 
   return { scrapersCache }
@@ -71,24 +45,17 @@ export const fetchCategoryScrapersCache: FetchCategoryScrapersCache = async func
  * Fetch AdvertScrapersCache
  */
 export const fetchAdvertScrapersCache: FetchAdvertScrapersCache = async function (redis, request) {
-  const scraperIds = await scraperCacheRepository.fetchAdvertScrapers(redis, request.advertId)
+  const scraperIds = await scraperCacheRepository.fetchAdvertScrapersIndex(redis, request.advertId)
   const scrapersCache = await scraperCacheRepository.fetchScrapersCache(redis, scraperIds)
 
   return { scrapersCache }
 }
 
 /*
- * Drop ScraperCache
+ * Save SuccessScraperCache
  */
-export const dropScraperCache: DropScraperCache = async function (redis, request) {
-  await scraperCacheRepository.dropScraperCache(redis, request.scraperId, request.avitoUrl)
-}
-
-/*
- * Renew SuccessScraperCache
- */
-export const renewSuccessScraperCache: RenewSuccessScraperCache = async function (redis, request) {
-  await scraperCacheRepository.renewSuccessScraperCache(
+export const saveSuccessScraperCache: SaveSuccessScraperCache = async function (redis, request) {
+  await scraperCacheRepository.saveSuccessScraperCache(
     redis,
     request.scraperId,
     request.proxyId,
@@ -97,10 +64,10 @@ export const renewSuccessScraperCache: RenewSuccessScraperCache = async function
 }
 
 /*
- * Renew FailedScraperCache
+ * Save FailedScraperCache
  */
-export const renewFailedScraperCache: RenewFailedScraperCache = async function (redis, request) {
-  await scraperCacheRepository.renewFailedScraperCache(
+export const saveFailedScraperCache: SaveFailedScraperCache = async function (redis, request) {
+  await scraperCacheRepository.saveFailedScraperCache(
     redis,
     request.scraperId,
     request.proxyId,

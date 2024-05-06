@@ -1,9 +1,8 @@
 import { Redis } from 'ioredis'
 import {
   SubscriptionCache,
-  subscriptionKey,
-  userSubscriptionsKey,
-  planSubscriptionsKey
+  subscriptionCacheKey,
+  userSubscriptionsIndexKey
 } from './subscription-cache.js'
 import {
   parseNumber,
@@ -18,26 +17,21 @@ export async function fetchSubscriptionCache(
   subscriptionId: number
 ): Promise<SubscriptionCache | undefined> {
   const result = await redis.fetchSubscriptionCache(
-    subscriptionKey(subscriptionId) // KEYS[1]
+    subscriptionCacheKey(subscriptionId) // KEYS[1]
   )
 
-  return parseModel(result, `Script fetchSubscriptionCache malformed result`)
+  return parseModel(result, `fetchSubscriptionCache malformed result`)
 }
 
-export async function fetchUserSubscriptions(redis: Redis, userId: number): Promise<number[]> {
+export async function fetchUserSubscriptionsIndex(
+  redis: Redis,
+  userId: number
+): Promise<number[]> {
   const result = await redis.fetchSubscriptions(
-    userSubscriptionsKey(userId) // KEYS[1]
+    userSubscriptionsIndexKey(userId) // KEYS[1]
   )
 
-  return parseManyNumbers(result, `SubscriptionCache fetchUserSubscriptions malformed result`)
-}
-
-export async function fetchPlanSubscriptions(redis: Redis, planId: number): Promise<number[]> {
-  const result = await redis.fetchSubscriptions(
-    planSubscriptionsKey(planId) // KEYS[1]
-  )
-
-  return parseManyNumbers(result, `SubscriptionCache fetchPlanSubscriptions malformed result`)
+  return parseManyNumbers(result, `fetchUserSubscriptionsIndex malformed result`)
 }
 
 export async function fetchSubscriptionsCache(
@@ -52,13 +46,13 @@ export async function fetchSubscriptionsCache(
 
   subscriptionIds.forEach((subscriptionId) => {
     pipeline.fetchSubscriptionCache(
-      subscriptionKey(subscriptionId) // KEYS[1]
+      subscriptionCacheKey(subscriptionId) // KEYS[1]
     )
   })
 
   const result = await pipeline.exec()
 
-  return parseCollection(result, `SubscriptionCache fetchSubscriptionsCache malformed result`)
+  return parseCollection(result, `fetchSubscriptionsCache malformed result`)
 }
 
 export async function saveSubscriptionCache(
@@ -73,9 +67,9 @@ export async function saveSubscriptionCache(
   analyticsOn: boolean
 ): Promise<void> {
   await redis.saveSubscriptionCache(
-    subscriptionKey(subscriptionId), // KEYS[1]
-    userSubscriptionsKey(userId), // KEYS[2]
-    planSubscriptionsKey(planId), // KEYS[3]
+    subscriptionCacheKey(subscriptionId), // KEYS[1]
+    userSubscriptionsIndexKey(userId), // KEYS[2]
+    planSubscriptionsIndexKey(planId), // KEYS[3]
     subscriptionId, // ARGV[1]
     userId, // ARGV[2]
     planId, // ARGV[3]
@@ -95,9 +89,9 @@ export async function dropSubscriptionCache(
   planId: number
 ): Promise<void> {
   await redis.dropSubscriptionCache(
-    subscriptionKey(subscriptionId), // KEYS[1]
-    userSubscriptionsKey(userId), // KEYS[2]
-    planSubscriptionsKey(planId), // KEYS[3]
+    subscriptionCacheKey(subscriptionId), // KEYS[1]
+    userSubscriptionsIndexKey(userId), // KEYS[2]
+    planSubscriptionsIndexKey(planId), // KEYS[3]
     subscriptionId // ARGV[1]
   )
 }

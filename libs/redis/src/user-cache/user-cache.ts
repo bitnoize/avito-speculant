@@ -13,6 +13,8 @@ export interface UserCache {
   queuedAt: number
 }
 
+export const WEBAPP_USER_ID_TIMEOUT = 3600 * 1000
+
 export const userCacheKey = (userId: number) => [REDIS_CACHE_PREFIX, 'user', userId].join(':')
 
 export const telegramUserIdKey = (tgFromId: string) =>

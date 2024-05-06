@@ -31,13 +31,6 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    appendUsersIndex(
-      usersIndexKey: string,
-      userId: number,
-      createdAt: number,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
     saveTelegramUserId(
       telegramUserIdKey: string,
       userId: number,
@@ -48,6 +41,13 @@ declare module 'ioredis' {
       webappUserIdKey: string,
       userId: number,
       timeout: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveUsersIndex(
+      usersIndexKey: string,
+      userId: number,
+      createdAt: number,
       callback?: Callback<string>
     ): Result<string, Context>
   }

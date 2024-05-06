@@ -2,47 +2,62 @@ import { Result, Callback } from 'ioredis'
 
 declare module 'ioredis' {
   interface RedisCommander<Context> {
-    fetchScraperCache(scraperKey: string, callback?: Callback<string>): Result<string, Context>
-
-    fetchScrapers(scrapersKey: string, callback?: Callback<string>): Result<string, Context>
-
-    findAvitoUrlScrapers(
-      avitoUrlScrapersKey: string,
+    fetchScraperCache(
+      scraperCacheKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
 
+    fetchUrlPathScraperId(
+      urlPathScraperIdKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchScrapersIndex(
+      scrapersIndexKey: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+    
     saveScraperCache(
-      scraperKey: string,
-      scrapersKey: string,
-      avitoUrlScrapersKey: string,
+      scraperCacheKey: string,
       scraperId: string,
-      avitoUrl: string,
-      intervalSec: number,
-      time: number,
+      urlPath: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveUrlPathScraperId(
+      urlPathScraperIdKey: string,
+      scraperId: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveScrapersIndex(
+      scrapersIndexKey: string,
+      scraperId: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropScrapersIndex(
+      scrapersIndexKey: string,
+      scraperId: string,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveSuccessScraperCache(
+      scraperCacheKey: string,
+      proxyCacheKey: string,
+      sizeBytes: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveFailedScraperCache(
+      scraperCacheKey: string,
+      proxyCacheKey: string,
+      sizeBytes: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
     dropScraperCache(
-      scraperKey: string,
-      scrapersKey: string,
-      avitoUrlScrapersKey: string,
-      scraperId: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    renewSuccessScraperCache(
-      scraperKey: string,
-      proxyKey: string,
-      sizeBytes: number,
-      time: number,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    renewFailedScraperCache(
-      scraperKey: string,
-      proxyKey: string,
-      sizeBytes: number,
-      time: number,
+      scraperCacheKey: string,
       callback?: Callback<string>
     ): Result<string, Context>
   }

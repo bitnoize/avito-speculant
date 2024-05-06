@@ -15,6 +15,6 @@ export interface ProxyCache {
 
 export const proxyKey = (proxyId: number) => [REDIS_CACHE_PREFIX, 'proxy', proxyId].join(':')
 
-export const proxiesKey = () => [REDIS_CACHE_PREFIX, 'proxies'].join(':')
+export const proxiesIndexKey = () => [REDIS_CACHE_PREFIX, 'proxies'].join(':')
 
-export const onlineProxiesKey = () => [REDIS_CACHE_PREFIX, 'online-proxies'].join(':')
+export const onlineProxiesIndexKey = () => [REDIS_CACHE_PREFIX, 'online-proxies'].join(':')

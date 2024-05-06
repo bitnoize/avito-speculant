@@ -1,5 +1,10 @@
 import { Redis } from 'ioredis'
-import { ProxyCache, proxyKey, proxiesKey, onlineProxiesKey } from './proxy-cache.js'
+import {
+  ProxyCache,
+  proxyCacheKey,
+  proxiesIndexKey,
+  onlineProxiesIndexKey
+} from './proxy-cache.js'
 import {
   parseNumber,
   parseManyNumbers,
@@ -14,7 +19,7 @@ export async function fetchProxyCache(
   proxyId: number
 ): Promise<ProxyCache | undefined> {
   const result = await redis.fetchProxyCache(
-    proxyKey(proxyId) // KEYS[1]
+    proxyCacheKey(proxyId) // KEYS[1]
   )
 
   return parseModel(result, `fetchProxyCache malformed result`)
@@ -22,23 +27,23 @@ export async function fetchProxyCache(
 
 export async function fetchProxiesIndex(redis: Redis): Promise<number[]> {
   const result = await redis.fetchProxiesIndex(
-    proxiesKey() // KEYS[1]
+    proxiesIndexKey() // KEYS[1]
   )
 
-  return parseManyNumbers(result, `fetchProxies malformed result`)
+  return parseManyNumbers(result, `fetchProxiesIndex malformed result`)
 }
 
 export async function fetchOnlineProxiesIndex(redis: Redis): Promise<number[]> {
   const result = await redis.fetchProxiesIndex(
-    onlineProxiesKey() // KEYS[1]
+    onlineProxiesIndexKey() // KEYS[1]
   )
 
-  return parseManyNumbers(result, `fetchOnlineProxies malformed result`)
+  return parseManyNumbers(result, `fetchOnlineProxiesIndex malformed result`)
 }
 
-export async function fetchRandomOnlineProxy(redis: Redis): Promise<number | undefined> {
+export async function fetchRandomOnlineProxyId(redis: Redis): Promise<number | undefined> {
   const result = await redis.fetchRandomProxy(
-    onlineProxiesKey() // KEYS[1]
+    onlineProxiesIndexKey() // KEYS[1]
   )
 
   if (result == null) {
@@ -57,7 +62,7 @@ export async function fetchProxiesCache(redis: Redis, proxyIds: number[]): Promi
 
   proxyIds.forEach((proxyId) => {
     pipeline.fetchProxyCache(
-      proxyKey(proxyId) // KEYS[1]
+      proxyCacheKey(proxyId) // KEYS[1]
     )
   })
 
@@ -66,18 +71,19 @@ export async function fetchProxiesCache(redis: Redis, proxyIds: number[]): Promi
   return parseCollection(result, `fetchProxiesCache malformed result`)
 }
 
-export async function saveEnabledProxyCache(
+export async function saveProxyCache(
   redis: Redis,
   proxyId: number,
-  proxyUrl: string,
-  proxyIsEnabled: boolean,
-  proxyCreatedAt: number,
-  proxyUpdatedAt: number,
-  proxyQueuedAt: number,
+  url: string,
+  isEnabled: boolean,
+  createdAt: number,
+  updatedAt: number,
+  queuedAt: number,
 ): Promise<void> {
-  await redis.saveProxyCache(
-    proxyKey(proxyId), // KEYS[1]
-    proxiesKey(), // KEYS[2]
+  const multi = redis.multi()
+
+  multi.saveProxyCache(
+    proxyCacheKey(proxyId), // KEYS[1]
     proxyId, // ARGV[1]
     proxyUrl, // ARGV[2]
     proxyIsEnabled, // ARGV[3]
@@ -85,34 +91,55 @@ export async function saveEnabledProxyCache(
     proxyUpdatedAt, // ARGV[5]
     proxyQueuedAt // ARGV[6]
   )
+
+  multi.saveProxiesIndex(
+    proxiesIndexKey(), // KEYS[1]
+    proxyId, // ARGV[1]
+    createdAt // ARGV[2]
+  )
+
+  await multi.exec()
 }
 
-export async function renewOnlineProxyCache(
+export async function saveOnlineProxyCache(
   redis: Redis,
   proxyId: number,
   sizeBytes: number
 ): Promise<void> {
-  await redis.renewOnlineProxyCache(
-    proxyKey(proxyId), // KEYS[1]
-    onlineProxiesKey(), // KEYS[2]
-    proxyId, // ARGV[1]
-    sizeBytes, // ARGV[2]
-    Date.now() // ARGV[3]
+  const multi = redis.multi()
+
+  multi.saveOnlineProxyCache(
+    proxyCacheKey(proxyId), // KEYS[1]
+    sizeBytes // ARGV[1]
   )
+
+  multi.saveProxiesIndex(
+    onlineProxiesIndexKey(), // KEYS[1]
+    proxyId, // ARGV[1]
+    createdAt // ARGV[2]
+  )
+
+  await multi.exec()
 }
 
-export async function renewOfflineProxyCache(
+export async function saveOfflineProxyCache(
   redis: Redis,
   proxyId: number,
   sizeBytes: number
 ): Promise<void> {
-  await redis.renewOfflineProxyCache(
-    proxyKey(proxyId), // KEYS[1]
-    onlineProxiesKey(), // KEYS[2]
-    proxyId, // ARGV[1]
-    sizeBytes, // ARGV[2]
-    Date.now() // ARGV[3]
+  const multi = redis.multi()
+
+  multi.renewOfflineProxyCache(
+    proxyCacheKey(proxyId), // KEYS[1]
+    sizeBytes // ARGV[1]
   )
+
+  multi.dropProxiesIndex(
+    onlineProxiesIndexKey(), // KEYS[1]
+    proxyId // ARGV[1]
+  )
+
+  await multi.exec()
 }
 
 const parseModel = (result: unknown, message: string): ProxyCache | undefined => {
@@ -144,5 +171,5 @@ const parseCollection = (result: unknown, message: string): ProxyCache[] => {
       const command = parseCommand(pl, message)
       return parseModel(command, message)
     })
-    .filter((proxy) => proxy !== undefined)
+    .filter((model) => model !== undefined)
 }

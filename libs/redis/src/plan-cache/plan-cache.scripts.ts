@@ -5,7 +5,6 @@ return redis.call(
   'HMGET', KEYS[1],
   'id',
   'categories_max',
-  'price_rub',
   'duration_days',
   'interval_sec',
   'analytics_on',
@@ -41,7 +40,7 @@ redis.call(
 return redis.status_reply('OK')
 `
 
-const appendPlansIndex = `
+const savePlansIndex = `
 redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
 
 return redis.status_reply('OK')
@@ -63,9 +62,9 @@ const initScripts: InitScripts = (redis) => {
     lua: savePlanCache
   })
 
-  redis.defineCommand('appendPlansIndex', {
+  redis.defineCommand('savePlansIndex', {
     numberOfKeys: 1,
-    lua: appendPlansIndex
+    lua: savePlansIndex
   })
 }
 

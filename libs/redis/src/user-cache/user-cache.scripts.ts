@@ -46,12 +46,6 @@ redis.call(
 return redis.status_reply('OK')
 `
 
-const appendUsersIndex = `
-redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
-
-return redis.status_reply('OK')
-`
-
 const saveTelegramUserId = `
 redis.call('SET', KEYS[1], ARGV[1])
 
@@ -60,6 +54,18 @@ return redis.status_reply('OK')
 
 const saveWebappUserId = `
 redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])
+
+return redis.status_reply('OK')
+`
+
+const appendUsersIndex = `
+redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
+
+return redis.status_reply('OK')
+`
+
+const removeUsersIndex = `
+redis.call('ZREM', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -90,11 +96,6 @@ const initScripts: InitScripts = (redis) => {
     lua: saveUserCache
   })
 
-  redis.defineCommand('appendUsersIndex', {
-    numberOfKeys: 1,
-    lua: appendUsersIndex
-  })
-
   redis.defineCommand('saveTelegramUserId', {
     numberOfKeys: 1,
     lua: saveTelegramUserId
@@ -103,6 +104,16 @@ const initScripts: InitScripts = (redis) => {
   redis.defineCommand('saveWebappUserId', {
     numberOfKeys: 1,
     lua: saveWebappUserId
+  })
+
+  redis.defineCommand('appendUsersIndex', {
+    numberOfKeys: 1,
+    lua: appendUsersIndex
+  })
+
+  redis.defineCommand('removeUsersIndex', {
+    numberOfKeys: 1,
+    lua: removeUsersIndex
   })
 }
 

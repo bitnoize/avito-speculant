@@ -2,44 +2,40 @@ import { Result, Callback } from 'ioredis'
 
 declare module 'ioredis' {
   interface RedisCommander<Context> {
-    fetchProxyCache(proxyKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchBotCache(botCacheKey: string, callback?: Callback<string>): Result<string, Context>
 
-    fetchProxies(proxiesKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchBotsIndex(botsIndexKey: string, callback?: Callback<string>): Result<string, Context>
 
-    fetchRandomProxy(proxiesKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchRandomBot(botsIndexKey: string, callback?: Callback<string>): Result<string, Context>
 
-    saveProxyCache(
-      proxyKey: string,
-      proxiesKey: string,
-      proxyId: number,
-      proxyUrl: string,
-      time: number,
+    saveBotCache(
+      botCacheKey: string,
+      botId: number,
+      userId: number,
+      createdAt: number,
+      updatedAt: number,
+      queuedAt: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    dropProxyCache(
-      proxyKey: string,
-      proxiesKey: string,
-      onlineProxiesKey: string,
-      proxyId: number,
+    renewOnlineBotCache(
+      botCacheKey: string,
+      onlineBotsIndexKey: string,
+      botId: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    renewOnlineProxyCache(
-      proxyKey: string,
-      onlineProxiesKey: string,
-      proxyId: number,
-      sizeBytes: number,
-      time: number,
+    renewOfflineBotCache(
+      botCacheKey: string,
+      onlineBotsIndexKey: string,
+      botId: number,
       callback?: Callback<string>
     ): Result<string, Context>
 
-    renewOfflineProxyCache(
-      proxyKey: string,
-      onlineProxiesKey: string,
-      proxyId: number,
-      sizeBytes: number,
-      time: number,
+    saveUserBotsIndex(
+      userBotsIndexKey: string,
+      botId: number,
+      createdAt: number,
       callback?: Callback<string>
     ): Result<string, Context>
   }

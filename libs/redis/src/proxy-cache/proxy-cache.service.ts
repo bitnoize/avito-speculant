@@ -4,9 +4,8 @@ import {
   FetchOnlineProxiesCache,
   FetchRandomOnlineProxyCache,
   SaveProxyCache,
-  DropProxyCache,
-  RenewOnlineProxyCache,
-  RenewOfflineProxyCache
+  SaveOnlineProxyCache,
+  SaveOfflineProxyCache
 } from './dto/index.js'
 import * as proxyCacheRepository from './proxy-cache.repository.js'
 
@@ -23,17 +22,17 @@ export const fetchProxyCache: FetchProxyCache = async function (redis, request) 
  * Fetch ProxiesCache
  */
 export const fetchProxiesCache: FetchProxiesCache = async function (redis) {
-  const proxyIds = await proxyCacheRepository.fetchProxies(redis)
+  const proxyIds = await proxyCacheRepository.fetchProxiesIndex(redis)
   const proxiesCache = await proxyCacheRepository.fetchProxiesCache(redis, proxyIds)
 
   return { proxiesCache }
 }
 
 /*
- * Fetch Online ProxiesCache
+ * Fetch OnlineProxiesCache
  */
 export const fetchOnlineProxiesCache: FetchOnlineProxiesCache = async function (redis) {
-  const proxyIds = await proxyCacheRepository.fetchOnlineProxies(redis)
+  const proxyIds = await proxyCacheRepository.fetchOnlineProxiesIndex(redis)
   const proxiesCache = await proxyCacheRepository.fetchProxiesCache(redis, proxyIds)
 
   return { proxiesCache }
@@ -43,7 +42,7 @@ export const fetchOnlineProxiesCache: FetchOnlineProxiesCache = async function (
  * Fetch Random Online ProxyCache
  */
 export const fetchRandomOnlineProxyCache: FetchRandomOnlineProxyCache = async function (redis) {
-  const proxyId = await proxyCacheRepository.fetchRandomOnlineProxy(redis)
+  const proxyId = await proxyCacheRepository.fetchRandomOnlineProxyId(redis)
 
   if (proxyId === undefined) {
     return {
@@ -60,26 +59,27 @@ export const fetchRandomOnlineProxyCache: FetchRandomOnlineProxyCache = async fu
  * Save ProxyCache
  */
 export const saveProxyCache: SaveProxyCache = async function (redis, request) {
-  await proxyCacheRepository.saveProxyCache(redis, request.proxyId, request.proxyUrl)
+  await proxyCacheRepository.saveProxyCache(
+    redis,
+    request.proxyId,
+    request.url,
+    request.isEnabled,
+    request.createdAt,
+    request.updatedAt,
+    request.queuedAt
+  )
 }
 
 /*
- * Drop ProxyCache
+ * Save OnlineProxyCache
  */
-export const dropProxyCache: DropProxyCache = async function (redis, request) {
-  await proxyCacheRepository.dropProxyCache(redis, request.proxyId)
+export const saveOnlineProxyCache: SaveOnlineProxyCache = async function (redis, request) {
+  await proxyCacheRepository.saveOnlineProxyCache(redis, request.proxyId, request.sizeBytes)
 }
 
 /*
- * Renew Online ProxyCache
+ * Save OfflineProxyCache
  */
-export const renewOnlineProxyCache: RenewOnlineProxyCache = async function (redis, request) {
-  await proxyCacheRepository.renewOnlineProxyCache(redis, request.proxyId, request.sizeBytes)
-}
-
-/*
- * Renew Offline ProxyCache
- */
-export const renewOfflineProxyCache: RenewOfflineProxyCache = async function (redis, request) {
-  await proxyCacheRepository.renewOfflineProxyCache(redis, request.proxyId, request.sizeBytes)
+export const saveOfflineProxyCache: SaveOfflineProxyCache = async function (redis, request) {
+  await proxyCacheRepository.saveOfflineProxyCache(redis, request.proxyId, request.sizeBytes)
 }
