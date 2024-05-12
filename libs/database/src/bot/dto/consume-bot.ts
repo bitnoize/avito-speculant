@@ -1,19 +1,15 @@
 import { Notify } from '@avito-speculant/common'
 import { Bot } from '../bot.js'
 import { BotLogData } from '../../bot-log/bot-log.js'
-import { User } from '../../user/user.js'
-import { Category } from '../../category/category.js'
 import { DatabaseMethod } from '../../database.js'
 
 export type ConsumeBotRequest = {
-  botId: number
+  entityId: number
   data: BotLogData
 }
 
 export type ConsumeBotResponse = {
   bot: Bot
-  user: User
-  category: Category | undefined
   backLog: Notify[]
 }
 

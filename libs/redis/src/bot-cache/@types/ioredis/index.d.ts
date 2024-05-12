@@ -2,40 +2,54 @@ import { Result, Callback } from 'ioredis'
 
 declare module 'ioredis' {
   interface RedisCommander<Context> {
-    fetchBotCache(botCacheKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchBotCache(
+      botCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
 
-    fetchBotsIndex(botsIndexKey: string, callback?: Callback<string>): Result<string, Context>
-
-    fetchRandomBot(botsIndexKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchBotsIndex(
+      botsIndexKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
 
     saveBotCache(
-      botCacheKey: string,
-      botId: number,
-      userId: number,
-      createdAt: number,
-      updatedAt: number,
-      queuedAt: number,
+      botCacheKey: string, // KEYS[1]
+      botId: number, // ARGV[1]
+      userId: number, // ARGV[2]
+      token: string, // ARGV[3]
+      isLinked: number, // ARGV[4]
+      isEnabled: number, // ARGV[5]
+      createdAt: number, // ARGV[6]
+      updatedAt: number, // ARGV[7]
+      queuedAt: number, // ARGV[8]
       callback?: Callback<string>
     ): Result<string, Context>
 
-    renewOnlineBotCache(
-      botCacheKey: string,
-      onlineBotsIndexKey: string,
-      botId: number,
+    saveBotsIndex(
+      botsIndexKey: string, // KEYS[1]
+      botId: number, // ARGV[1]
+      createdAt: number, // ARGV[2]
       callback?: Callback<string>
     ): Result<string, Context>
 
-    renewOfflineBotCache(
-      botCacheKey: string,
-      onlineBotsIndexKey: string,
-      botId: number,
+    saveOnlineBotCache(
+      botCacheKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
-    saveUserBotsIndex(
-      userBotsIndexKey: string,
-      botId: number,
-      createdAt: number,
+    saveOfflineBotCache(
+      botCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropBotCache(
+      botCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropBotsIndex(
+      botsIndexKey: string, // KEYS[1]
+      botId: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
   }

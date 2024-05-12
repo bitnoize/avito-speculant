@@ -58,19 +58,6 @@ export async function selectRowByUserIdUrlPath(
     .executeTakeFirst()
 }
 
-export async function selectRowsByUserId(
-  trx: TransactionDatabase,
-  user_id: number
-): Promise<CategoryRow[]> {
-  return await trx
-    .selectFrom('category')
-    .selectAll()
-    .where('user_id', '=', user_id)
-    .orderBy('created_at', 'desc')
-    .forShare()
-    .execute()
-}
-
 export async function selectCountByUserId(
   trx: TransactionDatabase,
   user_id: number

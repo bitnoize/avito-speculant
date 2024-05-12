@@ -2,52 +2,68 @@ import { Result, Callback } from 'ioredis'
 
 declare module 'ioredis' {
   interface RedisCommander<Context> {
-    fetchUserCache(userCacheKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchUserCache(
+      userCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
 
-    fetchTelegramUserId(
-      telegramUserIdKey: string,
+    fetchUserLink(
+      userLinkKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
     
-    fetchWebappUserId(
-      webappUserIdKey: string,
+    fetchUsersIndex(
+      usersIndexKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
-
-    fetchUsersIndex(usersIndexKey: string, callback?: Callback<string>): Result<string, Context>
 
     saveUserCache(
-      userKey: string,
-      userId: number,
-      tgFromId: string,
-      isPaid: number,
-      subscriptionId: number | null,
-      subscriptions: number,
-      categories: number,
-      bots: number,
-      createdAt: number,
-      updatedAt: number,
-      queuedAt: number,
+      userCacheKey: string, // KEYS[1]
+      userId: number, // ARGV[1]
+      tgFromId: string, // ARGV[2]
+      active_subscription_id: number | null, // ARGV[3]
+      subscriptions: number, // ARGV[4]
+      categories: number, // ARGV[5]
+      bots: number, // ARGV[6]
+      createdAt: number, // ARGV[7]
+      updatedAt: number, // ARGV[8]
+      queuedAt: number, // ARGV[9]
       callback?: Callback<string>
     ): Result<string, Context>
 
-    saveTelegramUserId(
-      telegramUserIdKey: string,
-      userId: number,
+    saveUserLink(
+      userLinkKey: string, // KEYS[1]
+      userId: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
-    saveWebappUserId(
-      webappUserIdKey: string,
-      userId: number,
-      timeout: number,
+    saveUserLinkTimeout(
+      userLinkKey: string, // KEYS[1]
+      userId: number, // ARGV[1]
+      timeout: number, // ARGV[2]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveUsersIndex(
-      usersIndexKey: string,
-      userId: number,
-      createdAt: number,
+      usersIndexKey: string, // KEYS[1]
+      userId: number, // ARGV[1]
+      createdAt: number, // ARGV[2]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropUserCache(
+      userCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropUserLink(
+      userLinkKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropUsersIndex(
+      usersIndexKey: string, // KEYS[1]
+      userId: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
   }

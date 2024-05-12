@@ -6,7 +6,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .createTable('user')
     .addColumn('id', 'serial', (col) => col.primaryKey())
     .addColumn('tg_from_id', 'varchar', (col) => col.notNull())
-    .addColumn('is_paid', 'boolean', (col) => col.notNull())
+    .addColumn('active_subscription_id', 'integer')
     .addColumn('subscriptions', 'integer', (col) => col.notNull())
     .addColumn('categories', 'integer', (col) => col.notNull())
     .addColumn('bots', 'integer', (col) => col.notNull())
@@ -22,7 +22,12 @@ export async function up(db: Kysely<any>): Promise<void> {
     .unique()
     .execute()
 
-  await db.schema.createIndex('user_is_paid_key').on('user').column('is_paid').execute()
+  await db.schema
+    .createIndex('user_active_subscription_id_key')
+    .on('user')
+    .column('active_subscription_id')
+    .unique()
+    .execute()
 
   await db.schema.createIndex('user_created_at_key').on('user').column('created_at').execute()
 

@@ -4,7 +4,7 @@ import { ProxyLogData } from '../../proxy-log/proxy-log.js'
 import { DatabaseMethod } from '../../database.js'
 
 export type CreateProxyRequest = {
-  proxyUrl: string
+  url: string
   data: ProxyLogData
 }
 

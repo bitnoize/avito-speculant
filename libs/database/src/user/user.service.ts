@@ -1,12 +1,8 @@
 import { Notify } from '@avito-speculant/common'
-import { AuthorizeUser, ListUsers, ProduceUsers, ConsumeUser } from './dto/index.js'
+import { AuthorizeUser, ProduceUsers, ConsumeUser } from './dto/index.js'
 import { UserNotFoundError } from './user.errors.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
-import { Plan } from '../plan/plan.js'
-import { PlanNotFoundError } from '../plan/plan.errors.js'
-import * as planRepository from '../plan/plan.repository.js'
-import { Subscription } from '../subscription/subscription.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as categoryRepository from '../category/category.repository.js'
 import * as botRepository from '../bot/bot.repository.js'
@@ -16,9 +12,6 @@ import * as botRepository from '../bot/bot.repository.js'
  */
 export const authorizeUser: AuthorizeUser = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    let subscription: Subscription | undefined = undefined
-    let plan: Plan | undefined = undefined
-
     const backLog: Notify[] = []
 
     const existsUserRow = await userRepository.selectRowByTgFromId(trx, request.tgFromId)
@@ -31,26 +24,20 @@ export const authorizeUser: AuthorizeUser = async function (db, request) {
       )
 
       if (activeSubscriptionRow !== undefined) {
-        subscription = subscriptionRepository.buildModel(activeSubscriptionRow)
+        existsUserRow.active_subscription_id = activeSubscriptionRow.id
 
-        const planRow = await planRepository.selectRowById(trx, activeSubscriptionRow.plan_id)
-
-        if (planRow === undefined) {
-          throw new PlanNotFoundError({ request, activeSubscriptionRow }, 100)
+        return {
+          user: userRepository.buildModel(existsUserRow),
+          subscription: subscriptionRepository.buildModel(activeSubscriptionRow),
+          backLog
         }
-
-        plan = planRepository.buildModel(planRow)
-
-        existsUserRow.is_paid = true
       } else {
-        existsUserRow.is_paid = false
-      }
+        existsUserRow.active_subscription_id = null
 
-      return {
-        user: userRepository.buildModel(existsUserRow),
-        subscription,
-        plan,
-        backLog
+        return {
+          user: userRepository.buildModel(existsUserRow),
+          backLog
+        }
       }
     }
 
@@ -60,7 +47,7 @@ export const authorizeUser: AuthorizeUser = async function (db, request) {
       trx,
       instertedUserRow.id,
       'create_user',
-      instertedUserRow.is_paid,
+      instertedUserRow.active_subscription_id,
       instertedUserRow.subscriptions,
       instertedUserRow.categories,
       instertedUserRow.bots,
@@ -71,22 +58,7 @@ export const authorizeUser: AuthorizeUser = async function (db, request) {
 
     return {
       user: userRepository.buildModel(instertedUserRow),
-      subscription,
-      plan,
       backLog
-    }
-  })
-}
-
-/**
- * List Users
- */
-export const listUsers: ListUsers = async function (db) {
-  return await db.transaction().execute(async (trx) => {
-    const userRows = await userRepository.selectRows(trx)
-
-    return {
-      users: userRepository.buildCollection(userRows)
     }
   })
 }
@@ -114,14 +86,11 @@ export const produceUsers: ProduceUsers = async function (db, request) {
  */
 export const consumeUser: ConsumeUser = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    let subscription: Subscription | undefined = undefined
-    let plan: Plan | undefined = undefined
-
     const backLog: Notify[] = []
 
     let modified = false
 
-    const userRow = await userRepository.selectRowById(trx, request.userId, true)
+    const userRow = await userRepository.selectRowById(trx, request.entityId, true)
 
     if (userRow === undefined) {
       throw new UserNotFoundError({ request })
@@ -134,24 +103,14 @@ export const consumeUser: ConsumeUser = async function (db, request) {
     )
 
     if (activeSubscriptionRow !== undefined) {
-      subscription = subscriptionRepository.buildModel(activeSubscriptionRow)
-
-      const planRow = await planRepository.selectRowById(trx, activeSubscriptionRow.plan_id)
-
-      if (planRow === undefined) {
-        throw new PlanNotFoundError({ request, activeSubscriptionRow }, 100)
-      }
-
-      plan = planRepository.buildModel(planRow)
-
-      if (!userRow.is_paid) {
-        userRow.is_paid = true
+      if (userRow.active_subscription_id !== activeSubscriptionRow.id) {
+        userRow.active_subscription_id = activeSubscriptionRow.id
 
         modified = true
       }
     } else {
-      if (userRow.is_paid) {
-        userRow.is_paid = false
+      if (userRow.active_subscription_id !== null) {
+        userRow.active_subscription_id = null
 
         modified = true
       }
@@ -172,19 +131,21 @@ export const consumeUser: ConsumeUser = async function (db, request) {
     if (!modified) {
       return {
         user: userRepository.buildModel(userRow),
-        subscription,
-        plan,
         backLog
       }
     }
 
-    const updatedUserRow = await userRepository.updateRowState(trx, userRow.id, userRow.is_paid)
+    const updatedUserRow = await userRepository.updateRowState(
+      trx,
+      userRow.id,
+      userRow.active_subscription_id
+    )
 
     const userLogRow = await userLogRepository.insertRow(
       trx,
       updatedUserRow.id,
       'consume_user',
-      updatedUserRow.is_paid,
+      updatedUserRow.active_subscription_id,
       updatedUserRow.subscriptions,
       updatedUserRow.categories,
       updatedUserRow.bots,
@@ -195,8 +156,6 @@ export const consumeUser: ConsumeUser = async function (db, request) {
 
     return {
       user: userRepository.buildModel(updatedUserRow),
-      subscription,
-      plan,
       backLog
     }
   })

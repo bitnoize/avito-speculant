@@ -27,16 +27,12 @@ export async function selectRowByTgFromId(
     .executeTakeFirst()
 }
 
-export async function selectRows(trx: TransactionDatabase): Promise<UserRow[]> {
-  return await trx.selectFrom('user').selectAll().orderBy('created_at', 'asc').forShare().execute()
-}
-
 export async function insertRow(trx: TransactionDatabase, tg_from_id: string): Promise<UserRow> {
   return await trx
     .insertInto('user')
     .values(() => ({
       tg_from_id,
-      is_paid: false,
+      active_subscription_id: null,
       subscriptions: 0,
       categories: 0,
       bots: 0,
@@ -51,12 +47,12 @@ export async function insertRow(trx: TransactionDatabase, tg_from_id: string): P
 export async function updateRowState(
   trx: TransactionDatabase,
   user_id: number,
-  is_paid: boolean
+  active_subscription_id: number | null
 ): Promise<UserRow> {
   return await trx
     .updateTable('user')
     .set(() => ({
-      is_paid,
+      active_subscription_id,
       updated_at: sql<number>`now()`
     }))
     .where('id', '=', user_id)
@@ -119,7 +115,7 @@ export const buildModel = (row: UserRow): User => {
   return {
     id: row.id,
     tgFromId: row.tg_from_id,
-    isPaid: row.is_paid,
+    activeSubscriptionId: row.active_subscription_id,
     subscriptions: row.subscriptions,
     categories: row.categories,
     bots: row.bots,

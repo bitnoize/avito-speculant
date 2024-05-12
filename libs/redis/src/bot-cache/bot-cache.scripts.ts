@@ -21,10 +21,6 @@ const fetchBotsIndex = `
 return redis.call('ZRANGE', KEYS[1], 0, -1)
 `
 
-const fetchRandomProxy = `
-return redis.call('ZRANDMEMBER', KEYS[1])
-`
-
 const saveBotCache = `
 redis.call(
   'HSET', KEYS[1],
@@ -44,63 +40,82 @@ redis.call('HSETNX', KEYS[1], 'success_count', 0)
 return redis.status_reply('OK')
 `
 
-const renewOnlineProxyCache = `
-if redis.call('EXISTS', KEYS[1]) ~= 0 then
-  redis.call('HSET', KEYS[1], 'is_online', 1)
-  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'success_count', 1)
+const saveBotsIndex = `
+return redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
+`
 
-  redis.call('SADD', KEYS[2], ARGV[1])
+const saveOnlineBotCache = `
+if redis.call('EXISTS', KEYS[1]) ~= 1 then
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
 end
+
+redis.call('HSET', KEYS[1], 'is_online', 1)
+redis.call('HINCRBY', KEYS[1], 'total_count', 1)
+redis.call('HINCRBY', KEYS[1], 'success_count', 1)
 
 return redis.status_reply('OK')
 `
 
-const renewOfflineProxyCache = `
-if redis.call('EXISTS', KEYS[1]) ~= 0 then
-  redis.call('HSET', KEYS[1], 'is_online', 0)
-  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-
-  redis.call('SREM', KEYS[2], ARGV[1])
+const saveOfflineBotCache = `
+if redis.call('EXISTS', KEYS[1]) == 1 then
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
 end
 
+redis.call('HSET', KEYS[1], 'is_online', 0)
+redis.call('HINCRBY', KEYS[1], 'total_count', 1)
+
 return redis.status_reply('OK')
+`
+
+const dropBotCache = `
+redis.call('DEL', KEYS[1])
+
+return redis.status_reply('OK')
+`
+
+const dropBotsIndex = `
+return redis.call('ZREM', KEYS[1], ARGV[1])
 `
 
 const initScripts: InitScripts = (redis) => {
-  redis.defineCommand('fetchProxyCache', {
+  redis.defineCommand('fetchBotCache', {
     numberOfKeys: 1,
-    lua: fetchProxyCache
+    lua: fetchBotCache
   })
 
-  redis.defineCommand('fetchProxies', {
+  redis.defineCommand('fetchBotsIndex', {
     numberOfKeys: 1,
-    lua: fetchProxies
+    lua: fetchBotsIndex
   })
 
-  redis.defineCommand('fetchRandomProxy', {
+  redis.defineCommand('saveBotCache', {
     numberOfKeys: 1,
-    lua: fetchRandomProxy
+    lua: saveBotCache
   })
 
-  redis.defineCommand('saveProxyCache', {
-    numberOfKeys: 2,
-    lua: saveProxyCache
+  redis.defineCommand('saveBotsIndex', {
+    numberOfKeys: 1,
+    lua: saveBotsIndex
   })
 
-  redis.defineCommand('dropProxyCache', {
-    numberOfKeys: 3,
-    lua: dropProxyCache
+  redis.defineCommand('saveOnlineBotCache', {
+    numberOfKeys: 1,
+    lua: saveOnlineBotCache
   })
 
-  redis.defineCommand('renewOnlineProxyCache', {
-    numberOfKeys: 2,
-    lua: renewOnlineProxyCache
+  redis.defineCommand('saveOfflineBotCache', {
+    numberOfKeys: 1,
+    lua: saveOfflineBotCache
   })
 
-  redis.defineCommand('renewOfflineProxyCache', {
-    numberOfKeys: 2,
-    lua: renewOfflineProxyCache
+  redis.defineCommand('dropBotCache', {
+    numberOfKeys: 1,
+    lua: dropBotCache
+  })
+
+  redis.defineCommand('dropBotsIndex', {
+    numberOfKeys: 1,
+    lua: dropBotsIndex
   })
 }
 

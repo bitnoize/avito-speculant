@@ -1,22 +1,16 @@
 import {
   FetchUserCache,
-  FetchTelegramUserId,
-  FetchWebappUserId,
+  FetchTelegramUserLink,
+  FetchWebappUserLink,
   FetchUsersCache,
-  SavePaidUserCache,
-  SaveUnpaidUserCache,
-  SaveWebappUserId,
+  SaveUserCache,
+  SaveWebappUserLink,
+  DropUserCache
 } from './dto/index.js'
-import {
-  UserCacheNotFoundError,
-  UserSubscriptionCacheLooseError,
-  UserSubscriptionCacheWasteError,
-} from './user-cache.errors.js'
+import { UserCacheNotFoundError, } from './user-cache.errors.js'
 import * as userCacheRepository from './user-cache.repository.js'
-import { PlanCache } from '../plan-cache/plan-cache.js'
 import { PlanCacheNotFoundError } from '../plan-cache/plan-cache.errors.js'
 import * as planCacheRepository from '../plan-cache/plan-cache.repository.js'
-import { SubscriptionCache } from '../subscription-cache/subscription-cache.js'
 import { SubscriptionCacheNotFoundError } from '../subscription-cache/subscription-cache.errors.js'
 import * as subscriptionCacheRepository from '../subscription-cache/subscription-cache.repository.js'
 
@@ -30,49 +24,52 @@ export const fetchUserCache: FetchUserCache = async function (redis, request) {
     throw new UserCacheNotFoundError({ request })
   }
 
-  let subscriptionCache: SubscriptionCache | undefined = undefined
-  let planCache: PlanCache | undefined = undefined
+  const activeSubscriptionId = await subscriptionCacheRepository.fetchUserActiveSubscriptionLink(
+    redis,
+    userCache.id
+  )
 
-  if (userCache.isPaid) {
-    if (userCache.subscriptionId === null) {
-      throw new UserSubscriptionCacheLooseError({ request, userCache }, 100)
-    }
-
-    subscriptionCache = await subscriptionCacheRepository.fetchSubscriptionCache(
+  if (activeSubscriptionId !== undefined) {
+    const subscriptionCache = await subscriptionCacheRepository.fetchSubscriptionCache(
       redis,
-      userCache.subscriptionId
+      activeSubscriptionId
     )
 
     if (subscriptionCache === undefined) {
       throw new SubscriptionCacheNotFoundError({ request, userCache }, 100)
     }
 
-    planCache = await planCacheRepository.fetchPlanCache(redis, subscriptionCache.planId)
+    userCache.activeSubscriptionId = subscriptionCache.id
+
+    const planCache = await planCacheRepository.fetchPlanCache(
+      redis,
+      subscriptionCache.planId
+    )
 
     if (planCache === undefined) {
       throw new PlanCacheNotFoundError({ request, userCache, subscriptionCache }, 100)
     }
+
+    return { userCache,  subscriptionCache, planCache }
   } else {
-    if (userCache.subscriptionId !== null) {
-      throw new UserSubscriptionCacheWasteError({ request, userCache }, 100)
-    }
+    userCache.activeSubscriptionId = null
+
+    return { userCache }
   }
-
-  return { userCache,  subscriptionCache, planCache }
 }
 
 /*
- * Fetch TelegramUserId
+ * Fetch TelegramUserLink
  */
-export const fetchTelegramUserId: FetchTelegramUserId = async function (redis, request) {
-  return await userCacheRepository.fetchTelegramUserId(redis, request.tgFromId)
+export const fetchTelegramUserLink: FetchTelegramUserLink = async function (redis, request) {
+  return await userCacheRepository.fetchTelegramUserLink(redis, request.tgFromId)
 }
 
 /*
- * Fetch WebappUserId
+ * Fetch WebappUserLink
  */
-export const fetchWebappUserId: FetchWebappUserId = async function (redis, request) {
-  return await userCacheRepository.fetchWebappUserId(redis, request.token)
+export const fetchWebappUserLink: FetchWebappUserLink = async function (redis, request) {
+  return await userCacheRepository.fetchWebappUserLink(redis, request.token)
 }
 
 /*
@@ -86,65 +83,41 @@ export const fetchUsersCache: FetchUsersCache = async function (redis) {
 }
 
 /*
- * Save PaidUserCache
+ * Save UserCache
  */
-export const savePaidUserCache: SavePaidUserCache = async function (redis, request) {
-  await userCacheRepository.savePaidUserCache(
+export const saveUserCache: SaveUserCache = async function (redis, request) {
+  await userCacheRepository.saveUserCache(
     redis,
     request.userId,
-    request.userTgFromId,
-    request.userSubscriptions,
-    request.userCategories,
-    request.userBots,
-    request.userCreatedAt,
-    request.userUpdatedAt,
-    request.userQueuedAt,
-    request.planId,
-    request.planCategoriesMax,
-    request.planDurationDays,
-    request.planIntervalSec,
-    request.planAnalyticsOn,
-    request.planPriceRub,
-    request.planIsEnabled,
-    request.planSubscriptions,
-    request.planCreatedAt,
-    request.planUpdatedAt,
-    request.planQueuedAt,
-    request.subscriptionId,
-    request.subscriptionPriceRub,
-    request.subscriptionStatus,
-    request.subscriptionCreatedAt,
-    request.subscriptionUpdatedAt,
-    request.subscriptionQueuedAt,
-    request.subscriptionTimeoutAt,
-    request.subscriptionFinishAt
+    request.tgFromId,
+    request.activeSubscriptionId,
+    request.subscriptions,
+    request.categories,
+    request.bots,
+    request.createdAt,
+    request.updatedAt,
+    request.queuedAt
   )
 }
 
 /*
- * Save UnpaidUserCache
+ * Save WebappUserLink
  */
-export const saveUnpaidUserCache: SaveUnpaidUserCache = async function (redis, request) {
-  await userCacheRepository.saveUnpaidUserCache(
-    redis,
-    request.userId,
-    request.userTgFromId,
-    request.userSubscriptions,
-    request.userCategories,
-    request.userBots,
-    request.userCreatedAt,
-    request.userUpdatedAt,
-    request.userQueuedAt
-  )
-}
-
-/*
- * Save WebappUserId
- */
-export const saveWebappUserId: SaveWebappUserId = async function (redis, request) {
-  await userCacheRepository.saveWebappUserId(
+export const saveWebappUserLink: SaveWebappUserLink = async function (redis, request) {
+  await userCacheRepository.saveWebappUserLink(
     redis,
     request.token,
     request.userId
+  )
+}
+
+/*
+ * Drop UserCache
+ */
+export const dropUserCache: DropUserCache = async function (redis, request) {
+  await userCacheRepository.dropUserCache(
+    redis,
+    request.userId,
+    request.tgFromId
   )
 }

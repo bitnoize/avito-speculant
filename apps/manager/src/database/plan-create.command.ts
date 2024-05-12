@@ -61,9 +61,7 @@ const initCommand: InitCommand = (config, logger) => {
           intervalSec,
           analyticsOn,
           priceRub,
-          data: {
-            message: `Create plan via Manager`
-          }
+          data: {}
         })
 
         await redisService.publishBackLog(pubSub, backLog)

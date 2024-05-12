@@ -46,6 +46,18 @@ redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
 return redis.status_reply('OK')
 `
 
+const dropPlanCache = `
+redis.call('DEL', KEYS[1])
+
+return redis.status_reply('OK')
+`
+
+const dropPlansIndex = `
+redis.call('ZREM', KEYS[1], ARGV[1])
+
+return redis.status_reply('OK')
+`
+
 const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchPlanCache', {
     numberOfKeys: 1,
@@ -65,6 +77,16 @@ const initScripts: InitScripts = (redis) => {
   redis.defineCommand('savePlansIndex', {
     numberOfKeys: 1,
     lua: savePlansIndex
+  })
+
+  redis.defineCommand('dropPlanCache', {
+    numberOfKeys: 1,
+    lua: dropPlanCache
+  })
+
+  redis.defineCommand('dropPlansIndex', {
+    numberOfKeys: 1,
+    lua: dropPlansIndex
   })
 }
 

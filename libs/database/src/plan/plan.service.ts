@@ -1,15 +1,18 @@
 import { Notify } from '@avito-speculant/common'
 import {
   CreatePlan,
-  ReadPlan,
   UpdatePlanPrice,
   EnablePlan,
   DisablePlan,
-  ListPlans,
   ProducePlans,
   ConsumePlan
 } from './dto/index.js'
-import { PlanNotFoundError, PlanExistsError, PlanIsEnabledError } from './plan.errors.js'
+import {
+  PlanNotFoundError,
+  PlanExistsError,
+  PlanIsDisabledError,
+  PlanIsEnabledError
+} from './plan.errors.js'
 import * as planRepository from './plan.repository.js'
 import * as planLogRepository from '../plan-log/plan-log.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
@@ -57,23 +60,6 @@ export const createPlan: CreatePlan = async function (db, request) {
     return {
       plan: planRepository.buildModel(insertedPlanRow),
       backLog
-    }
-  })
-}
-
-/**
- * Read Plan
- */
-export const readPlan: ReadPlan = async function (db, request) {
-  return await db.transaction().execute(async (trx) => {
-    const planRow = await planRepository.selectRowById(trx, request.planId)
-
-    if (planRow === undefined) {
-      throw new PlanNotFoundError({ request })
-    }
-
-    return {
-      plan: planRepository.buildModel(planRow)
     }
   })
 }
@@ -136,10 +122,7 @@ export const enablePlan: EnablePlan = async function (db, request) {
     }
 
     if (planRow.is_enabled) {
-      return {
-        plan: planRepository.buildModel(planRow),
-        backLog
-      }
+      throw new PlanIsEnabledError({ request, planRow })
     }
 
     planRow.is_enabled = true
@@ -179,10 +162,7 @@ export const disablePlan: DisablePlan = async function (db, request) {
     }
 
     if (!planRow.is_enabled) {
-      return {
-        plan: planRepository.buildModel(planRow),
-        backLog
-      }
+      throw new PlanIsDisabledError({ request, planRow })
     }
 
     planRow.is_enabled = false
@@ -204,19 +184,6 @@ export const disablePlan: DisablePlan = async function (db, request) {
     return {
       plan: planRepository.buildModel(updatedPlanRow),
       backLog
-    }
-  })
-}
-
-/**
- * List Plans
- */
-export const listPlans: ListPlans = async function (db) {
-  return await db.transaction().execute(async (trx) => {
-    const planRows = await planRepository.selectRows(trx)
-
-    return {
-      plans: planRepository.buildCollection(planRows)
     }
   })
 }
@@ -244,7 +211,7 @@ export const producePlans: ProducePlans = async function (db, request) {
  */
 export const consumePlan: ConsumePlan = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const planRow = await planRepository.selectRowById(trx, request.planId, true)
+    const planRow = await planRepository.selectRowById(trx, request.entityId, true)
 
     if (planRow === undefined) {
       throw new PlanNotFoundError({ request })

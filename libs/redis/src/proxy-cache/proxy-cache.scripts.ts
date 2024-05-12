@@ -16,12 +16,12 @@ return redis.call(
 )
 `
 
-const fetchProxiesIndex = `
-return redis.call('ZRANGE', KEYS[1])
+const fetchRandomProxyLink = `
+return redis.call('ZRANDMEMBER', KEYS[1])
 `
 
-const fetchRandomProxyId = `
-return redis.call('ZRANDMEMBER', KEYS[1])
+const fetchProxiesIndex = `
+return redis.call('ZRANGE', KEYS[1], 0, -1)
 `
 
 const saveProxyCache = `
@@ -44,12 +44,6 @@ return redis.status_reply('OK')
 
 const saveProxiesIndex = `
 redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
-
-return redis.status_reply('OK')
-`
-
-const dropProxiesIndex = `
-redis.call('ZREM', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -79,20 +73,32 @@ redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
 return redis.status_reply('OK')
 `
 
+const dropProxyCache = `
+redis.call('DEL', KEYS[1])
+
+return redis.status_reply('OK')
+`
+
+const dropProxiesIndex = `
+redis.call('ZREM', KEYS[1], ARGV[1])
+
+return redis.status_reply('OK')
+`
+
 const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchProxyCache', {
     numberOfKeys: 1,
     lua: fetchProxyCache
   })
 
+  redis.defineCommand('fetchRandomProxyLink', {
+    numberOfKeys: 1,
+    lua: fetchRandomProxyLink
+  })
+
   redis.defineCommand('fetchProxiesIndex', {
     numberOfKeys: 1,
     lua: fetchProxiesIndex
-  })
-
-  redis.defineCommand('fetchRandomProxy', {
-    numberOfKeys: 1,
-    lua: fetchRandomProxy
   })
 
   redis.defineCommand('saveProxyCache', {
@@ -105,11 +111,6 @@ const initScripts: InitScripts = (redis) => {
     lua: saveProxiesIndex
   })
 
-  redis.defineCommand('dropProxiesIndex', {
-    numberOfKeys: 1,
-    lua: dropProxiesIndex
-  })
-
   redis.defineCommand('saveOnlineProxyCache', {
     numberOfKeys: 1,
     lua: saveOnlineProxyCache
@@ -118,6 +119,16 @@ const initScripts: InitScripts = (redis) => {
   redis.defineCommand('saveOfflineProxyCache', {
     numberOfKeys: 1,
     lua: saveOfflineProxyCache
+  })
+
+  redis.defineCommand('dropProxyCache', {
+    numberOfKeys: 1,
+    lua: dropProxyCache
+  })
+
+  redis.defineCommand('dropProxiesIndex', {
+    numberOfKeys: 1,
+    lua: dropProxiesIndex
   })
 }
 

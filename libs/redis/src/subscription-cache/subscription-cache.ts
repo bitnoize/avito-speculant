@@ -1,14 +1,11 @@
 import { REDIS_CACHE_PREFIX } from '../redis.js'
 
-export const SUBSCRIPTION_CACHE_STATUSES = ['wait', 'active', 'finish']
-export type SubscriptionCacheStatus = (typeof SUBSCRIPTION_CACHE_STATUSES)[number]
-
 export interface SubscriptionCache {
   id: number
   userId: number
   planId: number
   priceRub: number
-  status: SubscriptionCacheStatus
+  status: string
   createdAt: number
   updatedAt: number
   queuedAt: number
@@ -16,14 +13,11 @@ export interface SubscriptionCache {
   finishAt: number
 }
 
-export const subscriptionKey = (subscriptionId: number) =>
-  [REDIS_CACHE_PREFIX, 'subscription', subscriptionId].join(':')
+export const subscriptionCacheKey = (subscriptionId: number) =>
+  [REDIS_CACHE_PREFIX, 'subscription-cache', subscriptionId].join(':')
 
-export const userSubscriptionsKey = (userId: number) =>
-  [REDIS_CACHE_PREFIX, 'user-subscriptions', userId].join(':')
+export const userActiveSubscriptionLinkKey = (userId: number) =>
+  [REDIS_CACHE_PREFIX, 'user-active_subscription-link', userId].join(':')
 
-export const userActiveSubscriptionKey = (userId: number) =>
-  [REDIS_CACHE_PREFIX, 'user-active-subscription', userId].join(':')
-
-export const planSubscriptionsKey = (planId: number) =>
-  [REDIS_CACHE_PREFIX, 'plan-subscriptions', planId].join(':')
+export const userSubscriptionsIndexKey = (userId: number) =>
+  [REDIS_CACHE_PREFIX, 'user-subscriptions-index', userId].join(':')

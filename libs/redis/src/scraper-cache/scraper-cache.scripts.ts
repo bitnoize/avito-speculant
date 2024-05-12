@@ -11,7 +11,7 @@ return redis.call(
 )
 `
 
-const fetchUrlPathScraperId = `
+const fetchScraperLink = `
 return redis.call('GET', KEYS[1])
 `
 
@@ -32,7 +32,7 @@ redis.call('HSETNX', KEYS[1], 'size_bytes', 0)
 return redis.status_reply('OK')
 `
 
-const saveUrlPathScraperId = `
+const saveScraperLink = `
 redis.call('SET', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
@@ -44,38 +44,25 @@ redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
 return redis.status_reply('OK')
 `
 
-const dropScrapersIndex = `
-redis.call('ZREM', KEYS[1], ARGV[1])
-
-return redis.status_reply('OK')
-`
-
 const saveSuccessScraperCache = `
-if redis.call('EXISTS', KEYS[1]) == 1 then
-  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'success_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
+if redis.call('EXISTS', KEYS[1]) ~= 1 then
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
 end
 
-if redis.call('EXISTS', KEYS[2]) == 1 then
-  redis.call('HINCRBY', KEYS[2], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[2], 'success_count', 1)
-  redis.call('HINCRBY', KEYS[2], 'size_bytes', ARGV[1])
-end
+redis.call('HINCRBY', KEYS[1], 'total_count', 1)
+redis.call('HINCRBY', KEYS[1], 'success_count', 1)
+redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
 
 return redis.status_reply('OK')
 `
 
 const saveFailedScraperCache = `
 if redis.call('EXISTS', KEYS[1]) == 1 then
-  redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
 end
 
-if redis.call('EXISTS', KEYS[2]) == 1 then
-  redis.call('HINCRBY', KEYS[2], 'total_count', 1)
-  redis.call('HINCRBY', KEYS[2], 'size_bytes', ARGV[1])
-end
+redis.call('HINCRBY', KEYS[1], 'total_count', 1)
+redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -86,15 +73,21 @@ redis.call('DEL', KEYS[1])
 return redis.status_reply('OK')
 `
 
+const dropScrapersIndex = `
+redis.call('ZREM', KEYS[1], ARGV[1])
+
+return redis.status_reply('OK')
+`
+
 const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchScraperCache', {
     numberOfKeys: 1,
     lua: fetchScraperCache
   })
 
-  redis.defineCommand('fetchUrlPathScraperId', {
+  redis.defineCommand('fetchScraperLink', {
     numberOfKeys: 1,
-    lua: fetchUrlPathScraperId
+    lua: fetchScraperLink
   })
 
   redis.defineCommand('fetchScrapersIndex', {
@@ -107,7 +100,7 @@ const initScripts: InitScripts = (redis) => {
     lua: saveScraperCache
   })
 
-  redis.defineCommand('saveUrlPathScraperId', {
+  redis.defineCommand('saveUrlPathScraperLink', {
     numberOfKeys: 1,
     lua: saveUrlPathScraperId
   })
@@ -117,24 +110,24 @@ const initScripts: InitScripts = (redis) => {
     lua: saveScrapersIndex
   })
 
-  redis.defineCommand('dropScrapersIndex', {
-    numberOfKeys: 1,
-    lua: dropScrapersIndex
-  })
-
   redis.defineCommand('saveSuccessScraperCache', {
-    numberOfKeys: 2,
+    numberOfKeys: 1,
     lua: saveSuccessScraperCache
   })
 
   redis.defineCommand('saveFailedScraperCache', {
-    numberOfKeys: 2,
+    numberOfKeys: 1,
     lua: saveFailedScraperCache
   })
 
   redis.defineCommand('dropScraperCache', {
     numberOfKeys: 1,
     lua: dropScraperCache
+  })
+
+  redis.defineCommand('dropScrapersIndex', {
+    numberOfKeys: 1,
+    lua: dropScrapersIndex
   })
 }
 

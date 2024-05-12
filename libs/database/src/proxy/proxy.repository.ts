@@ -15,27 +15,23 @@ export async function selectRowById(
   return await queryLock.executeTakeFirst()
 }
 
-export async function selectRowByProxyUrl(
+export async function selectRowByUrl(
   trx: TransactionDatabase,
-  proxy_url: string
+  url: string
 ): Promise<ProxyRow | undefined> {
   return await trx
     .selectFrom('proxy')
     .selectAll()
-    .where('proxy_url', '=', proxy_url)
+    .where('url', '=', url)
     .forShare()
     .executeTakeFirst()
 }
 
-export async function selectRows(trx: TransactionDatabase): Promise<ProxyRow[]> {
-  return await trx.selectFrom('proxy').selectAll().orderBy('created_at', 'asc').forShare().execute()
-}
-
-export async function insertRow(trx: TransactionDatabase, proxy_url: string): Promise<ProxyRow> {
+export async function insertRow(trx: TransactionDatabase, url: string): Promise<ProxyRow> {
   return await trx
     .insertInto('proxy')
     .values(() => ({
-      proxy_url,
+      url,
       is_enabled: false,
       created_at: sql<number>`now()`,
       updated_at: sql<number>`now()`,
@@ -97,7 +93,7 @@ export async function updateRowsProduce(
 export const buildModel = (row: ProxyRow): Proxy => {
   return {
     id: row.id,
-    proxyUrl: row.proxy_url,
+    url: row.url,
     isEnabled: row.is_enabled,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

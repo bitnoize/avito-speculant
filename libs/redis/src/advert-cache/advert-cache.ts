@@ -14,7 +14,7 @@ export interface AdvertCache {
 }
 
 export type AvitoAdvert = [
-  number, // id
+  number, // advertId
   string, // title
   string, // description
   string, // categoryName
@@ -28,10 +28,11 @@ export type AvitoAdvert = [
 export const CATEGORY_ADVERTS_TOPICS = ['wait', 'send', 'done']
 export type CategoryAdvertTopic = (typeof CATEGORY_ADVERTS_TOPICS)[number]
 
-export const advertKey = (advertId: number) => [REDIS_CACHE_PREFIX, 'advert', advertId].join(':')
+export const advertCacheKey = (advertId: number) =>
+  [REDIS_CACHE_PREFIX, 'advert_cache', advertId].join(':')
 
-export const scraperAdvertsKey = (scraperId: string) =>
-  [REDIS_CACHE_PREFIX, 'scraper-adverts', scraperId].join(':')
+export const scraperAdvertsIndexKey = (scraperId: string) =>
+  [REDIS_CACHE_PREFIX, 'scraper-adverts_index', scraperId].join(':')
 
-export const categoryAdvertsKey = (categoryId: number, topic: CategoryAdvertTopic) =>
-  [REDIS_CACHE_PREFIX, 'category-adverts', categoryId, topic].join(':')
+export const categoryAdvertsIndexKey = (categoryId: number, topic: CategoryAdvertTopic) =>
+  [REDIS_CACHE_PREFIX, 'category-adverts_index', categoryId, topic].join(':')

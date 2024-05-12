@@ -1,5 +1,5 @@
 import { Redis } from 'ioredis'
-import { BotCache, botCacheKey, botsIndexKey, onlineBotsIndexKey } from './proxy-cache.js'
+import { BotCache, botCacheKey, userBotsIndexKey } from './bot-cache.js'
 import {
   parseNumber,
   parseManyNumbers,
@@ -11,53 +11,33 @@ import {
 
 export async function fetchBotCache(
   redis: Redis,
-  proxyId: number
+  botId: number
 ): Promise<BotCache | undefined> {
   const result = await redis.fetchBotCache(
-    botCacheKey(proxyId) // KEYS[1]
+    botCacheKey(botId) // KEYS[1]
   )
 
   return parseModel(result, `fetchBotCache malformed result`)
 }
 
-export async function fetchBotsIndex(redis: Redis): Promise<number[]> {
+export async function fetchUserBotsIndex(redis: Redis, userId: number): Promise<number[]> {
   const result = await redis.fetchBotsIndex(
-    botsIndexKey() // KEYS[1]
+    userBotsIndexKey(userId) // KEYS[1]
   )
 
-  return parseManyNumbers(result, `fetchBots malformed result`)
+  return parseManyNumbers(result, `fetchUserBotsIndex malformed result`)
 }
 
-export async function fetchOnlineBotsIndex(redis: Redis): Promise<number[]> {
-  const result = await redis.fetchBotsIndex(
-    onlineBotsIndexKey() // KEYS[1]
-  )
-
-  return parseManyNumbers(result, `fetchOnlineBots malformed result`)
-}
-
-export async function fetchRandomOnlineBot(redis: Redis): Promise<number | undefined> {
-  const result = await redis.fetchRandomBot(
-    onlineBotsIndexKey() // KEYS[1]
-  )
-
-  if (result == null) {
-    return undefined
-  }
-
-  return parseNumber(result, `fetchRandomOnlineBot malformed result`)
-}
-
-export async function fetchBotsCache(redis: Redis, proxyIds: number[]): Promise<BotCache[]> {
-  if (proxyIds.length === 0) {
+export async function fetchBotsCache(redis: Redis, botIds: number[]): Promise<BotCache[]> {
+  if (botIds.length === 0) {
     return []
   }
 
   const pipeline = redis.pipeline()
 
-  proxyIds.forEach((proxyId) => {
+  botIds.forEach((botId) => {
     pipeline.fetchBotCache(
-      botCacheKey(proxyId) // KEYS[1]
+      botCacheKey(botId) // KEYS[1]
     )
   })
 
@@ -66,53 +46,83 @@ export async function fetchBotsCache(redis: Redis, proxyIds: number[]): Promise<
   return parseCollection(result, `fetchBotsCache malformed result`)
 }
 
-export async function saveEnabledBotCache(
+export async function saveBotCache(
   redis: Redis,
-  proxyId: number,
-  proxyUrl: string,
-  proxyIsEnabled: boolean,
-  proxyCreatedAt: number,
-  proxyUpdatedAt: number,
-  proxyQueuedAt: number,
+  botId: number,
+  userId: number,
+  token: string,
+  isLinked: boolean,
+  isEnabled: boolean,
+  createdAt: number,
+  updatedAt: number,
+  queuedAt: number,
 ): Promise<void> {
-  await redis.saveBotCache(
-    botCacheKey(proxyId), // KEYS[1]
-    botsIndexKey(), // KEYS[2]
-    proxyId, // ARGV[1]
-    proxyUrl, // ARGV[2]
-    proxyIsEnabled, // ARGV[3]
-    proxyCreatedAt, // ARGV[4]
-    proxyUpdatedAt, // ARGV[5]
-    proxyQueuedAt // ARGV[6]
+  const multi = redis.multi()
+
+  multi.saveBotCache(
+    botCacheKey(botId), // KEYS[1]
+    botId, // ARGV[1]
+    userId, // ARGV[2]
+    token, // ARGV[3]
+    isLinked ? 1 : 0, // ARGV[4]
+    isEnabled ? 1 : 0, // ARGV[5]
+    createdAt, // ARGV[6]
+    updatedAt, // ARGV[7]
+    queuedAt // ARGV[8]
   )
+
+  multi.saveBotsIndex(
+    userBotsIndexKey(userId), // KEYS[1]
+    botId, // ARGV[1]
+    createdAt // ARGV[2]
+  )
+
+  await multi.exec()
 }
 
-export async function renewOnlineBotCache(
+export async function saveOnlineBotCache(
   redis: Redis,
-  proxyId: number,
-  sizeBytes: number
+  botId: number
 ): Promise<void> {
-  await redis.renewOnlineBotCache(
-    botCacheKey(proxyId), // KEYS[1]
-    onlineBotsIndexKey(), // KEYS[2]
-    proxyId, // ARGV[1]
-    sizeBytes, // ARGV[2]
-    Date.now() // ARGV[3]
+  const multi = redis.multi()
+
+  multi.saveOnlineBotCache(
+    botCacheKey(botId) // KEYS[1]
   )
+
+  await multi.exec()
 }
 
-export async function renewOfflineBotCache(
+export async function saveOfflineBotCache(
   redis: Redis,
-  proxyId: number,
-  sizeBytes: number
+  botId: number,
 ): Promise<void> {
-  await redis.renewOfflineBotCache(
-    botCacheKey(proxyId), // KEYS[1]
-    onlineBotsIndexKey(), // KEYS[2]
-    proxyId, // ARGV[1]
-    sizeBytes, // ARGV[2]
-    Date.now() // ARGV[3]
+  const multi = redis.multi()
+
+  multi.saveOfflineBotCache(
+    botCacheKey(botId) // KEYS[1]
   )
+
+  await multi.exec()
+}
+
+export async function dropBotCache(
+  redis: Redis,
+  botId: number,
+  userId: number
+): Promise<void> {
+  const multi = redis.multi()
+
+  multi.dropBotCache(
+    botCacheKey(botId) // KEYS[1]
+  )
+
+  multi.dropBotsIndex(
+    userBotsIndexKey(userId), // KEYS[1]
+    botId // ARGV[1]
+  )
+
+  await multi.exec()
 }
 
 const parseModel = (result: unknown, message: string): BotCache | undefined => {
@@ -120,29 +130,36 @@ const parseModel = (result: unknown, message: string): BotCache | undefined => {
     return undefined
   }
 
-  const hash = parseHash(result, 10, message)
+  const hash = parseHash(result, 11, message)
 
   return {
     id: parseNumber(hash[0], message),
-    url: parseString(hash[1], message),
-    isEnabled: !!parseNumber(hash[2], message),
-    isOnline: !!parseNumber(hash[3], message),
-    totalCount: parseNumber(hash[4], message),
-    successCount: parseNumber(hash[5], message),
-    sizeBytes: parseNumber(hash[6], message),
-    createdAt: parseNumber(hash[7], message),
-    updatedAt: parseNumber(hash[8], message),
-    queuedAt: parseNumber(hash[9], message),
+    userId: parseNumber(hash[1], message),
+    token: parseString(hash[2], message),
+    isLinked: !!parseNumber(hash[3], message),
+    isEnabled: !!parseNumber(hash[4], message),
+    isOnline: !!parseNumber(hash[5], message),
+    totalCount: parseNumber(hash[6], message),
+    successCount: parseNumber(hash[7], message),
+    createdAt: parseNumber(hash[8], message),
+    updatedAt: parseNumber(hash[9], message),
+    queuedAt: parseNumber(hash[10], message),
   }
 }
 
 const parseCollection = (result: unknown, message: string): BotCache[] => {
+  const collection: BotCache[] = []
+
   const pipeline = parsePipeline(result, message)
 
-  return pipeline
-    .map((pl) => {
-      const command = parseCommand(pl, message)
-      return parseModel(command, message)
-    })
-    .filter((proxy) => proxy !== undefined)
+  pipeline.forEach((pl) => {
+    const command = parseCommand(pl, message)
+    const model = parseModel(command, message)
+
+    if (model !== undefined) {
+      collection.push(model)
+    }
+  })
+
+  return collection
 }

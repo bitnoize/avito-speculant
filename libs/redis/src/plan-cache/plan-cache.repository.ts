@@ -82,6 +82,24 @@ export async function savePlanCache(
   await multi.exec()
 }
 
+export async function dropPlanCache(
+  redis: Redis,
+  planId: number
+): Promise<void> {
+  const multi = redis.multi()
+
+  multi.dropPlanCache(
+    planCacheKey(planId) // KEYS[1]
+  )
+
+  multi.dropPlansIndex(
+    plansIndexKey(), // KEYS[1]
+    planId // ARGV[1]
+  )
+
+  await multi.exec()
+}
+
 const parseModel = (result: unknown, message: string): PlanCache | undefined => {
   if (result === null) {
     return undefined
@@ -105,12 +123,18 @@ const parseModel = (result: unknown, message: string): PlanCache | undefined => 
 }
 
 const parseCollection = (result: unknown, message: string): PlanCache[] => {
+  const collection: PlanCache[] = []
+
   const pipeline = parsePipeline(result, message)
 
-  return pipeline
-    .map((pl) => {
-      const command = parseCommand(pl, message)
-      return parseModel(command, message)
-    })
-    .filter((model) => model !== undefined)
+  pipeline.forEach((pl) => {
+    const command = parseCommand(pl, message)
+    const model = parseModel(command, message)
+
+    if (model !== undefined) {
+      collection.push(model)
+    }
+  })
+
+  return collection
 }

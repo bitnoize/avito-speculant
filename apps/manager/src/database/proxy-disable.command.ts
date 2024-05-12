@@ -30,9 +30,7 @@ const initCommand: InitCommand = (config, logger) => {
       try {
         const { proxy, backLog } = await proxyService.disableProxy(db, {
           proxyId,
-          data: {
-            message: `Disable proxy via Manager`
-          }
+          data: {}
         })
 
         await redisService.publishBackLog(pubSub, backLog)

@@ -3,7 +3,7 @@ import { ProxyLogData } from '../../proxy-log/proxy-log.js'
 import { DatabaseMethod } from '../../database.js'
 
 export type ConsumeProxyRequest = {
-  proxyId: number
+  entityId: number
   data: ProxyLogData
 }
 

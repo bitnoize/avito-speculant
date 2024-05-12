@@ -1,7 +1,5 @@
 export * from './create-category.js'
-export * from './read-category.js'
 export * from './enable-category.js'
 export * from './disable-category.js'
-export * from './list-categories.js'
 export * from './produce-categories.js'
 export * from './consume-category.js'

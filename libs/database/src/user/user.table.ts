@@ -3,7 +3,7 @@ import { Generated, ColumnType, Selectable, Insertable, Updateable } from 'kysel
 export interface UserTable {
   id: Generated<number>
   tg_from_id: ColumnType<string, string, never>
-  is_paid: ColumnType<boolean, boolean, boolean | undefined>
+  active_subscription_id: ColumnType<number | null, null, number | null | undefined>
   subscriptions: ColumnType<number, number, number | undefined>
   categories: ColumnType<number, number, number | undefined>
   bots: ColumnType<number, number, number | undefined>

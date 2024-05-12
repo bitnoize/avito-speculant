@@ -9,12 +9,12 @@ export interface ScraperCache {
 }
 
 export const scraperCacheKey = (scraperId: string) =>
-  [REDIS_CACHE_PREFIX, 'scraper', scraperId].join(':')
+  [REDIS_CACHE_PREFIX, 'scraper-cache', scraperId].join(':')
 
-export const scrapersIndexKey = () => [REDIS_CACHE_PREFIX, 'scrapers'].join(':')
+export const urlPathScraperLinkKey = (urlPath: string) =>
+  [REDIS_CACHE_PREFIX, 'url_path-scraper-link', urlPath].join(':')
 
-export const urlPathScraperIdKey = (urlPath: string) =>
-  [REDIS_CACHE_PREFIX, 'url_path-scraper', urlPath].join(':')
+export const scrapersIndexKey = () => [REDIS_CACHE_PREFIX, 'scrapers-index'].join(':')
 
 export const advertScrapersIndexKey = (advertId: number) =>
-  [REDIS_CACHE_PREFIX, 'advert-scrapers', advertId].join(':')
+  [REDIS_CACHE_PREFIX, 'advert-scrapers-index', advertId].join(':')

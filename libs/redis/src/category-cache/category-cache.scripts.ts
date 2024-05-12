@@ -5,15 +5,19 @@ return redis.call(
   'HMGET', KEYS[1],
   'id',
   'user_id',
+  'url_path',
+  'bot_id',
   'scraper_id',
-  'avito_url',
-  'skip_first',
-  'time'
+  'is_enabled',
+  'first_time',
+  'created_at',
+  'updated_at',
+  'queued_at'
 )
 `
 
-const fetchCategories = `
-return redis.call('SMEMBERS', KEYS[1])
+const fetchCategoriesIndex = `
+return redis.call('ZRANGE', KEYS[1], 0, -1)
 `
 
 const saveCategoryCache = `
@@ -21,33 +25,30 @@ redis.call(
   'HSET', KEYS[1],
   'id', ARGV[1],
   'user_id', ARGV[2],
-  'scraper_id', ARGV[3],
-  'avito_url', ARGV[4],
-  'time', ARGV[5]
+  'url_path', ARGV[3],
+  'bot_id', ARGV[4],
+  'is_enabled', ARGV[5],
+  'created_at', ARGV[6],
+  'updated_at', ARGV[7],
+  'queued_at', ARGV[8]
 )
 
-redis.call('HSETNX', KEYS[1], 'skip_first', 1)
-
-redis.call('SADD', KEYS[2], ARGV[1])
-
-redis.call('SADD', KEYS[3], ARGV[1])
+redis.call('HSETNX', KEYS[1], 'first_time', 1)
 
 return redis.status_reply('OK')
 `
 
-const dropCategoryCache = `
-redis.call('DEL', KEYS[1])
-
-redis.call('SREM', KEYS[2], ARGV[1])
-
-redis.call('SREM', KEYS[3], ARGV[1])
-
-return redis.status_reply('OK')
-`
-
-const resetCategoryCache = `
+const saveCategoryScraperId = `
 if redis.call('EXISTS', KEYS[1]) == 1 then
-  redis.call('HSET', KEYS[1], 'skip_first', 0, 'time', ARGV[1])
+  redis.call('HSET', KEYS[1], 'scraper_id', ARGV[1])
+end
+
+return redis.status_reply('OK')
+`
+
+const saveCategoryFirstTime = `
+if redis.call('EXISTS', KEYS[1]) == 1 then
+  redis.call('HSET', KEYS[1], 'first_time', ARGV[1])
 end
 
 return redis.status_reply('OK')
@@ -59,18 +60,18 @@ const initScripts: InitScripts = (redis) => {
     lua: fetchCategoryCache
   })
 
-  redis.defineCommand('fetchCategories', {
+  redis.defineCommand('fetchCategoriesIndex', {
     numberOfKeys: 1,
-    lua: fetchCategories
+    lua: fetchCategoriesIndex
   })
 
   redis.defineCommand('saveCategoryCache', {
-    numberOfKeys: 3,
+    numberOfKeys: 1,
     lua: saveCategoryCache
   })
 
   redis.defineCommand('dropCategoryCache', {
-    numberOfKeys: 3,
+    numberOfKeys: 1,
     lua: dropCategoryCache
   })
 

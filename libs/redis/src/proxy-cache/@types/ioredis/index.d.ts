@@ -2,45 +2,59 @@ import { Result, Callback } from 'ioredis'
 
 declare module 'ioredis' {
   interface RedisCommander<Context> {
-    fetchProxyCache(proxyCacheKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchProxyCache(
+      proxyCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
 
-    fetchProxiesIndex(proxiesIndexKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchProxiesIndex(
+      proxiesIndexKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
 
-    fetchRandomProxy(proxiesKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchRandomProxyLink(
+      proxyLinkKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
 
     saveProxyCache(
-      proxyCacheKey: string,
-      proxyId: number,
-      url: string,
-      isEnabled: number,
-      createdAt: number,
-      updatedAt: number,
-      queuedAt: number,
+      proxyCacheKey: string, // KEYS[1]
+      proxyId: number, // ARGV[1]
+      url: string, // ARGV[2]
+      isEnabled: number, // ARGV[3]
+      createdAt: number, // ARGV[4]
+      updatedAt: number, // ARGV[5]
+      queuedAt: number, // ARGV[6]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveProxiesIndex(
-      proxiesIndexKey: string,
-      proxyId: number,
-      createdAt: number,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    dropProxiesIndex(
-      proxiesIndexKey: string,
-      proxyId: number,
+      proxiesIndexKey: string, // KEYS[1]
+      proxyId: number, // ARGV[1]
+      createdAt: number, // ARGV[2]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveOnlineProxyCache(
-      proxyCacheKey: string,
-      sizeBytes: number,
+      proxyCacheKey: string, // KEYS[1]
+      sizeBytes: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveOfflineProxyCache(
-      proxyCacheKey: string,
-      sizeBytes: number,
+      proxyCacheKey: string, // KEYS[1]
+      sizeBytes: number, // ARGV[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropProxyCache(
+      proxyCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropProxiesIndex(
+      proxiesIndexKey: string, // KEYS[1]
+      proxyId: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
   }

@@ -54,20 +54,6 @@ export async function selectRowByUserIdStatus(
   return await queryLock.executeTakeFirst()
 }
 
-export async function selectRowsByUserId(
-  trx: TransactionDatabase,
-  user_id: number
-): Promise<SubscriptionRow[]> {
-  return await trx
-    .selectFrom('subscription')
-    .selectAll()
-    .where('user_id', '=', user_id)
-    .where('status', 'in', ['wait', 'active', 'finish'])
-    .orderBy('created_at', 'desc')
-    .forShare()
-    .execute()
-}
-
 export async function selectCountByUserId(
   trx: TransactionDatabase,
   user_id: number

@@ -37,9 +37,7 @@ const initCommand: InitCommand = (config, logger) => {
         const { plan, backLog } = await planService.updatePlanPrice(db, {
           planId,
           priceRub,
-          data: {
-            message: `Update plan price via Manager`
-          }
+          data: {}
         })
 
         await redisService.publishBackLog(pubSub, backLog)

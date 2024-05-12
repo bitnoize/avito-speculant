@@ -36,38 +36,27 @@ const initCommand: InitCommand = (config, logger) => {
         const {
           user,
           subscription,
-          plan,
           previousSubscription,
-          previousPlan,
           backLog
         } = await subscriptionService.activateSubscription(db, {
           userId,
           subscriptionId,
-          data: {
-            message: `Activate subscription via Manager`
-          }
+          data: {}
         })
 
         await redisService.publishBackLog(pubSub, backLog)
 
         await treatmentService.addJob(treatmentQueue, 'user', user.id)
         await treatmentService.addJob(treatmentQueue, 'subscription', subscription.id)
-        await treatmentService.addJob(treatmentQueue, 'plan', plan.id)
 
         if (previousSubscription !== undefined) {
           await treatmentService.addJob(treatmentQueue, 'subscription', previousSubscription.id)
         }
 
-        if (previousPlan !== undefined) {
-          await treatmentService.addJob(treatmentQueue, 'plan', previousPlan.id)
-        }
-
         logger.info({
           user,
           subscription,
-          plan,
           previousSubscription,
-          previousPlan,
           backLog
         }, `Subscription activated`)
       } finally {

@@ -30,9 +30,7 @@ const initCommand: InitCommand = (config, logger) => {
       try {
         const { proxy, backLog } = await proxyService.createProxy(db, {
           proxyUrl,
-          data: {
-            message: `Create proxy via Manager`
-          }
+          data: {}
         })
 
         await redisService.publishBackLog(pubSub, backLog)

@@ -1,6 +1,6 @@
 import { RedisMethod } from '../../redis.js'
 
-export type SaveLinkedBotCacheRequest = {
+export type SaveBotCacheRequest = {
   botId: number
   userId: number
   token: string
@@ -11,9 +11,6 @@ export type SaveLinkedBotCacheRequest = {
   queuedAt: number
 }
 
-export type SaveLinkedBotCacheResponse = void
+export type SaveBotCacheResponse = void
 
-export type SaveLinkedBotCache = RedisMethod<
-  SaveLinkedBotCacheRequest,
-  SaveLinkedBotCacheResponse
->
+export type SaveBotCache = RedisMethod<SaveBotCacheRequest, SaveBotCacheResponse>

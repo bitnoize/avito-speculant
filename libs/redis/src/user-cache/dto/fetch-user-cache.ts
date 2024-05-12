@@ -9,8 +9,8 @@ export type FetchUserCacheRequest = {
 
 export type FetchUserCacheResponse = {
   userCache: UserCache
-  subscriptionCache: SubscriptionCache | undefined
-  planCache: PlanCache | undefined
+  subscriptionCache?: SubscriptionCache
+  planCache?: PlanCache
 }
 
 export type FetchUserCache = RedisMethod<FetchUserCacheRequest, FetchUserCacheResponse>

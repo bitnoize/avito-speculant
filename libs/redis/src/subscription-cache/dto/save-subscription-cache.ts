@@ -4,11 +4,13 @@ export type SaveSubscriptionCacheRequest = {
   subscriptionId: number
   userId: number
   planId: number
-  categoriesMax: number
   priceRub: number
-  durationDays: number
-  intervalSec: number
-  analyticsOn: boolean
+  status: string
+  createdAt: number
+  updatedAt: number
+  queuedAt: number
+  timeoutAt: number
+  finishAt: number
 }
 
 export type SaveSubscriptionCacheResponse = void

@@ -1,6 +1,6 @@
 export interface Proxy {
   id: number
-  proxyUrl: string
+  url: string
   isEnabled: boolean
   createdAt: number
   updatedAt: number

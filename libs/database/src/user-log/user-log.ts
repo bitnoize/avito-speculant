@@ -4,7 +4,7 @@ export interface UserLog {
   id: string
   userId: number
   action: string
-  isPaid: boolean
+  activeSubscriptionId: number | null
   subscriptions: number
   categories: number
   bots: number

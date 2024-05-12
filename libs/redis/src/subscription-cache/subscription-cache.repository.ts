@@ -2,11 +2,13 @@ import { Redis } from 'ioredis'
 import {
   SubscriptionCache,
   subscriptionCacheKey,
+  userActiveSubscriptionLinkKey,
   userSubscriptionsIndexKey
 } from './subscription-cache.js'
 import {
   parseNumber,
   parseManyNumbers,
+  parseString,
   parseHash,
   parsePipeline,
   parseCommand
@@ -23,11 +25,26 @@ export async function fetchSubscriptionCache(
   return parseModel(result, `fetchSubscriptionCache malformed result`)
 }
 
+export async function fetchUserActiveSubscriptionLink(
+  redis: Redis,
+  userId: number
+): Promise<number | undefined> {
+  const result = await redis.fetchSubscriptionLink(
+    userActiveSubscriptionLinkKey(userId) // KEYS[1]
+  )
+
+  if (result === null) {
+    return undefined
+  }
+
+  return parseNumber(result, `fetchUserActiveSubscriptionLink malformed result`)
+}
+
 export async function fetchUserSubscriptionsIndex(
   redis: Redis,
   userId: number
 ): Promise<number[]> {
-  const result = await redis.fetchSubscriptions(
+  const result = await redis.fetchSubscriptionsIndex(
     userSubscriptionsIndexKey(userId) // KEYS[1]
   )
 
@@ -60,63 +77,92 @@ export async function saveSubscriptionCache(
   subscriptionId: number,
   userId: number,
   planId: number,
-  categoriesMax: number,
   priceRub: number,
-  durationDays: number,
-  intervalSec: number,
-  analyticsOn: boolean
+  status: string,
+  createdAt: number,
+  updatedAt: number,
+  queuedAt: number,
+  timeoutAt: number,
+  finishAt: number
 ): Promise<void> {
-  await redis.saveSubscriptionCache(
+  const multi = redis.multi()
+
+  multi.saveSubscriptionCache(
     subscriptionCacheKey(subscriptionId), // KEYS[1]
-    userSubscriptionsIndexKey(userId), // KEYS[2]
-    planSubscriptionsIndexKey(planId), // KEYS[3]
     subscriptionId, // ARGV[1]
     userId, // ARGV[2]
     planId, // ARGV[3]
-    categoriesMax, // ARGV[4]
-    priceRub, // ARGV[5]
-    durationDays, // ARGV[6]
-    intervalSec, // ARGV[7]
-    analyticsOn ? 1 : 0, // ARGV[8]
-    Date.now() // ARGV[9]
+    priceRub, // ARGV[4]
+    status, // ARGV[5]
+    createdAt, // ARGV[6]
+    updatedAt, // ARGV[7]
+    queuedAt, // ARGV[8]
+    timeoutAt, // ARGV[9]
+    finishAt // ARGV[10]
   )
+
+  multi.saveSubscriptionsIndex(
+    userSubscriptionsIndexKey(userId), // KEYS[1]
+    subscriptionId, // ARGV[1]
+    createdAt // ARGV[2]
+  )
+
+  await multi.exec()
 }
 
 export async function dropSubscriptionCache(
   redis: Redis,
   subscriptionId: number,
-  userId: number,
-  planId: number
+  userId: number
 ): Promise<void> {
-  await redis.dropSubscriptionCache(
-    subscriptionCacheKey(subscriptionId), // KEYS[1]
-    userSubscriptionsIndexKey(userId), // KEYS[2]
-    planSubscriptionsIndexKey(planId), // KEYS[3]
+  const multi = redis.multi()
+
+  multi.dropSubscriptionCache(
+    subscriptionCacheKey(subscriptionId) // KEYS[1]
+  )
+
+  multi.dropSubscriptionsIndex(
+    userSubscriptionsIndexKey(userId), // KEYS[1]
     subscriptionId // ARGV[1]
   )
+
+  await multi.exec()
 }
 
-const parseModel = (result: unknown, message: string): SubscriptionCache => {
-  const hash = parseHash(result, 9, message)
+const parseModel = (result: unknown, message: string): SubscriptionCache | undefined => {
+  if (result === null) {
+    return undefined
+  }
+
+  const hash = parseHash(result, 10, message)
 
   return {
     id: parseNumber(hash[0], message),
     userId: parseNumber(hash[1], message),
     planId: parseNumber(hash[2], message),
-    categoriesMax: parseNumber(hash[3], message),
-    priceRub: parseNumber(hash[4], message),
-    durationDays: parseNumber(hash[5], message),
-    intervalSec: parseNumber(hash[6], message),
-    analyticsOn: !!parseNumber(hash[7], message),
-    time: parseNumber(hash[8], message)
+    priceRub: parseNumber(hash[3], message),
+    status: parseString(hash[4], message),
+    createdAt: parseNumber(hash[5], message),
+    updatedAt: parseNumber(hash[6], message),
+    queuedAt: parseNumber(hash[7], message),
+    timeoutAt: parseNumber(hash[8], message),
+    finishAt: parseNumber(hash[9], message)
   }
 }
 
 const parseCollection = (result: unknown, message: string): SubscriptionCache[] => {
+  const collection: SubscriptionCache[] = []
+
   const pipeline = parsePipeline(result, message)
 
-  return pipeline.map((pl) => {
+  pipeline.forEach((pl) => {
     const command = parseCommand(pl, message)
-    return parseModel(command, message)
+    const model = parseModel(command, message)
+
+    if (model !== undefined) {
+      collection.push(model)
+    }
   })
+
+  return collection
 }

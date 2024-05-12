@@ -1,12 +1,17 @@
 import { RedisMethod } from '../../redis.js'
 
 export type SavePlanCacheRequest = {
-  planId: number
-  categoriesMax: number
-  priceRub: number
-  durationDays: number
-  intervalSec: number
-  analyticsOn: boolean
+  planId: number,
+  categoriesMax: number,
+  durationDays: number,
+  intervalSec: number,
+  analyticsOn: boolean,
+  priceRub: number,
+  isEnabled: boolean,
+  subscriptions: number,
+  createdAt: number,
+  updatedAt: number,
+  queuedAt: number,
 }
 
 export type SavePlanCacheResponse = void

@@ -3,61 +3,60 @@ import { Result, Callback } from 'ioredis'
 declare module 'ioredis' {
   interface RedisCommander<Context> {
     fetchScraperCache(
-      scraperCacheKey: string,
+      scraperCacheKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchUrlPathScraperId(
-      urlPathScraperIdKey: string,
+    fetchScraperLink(
+      scraperLinkKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
     fetchScrapersIndex(
-      scrapersIndexKey: string,
+      scrapersIndexKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
     
     saveScraperCache(
-      scraperCacheKey: string,
-      scraperId: string,
-      urlPath: string,
+      scraperCacheKey: string, // KEYS[1]
+      scraperId: string, // ARGV[1]
+      urlPath: string, // ARGV[2]
       callback?: Callback<string>
     ): Result<string, Context>
 
-    saveUrlPathScraperId(
-      urlPathScraperIdKey: string,
-      scraperId: string,
+    saveScraperLink(
+      scraperLinkKey: string, // KEYS[1]
+      scraperId: string, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveScrapersIndex(
-      scrapersIndexKey: string,
-      scraperId: string,
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    dropScrapersIndex(
-      scrapersIndexKey: string,
-      scraperId: string,
+      scrapersIndexKey: string, // KEYS[1]
+      scraperId: string, // ARGV[1]
+      createdAt: number, // ARGV[2]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveSuccessScraperCache(
-      scraperCacheKey: string,
-      proxyCacheKey: string,
-      sizeBytes: number,
+      scraperCacheKey: string, // KEYS[1]
+      sizeBytes: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveFailedScraperCache(
-      scraperCacheKey: string,
-      proxyCacheKey: string,
-      sizeBytes: number,
+      scraperCacheKey: string, // KEYS[1]
+      sizeBytes: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
     dropScraperCache(
-      scraperCacheKey: string,
+      scraperCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropScrapersIndex(
+      scrapersIndexKey: string, // KEYS[1]
+      scraperId: string, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
   }

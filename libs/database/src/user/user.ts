@@ -1,7 +1,7 @@
 export interface User {
   id: number
   tgFromId: string
-  isPaid: boolean
+  activeSubscriptionId: number | null
   subscriptions: number
   categories: number
   bots: number

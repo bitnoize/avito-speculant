@@ -3,7 +3,7 @@ import { PlanLogData } from '../../plan-log/plan-log.js'
 import { DatabaseMethod } from '../../database.js'
 
 export type ConsumePlanRequest = {
-  planId: number
+  entityId: number
   data: PlanLogData
 }
 

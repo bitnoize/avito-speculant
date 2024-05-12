@@ -30,9 +30,7 @@ const initCommand: InitCommand = (config, logger) => {
       try {
         const { plan, backLog } = await planService.enablePlan(db, {
           planId,
-          data: {
-            message: `Enable plan via Manager`
-          }
+          data: {}
         })
 
         await redisService.publishBackLog(pubSub, backLog)

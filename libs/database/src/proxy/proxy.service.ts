@@ -1,10 +1,8 @@
 import { Notify } from '@avito-speculant/common'
 import {
   CreateProxy,
-  ReadProxy,
   EnableProxy,
   DisableProxy,
-  ListProxies,
   ProduceProxies,
   ConsumeProxy
 } from './dto/index.js'
@@ -19,13 +17,13 @@ export const createProxy: CreateProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
-    const existsProxyRow = await proxyRepository.selectRowByProxyUrl(trx, request.proxyUrl)
+    const existsProxyRow = await proxyRepository.selectRowByUrl(trx, request.url)
 
     if (existsProxyRow !== undefined) {
       throw new ProxyExistsError({ request })
     }
 
-    const insertedProxyRow = await proxyRepository.insertRow(trx, request.proxyUrl)
+    const insertedProxyRow = await proxyRepository.insertRow(trx, request.url)
 
     const proxyLogRow = await proxyLogRepository.insertRow(
       trx,
@@ -40,23 +38,6 @@ export const createProxy: CreateProxy = async function (db, request) {
     return {
       proxy: proxyRepository.buildModel(insertedProxyRow),
       backLog
-    }
-  })
-}
-
-/**
- * Read Proxy
- */
-export const readProxy: ReadProxy = async function (db, request) {
-  return await db.transaction().execute(async (trx) => {
-    const proxyRow = await proxyRepository.selectRowById(trx, request.proxyId)
-
-    if (proxyRow === undefined) {
-      throw new ProxyNotFoundError({ request })
-    }
-
-    return {
-      proxy: proxyRepository.buildModel(proxyRow)
     }
   })
 }
@@ -152,19 +133,6 @@ export const disableProxy: DisableProxy = async function (db, request) {
 }
 
 /**
- * List Proxies
- */
-export const listProxies: ListProxies = async function (db) {
-  return await db.transaction().execute(async (trx) => {
-    const proxyRows = await proxyRepository.selectRows(trx)
-
-    return {
-      proxies: proxyRepository.buildCollection(proxyRows)
-    }
-  })
-}
-
-/**
  * Produce Proxies
  */
 export const produceProxies: ProduceProxies = async function (db, request) {
@@ -187,7 +155,7 @@ export const produceProxies: ProduceProxies = async function (db, request) {
  */
 export const consumeProxy: ConsumeProxy = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
-    const proxyRow = await proxyRepository.selectRowById(trx, request.proxyId)
+    const proxyRow = await proxyRepository.selectRowById(trx, request.entityId)
 
     if (proxyRow === undefined) {
       throw new ProxyNotFoundError({ request })

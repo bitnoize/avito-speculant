@@ -33,10 +33,6 @@ export async function selectRowByUnique(
     .executeTakeFirst()
 }
 
-export async function selectRows(trx: TransactionDatabase): Promise<PlanRow[]> {
-  return await trx.selectFrom('plan').selectAll().orderBy('created_at', 'asc').forShare().execute()
-}
-
 export async function insertRow(
   trx: TransactionDatabase,
   categories_max: number,

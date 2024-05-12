@@ -5,19 +5,14 @@ export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('proxy')
     .addColumn('id', 'serial', (col) => col.primaryKey())
-    .addColumn('proxy_url', 'varchar', (col) => col.notNull())
+    .addColumn('url', 'varchar', (col) => col.notNull())
     .addColumn('is_enabled', 'boolean', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) => col.notNull())
     .addColumn('updated_at', 'timestamptz', (col) => col.notNull())
     .addColumn('queued_at', 'timestamptz', (col) => col.notNull())
     .execute()
 
-  await db.schema
-    .createIndex('proxy_proxy_url_key')
-    .on('proxy')
-    .column('proxy_url')
-    .unique()
-    .execute()
+  await db.schema.createIndex('proxy_url_key').on('proxy').column('url').unique().execute()
 
   await db.schema.createIndex('proxy_is_enabled_key').on('proxy').column('is_enabled').execute()
 

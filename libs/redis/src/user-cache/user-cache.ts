@@ -3,8 +3,7 @@ import { REDIS_CACHE_PREFIX } from '../redis.js'
 export interface UserCache {
   id: number
   tgFromId: string
-  isPaid: boolean
-  subscriptionId: number | null
+  activeSubscriptionId: number | null
   subscriptions: number
   categories: number
   bots: number
@@ -13,14 +12,15 @@ export interface UserCache {
   queuedAt: number
 }
 
-export const WEBAPP_USER_ID_TIMEOUT = 3600 * 1000
+export const WEBAPP_TOKEN_TIMEOUT = 3600 * 1000
 
-export const userCacheKey = (userId: number) => [REDIS_CACHE_PREFIX, 'user', userId].join(':')
+export const userCacheKey = (userId: number) =>
+  [REDIS_CACHE_PREFIX, 'user-cache', userId].join(':')
 
-export const telegramUserIdKey = (tgFromId: string) =>
-  [REDIS_CACHE_PREFIX, 'telegram-user_id', tgFromId].join(':')
+export const telegramUserLinkKey = (tgFromId: string) =>
+  [REDIS_CACHE_PREFIX, 'telegram-user-link', tgFromId].join(':')
 
-export const webappUserIdKey = (token: string) =>
-  [REDIS_CACHE_PREFIX, 'webapp-user_id', token].join(':')
+export const webappUserLinkKey = (token: string) =>
+  [REDIS_CACHE_PREFIX, 'webapp-user-link', token].join(':')
 
-export const usersIndexKey = () => [REDIS_CACHE_PREFIX, 'users'].join(':')
+export const usersIndexKey = () => [REDIS_CACHE_PREFIX, 'users-index'].join(':')

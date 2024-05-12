@@ -2,7 +2,7 @@ import { Generated, ColumnType, Selectable, Insertable, Updateable } from 'kysel
 
 export interface ProxyTable {
   id: Generated<number>
-  proxy_url: ColumnType<string, string, string | undefined>
+  url: ColumnType<string, string, string | undefined>
   is_enabled: ColumnType<boolean, boolean, boolean | undefined>
   created_at: ColumnType<number, number, never>
   updated_at: ColumnType<number, number, number | undefined>

@@ -6,17 +6,22 @@ return redis.call(
   'id',
   'user_id',
   'plan_id',
-  'categories_max',
   'price_rub',
-  'duration_days',
-  'interval_sec',
-  'analytics_on',
-  'time'
+  'status',
+  'created_at',
+  'updated_at',
+  'queued_at',
+  'timeout_at',
+  'finish_at'
 )
 `
 
-const fetchSubscriptions = `
-return redis.call('SMEMBERS', KEYS[1])
+const fetchSubscriptionLink = `
+return redis.call('GET', KEYS[1])
+`
+
+const fetchSubscriptionsIndex = `
+return redis.call('ZRANGE', KEYS[1], 0, -1)
 `
 
 const saveSubscriptionCache = `
@@ -25,17 +30,26 @@ redis.call(
   'id', ARGV[1],
   'user_id', ARGV[2],
   'plan_id', ARGV[3],
-  'categories_max', ARGV[4],
-  'price_rub', ARGV[5],
-  'duration_days', ARGV[6],
-  'interval_sec', ARGV[7],
-  'analytics_on', ARGV[8],
-  'time', ARGV[9]
+  'price_rub', ARGV[4],
+  'status', ARGV[5],
+  'created_at', ARGV[6],
+  'updated_at', ARGV[7],
+  'queued_at', ARGV[8],
+  'timeout_at', ARGV[9],
+  'finish_at', ARGV[10]
 )
 
-redis.call('SADD', KEYS[2], ARGV[1])
+return redis.status_reply('OK')
+`
 
-redis.call('SADD', KEYS[3], ARGV[1])
+const saveSubscriptionLink = `
+redis.call('SET', KEYS[1], ARGV[1])
+
+return redis.status_reply('OK')
+`
+
+const saveSubscriptionsIndex = `
+redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -43,9 +57,17 @@ return redis.status_reply('OK')
 const dropSubscriptionCache = `
 redis.call('DEL', KEYS[1])
 
-redis.call('SREM', KEYS[2], ARGV[1])
+return redis.status_reply('OK')
+`
 
-redis.call('SREM', KEYS[3], ARGV[1])
+const dropSubscriptionLink = `
+redis.call('DEL', KEYS[1])
+
+return redis.status_reply('OK')
+`
+
+const dropSubscriptionsIndex = `
+redis.call('ZREM', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -56,19 +78,44 @@ const initScripts: InitScripts = (redis) => {
     lua: fetchSubscriptionCache
   })
 
-  redis.defineCommand('fetchSubscriptions', {
+  redis.defineCommand('fetchSubscriptionLink', {
     numberOfKeys: 1,
-    lua: fetchSubscriptions
+    lua: fetchSubscriptionLink
+  })
+
+  redis.defineCommand('fetchSubscriptionsIndex', {
+    numberOfKeys: 1,
+    lua: fetchSubscriptionsIndex
   })
 
   redis.defineCommand('saveSubscriptionCache', {
-    numberOfKeys: 3,
+    numberOfKeys: 1,
     lua: saveSubscriptionCache
   })
 
+  redis.defineCommand('saveSubscriptionLink', {
+    numberOfKeys: 1,
+    lua: saveSubscriptionLink
+  })
+
+  redis.defineCommand('saveSubscriptionsIndex', {
+    numberOfKeys: 1,
+    lua: saveSubscriptionsIndex
+  })
+
   redis.defineCommand('dropSubscriptionCache', {
-    numberOfKeys: 3,
+    numberOfKeys: 1,
     lua: dropSubscriptionCache
+  })
+
+  redis.defineCommand('dropSubscriptionLink', {
+    numberOfKeys: 1,
+    lua: dropSubscriptionLink
+  })
+
+  redis.defineCommand('dropSubscriptionsIndex', {
+    numberOfKeys: 1,
+    lua: dropSubscriptionsIndex
   })
 }
 

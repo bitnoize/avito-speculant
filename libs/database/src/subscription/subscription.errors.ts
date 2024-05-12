@@ -24,3 +24,15 @@ export class SubscriptionNotActiveError extends DatabaseError {
     super(context, code, message)
   }
 }
+
+export class SubscriptionIsCancelError extends DatabaseError {
+  constructor(context: ErrorContext, code = 103, message = `Subscription is cancel status`) {
+    super(context, code, message)
+  }
+}
+
+export class SubscriptionIsActiveError extends DatabaseError {
+  constructor(context: ErrorContext, code = 103, message = `Subscription is active status`) {
+    super(context, code, message)
+  }
+}

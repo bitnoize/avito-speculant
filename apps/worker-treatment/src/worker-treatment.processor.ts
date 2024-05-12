@@ -5,8 +5,8 @@ import {
   userService,
   planService,
   subscriptionService,
-  categoryService,
   botService,
+  categoryService,
   proxyService
 } from '@avito-speculant/database'
 import {
@@ -14,13 +14,13 @@ import {
   userCacheService,
   planCacheService,
   subscriptionCacheService,
-  categoryCacheService,
   botCacheService,
+  categoryCacheService,
   proxyCacheService,
   scraperCacheService
 } from '@avito-speculant/redis'
 import {
-  ConsumeMalformedResponseError,
+  ConsumeWrongResponseError,
   TreatmentResult,
   TreatmentProcessor,
   queueService,
@@ -106,61 +106,22 @@ const processUser: ProcessName = async function (
   const { entityId } = treatmentJob.data
 
   try {
-    const { user, subscription, plan, backLog } = await userService.consumeUser(db, {
-      userId: entityId,
+    const { user, backLog } = await userService.consumeUser(db, {
+      entityId,
       data: {}
     })
 
-    if (user.isPaid) {
-      if (subscription === undefined || plan === undefined) {
-        throw new ConsumeMalformedResponseError({ user })
-      }
-
-      await userCacheService.savePaidUserCache(redis, {
-        userId: user.id,
-        userTgFromId: user.tgFromId,
-        userSubscriptions: user.subscriptions,
-        userCategories: user.categories,
-        userBots: user.bots,
-        userCreatedAt: user.createdAt,
-        userUpdatedAt: user.updatedAt,
-        userQueuedAt: user.queuedAt,
-        planId: plan.id,
-        planCategoriesMax: plan.categoriesMax,
-        planDurationDays: plan.durationDays,
-        planIntervalSec: plan.intervalSec,
-        planAnalyticsOn: plan.analyticsOn,
-        planPriceRub: plan.priceRub,
-        planIsEnabled: plan.isEnabled,
-        planSubscriptions: plan.subscriptions,
-        planCreatedAt: plan.createdAt,
-        planUpdatedAt: plan.updatedAt,
-        planQueuedAt: plan.queuedAt,
-        subscriptionId: subscription.id,
-        subscriptionPriceRub: subscription.priceRub,
-        subscriptionStatus: subscription.status
-        subscriptionCreatedAt: subscription.createdAt,
-        subscriptionUpdatedAt: subscription.updatedAt,
-        subscriptionQueuedAt: subscription.queuedAt,
-        subscriptionTimeoutAt: subscription.timeoutAt,
-        subscriptionFinishedAt: subscription.finishedAt,
-      })
-    } else {
-      if (subscription !== undefined || plan !== undefined) {
-        throw new ConsumeMalformedResponseError({ user, subscription, plan })
-      }
-
-      await userCacheService.saveUnpaidUserCache(redis, {
-        userId: user.id,
-        tgFromId: user.tgFromId,
-        subscriptions: user.subscriptions,
-        categories: user.categories,
-        bots: user.bots,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        queuedAt: user.queuedAt,
-      })
-    }
+    await userCacheService.savePaidUserCache(redis, {
+      userId: user.id,
+      tgFromId: user.tgFromId,
+      isPaid: user.isPaid,
+      subscriptions: user.subscriptions,
+      categories: user.categories,
+      bots: user.bots,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      queuedAt: user.queuedAt,
+    })
 
     await redisService.publishBackLog(pubSub, backLog)
   } finally {
@@ -191,22 +152,22 @@ const processPlan: ProcessName = async function (
 
   try {
     const { plan, backLog } = await planService.consumePlan(db, {
-      planId: entityId,
+      entityId,
       data: {}
     })
 
     await planCacheService.savePlanCache(redis, {
       planId: plan.id,
-      planCategoriesMax: plan.categoriesMax,
-      planDurationDays: plan.durationDays,
-      planIntervalSec: plan.intervalSec,
-      planAnalyticsOn: plan.analyticsOn,
-      planPriceRub: plan.priceRub,
-      planIsEnabled: plan.isEnabled,
-      planSubscriptions: plan.subscriptions,
-      planCreatedAt: plan.createdAt,
-      planUpdatedAt: plan.updatedAt,
-      planQueuedAt: plan.queuedAt
+      categoriesMax: plan.categoriesMax,
+      durationDays: plan.durationDays,
+      intervalSec: plan.intervalSec,
+      analyticsOn: plan.analyticsOn,
+      priceRub: plan.priceRub,
+      isEnabled: plan.isEnabled,
+      subscriptions: plan.subscriptions,
+      createdAt: plan.createdAt,
+      updatedAt: plan.updatedAt,
+      queuedAt: plan.queuedAt
     })
 
     await redisService.publishBackLog(pubSub, backLog)
@@ -237,45 +198,22 @@ const processSubscription: ProcessName = async function (
   const { entityId } = treatmentJob.data
 
   try {
-    const {
-      subscription,
-      user,
-      plan,
-      backLog
-    } = await subscriptionService.consumeSubscription(db, {
-      subscriptionId: entityId,
+    const { subscription, backLog } = await subscriptionService.consumeSubscription(db, {
+      entityId,
       data: {}
     })
 
-    await subscriptionCacheService.saveSubscriptionCache(redis, {
-      userId: user.id,
-      userTgFromId: user.tgFromId,
-      userIsPaid: user.isPaid,
-      userSubscriptions: user.subscriptions,
-      userCategories: user.categories,
-      userBots: user.bots,
-      userCreatedAt: user.createdAt,
-      userUpdatedAt: user.updatedAt,
-      userQueuedAt: user.queuedAt,
-      planId: plan.id,
-      planCategoriesMax: plan.categoriesMax,
-      planDurationDays: plan.durationDays,
-      planIntervalSec: plan.intervalSec,
-      planAnalyticsOn: plan.analyticsOn,
-      planPriceRub: plan.priceRub,
-      planIsEnabled: plan.isEnabled,
-      planSubscriptions: plan.subscriptions,
-      planCreatedAt: plan.createdAt,
-      planUpdatedAt: plan.updatedAt,
-      planQueuedAt: plan.queuedAt,
+    await userCacheService.saveActiveSubscriptionCache(redis, {
       subscriptionId: subscription.id,
-      subscriptionPriceRub: subscription.priceRub,
-      subscriptionStatus: subscription.status
-      subscriptionCreatedAt: subscription.createdAt,
-      subscriptionUpdatedAt: subscription.updatedAt,
-      subscriptionQueuedAt: subscription.queuedAt,
-      subscriptionTimeoutAt: subscription.timeoutAt,
-      subscriptionFinishedAt: subscription.finishedAt,
+      userId: subscription.userId,
+      planId: subscription.planId,
+      priceRub: subscription.priceRub,
+      status: subscription.status,
+      createdAt: subscription.createdAt,
+      updatedAt: subscription.updatedAt,
+      queuedAt: subscription.queuedAt,
+      timeoutAt: subscription.timeoutAt,
+      finishedAt: subscription.finishedAt
     })
 
     await redisService.publishBackLog(pubSub, backLog)
@@ -309,69 +247,20 @@ const processBot: ProcessName = async function (
   const { entityId } = treatmentJob.data
 
   try {
-    const { bot, user, category, backLog } = await botService.consumeBot(db, {
-      proxyId: entityId,
+    const { bot } = await botService.consumeBot(db, {
+      entityId,
       data: {}
     })
 
-    if (bot.isLinked) {
-      if (!bot.isEnabled) {
-        throw new ConsumeMalformedResponseError({ bot, user })
-      }
-
-      if (!user.isPaid) {
-        throw new ConsumeMalformedResponseError({ bot, user })
-      }
-
-      if (category === undefined) {
-        throw new ConsumeMalformedResponseError({ bot, user })
-      }
-
-      if (!category.isEnabled) {
-        throw new ConsumeMalformedResponseError({ bot, user, category })
-      }
-
-      await botCacheService.saveLinkedBotCache(redis, {
-        userId: user.id,
-        userTgFromId: user.tgFromId,
-        userIsPaid: user.isPaid,
-        userSubscriptions: user.subscriptions,
-        userCategories: user.categories,
-        userBots: user.bots,
-        userCreatedAt: user.createdAt,
-        userUpdatedAt: user.updatedAt,
-        userQueuedAt: user.queuedAt,
-        botId: bot.id,
-        botCreatedAt: bot.createdAt,
-        botUpdatedAt: bot.updatedAt,
-        botQueuedAt: bot.queuedAt,
-        categoryId: category.id,
-        categoryIsEnabled: category.isEnabled,
-        categoryCreatedAt: category.createdAt,
-        categoryUpdatedAt: category.updatedAt,
-        categoryQueuedAt: category.queuedAt,
-      })
-    } else {
-      if (category !== undefined) {
-        throw new ConsumeMalformedResponseError({ bot, user, category })
-      }
-
-      await botCacheService.saveUnlinkedBotCache(redis, {
-        userId: user.id,
-        userTgFromId: user.tgFromId,
-        userSubscriptions: user.subscriptions,
-        userCategories: user.categories,
-        userBots: user.bots,
-        userCreatedAt: user.createdAt,
-        userUpdatedAt: user.updatedAt,
-        userQueuedAt: user.queuedAt,
-        botId: bot.id,
-        botIsEnabled: bot.isEnabled,
-        botCreatedAt: bot.createdAt,
-        botUpdatedAt: bot.updatedAt,
-        botQueuedAt: bot.queuedAt,
-      })
-    }
+    await botCacheService.saveLinkedBotCache(redis, {
+      botId: bot.id,
+      token: bot.token,
+      isLinked: bot.isLinked,
+      isEnabled: bot.isEnabled,
+      createdAt: bot.createdAt,
+      updatedAt: bot.updatedAt,
+      queuedAt: bot.queuedAt,
+    })
 
     if (bot.isEnabled) {
       await checkbotService.addJob(checkbotQueue, bot.id)
@@ -410,15 +299,8 @@ const processCategory: ProcessName = async function (
   const { entityId } = treatmentJob.data
 
   try {
-    const {
-      category,
-      user,
-      subscription,
-      plan,
-      bot,
-      backLog
-    } = await categoryService.consumeCategory(db, {
-      categoryId: entityId,
+    const { category, backLog } = await categoryService.consumeCategory(db, {
+      entityId,
       data: {}
     })
 
@@ -428,23 +310,23 @@ const processCategory: ProcessName = async function (
 
     if (category.isEnabled) {
       if (category.bot_id === null) {
-        throw new ConsumeMalformedResponseError({ category, user })
+        throw new ConsumeWrongResponseError({ category, user })
       }
 
       if (!user.isPaid) {
-        throw new ConsumeMalformedResponseError({ category, user })
+        throw new ConsumeWrongResponseError({ category, user })
       }
 
       if (subscription === undefined) {
-        throw new ConsumeMalformedResponseError({ category, user })
+        throw new ConsumeWrongResponseError({ category, user })
       }
 
       if (plan === undefined) {
-        throw new ConsumeMalformedResponseError({ category, user })
+        throw new ConsumeWrongResponseError({ category, user })
       }
 
       if (bot === undefined) {
-        throw new ConsumeMalformedResponseError({ category, user })
+        throw new ConsumeWrongResponseError({ category, user })
       }
 
       if (scraperId !== undefined) {
@@ -476,19 +358,19 @@ const processCategory: ProcessName = async function (
       )
     } else {
       if (category.bot_id !== null) {
-        throw new ConsumeMalformedResponseError({ category, user })
+        throw new ConsumeWrongResponseError({ category, user })
       }
 
       if (subscription !== undefined) {
-        throw new ConsumeMalformedResponseError({ category, user, subscription })
+        throw new ConsumeWrongResponseError({ category, user, subscription })
       }
 
       if (plan !== undefined) {
-        throw new ConsumeMalformedResponseError({ category, user, plan })
+        throw new ConsumeWrongResponseError({ category, user, plan })
       }
 
       if (bot !== undefined) {
-        throw new ConsumeMalformedResponseError({ category, user, bot })
+        throw new ConsumeWrongResponseError({ category, user, bot })
       }
 
 
@@ -534,11 +416,11 @@ const processProxy: ProcessName = async function (
 
     await proxyCacheService.saveProxyCache(redis, {
       proxyId: proxy.id,
-      proxyProxyUrl: proxy.proxyUrl,
-      proxyIsEnabled: proxy.isEnabled,
-      proxyCreatedAt: proxy.createdAt,
-      proxyUpdatedAt: proxy.updatedAt,
-      proxyQueuedAt: proxy.queuedAt
+      url: proxy.url,
+      isEnabled: proxy.isEnabled,
+      createdAt: proxy.createdAt,
+      updatedAt: proxy.updatedAt,
+      queuedAt: proxy.queuedAt
     })
 
     if (proxy.isEnabled) {
@@ -558,7 +440,7 @@ const processProxy: ProcessName = async function (
 
 export default treatmentProcessor
 
-
+/*
 
       await broadcastService.addRepeatableJob(broadcastQueue, user.id)
       await broadcastService.removeRepeatableJob(broadcastQueue, user.id)
@@ -667,4 +549,4 @@ export default treatmentProcessor
       }
     }
 
-
+*/

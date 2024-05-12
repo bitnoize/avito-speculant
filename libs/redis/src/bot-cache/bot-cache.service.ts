@@ -1,13 +1,12 @@
 import {
   FetchBotCache,
   FetchBotsCache,
-  FetchOnlineBotsCache,
-  FetchRandomOnlineBotCache,
   SaveBotCache,
+  SaveOnlineBotCache,
+  SaveOfflineBotCache,
   DropBotCache,
-  RenewOnlineBotCache,
-  RenewOfflineBotCache
 } from './dto/index.js'
+import { BotCacheNotFoundError } from './bot-cache.errors.js'
 import * as botCacheRepository from './bot-cache.repository.js'
 
 /*
@@ -16,6 +15,10 @@ import * as botCacheRepository from './bot-cache.repository.js'
 export const fetchBotCache: FetchBotCache = async function (redis, request) {
   const botCache = await botCacheRepository.fetchBotCache(redis, request.botId)
 
+  if (botCache === undefined) {
+    throw new BotCacheNotFoundError({ request })
+  }
+
   return { botCache }
 }
 
@@ -23,63 +26,46 @@ export const fetchBotCache: FetchBotCache = async function (redis, request) {
  * Fetch BotsCache
  */
 export const fetchBotsCache: FetchBotsCache = async function (redis) {
-  const botIds = await botCacheRepository.fetchBots(redis)
+  const botIds = await botCacheRepository.fetchBotsIndex(redis, request.userId)
   const botsCache = await botCacheRepository.fetchBotsCache(redis, botIds)
 
   return { botsCache }
-}
-
-/*
- * Fetch Online BotsCache
- */
-export const fetchOnlineBotsCache: FetchOnlineBotsCache = async function (redis) {
-  const botIds = await botCacheRepository.fetchOnlineBots(redis)
-  const botsCache = await botCacheRepository.fetchBotsCache(redis, botIds)
-
-  return { botsCache }
-}
-
-/*
- * Fetch Random Online BotCache
- */
-export const fetchRandomOnlineBotCache: FetchRandomOnlineBotCache = async function (redis) {
-  const botId = await botCacheRepository.fetchRandomOnlineBot(redis)
-
-  if (botId === undefined) {
-    return {
-      botCache: undefined
-    }
-  }
-
-  const botCache = await botCacheRepository.fetchBotCache(redis, botId)
-
-  return { botCache }
 }
 
 /*
  * Save BotCache
  */
 export const saveBotCache: SaveBotCache = async function (redis, request) {
-  await botCacheRepository.saveBotCache(redis, request.botId, request.botUrl)
+  await botCacheRepository.saveBotCache(
+    redis,
+    request.botId,
+    request.userId,
+    request.token,
+    request.isLinked,
+    request.isEnabled,
+    request.createdAt,
+    request.updatedAt,
+    request.queuedAt
+  )
+}
+
+/*
+ * Save Online BotCache
+ */
+export const saveOnlineBotCache: SaveOnlineBotCache = async function (redis, request) {
+  await botCacheRepository.saveOnlineBotCache(redis, request.botId)
+}
+
+/*
+ * Save Offline BotCache
+ */
+export const saveOfflineBotCache: SaveOfflineBotCache = async function (redis, request) {
+  await botCacheRepository.saveOfflineBotCache(redis, request.botId)
 }
 
 /*
  * Drop BotCache
  */
 export const dropBotCache: DropBotCache = async function (redis, request) {
-  await botCacheRepository.dropBotCache(redis, request.botId)
-}
-
-/*
- * Renew Online BotCache
- */
-export const renewOnlineBotCache: RenewOnlineBotCache = async function (redis, request) {
-  await botCacheRepository.renewOnlineBotCache(redis, request.botId, request.sizeBytes)
-}
-
-/*
- * Renew Offline BotCache
- */
-export const renewOfflineBotCache: RenewOfflineBotCache = async function (redis, request) {
-  await botCacheRepository.renewOfflineBotCache(redis, request.botId, request.sizeBytes)
+  await botCacheRepository.dropBotCache(redis, request.botId, request.userId)
 }

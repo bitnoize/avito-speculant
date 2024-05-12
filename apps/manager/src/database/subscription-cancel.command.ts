@@ -36,9 +36,7 @@ const initCommand: InitCommand = (config, logger) => {
         const { subscription, backLog } = await subscriptionService.cancelSubscription(db, {
           userId,
           subscriptionId,
-          data: {
-            message: `Cancel subscription via Manager`
-          }
+          data: {}
         })
 
         await redisService.publishBackLog(pubSub, backLog)

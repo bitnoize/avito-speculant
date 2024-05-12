@@ -10,9 +10,14 @@ export interface ReportCache {
   time: number
 }
 
-// categoryId, advertId, tgFromId, postedAt
-export type AvitoReport = [number, number, string, number]
+export type AvitoReport = [
+  number, // categoryId
+  number, // advertId
+  string, // tgFromId
+  number // postedAt
+]
 
-export const reportKey = (reportId: string) => [REDIS_CACHE_PREFIX, 'report', reportId].join(':')
+export const reportCacheKey = (reportId: string) =>
+  [REDIS_CACHE_PREFIX, 'report_cache', reportId].join(':')
 
-export const reportsKey = () => [REDIS_CACHE_PREFIX, 'reports'].join(':')
+export const reportsIndexKey = () => [REDIS_CACHE_PREFIX, 'reports_index'].join(':')

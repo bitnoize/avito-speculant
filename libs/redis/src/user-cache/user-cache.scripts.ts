@@ -5,8 +5,7 @@ return redis.call(
   'HMGET', KEYS[1],
   'id',
   'tg_from_id',
-  'is_paid',
-  'subscription_id',
+  'active_subscription_id',
   'subscriptions',
   'categories',
   'bots',
@@ -16,11 +15,7 @@ return redis.call(
 )
 `
 
-const fetchTelegramUserId = `
-return redis.call('GET', KEYS[1])
-`
-
-const fetchWebappUserId = `
+const fetchUserLink = `
 return redis.call('GET', KEYS[1])
 `
 
@@ -33,38 +28,49 @@ redis.call(
   'HSET', KEYS[1],
   'id', ARGV[1],
   'tg_from_id', ARGV[2],
-  'is_paid', ARGV[3],
-  'subscription_id', ARGV[4],
-  'subscriptions', ARGV[5],
-  'categories', ARGV[6],
-  'bots', ARGV[7],
-  'created_at', ARGV[8],
-  'updated_at', ARGV[9],
-  'queued_at', ARGV[10]
+  'active_subscription_id', ARGV[3],
+  'subscriptions', ARGV[4],
+  'categories', ARGV[5],
+  'bots', ARGV[6],
+  'created_at', ARGV[7],
+  'updated_at', ARGV[8],
+  'queued_at', ARGV[9]
 )
 
 return redis.status_reply('OK')
 `
 
-const saveTelegramUserId = `
+const saveUserLink = `
 redis.call('SET', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
 `
 
-const saveWebappUserId = `
+const saveUserLinkTimeout = `
 redis.call('SET', KEYS[1], ARGV[1], 'PX', ARGV[2])
 
 return redis.status_reply('OK')
 `
 
-const appendUsersIndex = `
+const saveUsersIndex = `
 redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
 
 return redis.status_reply('OK')
 `
 
-const removeUsersIndex = `
+const dropUserCache = `
+redis.call('DEL', KEYS[1])
+
+return redis.status_reply('OK')
+`
+
+const dropUserLink = `
+redis.call('DEL', KEYS[1])
+
+return redis.status_reply('OK')
+`
+
+const dropUsersIndex = `
 redis.call('ZREM', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
@@ -76,14 +82,9 @@ const initScripts: InitScripts = (redis) => {
     lua: fetchUserCache
   })
 
-  redis.defineCommand('fetchTelegramUserId', {
+  redis.defineCommand('fetchUserLink', {
     numberOfKeys: 1,
-    lua: fetchTelegramUserId
-  })
-
-  redis.defineCommand('fetchWebappUserId', {
-    numberOfKeys: 1,
-    lua: fetchWebappUserId
+    lua: fetchUserLink
   })
 
   redis.defineCommand('fetchUsersIndex', {
@@ -96,49 +97,35 @@ const initScripts: InitScripts = (redis) => {
     lua: saveUserCache
   })
 
-  redis.defineCommand('saveTelegramUserId', {
+  redis.defineCommand('saveUserLink', {
     numberOfKeys: 1,
-    lua: saveTelegramUserId
+    lua: saveUserLink
   })
 
-  redis.defineCommand('saveWebappUserId', {
+  redis.defineCommand('saveUserLinkTimeout', {
     numberOfKeys: 1,
-    lua: saveWebappUserId
+    lua: saveUserLinkTimeout
   })
 
-  redis.defineCommand('appendUsersIndex', {
+  redis.defineCommand('saveUsersIndex', {
     numberOfKeys: 1,
-    lua: appendUsersIndex
+    lua: saveUsersIndex
   })
 
-  redis.defineCommand('removeUsersIndex', {
+  redis.defineCommand('dropUserCache', {
     numberOfKeys: 1,
-    lua: removeUsersIndex
+    lua: dropUserCache
+  })
+
+  redis.defineCommand('dropUserLink', {
+    numberOfKeys: 1,
+    lua: dropUserLink
+  })
+
+  redis.defineCommand('dropUsersIndex', {
+    numberOfKeys: 1,
+    lua: dropUsersIndex
   })
 }
 
 export default initScripts
-
-
-
-/*
-const renewUserCache = `
-if redis.call('EXISTS', KEYS[1]) ~= 0 then
-  redis.call('HSET', KEYS[1], 'checkpoint_at', ARGV[1])
-  redis.call('HSET', KEYS[1], 'time', ARGV[2])
-end
-
-return redis.status_reply('OK')
-`
-*/
-
-//redis.defineCommand('dropUserCache', {
-//  numberOfKeys: 2,
-//  lua: dropUserCache
-//})
-
-//redis.defineCommand('renewUserCache', {
-//  numberOfKeys: 1,
-//  lua: renewUserCache
-//})
-

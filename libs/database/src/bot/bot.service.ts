@@ -1,13 +1,5 @@
 import { Notify } from '@avito-speculant/common'
-import {
-  CreateBot,
-  ReadBot,
-  EnableBot,
-  DisableBot,
-  ListBots,
-  ProduceBots,
-  ConsumeBot
-} from './dto/index.js'
+import { CreateBot, EnableBot, DisableBot, ProduceBots, ConsumeBot } from './dto/index.js'
 import {
   BotNotFoundError,
   BotExistsError,
@@ -20,7 +12,6 @@ import * as botRepository from './bot.repository.js'
 import * as botLogRepository from '../bot-log/bot-log.repository.js'
 import { UserNotFoundError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
-import { Category } from '../category/category.js'
 import * as categoryRepository from '../category/category.repository.js'
 
 /**
@@ -42,7 +33,7 @@ export const createBot: CreateBot = async function (db, request) {
       throw new BotExistsError({ request, existsBotRow })
     }
 
-    const insertedBotRow = await botRepository.insertRow(trx, request.userId, request.token)
+    const insertedBotRow = await botRepository.insertRow(trx, userRow.id, request.token)
 
     const botLogRow = await botLogRepository.insertRow(
       trx,
@@ -63,50 +54,6 @@ export const createBot: CreateBot = async function (db, request) {
 }
 
 /**
- * Read Bot
- */
-export const readBot: ReadBot = async function (db, request) {
-  return await db.transaction().execute(async (trx) => {
-    const userRow = await userRepository.selectRowById(trx, request.userId)
-
-    if (userRow === undefined) {
-      throw new UserNotFoundError({ request })
-    }
-
-    const botRow = await botRepository.selectRowByIdUserId(
-      trx,
-      request.botId,
-      userRow.id
-    )
-
-    if (botRow === undefined) {
-      throw new BotNotFoundError({ request })
-    }
-
-    let category: Category | undefined = undefined
-
-    if (botRow.is_enabled) {
-      const linkedCategoryRow = await categoryRepository.selectRowByBotId(trx, botRow.id)
-
-      if (linkedCategoryRow !== undefined) {
-        category = categoryRepository.buildModel(linkedCategoryRow)
-
-        botRow.is_linked = true
-      } else {
-        botRow.is_linked = false
-      }
-    } else {
-      botRow.is_linked = false
-    }
-
-    return {
-      bot: botRepository.buildModel(botRow),
-      category
-    }
-  })
-}
-
-/**
  * Enable Bot
  */
 export const enableBot: EnableBot = async function (db, request) {
@@ -119,12 +66,7 @@ export const enableBot: EnableBot = async function (db, request) {
       throw new UserNotFoundError({ request })
     }
 
-    const botRow = await botRepository.selectRowByIdUserId(
-      trx,
-      request.botId,
-      userRow.id,
-      true
-    )
+    const botRow = await botRepository.selectRowByIdUserId(trx, request.botId, userRow.id, true)
 
     if (botRow === undefined) {
       throw new BotNotFoundError({ request })
@@ -184,12 +126,7 @@ export const disableBot: DisableBot = async function (db, request) {
       throw new UserNotFoundError({ request })
     }
 
-    const botRow = await botRepository.selectRowByIdUserId(
-      trx,
-      request.botId,
-      userRow.id,
-      true
-    )
+    const botRow = await botRepository.selectRowByIdUserId(trx, request.botId, userRow.id, true)
 
     if (botRow === undefined) {
       throw new BotNotFoundError({ request })
@@ -237,25 +174,6 @@ export const disableBot: DisableBot = async function (db, request) {
 }
 
 /**
- * List Bots
- */
-export const listBots: ListBots = async function (db, request) {
-  return await db.transaction().execute(async (trx) => {
-    const userRow = await userRepository.selectRowById(trx, request.userId)
-
-    if (userRow === undefined) {
-      throw new UserNotFoundError({ request })
-    }
-
-    const botRows = await botRepository.selectRowsByUserId(trx, userRow.id)
-
-    return {
-      bots: botRepository.buildCollection(botRows)
-    }
-  })
-}
-
-/**
  * Produce Bots
  */
 export const produceBots: ProduceBots = async function (db, request) {
@@ -282,7 +200,7 @@ export const consumeBot: ConsumeBot = async function (db, request) {
 
     let modified = false
 
-    const botRow = await botRepository.selectRowById(trx, request.botId, true)
+    const botRow = await botRepository.selectRowById(trx, request.entityId, true)
 
     if (botRow === undefined) {
       throw new BotNotFoundError({ request })
@@ -294,13 +212,9 @@ export const consumeBot: ConsumeBot = async function (db, request) {
       throw new UserNotFoundError({ request }, 100)
     }
 
-    let category: Category | undefined = undefined
-
     const linkedCategoryRow = await categoryRepository.selectRowByBotId(trx, botRow.id)
 
     if (linkedCategoryRow !== undefined) {
-      category = categoryRepository.buildModel(linkedCategoryRow)
-
       if (!botRow.is_enabled) {
         throw new BotIsLinkedError({ request, linkedCategoryRow, botRow }, 100)
       }
@@ -323,8 +237,6 @@ export const consumeBot: ConsumeBot = async function (db, request) {
     if (!modified) {
       return {
         bot: botRepository.buildModel(botRow),
-        user: userRepository.buildModel(userRow),
-        category,
         backLog
       }
     }
@@ -349,8 +261,6 @@ export const consumeBot: ConsumeBot = async function (db, request) {
 
     return {
       bot: botRepository.buildModel(updatedBotRow),
-      user: userRepository.buildModel(userRow),
-      category,
       backLog
     }
   })

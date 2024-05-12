@@ -1,4 +1,5 @@
 import { FetchPlanCache, FetchPlansCache, SavePlanCache, DropPlanCache } from './dto/index.js'
+import { PlanCacheNotFoundError } from './plan-cache.errors.js'
 import * as planCacheRepository from './plan-cache.repository.js'
 
 /*
@@ -7,6 +8,10 @@ import * as planCacheRepository from './plan-cache.repository.js'
 export const fetchPlanCache: FetchPlanCache = async function (redis, request) {
   const planCache = await planCacheRepository.fetchPlanCache(redis, request.planId)
 
+  if (planCache === undefined) {
+    throw new PlanCacheNotFoundError({ request })
+  }
+
   return { planCache }
 }
 
@@ -14,7 +19,7 @@ export const fetchPlanCache: FetchPlanCache = async function (redis, request) {
  * Fetch PlansCache
  */
 export const fetchPlansCache: FetchPlansCache = async function (redis) {
-  const planIds = await planCacheRepository.fetchPlans(redis)
+  const planIds = await planCacheRepository.fetchPlansIndex(redis)
   const plansCache = await planCacheRepository.fetchPlansCache(redis, planIds)
 
   return { plansCache }
@@ -28,10 +33,15 @@ export const savePlanCache: SavePlanCache = async function (redis, request) {
     redis,
     request.planId,
     request.categoriesMax,
-    request.priceRub,
     request.durationDays,
     request.intervalSec,
-    request.analyticsOn
+    request.analyticsOn,
+    request.priceRub,
+    request.isEnabled,
+    request.subscriptions,
+    request.createdAt,
+    request.updatedAt,
+    request.queuedAt,
   )
 }
 
@@ -39,5 +49,8 @@ export const savePlanCache: SavePlanCache = async function (redis, request) {
  * Drop PlanCache
  */
 export const dropPlanCache: DropPlanCache = async function (redis, request) {
-  await planCacheRepository.dropPlanCache(redis, request.planId)
+  await planCacheRepository.dropPlanCache(
+    redis,
+    request.planId
+  )
 }
