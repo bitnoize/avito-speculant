@@ -10,7 +10,6 @@ export interface AdvertCache {
   age: string
   imageUrl: string
   postedAt: number
-  time: number
 }
 
 export type AvitoAdvert = [
@@ -29,10 +28,10 @@ export const CATEGORY_ADVERTS_TOPICS = ['wait', 'send', 'done']
 export type CategoryAdvertTopic = (typeof CATEGORY_ADVERTS_TOPICS)[number]
 
 export const advertCacheKey = (advertId: number) =>
-  [REDIS_CACHE_PREFIX, 'advert_cache', advertId].join(':')
+  [REDIS_CACHE_PREFIX, 'advert-cache', advertId].join(':')
 
 export const scraperAdvertsIndexKey = (scraperId: string) =>
-  [REDIS_CACHE_PREFIX, 'scraper-adverts_index', scraperId].join(':')
+  [REDIS_CACHE_PREFIX, 'scraper-adverts-index', scraperId].join(':')
 
 export const categoryAdvertsIndexKey = (categoryId: number, topic: CategoryAdvertTopic) =>
-  [REDIS_CACHE_PREFIX, 'category-adverts_index', categoryId, topic].join(':')
+  [REDIS_CACHE_PREFIX, 'category-adverts-index', categoryId, topic].join(':')

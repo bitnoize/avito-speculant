@@ -1,5 +1,10 @@
 import { Redis } from 'ioredis'
-import { ReportCache, AvitoReport, reportKey, reportsKey } from './report-cache.js'
+import {
+  ReportCache,
+  AvitoReport,
+  reportCacheKey,
+  reportsIndexKey
+} from './report-cache.js'
 import {
   parseNumber,
   parseString,
@@ -10,38 +15,43 @@ import {
 } from '../redis.utils.js'
 import { categoryAdvertsKey } from '../advert-cache/advert-cache.js'
 
-export async function fetchReportCache(redis: Redis, reportId: string): Promise<ReportCache> {
+export async function fetchReportCache(
+  redis: Redis,
+  categoryId: number,
+  advertId: number
+): Promise<ReportCache | undefined> {
   const result = await redis.fetchReportCache(
-    reportKey(reportId) // KEYS[1]
+    reportCacheKey(categoryId, advertId) // KEYS[1]
   )
 
-  return parseModel(result, `ReportCache fetchReportCache malformed result`)
+  return parseModel(result, `fetchReportCache malformed result`)
 }
 
 export async function stampReportCache(
   redis: Redis,
-  reportId: string
+  categoryId: number,
+  advertId: number,
 ): Promise<ReportCache | undefined> {
   const result = await redis.stampReportCache(
-    reportKey(reportId), // KEYS[1]
-    reportsKey(), // KEYS[2]
-    reportId // ARGV[2]
+    reportCacheKey(categoryId, advertId) // KEYS[1]
   )
 
   if (result == null) {
     return undefined
   }
 
-  return parseModel(result, `ReportCache stampReportCache malformed result`)
+  return parseModel(result, `stampReportCache malformed result`)
 }
 
-export async function fetchReports(redis: Redis, limit: number): Promise<string[]> {
-  const result = await redis.fetchReports(
-    reportsKey(), // KEYS[1]
-    limit // ARGV[1]
+export async function fetchReportsIndex(
+  redis: Redis,
+  categoryId: number
+): Promise<string[]> {
+  const result = await redis.fetchReportsIndex(
+    reportsIndexKey(categoryId) // KEYS[1]
   )
 
-  return parseManyStrings(result, `ReportCache fetchReports malformed result`)
+  return parseManyStrings(result, `fetchReportsIndex malformed result`)
 }
 
 export async function fetchReportsCache(redis: Redis, reportIds: string[]): Promise<ReportCache[]> {
@@ -53,16 +63,19 @@ export async function fetchReportsCache(redis: Redis, reportIds: string[]): Prom
 
   reportIds.forEach((reportId) => {
     pipeline.fetchReportCache(
-      reportKey(reportId) // KEYS[1]
+      reportCacheKey(reportId) // KEYS[1]
     )
   })
 
   const result = await pipeline.exec()
 
-  return parseCollection(result, `ReportCache fetchReportsCache malformed result`)
+  return parseCollection(result, `fetchReportsCache malformed result`)
 }
 
-export async function saveReportsCache(redis: Redis, avitoReports: AvitoReport[]): Promise<void> {
+export async function saveReportsCache(
+  redis: Redis,
+  avitoReports: AvitoReport[]
+): Promise<void> {
   if (avitoReports.length === 0) {
     return
   }
@@ -70,13 +83,19 @@ export async function saveReportsCache(redis: Redis, avitoReports: AvitoReport[]
   const pipeline = redis.pipeline()
 
   avitoReports.forEach((avitoReport) => {
-    const reportId = avitoReport.slice(0, 2).join('-')
+    const [categoryId, advertId, tgFromId, postedAt] = ...avitoReport
+
     pipeline.saveReportCache(
-      reportKey(reportId), // KEYS[1]
-      reportsKey(), // KEYS[2]
-      reportId, // ARGV[1]
-      ...avitoReport, // ARGV[2..5]
-      Date.now() // ARGV[6]
+      reportCacheKey(categoryId, advertId), // KEYS[1]
+      categoryId, // ARGV[1]
+      advertId, // ARGV[2]
+      tgFromId, // ARGV[3]
+      postedAt, // ARGV[4]
+    )
+
+    pipeline.saveReportsIndex(
+      reportsIndexKey(categoryId), // KEYS[1]
+      advertId // ARGV[1]
     )
   })
 
@@ -85,41 +104,66 @@ export async function saveReportsCache(redis: Redis, avitoReports: AvitoReport[]
 
 export async function dropReportCache(
   redis: Redis,
-  reportId: string,
   categoryId: number,
   advertId: number,
   postedAt: number
 ): Promise<void> {
-  await redis.dropReportCache(
+  const pipeline = redis.pipeline()
+
+  pipeline.dropReportCache(
     reportKey(reportId), // KEYS[1]
-    reportsKey(), // KEYS[2]
-    categoryAdvertsKey(categoryId, 'send'), // KEYS[3]
-    categoryAdvertsKey(categoryId, 'done'), // KEYS[4]
     reportId, // ARGV[1]
     advertId, // ARGV[2]
     postedAt // ARGV[3]
   )
+
+  pipeline.dropReportIndex(
+    reportsIndexKey(categoryId), // KEYS[1]
+    advertId // ARGV[1]
+  )
+
+  pipeline.dropAdvertIndex(
+    categoryAdvertsIndexKey(categoryId, 'send'), // KEYS[1]
+    advertId // ARGV[1]
+  )
+
+  pipeline.saveAdvertIndex(
+    categoryAdvertsIndexKey(categoryId, 'done'), // KEYS[1]
+    advertId // ARGV[1]
+  )
+
+  await pipeline.exec()
 }
 
-const parseModel = (result: unknown, message: string): ReportCache => {
-  const hash = parseHash(result, 7, message)
+const parseModel = (result: unknown, message: string): ReportCache | undefined => {
+  if (result === null) {
+    return undefined
+  }
+
+  const hash = parseHash(result, 5, message)
 
   return {
-    id: parseString(hash[0], message),
-    categoryId: parseNumber(hash[1], message),
-    advertId: parseNumber(hash[2], message),
-    tgFromId: parseString(hash[3], message),
-    postedAt: parseNumber(hash[4], message),
-    attempt: parseNumber(hash[5], message),
-    time: parseNumber(hash[6], message)
+    categoryId: parseNumber(hash[0], message),
+    advertId: parseNumber(hash[1], message),
+    tgFromId: parseString(hash[2], message),
+    postedAt: parseNumber(hash[3], message),
+    attempt: parseNumber(hash[4], message)
   }
 }
 
 const parseCollection = (result: unknown, message: string): ReportCache[] => {
+  const collection: ScraperCache[] = []
+
   const pipeline = parsePipeline(result, message)
 
-  return pipeline.map((pl) => {
+  pipeline.forEach((pl) => {
     const command = parseCommand(pl, message)
-    return parseModel(command, message)
+    const model = parseModel(command, message)
+
+    if (model !== undefined) {
+      collection.push(model)
+    }
   })
+
+  return collection
 }

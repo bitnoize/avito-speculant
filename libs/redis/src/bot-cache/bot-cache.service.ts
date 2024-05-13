@@ -1,6 +1,6 @@
 import {
   FetchBotCache,
-  FetchBotsCache,
+  FetchUserBotsCache,
   SaveBotCache,
   SaveOnlineBotCache,
   SaveOfflineBotCache,
@@ -23,10 +23,10 @@ export const fetchBotCache: FetchBotCache = async function (redis, request) {
 }
 
 /*
- * Fetch BotsCache
+ * Fetch UserBotsCache
  */
-export const fetchBotsCache: FetchBotsCache = async function (redis) {
-  const botIds = await botCacheRepository.fetchBotsIndex(redis, request.userId)
+export const fetchUserBotsCache: FetchUserBotsCache = async function (redis, request) {
+  const botIds = await botCacheRepository.fetchUserBotsIndex(redis, request.userId)
   const botsCache = await botCacheRepository.fetchBotsCache(redis, botIds)
 
   return { botsCache }

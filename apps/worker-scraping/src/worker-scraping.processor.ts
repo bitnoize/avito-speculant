@@ -8,7 +8,6 @@ import {
   advertCacheService
 } from '@avito-speculant/redis'
 import {
-  OnlineProxiesUnavailableError,
   ScrapingResult,
   ScrapingProcessor
 } from '@avito-speculant/queue'
@@ -68,23 +67,22 @@ const processDefault: ProcessDefault = async function (
       throw new OnlineProxiesUnavailableError({ scraperCache })
     }
 
-    const avitoUrl = new URL(scraperCache.avitoUrl, 'https://www.avito.ru')
+    const avitoUrl = new URL(scraperCache.urlPath, 'https://www.avito.ru')
 
     avitoUrl.searchParams.set('s', '104')
 
     const curlRequestArgs: CurlRequestArgs = [
       avitoUrl.toString(),
       proxyCache.proxyUrl,
-      timeoutAdjust(scraperCache.intervalSec),
+      SCRAPING_REQUEST_TIMEOUT,
       config.SCRAPING_REQUEST_VERBOSE
     ]
 
     const curlResponse = await curlRequest(...curlRequestArgs)
 
     if (curlResponse.error !== undefined) {
-      await scraperCacheService.renewFailedScraperCache(redis, {
+      await scraperCacheService.saveFailedScraperCache(redis, {
         scraperId: scraperCache.id,
-        proxyId: proxyCache.id,
         sizeBytes: curlResponse.sizeBytes
       })
 
@@ -158,9 +156,8 @@ const processDefault: ProcessDefault = async function (
       return
     }
 
-    await scraperCacheService.renewSuccessScraperCache(redis, {
+    await scraperCacheService.saveSuccessScraperCache(redis, {
       scraperId: scraperCache.id,
-      proxyId: proxyCache.id,
       sizeBytes: curlResponse.sizeBytes
     })
 

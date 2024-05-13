@@ -3,57 +3,50 @@ import { InitScripts } from '../redis.js'
 const fetchReportCache = `
 return redis.call(
   'HMGET', KEYS[1],
-  'id',
   'category_id',
   'advert_id',
   'tg_from_id',
   'posted_at',
-  'attempt',
-  'time'
+  'attempt'
 )
 `
 
 const stampReportCache = `
-if redis.call('ZSCORE', KEYS[2], ARGV[1]) == false then
-  return nil
-end
-
 if redis.call('EXISTS', KEYS[1]) ~= 1 then
-  return nil
+  return false
 end
 
 redis.call('HINCRBY', KEYS[1], 'attempt', 1)
 
 return redis.call(
   'HMGET', KEYS[1],
-  'id',
   'category_id',
   'advert_id',
   'tg_from_id',
   'posted_at',
-  'attempt',
-  'time'
+  'attempt'
 )
 `
 
-const fetchReports = `
-return redis.call('ZRANGE', KEYS[1], 0, ARGV[1])
+const fetchReportsIndex = `
+return redis.call('ZRANGE', KEYS[1], 0, -1)
 `
 
 const saveReportCache = `
 redis.call(
   'HSET', KEYS[1],
-  'id', ARGV[1],
-  'category_id', ARGV[2],
-  'advert_id', ARGV[3],
-  'tg_from_id', ARGV[4],
-  'posted_at', ARGV[5],
-  'time', ARGV[6]
+  'category_id', ARGV[1],
+  'advert_id', ARGV[2],
+  'tg_from_id', ARGV[3],
+  'posted_at', ARGV[4]
 )
-
 redis.call('HSETNX', KEYS[1], 'attempt', 0)
 
-redis.call('ZADD', KEYS[2], ARGV[5], ARGV[1])
+return redis.status_reply('OK')
+`
+
+const saveReportsIndex = `
+redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -61,11 +54,11 @@ return redis.status_reply('OK')
 const dropReportCache = `
 redis.call('DEL', KEYS[1])
 
-redis.call('ZREM', KEYS[2], ARGV[1])
+return redis.status_reply('OK')
+`
 
-redis.call('ZREM', KEYS[3], ARGV[2])
-
-redis.call('ZADD', KEYS[4], ARGV[3], ARGV[2])
+const dropReportsIndex = `
+redis.call('ZREM', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -77,23 +70,33 @@ const initScripts: InitScripts = (redis) => {
   })
 
   redis.defineCommand('stampReportCache', {
-    numberOfKeys: 2,
+    numberOfKeys: 1,
     lua: stampReportCache
   })
 
-  redis.defineCommand('fetchReports', {
+  redis.defineCommand('fetchReportsIndex', {
     numberOfKeys: 1,
-    lua: fetchReports
+    lua: fetchReportsIndex
   })
 
   redis.defineCommand('saveReportCache', {
-    numberOfKeys: 2,
+    numberOfKeys: 1,
     lua: saveReportCache
   })
 
+  redis.defineCommand('saveReportsIndex', {
+    numberOfKeys: 1,
+    lua: saveReportsIndex
+  })
+
   redis.defineCommand('dropReportCache', {
-    numberOfKeys: 4,
+    numberOfKeys: 1,
     lua: dropReportCache
+  })
+
+  redis.defineCommand('dropReportsIndex', {
+    numberOfKeys: 1,
+    lua: dropReportsIndex
   })
 }
 

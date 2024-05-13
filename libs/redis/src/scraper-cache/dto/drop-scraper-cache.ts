@@ -2,7 +2,7 @@ import { RedisMethod } from '../../redis.js'
 
 export type DropScraperCacheRequest = {
   scraperId: string
-  avitoUrl: string
+  urlPath: string
 }
 
 export type DropScraperCacheResponse = void

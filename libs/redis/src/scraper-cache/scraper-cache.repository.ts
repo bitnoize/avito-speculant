@@ -3,8 +3,7 @@ import {
   ScraperCache,
   scraperCacheKey,
   scrapersIndexKey,
-  urlPathScraperLinkKey,
-  advertScrapersIndexKey
+  targetScraperLinkKey
 } from './scraper-cache.js'
 import {
   parseNumber,
@@ -26,35 +25,27 @@ export async function fetchScraperCache(
   return parseModel(result, `fetchScraperCache malformed result`)
 }
 
-export async function fetchScrapersIndex(redis: Redis): Promise<string[]> {
-  const result = await redis.fetchScrapers(
-    scrapersIndexKey() // KEYS[1]
-  )
-
-  return parseManyStrings(result, `fetchScrapersIndex malformed result`)
-}
-
-export async function fetchUrlPathScraperLink(
+export async function fetchTargetScraperLink(
   redis: Redis,
   urlPath: string
 ): Promise<string | undefined> {
   const result = await redis.fetchScraperLink(
-    urlPathScraperLinkKey(urlPath) // KEYS[1]
+    targetScraperLinkKey(urlPath) // KEYS[1]
   )
 
   if (result === null) {
     return undefined
   }
 
-  return parseString(result, `fetchUrlPathScraperLink malformed result`)
+  return parseString(result, `fetchTargetScraperLink malformed result`)
 }
 
-export async function fetchAdvertScrapersIndex(redis: Redis, advertId: number): Promise<string[]> {
-  const result = await redis.fetchAdvertScrapersIndex(
-    advertScrapersIndexKey(advertId) // KEYS[1]
+export async function fetchScrapersIndex(redis: Redis): Promise<string[]> {
+  const result = await redis.fetchScrapersIndex(
+    scrapersIndexKey() // KEYS[1]
   )
 
-  return parseManyStrings(result, `fetchAdvertScrapersIndex malformed result`)
+  return parseManyStrings(result, `fetchScrapersIndex malformed result`)
 }
 
 export async function fetchScrapersCache(
@@ -76,6 +67,32 @@ export async function fetchScrapersCache(
   const result = await pipeline.exec()
 
   return parseCollection(result, `fetchScrapersCache malformed result`)
+}
+
+export async function saveScraperCache(
+  redis: Redis,
+  scraperId: string,
+  urlPath: string
+): Promise<void> {
+  const multi = redis.multi()
+
+  multi.saveScraperCache(
+    scraperCacheKey(scraperId), // KEYS[1]
+    scraperId, // ARGV[1]
+    urlPath // ARGV[2]
+  )
+
+  multi.saveScraperLink(
+    targetScraperLinkKey(urlPath), // KEYS[1]
+    scraperId // ARGV[1]
+  )
+
+  multi.saveScrapersIndex(
+    scrapersIndexKey(), // KEYS[1]
+    scraperId // ARGV[1]
+  )
+
+  await multi.exec()
 }
 
 export async function saveSuccessScraperCache(
@@ -111,11 +128,16 @@ export async function saveFailedScraperCache(
 export async function dropScraperCache(
   redis: Redis,
   scraperId: string,
+  urlPath: string
 ): Promise<void> {
   const multi = redis.multi()
 
   multi.dropScraperCache(
     scraperCacheKey(scraperId) // KEYS[1]
+  )
+
+  multi.dropScraperLink(
+    targetScraperLinkKey(urlPath), // KEYS[1]
   )
 
   multi.dropScrapersIndex(

@@ -24,19 +24,6 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    saveScraperLink(
-      scraperLinkKey: string, // KEYS[1]
-      scraperId: string, // ARGV[1]
-      callback?: Callback<string>
-    ): Result<string, Context>
-
-    saveScrapersIndex(
-      scrapersIndexKey: string, // KEYS[1]
-      scraperId: string, // ARGV[1]
-      createdAt: number, // ARGV[2]
-      callback?: Callback<string>
-    ): Result<string, Context>
-
     saveSuccessScraperCache(
       scraperCacheKey: string, // KEYS[1]
       sizeBytes: number, // ARGV[1]
@@ -49,8 +36,25 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
+    saveScraperLink(
+      scraperLinkKey: string, // KEYS[1]
+      scraperId: string, // ARGV[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveScrapersIndex(
+      scrapersIndexKey: string, // KEYS[1]
+      scraperId: string, // ARGV[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
     dropScraperCache(
       scraperCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    dropScraperLink(
+      scraperLinkKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
 

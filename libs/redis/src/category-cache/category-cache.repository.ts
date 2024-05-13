@@ -1,13 +1,13 @@
 import { Redis } from 'ioredis'
 import {
   CategoryCache,
-  categoryKey,
-  userCategoriesKey,
-  scraperCategoriesKey
+  categoryCacheKey,
+  userCategoriesIndexKey,
+  scraperEnabledCategoriesIndexKey
 } from './category-cache.js'
-import { scraperKey, scrapersKey, avitoUrlScrapersKey } from '../scraper-cache/scraper-cache.js'
 import {
   parseNumber,
+  parseNumberOrNull,
   parseManyNumbers,
   parseString,
   parseHash,
@@ -15,28 +15,37 @@ import {
   parseCommand
 } from '../redis.utils.js'
 
-export async function fetchCategoryCache(redis: Redis, categoryId: number): Promise<CategoryCache> {
+export async function fetchCategoryCache(
+  redis: Redis,
+  categoryId: number
+): Promise<CategoryCache | undefined> {
   const result = await redis.fetchCategoryCache(
-    categoryKey(categoryId) // KEYS[1]
+    categoryCacheKey(categoryId) // KEYS[1]
   )
 
-  return parseModel(result, `CategoryCache fetchCategoryCache malformed result`)
+  return parseModel(result, `fetchCategoryCache malformed result`)
 }
 
-export async function fetchUserCategories(redis: Redis, userId: number): Promise<number[]> {
-  const result = await redis.fetchCategories(
-    userCategoriesKey(userId) // KEYS[1]
+export async function fetchUserCategoriesIndex(
+  redis: Redis,
+  userId: number
+): Promise<number[]> {
+  const result = await redis.fetchCategoriesIndex(
+    userCategoriesIndexKey(userId) // KEYS[1]
   )
 
-  return parseManyNumbers(result, `CategoryCache fetchUserCategories malformed result`)
+  return parseManyNumbers(result, `fetchUserCategoriesIndex malformed result`)
 }
 
-export async function fetchScraperCategories(redis: Redis, scraperId: string): Promise<number[]> {
-  const result = await redis.fetchCategories(
-    scraperCategoriesKey(scraperId) // KEYS[1]
+export async function fetchScraperEnabledCategoriesIndex(
+  redis: Redis,
+  scraperId: string
+): Promise<number[]> {
+  const result = await redis.fetchCategoriesIndex(
+    scraperEnabledCategoriesIndexKey(scraperId) // KEYS[1]
   )
 
-  return parseManyNumbers(result, `CategoryCache fetchScraperCategories malformed result`)
+  return parseManyNumbers(result, `fetchScraperEnabledCategoriesIndex malformed result`)
 }
 
 export async function fetchCategoriesCache(
@@ -51,45 +60,60 @@ export async function fetchCategoriesCache(
 
   categoryIds.forEach((categoryId) => {
     pipeline.fetchCategoryCache(
-      categoryKey(categoryId) // KEYS[1]
+      categoryCacheKey(categoryId) // KEYS[1]
     )
   })
 
   const result = await pipeline.exec()
 
-  return parseCollection(result, `CategoryCache fetchCategoriesCache malformed result`)
+  return parseCollection(result, `fetchCategoriesCache malformed result`)
 }
 
-export async function saveScraperCategoryCache(
+export async function saveCategoryCache(
   redis: Redis,
   categoryId: number,
   userId: number,
+  urlPath: string,
+  botId: number | null,
   scraperId: string,
-  avitoUrl: string,
-  intervalSec: number
+  isEnabled: boolean,
+  createdAt: number,
+  updatedAt: number,
+  queuedAt: number,
 ): Promise<void> {
   const multi = redis.multi()
 
-  multi.saveScraperCache(
-    scraperKey(scraperId), // KEYS[1]
-    scrapersKey(), // KEYS[2]
-    avitoUrlScrapersKey(avitoUrl), // KEYS[3]
-    scraperId, // ARGV[1]
-    avitoUrl, // ARGV[2]
-    intervalSec, // ARGV[3]
-    Date.now() // ARGV[4]
-  )
-
   multi.saveCategoryCache(
-    categoryKey(categoryId), // KEYS[1]
-    userCategoriesKey(userId), // KEYS[2]
-    scraperCategoriesKey(scraperId), // KEYS[3]
+    categoryCacheKey(categoryId), // KEYS[1]
     categoryId, // ARGV[1]
     userId, // ARGV[2]
-    scraperId, // ARGV[3]
-    avitoUrl, // ARGV[4]
-    Date.now() // ARGV[5]
+    urlPath, // ARGV[3]
+    botId, // ARGV[4]
+    scraperId, // ARGV[5]
+    isEnabled ? 1 : 0, // ARGV[6]
+    createdAt, // ARGV[7]
+    updatedAt, // ARGV[8]
+    queuedAt // ARGV[9]
   )
+
+  multi.saveCategoriesIndex(
+    userCategoriesIndexKey(userId), // KEYS[1]
+    categoryId, // ARGV[1]
+    createdAt // ARGV[2]
+  )
+
+  if (isEnabled) {
+    multi.saveCategoriesIndex(
+      scraperEnabledCategoriesIndexKey(scraperId), // KEYS[1]
+      categoryId, // ARGV[1]
+      createdAt // ARGV[2]
+    )
+  } else {
+    multi.dropCategoriesIndex(
+      scraperEnabledCategoriesIndexKey(scraperId), // KEYS[1]
+      categoryId // ARGV[1]
+    )
+  }
 
   await multi.exec()
 }
@@ -100,32 +124,59 @@ export async function dropCategoryCache(
   userId: number,
   scraperId: string
 ): Promise<void> {
-  await redis.dropCategoryCache(
-    categoryKey(categoryId), // KEYS[1]
-    userCategoriesKey(userId), // KEYS[2]
-    scraperCategoriesKey(scraperId), // KEYS[3]
+  const multi = redis.multi()
+
+  multi.dropCategoryCache(
+    categoryCacheKey(categoryId) // KEYS[1]
+  )
+
+  multi.dropCategoriesIndex(
+    userCategoriesIndexKey(userId), // KEYS[1]
     categoryId // ARGV[1]
   )
+
+  multi.dropCategoriesIndex(
+    scraperEnabledCategoriesIndexKey(scraperId), // KEYS[1]
+    categoryId // ARGV[1]
+  )
+
+  await multi.exec()
 }
 
-const parseModel = (result: unknown, message: string): CategoryCache => {
-  const hash = parseHash(result, 6, message)
+const parseModel = (result: unknown, message: string): CategoryCache | undefined => {
+  if (result === null) {
+    return undefined
+  }
+
+  const hash = parseHash(result, 10, message)
 
   return {
     id: parseNumber(hash[0], message),
     userId: parseNumber(hash[1], message),
-    scraperId: parseString(hash[2], message),
-    avitoUrl: parseString(hash[3], message),
-    skipFirst: !!parseNumber(hash[4], message),
-    time: parseNumber(hash[5], message)
+    urlPath: parseString(hash[2], message),
+    botId: parseNumberOrNull(hash[3], message),
+    scraperId: parseString(hash[4], message),
+    isEnabled: !!parseNumber(hash[5], message),
+    firstTime: !!parseNumber(hash[6], message),
+    createdAt: parseNumber(hash[7], message),
+    updatedAt: parseNumber(hash[8], message),
+    queuedAt: parseNumber(hash[9], message)
   }
 }
 
 const parseCollection = (result: unknown, message: string): CategoryCache[] => {
+  const collection: CategoryCache[] = []
+
   const pipeline = parsePipeline(result, message)
 
-  return pipeline.map((pl) => {
+  pipeline.forEach((pl) => {
     const command = parseCommand(pl, message)
-    return parseModel(command, message)
+    const model = parseModel(command, message)
+
+    if (model !== undefined) {
+      collection.push(model)
+    }
   })
+
+  return collection
 }

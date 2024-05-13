@@ -12,11 +12,10 @@ return redis.call(
   'age',
   'image_url',
   'posted_at',
-  'time'
 )
 `
 
-const fetchAdverts = `
+const fetchAdvertsIndex = `
 return redis.call('ZRANGE', KEYS[1], 0, -1)
 `
 
@@ -31,11 +30,14 @@ redis.call(
   'url', ARGV[6],
   'age', ARGV[7],
   'image_url', ARGV[8],
-  'posted_at', ARGV[9],
-  'time', ARGV[10]
+  'posted_at', ARGV[9]
 )
 
-redis.call('ZADD', KEYS[2], ARGV[9], ARGV[1])
+return redis.status_reply('OK')
+`
+
+const saveAdvertsIndex = `
+redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -43,10 +45,20 @@ return redis.status_reply('OK')
 const dropAdvertCache = `
 redis.call('DEL', KEYS[1])
 
-redis.call('ZREM', KEYS[2], ARGV[1])
+return redis.status_reply('OK')
+`
+
+const dropAdvertsIndex = `
+redis.call('ZREM', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
 `
+
+
+
+
+
+
 
 const pourCategoryAdvertsSkip = `
 redis.call('DEL', KEYS[2])

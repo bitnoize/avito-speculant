@@ -3,9 +3,9 @@ import {
   AdvertCache,
   AvitoAdvert,
   CategoryAdvertTopic,
-  advertKey,
-  scraperAdvertsKey,
-  categoryAdvertsKey
+  advertCacheKey,
+  scraperAdvertsIndexKey,
+  categoryAdvertsIndexKey
 } from './advert-cache.js'
 import {
   parseNumber,
@@ -17,32 +17,38 @@ import {
 } from '../redis.utils.js'
 import { categoryKey } from '../category-cache/category-cache.js'
 
-export async function fetchAdvertCache(redis: Redis, advertId: number): Promise<AdvertCache> {
+export async function fetchAdvertCache(
+  redis: Redis,
+  advertId: number
+): Promise<AdvertCache | undefined> {
   const result = await redis.fetchAdvertCache(
-    advertKey(advertId) // KEYS[1]
+    advertCacheKey(advertId) // KEYS[1]
   )
 
-  return parseModel(result, `AdvertCache fetchAdvertCache malformed result`)
+  return parseModel(result, `fetchAdvertCache malformed result`)
 }
 
-export async function fetchScraperAdverts(redis: Redis, scraperId: string): Promise<number[]> {
-  const result = await redis.fetchAdverts(
-    scraperAdvertsKey(scraperId) // KEYS[1]
+export async function fetchScraperAdvertsIndex(
+  redis: Redis,
+  scraperId: string
+): Promise<number[]> {
+  const result = await redis.fetchAdvertsIndex(
+    scraperAdvertsIndexKey(scraperId) // KEYS[1]
   )
 
-  return parseManyNumbers(result, `AdvertCache fetchScraperAdverts malformed result`)
+  return parseManyNumbers(result, `fetchScraperAdvertsIndex malformed result`)
 }
 
-export async function fetchCategoryAdverts(
+export async function fetchCategoryAdvertsIndex(
   redis: Redis,
   categoryId: number,
   topic: CategoryAdvertTopic
 ): Promise<number[]> {
-  const result = await redis.fetchAdverts(
-    categoryAdvertsKey(categoryId, topic) // KEYS[1]
+  const result = await redis.fetchAdvertsIndex(
+    categoryAdvertsIndexKey(categoryId, topic) // KEYS[1]
   )
 
-  return parseManyNumbers(result, `AdvertCache fetchCategoryAdverts malformed result`)
+  return parseManyNumbers(result, `fetchCategoryAdvertsIndex malformed result`)
 }
 
 export async function fetchAdvertsCache(redis: Redis, advertIds: number[]): Promise<AdvertCache[]> {
@@ -54,13 +60,13 @@ export async function fetchAdvertsCache(redis: Redis, advertIds: number[]): Prom
 
   advertIds.forEach((advertId) => {
     pipeline.fetchAdvertCache(
-      advertKey(advertId) // KEYS[1]
+      advertCacheKey(advertId) // KEYS[1]
     )
   })
 
   const result = await pipeline.exec()
 
-  return parseCollection(result, `AdvertCache fetchAdvertsCache malformed result`)
+  return parseCollection(result, `fetchAdvertsCache malformed result`)
 }
 
 export async function saveAdvertsCache(
@@ -78,9 +84,12 @@ export async function saveAdvertsCache(
     const advertId = avitoAdvert[0]
     pipeline.saveAdvertCache(
       advertKey(advertId), // KEYS[1]
-      scraperAdvertsKey(scraperId), // KEYS[2]
       ...avitoAdvert, // ARGV[1..9]
-      Date.now() // ARGV[10]
+    )
+
+    pipeline.saveAdvertsIndex(
+      scraperAdvertsIndexKey(scraperId), // KEYS[1]
+      scraperId
     )
   })
 
@@ -158,8 +167,12 @@ export async function pourCategoryAdvertDone(
   )
 }
 
-const parseModel = (result: unknown, message: string): AdvertCache => {
-  const hash = parseHash(result, 10, message)
+const parseModel = (result: unknown, message: string): AdvertCache | undefined => {
+  if (result === null) {
+    return undefined
+  }
+
+  const hash = parseHash(result, 9, message)
 
   return {
     id: parseNumber(hash[0], message),
@@ -171,15 +184,22 @@ const parseModel = (result: unknown, message: string): AdvertCache => {
     age: parseString(hash[6], message),
     imageUrl: parseString(hash[7], message),
     postedAt: parseNumber(hash[8], message),
-    time: parseNumber(hash[9], message)
   }
 }
 
 const parseCollection = (result: unknown, message: string): AdvertCache[] => {
+  const collection: AdvertCache[] = []
+
   const pipeline = parsePipeline(result, message)
 
-  return pipeline.map((pl) => {
+  pipeline.forEach((pl) => {
     const command = parseCommand(pl, message)
-    return parseModel(command, message)
+    const model = parseModel(command, message)
+
+    if (model !== undefined) {
+      collection.push(model)
+    }
   })
+
+  return collection
 }

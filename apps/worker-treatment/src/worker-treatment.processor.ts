@@ -114,7 +114,7 @@ const processUser: ProcessName = async function (
     await userCacheService.savePaidUserCache(redis, {
       userId: user.id,
       tgFromId: user.tgFromId,
-      isPaid: user.isPaid,
+      activeSubscriptionId: user.activeSubscriptionId,
       subscriptions: user.subscriptions,
       categories: user.categories,
       bots: user.bots,
@@ -127,6 +127,7 @@ const processUser: ProcessName = async function (
   } finally {
     await redisService.closePubSub(pubSub)
     await redisService.closeRedis(redis)
+
     await databaseService.closeDatabase(db)
 
     treatmentResult.durationTime = Date.now() - startTime
@@ -174,6 +175,7 @@ const processPlan: ProcessName = async function (
   } finally {
     await redisService.closePubSub(pubSub)
     await redisService.closeRedis(redis)
+
     await databaseService.closeDatabase(db)
 
     treatmentResult.durationTime = Date.now() - startTime
@@ -220,6 +222,7 @@ const processSubscription: ProcessName = async function (
   } finally {
     await redisService.closePubSub(pubSub)
     await redisService.closeRedis(redis)
+
     await databaseService.closeDatabase(db)
 
     treatmentResult.durationTime = Date.now() - startTime
@@ -254,6 +257,7 @@ const processBot: ProcessName = async function (
 
     await botCacheService.saveLinkedBotCache(redis, {
       botId: bot.id,
+      userId: bot.userId,
       token: bot.token,
       isLinked: bot.isLinked,
       isEnabled: bot.isEnabled,
@@ -269,8 +273,10 @@ const processBot: ProcessName = async function (
     await redisService.publishBackLog(pubSub, backLog)
   } finally {
     await checkbotService.closeQueue(checkbotQueue)
+
     await redisService.closePubSub(pubSub)
     await redisService.closeRedis(redis)
+
     await databaseService.closeDatabase(db)
 
     treatmentResult.durationTime = Date.now() - startTime
@@ -304,84 +310,57 @@ const processCategory: ProcessName = async function (
       data: {}
     })
 
-    const scraperId = await scraperCacheService.fetchUrlPathScraperId(redis, {
+    const existsScraperId = await scraperCacheService.fetchTargetScraperLink(redis, {
       urlPath: category.urlPath
     })
 
+    const scraperId = existsScraperId ?? redisService.randomHash()
+
+    await scraperCacheService.saveScraperCache(redis, {
+      scraperId,
+      urlPath: category.urlPath,
+    })
+
+    await categoryCacheService.saveCategoryCache(redis, {
+      categoryId: category.id,
+      userId: category.userId,
+      urlPath: category.urlPath,
+      botId: category.botId,
+      scraperId,
+      isEnabled: category.isEnabled,
+      createdAt: category.createdAt,
+      updatedAt: category.updatedAt,
+      queuedAt: category.queuedAt
+    })
+
     if (category.isEnabled) {
-      if (category.bot_id === null) {
-        throw new ConsumeWrongResponseError({ category, user })
-      }
-
-      if (!user.isPaid) {
-        throw new ConsumeWrongResponseError({ category, user })
-      }
-
-      if (subscription === undefined) {
-        throw new ConsumeWrongResponseError({ category, user })
-      }
-
-      if (plan === undefined) {
-        throw new ConsumeWrongResponseError({ category, user })
-      }
-
-      if (bot === undefined) {
-        throw new ConsumeWrongResponseError({ category, user })
-      }
-
-      if (scraperId !== undefined) {
-        const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
-          urlPath: category.urlPath
-        })
-
-        await categoryCacheService.saveEnabledCategoryCache(redis, {
-          categoryId: category.id,
-          userId: category.userId,
-          urlPath: category.urlPath,
-          scraperId: scraperCache.id,
-        })
-      } else {
-        const scraperId = redisService.randomHash()
-
-        await categoryCacheService.saveEnabledCategoryCache(redis, {
-          categoryId: category,
-          userId: category.userId,
-          urlPath: category.urlPath,
-          scraperId: scraperId,
-        })
-      }
-
-      await scrapingService.addRepeatableJob(
-        scrapingQueue,
-        scraperCache.id,
-        scraperCache.intervalSec
-      )
+      await broadcastService.addRepeatableJob(broadcastQueue, category.id)
     } else {
-      if (category.bot_id !== null) {
-        throw new ConsumeWrongResponseError({ category, user })
-      }
+      await broadcastService.removeRepeatableJob(broadcastQueue, category.id)
+    }
 
-      if (subscription !== undefined) {
-        throw new ConsumeWrongResponseError({ category, user, subscription })
-      }
+    const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
+      scraperId
+    })
 
-      if (plan !== undefined) {
-        throw new ConsumeWrongResponseError({ category, user, plan })
-      }
+    const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
+      scraperId: scraperCache.id
+    })
 
-      if (bot !== undefined) {
-        throw new ConsumeWrongResponseError({ category, user, bot })
-      }
-
-
+    if (categoriesCache.length > 0) {
+      await scrapingService.addRepeatableJob(scrapingQueue, scraperCache.id)
+    } else {
+      await scrapingService.removeRepeatableJob(scrapingQueue, scraperCache.id)
     }
 
     await redisService.publishBackLog(pubSub, backLog)
   } finally {
     await scrapingService.closeQueue(scrapingQueue)
     await broadcastService.closeQueue(broadcastQueue)
+
     await redisService.closePubSub(pubSub)
     await redisService.closeRedis(redis)
+
     await databaseService.closeDatabase(db)
 
     treatmentResult.durationTime = Date.now() - startTime
@@ -410,7 +389,7 @@ const processProxy: ProcessName = async function (
 
   try {
     const { proxy, backLog } = await proxyService.consumeProxy(db, {
-      proxyId: entityId,
+      entityId,
       data: {}
     })
 
@@ -430,8 +409,10 @@ const processProxy: ProcessName = async function (
     await redisService.publishBackLog(pubSub, backLog)
   } finally {
     await checkproxyService.closeQueue(checkproxyQueue)
+
     await redisService.closePubSub(pubSub)
     await redisService.closeRedis(redis)
+
     await databaseService.closeDatabase(db)
 
     treatmentResult.durationTime = Date.now() - startTime
@@ -439,114 +420,3 @@ const processProxy: ProcessName = async function (
 }
 
 export default treatmentProcessor
-
-/*
-
-      await broadcastService.addRepeatableJob(broadcastQueue, user.id)
-      await broadcastService.removeRepeatableJob(broadcastQueue, user.id)
-
-
-
-    if (category.isEnabled) {
-      if (subscription === undefined || plan === undefined) {
-        throw new ConsumeWrongParamsError({ category, user })
-      }
-
-      if (scraperCache !== undefined) {
-        // Scraper allready exists
-        // Save scraper and category
-        // Ensure scraping job is running
-
-        if (plan.intervalSec < scraperCache.intervalSec) {
-          // Category subscription interval is less then scraper interval
-          // Scraper needs to be updated and restarted
-
-          const removed = await scrapingService.removeRepeatableJob(
-            scrapingQueue,
-            scraperCache.id,
-            scraperCache.intervalSec
-          )
-
-          if (removed) {
-            const logData = { scraperCache }
-            logger.info(logData, `ScrapingJob removed on restart`)
-          } else {
-            const logData = { scraperCache }
-            logger.warn(logData, `ScrapingJob not removed on restart`)
-          }
-
-          scraperCache.intervalSec = subscription.intervalSec
-        }
-
-        await categoryCacheService.saveScraperCategoryCache(redis, {
-          categoryId: category.id,
-          userId: category.userId,
-          scraperId: scraperCache.id,
-          avitoUrl: category.avitoUrl,
-          intervalSec: scraperCache.intervalSec
-        })
-
-        await scrapingService.addRepeatableJob(
-          scrapingQueue,
-          scraperCache.id,
-          scraperCache.intervalSec
-        )
-      } else {
-        // Scraper does not exists yet
-        // Create new scraper and save it with category
-        // Ensure scraping job is running
-
-        const scraperId = redisService.randomHash()
-
-        await categoryCacheService.saveScraperCategoryCache(redis, {
-          categoryId: category.id,
-          userId: category.userId,
-          scraperId,
-          avitoUrl: category.avitoUrl,
-          intervalSec: subscription.intervalSec
-        })
-
-        await scrapingService.addRepeatableJob(scrapingQueue, scraperId, subscription.intervalSec)
-      }
-    } else {
-      if (scraperCache !== undefined) {
-        // Scraper exists
-
-        await categoryCacheService.dropCategoryCache(redis, {
-          categoryId: category.id,
-          userId: category.userId,
-          scraperId: scraperCache.id
-        })
-
-        const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
-          scraperId: scraperCache.id
-        })
-
-        if (categoriesCache.length === 0) {
-          // Scraper has only this one category
-          // Ensure scrapingJob is stopped
-          // Drop scraperCache and categoryCache
-
-          const removed = await scrapingService.removeRepeatableJob(
-            scrapingQueue,
-            scraperCache.id,
-            scraperCache.intervalSec
-          )
-
-          if (removed) {
-            const logData = { scraperCache }
-            logger.info(logData, `ScrapingJob removed on empty`)
-          } else {
-            const logData = { scraperCache }
-            logger.warn(logData, `ScrapingJob not removed on empty`)
-          }
-
-          await scraperCacheService.dropScraperCache(redis, {
-            scraperId: scraperCache.id,
-            avitoUrl: scraperCache.avitoUrl
-          })
-        }
-      }
-    }
-
-*/

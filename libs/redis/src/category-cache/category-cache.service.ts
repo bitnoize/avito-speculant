@@ -1,10 +1,11 @@
 import {
   FetchCategoryCache,
   FetchUserCategoriesCache,
-  FetchScraperCategoriesCache,
-  SaveScraperCategoryCache,
+  FetchScraperEnabledCategoriesCache,
+  SaveCategoryCache,
   DropCategoryCache
 } from './dto/index.js'
+import { CategoryCacheNotFoundError } from './category-cache.errors.js'
 import * as categoryCacheRepository from './category-cache.repository.js'
 
 /*
@@ -13,6 +14,10 @@ import * as categoryCacheRepository from './category-cache.repository.js'
 export const fetchCategoryCache: FetchCategoryCache = async function (redis, request) {
   const categoryCache = await categoryCacheRepository.fetchCategoryCache(redis, request.categoryId)
 
+  if (categoryCache === undefined) {
+    throw new CategoryCacheNotFoundError({ request })
+  }
+
   return { categoryCache }
 }
 
@@ -20,36 +25,43 @@ export const fetchCategoryCache: FetchCategoryCache = async function (redis, req
  * Fetch UserCategoriesCache
  */
 export const fetchUserCategoriesCache: FetchUserCategoriesCache = async function (redis, request) {
-  const categoryIds = await categoryCacheRepository.fetchUserCategories(redis, request.userId)
+  const categoryIds = await categoryCacheRepository.fetchUserCategoriesIndex(redis, request.userId)
   const categoriesCache = await categoryCacheRepository.fetchCategoriesCache(redis, categoryIds)
 
   return { categoriesCache }
 }
 
 /*
- * Fetch ScraperCategoriesCache
+ * Fetch ScraperEnabledCategoriesCache
  */
-export const fetchScraperCategoriesCache: FetchScraperCategoriesCache = async function (
+export const fetchScraperEnabledCategoriesCache: FetchScraperEnabledCategoriesCache = async function (
   redis,
   request
 ) {
-  const categoryIds = await categoryCacheRepository.fetchScraperCategories(redis, request.scraperId)
+  const categoryIds = await categoryCacheRepository.fetchScraperEnabledCategoriesIndex(
+    redis,
+    request.scraperId
+  )
   const categoriesCache = await categoryCacheRepository.fetchCategoriesCache(redis, categoryIds)
 
   return { categoriesCache }
 }
 
 /*
- * Save ScraperCategoryCache
+ * Save CategoryCache
  */
-export const saveScraperCategoryCache: SaveScraperCategoryCache = async function (redis, request) {
-  await categoryCacheRepository.saveScraperCategoryCache(
+export const saveCategoryCache: SaveCategoryCache = async function (redis, request) {
+  await categoryCacheRepository.saveCategoryCache(
     redis,
     request.categoryId,
     request.userId,
+    request.urlPath,
+    request.botId,
     request.scraperId,
-    request.avitoUrl,
-    request.intervalSec
+    request.isEnabled,
+    request.createdAt,
+    request.updatedAt,
+    request.queuedAt
   )
 }
 
@@ -64,18 +76,3 @@ export const dropCategoryCache: DropCategoryCache = async function (redis, reque
     request.scraperId
   )
 }
-
-/*
-export async function saveCategoryCache(
-  redis: Redis,
-  request: SaveCategoryCacheRequest
-): Promise<void> {
-  await categoryCacheRepository.saveCategoryCache(
-    redis,
-    request.categoryId,
-    request.userId,
-    request.scraperId,
-    request.avitoUrl
-  )
-}
-*/

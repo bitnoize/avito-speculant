@@ -2,30 +2,34 @@ import { Result, Callback } from 'ioredis'
 
 declare module 'ioredis' {
   interface RedisCommander<Context> {
-    fetchReportCache(reportKey: string, callback?: Callback<string>): Result<string, Context>
-
-    stampReportCache(
-      reportKey: string,
-      reportsKey: string,
-      reportId: string,
+    fetchReportCache(
+      reportCacheKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchReports(
-      reportsKey: string,
-      limit: number,
+    stampReportCache(
+      reportCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    fetchReportsIndex(
+      reportsIndexKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveReportCache(
-      reportKey: string,
-      reportsKey: string,
-      reportId: string,
+      reportCacheKey: string,
       categoryId: number,
       advertId: number,
       tgFromId: string,
       postedAt: number,
-      time: number,
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveReportsIndex(
+      reportsIndexKey: string,
+      advertId: number,
+      postedAt: number,
       callback?: Callback<string>
     ): Result<string, Context>
 

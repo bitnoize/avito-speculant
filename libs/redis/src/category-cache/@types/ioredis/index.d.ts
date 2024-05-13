@@ -2,33 +2,51 @@ import { Result, Callback } from 'ioredis'
 
 declare module 'ioredis' {
   interface RedisCommander<Context> {
-    fetchCategoryCache(categoryKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchCategoryCache(
+      categoryCacheKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
 
-    fetchCategories(categoriesKey: string, callback?: Callback<string>): Result<string, Context>
+    fetchCategoriesIndex(
+      categoriesIndexKey: string, // KEYS[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
 
     saveCategoryCache(
-      categoryKey: string,
-      userCategoriesKey: string,
-      scraperCategoriesKey: string,
-      categoryId: number,
-      userId: number,
-      scraperId: string,
-      avitoUrl: string,
-      time: number,
+      categoryCacheKey: string, // KEYS[1]
+      categoryId: number, // ARGV[1]
+      userId: number, // ARGV[2]
+      urlPath: string, // ARGV[3]
+      botId: number | null, // ARGV[4]
+      scraperId: string, // ARGV[5]
+      isEnabled: number, // ARGV[6]
+      createdAt: number, // ARGV[7]
+      updatedAt: number, // ARGV[8]
+      queuedAt: number, // ARGV[9]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveCategoryFirstTime(
+      categoryCacheKey: string, // KEYS[1]
+      firstTime: number, // ARGV[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveCategoriesIndex(
+      categoriesIndexKey: string, // KEYS[1]
+      categoryId: number, // ARGV[1]
+      createdAt: number, // ARGV[2]
       callback?: Callback<string>
     ): Result<string, Context>
 
     dropCategoryCache(
-      categoryKey: string,
-      userCategoriesKey: string,
-      scraperCategoriesKey: string,
-      categoryId: number,
+      categoryCacheKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
-    resetCategoryCache(
-      categoryKey: string,
-      time: number,
+    dropCategoriesIndex(
+      categoriesIndexKey: string, // KEYS[1]
+      categoryId: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
   }

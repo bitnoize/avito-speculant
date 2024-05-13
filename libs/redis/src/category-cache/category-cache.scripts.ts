@@ -27,29 +27,41 @@ redis.call(
   'user_id', ARGV[2],
   'url_path', ARGV[3],
   'bot_id', ARGV[4],
-  'is_enabled', ARGV[5],
-  'created_at', ARGV[6],
-  'updated_at', ARGV[7],
-  'queued_at', ARGV[8]
+  'scraper_id', ARGV[5],
+  'is_enabled', ARGV[6],
+  'created_at', ARGV[7],
+  'updated_at', ARGV[8],
+  'queued_at', ARGV[9]
 )
-
 redis.call('HSETNX', KEYS[1], 'first_time', 1)
-
-return redis.status_reply('OK')
-`
-
-const saveCategoryScraperId = `
-if redis.call('EXISTS', KEYS[1]) == 1 then
-  redis.call('HSET', KEYS[1], 'scraper_id', ARGV[1])
-end
 
 return redis.status_reply('OK')
 `
 
 const saveCategoryFirstTime = `
 if redis.call('EXISTS', KEYS[1]) == 1 then
-  redis.call('HSET', KEYS[1], 'first_time', ARGV[1])
+  return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
 end
+
+redis.call('HSET', KEYS[1], 'first_time', ARGV[1])
+
+return redis.status_reply('OK')
+`
+
+const saveCategoriesIndex = `
+redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
+
+return redis.status_reply('OK')
+`
+
+const dropCategoryCache = `
+redis.call('DEL', KEYS[1])
+
+return redis.status_reply('OK')
+`
+
+const dropCategoriesIndex = `
+redis.call('ZREM', KEYS[1], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -70,14 +82,24 @@ const initScripts: InitScripts = (redis) => {
     lua: saveCategoryCache
   })
 
+  redis.defineCommand('saveCategoryFirstTime', {
+    numberOfKeys: 1,
+    lua: saveCategoryFirstTime
+  })
+
+  redis.defineCommand('saveCategoriesIndex', {
+    numberOfKeys: 1,
+    lua: saveCategoriesIndex
+  })
+
   redis.defineCommand('dropCategoryCache', {
     numberOfKeys: 1,
     lua: dropCategoryCache
   })
 
-  redis.defineCommand('resetCategoryCache', {
+  redis.defineCommand('dropCategoriesIndex', {
     numberOfKeys: 1,
-    lua: resetCategoryCache
+    lua: dropCategoriesIndex
   })
 }
 

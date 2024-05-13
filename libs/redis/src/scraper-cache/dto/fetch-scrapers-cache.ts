@@ -1,7 +1,7 @@
 import { ScraperCache } from '../scraper-cache.js'
 import { RedisMethod } from '../../redis.js'
 
-export type FetchScrapersCacheRequest = undefined
+export type FetchScrapersCacheRequest = void
 
 export type FetchScrapersCacheResponse = {
   scrapersCache: ScraperCache[]

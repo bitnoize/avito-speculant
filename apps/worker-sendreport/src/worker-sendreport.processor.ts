@@ -60,10 +60,11 @@ const processDefault: ProcessDefault = async function (
   try {
     const startTime = Date.now()
     const name = sendreportJob.name
-    const { reportId } = sendreportJob.data
+    const { categoryId, advertId } = sendreportJob.data
 
     const { reportCache } = await reportCacheService.stampReportCache(redis, {
-      reportId
+      categoryId,
+      advertId
     })
 
     if (reportCache === undefined) {
@@ -71,11 +72,7 @@ const processDefault: ProcessDefault = async function (
     }
 
     if (reportCache.attempt <= config.SENDREPORT_ATTEMPTS_LIMIT) {
-      const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis, undefined)
-
-      if (proxyCache === undefined) {
-        throw new OnlineProxiesUnavailableError({ reportCache })
-      }
+      const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis)
 
       const { advertCache } = await advertCacheService.fetchAdvertCache(redis, {
         advertId: reportCache.advertId

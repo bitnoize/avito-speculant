@@ -21,20 +21,3 @@ Avito-Speculant
 * [@avito-speculant/worker-throttle](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-throttle) - Воркер для очереди **throttle**
 * [@avito-speculant/worker-sendreport](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-sendreport) - Воркер для очереди **sendreport**
 
-```
-# Установить зависимости
-npm install
-
-# Собрать все модули
-npm --ws run build
-
-# Отформатировать код для всех модулей
-npm --ws run format
-
-# Статический анализ кода всех модулей
-npm --ws run lint
-
-# Удалить временные файлы всех модулей
-npm --ws run clean
-```
-
