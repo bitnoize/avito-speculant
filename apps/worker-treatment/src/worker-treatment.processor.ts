@@ -20,13 +20,13 @@ import {
   scraperCacheService
 } from '@avito-speculant/redis'
 import {
-  ConsumeWrongResponseError,
   TreatmentResult,
   TreatmentProcessor,
   queueService,
   broadcastService,
   scrapingService,
   checkproxyService,
+  checkbotService
 } from '@avito-speculant/queue'
 import { Config, ProcessName } from './worker-treatment.js'
 import { configSchema } from './worker-treatment.schema.js'
@@ -88,12 +88,7 @@ const treatmentProcessor: TreatmentProcessor = async function (treatmentJob) {
   return treatmentResult
 }
 
-const processUser: ProcessName = async function (
-  config,
-  logger,
-  treatmentJob,
-  treatmentResult
-) {
+const processUser: ProcessName = async function (config, logger, treatmentJob, treatmentResult) {
   const startTime = Date.now()
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
@@ -111,7 +106,7 @@ const processUser: ProcessName = async function (
       data: {}
     })
 
-    await userCacheService.savePaidUserCache(redis, {
+    await userCacheService.saveUserCache(redis, {
       userId: user.id,
       tgFromId: user.tgFromId,
       activeSubscriptionId: user.activeSubscriptionId,
@@ -120,7 +115,7 @@ const processUser: ProcessName = async function (
       bots: user.bots,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      queuedAt: user.queuedAt,
+      queuedAt: user.queuedAt
     })
 
     await redisService.publishBackLog(pubSub, backLog)
@@ -134,12 +129,7 @@ const processUser: ProcessName = async function (
   }
 }
 
-const processPlan: ProcessName = async function (
-  config,
-  logger,
-  treatmentJob,
-  treatmentResult
-) {
+const processPlan: ProcessName = async function (config, logger, treatmentJob, treatmentResult) {
   const startTime = Date.now()
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
@@ -152,7 +142,7 @@ const processPlan: ProcessName = async function (
   const { entityId } = treatmentJob.data
 
   try {
-    const { plan, backLog } = await planService.consumePlan(db, {
+    const { plan } = await planService.consumePlan(db, {
       entityId,
       data: {}
     })
@@ -170,8 +160,6 @@ const processPlan: ProcessName = async function (
       updatedAt: plan.updatedAt,
       queuedAt: plan.queuedAt
     })
-
-    await redisService.publishBackLog(pubSub, backLog)
   } finally {
     await redisService.closePubSub(pubSub)
     await redisService.closeRedis(redis)
@@ -205,7 +193,7 @@ const processSubscription: ProcessName = async function (
       data: {}
     })
 
-    await userCacheService.saveActiveSubscriptionCache(redis, {
+    await subscriptionCacheService.saveSubscriptionCache(redis, {
       subscriptionId: subscription.id,
       userId: subscription.userId,
       planId: subscription.planId,
@@ -215,7 +203,7 @@ const processSubscription: ProcessName = async function (
       updatedAt: subscription.updatedAt,
       queuedAt: subscription.queuedAt,
       timeoutAt: subscription.timeoutAt,
-      finishedAt: subscription.finishedAt
+      finishAt: subscription.finishAt
     })
 
     await redisService.publishBackLog(pubSub, backLog)
@@ -229,12 +217,7 @@ const processSubscription: ProcessName = async function (
   }
 }
 
-const processBot: ProcessName = async function (
-  config,
-  logger,
-  treatmentJob,
-  treatmentResult,
-) {
+const processBot: ProcessName = async function (config, logger, treatmentJob, treatmentResult) {
   const startTime = Date.now()
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
@@ -250,12 +233,12 @@ const processBot: ProcessName = async function (
   const { entityId } = treatmentJob.data
 
   try {
-    const { bot } = await botService.consumeBot(db, {
+    const { bot, backLog } = await botService.consumeBot(db, {
       entityId,
       data: {}
     })
 
-    await botCacheService.saveLinkedBotCache(redis, {
+    await botCacheService.saveBotCache(redis, {
       botId: bot.id,
       userId: bot.userId,
       token: bot.token,
@@ -263,7 +246,7 @@ const processBot: ProcessName = async function (
       isEnabled: bot.isEnabled,
       createdAt: bot.createdAt,
       updatedAt: bot.updatedAt,
-      queuedAt: bot.queuedAt,
+      queuedAt: bot.queuedAt
     })
 
     if (bot.isEnabled) {
@@ -299,8 +282,8 @@ const processCategory: ProcessName = async function (
   const pubSub = redisService.initPubSub(redisOptions, logger)
 
   const queueConnection = queueService.getQueueConnection<Config>(config)
-  const broadcastQueue = broadcastService.initQueue(queueConnection, logger)
   const scrapingQueue = scrapingService.initQueue(queueConnection, logger)
+  const broadcastQueue = broadcastService.initQueue(queueConnection, logger)
 
   const { entityId } = treatmentJob.data
 
@@ -318,7 +301,7 @@ const processCategory: ProcessName = async function (
 
     await scraperCacheService.saveScraperCache(redis, {
       scraperId,
-      urlPath: category.urlPath,
+      urlPath: category.urlPath
     })
 
     await categoryCacheService.saveCategoryCache(redis, {
@@ -372,12 +355,7 @@ const processCategory: ProcessName = async function (
   }
 }
 
-const processProxy: ProcessName = async function (
-  config,
-  logger,
-  treatmentJob,
-  treatmentResult,
-) {
+const processProxy: ProcessName = async function (config, logger, treatmentJob, treatmentResult) {
   const startTime = Date.now()
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
@@ -393,7 +371,7 @@ const processProxy: ProcessName = async function (
   const { entityId } = treatmentJob.data
 
   try {
-    const { proxy, backLog } = await proxyService.consumeProxy(db, {
+    const { proxy } = await proxyService.consumeProxy(db, {
       entityId,
       data: {}
     })
@@ -410,8 +388,6 @@ const processProxy: ProcessName = async function (
     if (proxy.isEnabled) {
       await checkproxyService.addJob(checkproxyQueue, proxy.id)
     }
-
-    await redisService.publishBackLog(pubSub, backLog)
   } finally {
     await checkproxyService.closeQueue(checkproxyQueue)
 

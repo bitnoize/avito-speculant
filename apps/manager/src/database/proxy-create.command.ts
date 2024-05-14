@@ -10,14 +10,14 @@ const initCommand: InitCommand = (config, logger) => {
     name: 'database-proxy-create',
     description: 'create proxy',
     args: {
-      proxyUrl: option({
+      url: option({
         type: string,
-        long: 'proxy-url',
-        short: 'p',
+        long: 'url',
+        short: 'u',
         description: 'proxy url'
       })
     },
-    handler: async ({ proxyUrl }) => {
+    handler: async ({ url }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
       const db = databaseService.initDatabase(databaseConfig, logger)
 
@@ -29,7 +29,7 @@ const initCommand: InitCommand = (config, logger) => {
 
       try {
         const { proxy, backLog } = await proxyService.createProxy(db, {
-          proxyUrl,
+          url,
           data: {}
         })
 

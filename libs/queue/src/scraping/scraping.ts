@@ -1,6 +1,7 @@
 import { Queue, Job, Worker, Processor } from 'bullmq'
 
 export const SCRAPING_QUEUE_NAME = `scraping`
+export const SCRAPING_REPEAT_EVERY = 5_000
 
 export const DEFAULT_SCRAPING_CONCURRENCY = 10
 export const DEFAULT_SCRAPING_LIMITER_MAX = 10

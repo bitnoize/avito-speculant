@@ -94,12 +94,7 @@ const heartbeatProcessor: HeartbeatProcessor = async function (heartbeatJob) {
   return heartbeatResult
 }
 
-const processUsers: ProcessStep = async function (
-  config,
-  logger,
-  heartbeatJob,
-  heartbeatResult
-) {
+const processUsers: ProcessStep = async function (config, logger, heartbeatJob, heartbeatResult) {
   const startTime = Date.now()
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
@@ -110,10 +105,10 @@ const processUsers: ProcessStep = async function (
 
   const { step } = heartbeatJob.data
 
-  const heartbeatStepResult = heartbeatResult[step] = {
+  const heartbeatStepResult = (heartbeatResult[step] = {
     entities: 0,
     durationTime: 0
-  }
+  })
 
   try {
     const jobsCount = await treatmentQueue.count()
@@ -141,12 +136,7 @@ const processUsers: ProcessStep = async function (
   }
 }
 
-const processPlans: ProcessStep = async function (
-  config,
-  logger,
-  heartbeatJob,
-  heartbeatResult
-) {
+const processPlans: ProcessStep = async function (config, logger, heartbeatJob, heartbeatResult) {
   const startTime = Date.now()
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
@@ -157,10 +147,10 @@ const processPlans: ProcessStep = async function (
 
   const { step } = heartbeatJob.data
 
-  const heartbeatStepResult = heartbeatResult[step] = {
+  const heartbeatStepResult = (heartbeatResult[step] = {
     entities: 0,
     durationTime: 0
-  }
+  })
 
   try {
     const jobsCount = await treatmentQueue.count()
@@ -192,7 +182,7 @@ const processSubscriptions: ProcessStep = async function (
   config,
   logger,
   heartbeatJob,
-  heartbeatResult,
+  heartbeatResult
 ) {
   const startTime = Date.now()
 
@@ -204,10 +194,10 @@ const processSubscriptions: ProcessStep = async function (
 
   const { step } = heartbeatJob.data
 
-  const heartbeatStepResult = heartbeatResult[step] = {
+  const heartbeatStepResult = (heartbeatResult[step] = {
     entities: 0,
     durationTime: 0
-  }
+  })
 
   try {
     const jobsCount = await treatmentQueue.count()
@@ -239,7 +229,7 @@ const processCategories: ProcessStep = async function (
   config,
   logger,
   heartbeatJob,
-  heartbeatResult,
+  heartbeatResult
 ) {
   const startTime = Date.now()
 
@@ -251,10 +241,10 @@ const processCategories: ProcessStep = async function (
 
   const { step } = heartbeatJob.data
 
-  const heartbeatStepResult = heartbeatResult[step] = {
+  const heartbeatStepResult = (heartbeatResult[step] = {
     entities: 0,
     durationTime: 0
-  }
+  })
 
   try {
     const jobsCount = await treatmentQueue.count()
@@ -282,12 +272,7 @@ const processCategories: ProcessStep = async function (
   }
 }
 
-const processBots: ProcessStep = async function (
-  config,
-  logger,
-  heartbeatJob,
-  heartbeatResult,
-) {
+const processBots: ProcessStep = async function (config, logger, heartbeatJob, heartbeatResult) {
   const startTime = Date.now()
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
@@ -298,10 +283,10 @@ const processBots: ProcessStep = async function (
 
   const { step } = heartbeatJob.data
 
-  const heartbeatStepResult = heartbeatResult[step] = {
+  const heartbeatStepResult = (heartbeatResult[step] = {
     entities: 0,
     durationTime: 0
-  }
+  })
 
   try {
     const jobsCount = await treatmentQueue.count()
@@ -329,12 +314,7 @@ const processBots: ProcessStep = async function (
   }
 }
 
-const processProxies: ProcessStep = async function (
-  config,
-  logger,
-  heartbeatJob,
-  heartbeatResult,
-) {
+const processProxies: ProcessStep = async function (config, logger, heartbeatJob, heartbeatResult) {
   const startTime = Date.now()
 
   const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
@@ -345,10 +325,10 @@ const processProxies: ProcessStep = async function (
 
   const { step } = heartbeatJob.data
 
-  const heartbeatStepResult = heartbeatResult[step] = {
+  const heartbeatStepResult = (heartbeatResult[step] = {
     entities: 0,
     durationTime: 0
-  }
+  })
 
   try {
     const jobsCount = await treatmentQueue.count()

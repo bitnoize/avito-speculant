@@ -2,6 +2,7 @@ import { Logger } from '@avito-speculant/logger'
 import { ConnectionOptions, RateLimiterOptions } from 'bullmq'
 import {
   SCRAPING_QUEUE_NAME,
+  SCRAPING_REPEAT_EVERY,
   ScrapingConfig,
   ScrapingName,
   ScrapingData,
@@ -37,7 +38,6 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Scrapi
 export async function addRepeatableJob(
   queue: ScrapingQueue,
   scraperId: string,
-  everySec: number
 ): Promise<ScrapingJob> {
   return await queue.add(
     'default',
@@ -47,7 +47,7 @@ export async function addRepeatableJob(
     {
       jobId: scraperId,
       repeat: {
-        every: everySec * 1000
+        every: SCRAPING_REPEAT_EVERY
       }
     }
   )
@@ -59,12 +59,11 @@ export async function addRepeatableJob(
 export async function removeRepeatableJob(
   queue: ScrapingQueue,
   scraperId: string,
-  everySec: number
 ): Promise<boolean> {
   return await queue.removeRepeatable(
     'default',
     {
-      every: everySec * 1000
+      every: SCRAPING_REPEAT_EVERY
     },
     scraperId
   )

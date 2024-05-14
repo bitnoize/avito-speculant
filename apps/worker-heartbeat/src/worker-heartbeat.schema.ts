@@ -19,7 +19,7 @@ import {
   DEFAULT_HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT,
   DEFAULT_HEARTBEAT_PRODUCE_CATEGORIES_LIMIT,
   DEFAULT_HEARTBEAT_PRODUCE_BOTS_LIMIT,
-  DEFAULT_HEARTBEAT_PRODUCE_PROXIES_LIMIT,
+  DEFAULT_HEARTBEAT_PRODUCE_PROXIES_LIMIT
 } from '@avito-speculant/queue'
 import { Config } from './worker-heartbeat.js'
 
@@ -43,7 +43,7 @@ export const configSchema: JSONSchemaType<Config> = {
     'HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT',
     'HEARTBEAT_PRODUCE_CATEGORIES_LIMIT',
     'HEARTBEAT_PRODUCE_BOTS_LIMIT',
-    'HEARTBEAT_PRODUCE_PROXIES_LIMIT',
+    'HEARTBEAT_PRODUCE_PROXIES_LIMIT'
   ],
   properties: {
     LOG_LEVEL: {
@@ -155,6 +155,6 @@ export const configSchema: JSONSchemaType<Config> = {
       minimum: 1,
       maximum: 100,
       default: DEFAULT_HEARTBEAT_PRODUCE_PROXIES_LIMIT
-    },
+    }
   }
 }
