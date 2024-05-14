@@ -1,7 +1,7 @@
 import { UserCache } from '../user-cache.js'
 import { RedisMethod } from '../../redis.js'
 
-export type FetchUsersCacheRequest = undefined
+export type FetchUsersCacheRequest = void
 
 export type FetchUsersCacheResponse = {
   usersCache: UserCache[]

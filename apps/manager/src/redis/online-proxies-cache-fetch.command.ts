@@ -1,25 +1,22 @@
 import { command } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
-import { redisService } from '@avito-speculant/redis'
-import { queueService, heartbeatService } from '@avito-speculant/queue'
+import { redisService, proxyCacheService } from '@avito-speculant/redis'
 import { Config, InitCommand } from '../manager.js'
 
 const initCommand: InitCommand = (config, logger) => {
   return command({
-    name: 'system-start',
-    description: 'start system',
+    name: 'redis-online-proxies-cache-fetch',
+    description: 'fetch online proxies cache',
     args: {},
     handler: async () => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const queueConnection = queueService.getQueueConnection<Config>(config)
-      const heartbeatQueue = heartbeatService.initQueue(queueConnection, logger)
-
       try {
-        await heartbeatService.addRepeatableJob(heartbeatQueue)
+        const { proxiesCache } = await proxyCacheService.fetchOnlineProxiesCache(redis)
+
+        logger.info({ proxiesCache }, `ProxiesCache fetched`)
       } finally {
-        await heartbeatService.closeQueue(heartbeatQueue)
         await redisService.closeRedis(redis)
       }
     }

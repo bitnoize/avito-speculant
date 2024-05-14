@@ -1,14 +1,12 @@
 import { subcommands } from 'cmd-ts'
-import fetchUsersCacheCommand from './fetch-users-cache.command.js'
-import fetchPlansCacheCommand from './fetch-plans-cache.command.js'
-import fetchUserSubscriptionCacheCommand from './fetch-user-subscription-cache.command.js'
-import fetchPlanSubscriptionsCacheCommand from './fetch-plan-subscriptions-cache.command.js'
-import fetchUserCategoriesCacheCommand from './fetch-user-categories-cache.command.js'
-import fetchScraperCategoriesCacheCommand from './fetch-scraper-categories-cache.command.js'
-import fetchProxiesCacheCommand from './fetch-proxies-cache.command.js'
-import fetchOnlineProxiesCacheCommand from './fetch-online-proxies-cache.command.js'
-import fetchScrapersCacheCommand from './fetch-scrapers-cache.command.js'
-import fetchScraperAdvertsCacheCommand from './fetch-scraper-adverts-cache.command.js'
+import usersCacheFetchCommand from './users-cache-fetch.command.js'
+import plansCacheFetchCommand from './plans-cache-fetch.command.js'
+import userSubscriptionsCacheFetchCommand from './user-subscriptions-cache-fetch.command.js'
+import userCategoriesCacheFetchCommand from './user-categories-cache-fetch.command.js'
+import scraperCategoriesCacheFetchCommand from './scraper-categories-cache-fetch.command.js'
+import proxiesCacheFetchCommand from './proxies-cache-fetch.command.js'
+import onlineProxiesCacheFetchCommand from './online-proxies-cache-fetch.command.js'
+import scrapersCacheFetchCommand from './scrapers-cache-fetch.command.js'
 import { InitSubcommands } from '../manager.js'
 
 const initSubcommands: InitSubcommands = (config, logger) => {
@@ -16,16 +14,14 @@ const initSubcommands: InitSubcommands = (config, logger) => {
     name: 'redis',
     description: 'redis commands',
     cmds: {
-      'fetch-users-cache': fetchUsersCacheCommand(config, logger),
-      'fetch-plans-cache': fetchPlansCacheCommand(config, logger),
-      'fetch-user-subscription-cache': fetchUserSubscriptionCacheCommand(config, logger),
-      'fetch-plan-subscriptions-cache': fetchPlanSubscriptionsCacheCommand(config, logger),
-      'fetch-user-categories-cache': fetchUserCategoriesCacheCommand(config, logger),
-      'fetch-scraper-categories-cache': fetchScraperCategoriesCacheCommand(config, logger),
-      'fetch-proxies-cache': fetchProxiesCacheCommand(config, logger),
-      'fetch-online-proxies-cache': fetchOnlineProxiesCacheCommand(config, logger),
-      'fetch-scrapers-cache': fetchScrapersCacheCommand(config, logger),
-      'fetch-scraper-adverts-cache': fetchScraperAdvertsCacheCommand(config, logger)
+      'users-cache-fetch': usersCacheFetchCommand(config, logger),
+      'plans-cache-fetch': plansCacheFetchCommand(config, logger),
+      'user-subscriptions-cache-fetch': userSubscriptionsCacheFetchCommand(config, logger),
+      'user-categories-cache-fetch': userCategoriesCacheFetchCommand(config, logger),
+      'scraper-categories-cache-fetch': scraperCategoriesCacheFetchCommand(config, logger),
+      'proxies-cache-fetch': proxiesCacheFetchCommand(config, logger),
+      'online-proxies-cache-fetch': onlineProxiesCacheFetchCommand(config, logger),
+      'scrapers-cache-fetch': scrapersCacheFetchCommand(config, logger),
     }
   })
 }

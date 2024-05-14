@@ -1,25 +1,22 @@
 import { command } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
-import { redisService } from '@avito-speculant/redis'
-import { queueService, heartbeatService } from '@avito-speculant/queue'
+import { redisService, scraperCacheService } from '@avito-speculant/redis'
 import { Config, InitCommand } from '../manager.js'
 
 const initCommand: InitCommand = (config, logger) => {
   return command({
-    name: 'system-start',
-    description: 'start system',
+    name: 'redis-scrapers-cache-fetch',
+    description: 'fetch scrapers cache',
     args: {},
     handler: async () => {
       const redisOptions = redisService.getRedisOptions<Config>(config)
       const redis = redisService.initRedis(redisOptions, logger)
 
-      const queueConnection = queueService.getQueueConnection<Config>(config)
-      const heartbeatQueue = heartbeatService.initQueue(queueConnection, logger)
-
       try {
-        await heartbeatService.addRepeatableJob(heartbeatQueue)
+        const { scrapersCache } = await scraperCacheService.fetchScrapersCache(redis)
+
+        logger.info({ scrapersCache }, `ScrapersCache fetched`)
       } finally {
-        await heartbeatService.closeQueue(heartbeatQueue)
         await redisService.closeRedis(redis)
       }
     }

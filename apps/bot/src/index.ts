@@ -1,15 +1,14 @@
 import Fastify from 'fastify'
 import { Bot, GrammyError, HttpError, session, webhookCallback } from 'grammy'
-import { RedisAdapter } from '@grammyjs/storage-redis'
+//import { RedisAdapter } from '@grammyjs/storage-redis'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import {
   AuthorizeUserRequest,
   databaseService,
-  userService,
-  planService
+  userService
 } from '@avito-speculant/database'
-import { redisService } from '@avito-speculant/redis'
+import { redisService, planCacheService } from '@avito-speculant/redis'
 import { Config } from './bot.js'
 import { configSchema } from './bot.schema.js'
 import { BotContext } from './context.js'
@@ -27,7 +26,7 @@ async function bootstrap(): Promise<void> {
   const redis = redisService.initRedis(redisOptions, logger)
   const pubSub = redisService.initPubSub(redisOptions, logger)
 
-  const storage = new RedisAdapter({ instance: redis, ttl: 10 })
+//const storage = new RedisAdapter({ instance: redis, ttl: 10 })
 
   const bot = new Bot<BotContext>(config.BOT_TOKEN)
 
@@ -39,7 +38,7 @@ async function bootstrap(): Promise<void> {
 
   bot.use(async (ctx, next) => {
     if (ctx.from) {
-      const { user, subscription, plan, backLog } = await userService.authorizeUser(db, {
+      const { user, subscription, backLog } = await userService.authorizeUser(db, {
         tgFromId: ctx.from.id.toString(),
         data: {
           from: ctx.from,
@@ -49,17 +48,12 @@ async function bootstrap(): Promise<void> {
 
       ctx.user = user
 
-      if (user.isPaid) {
+      if (user.activeSubscriptionId !== null) {
         if (subscription === undefined) {
-          throw new Error(`subscription`)
-        }
-
-        if (plan === undefined) {
-          throw new Error(`plan`)
+          throw new Error(`subscription lost`)
         }
 
         ctx.subscription = subscription
-        ctx.plan = plan
       }
 
       await redisService.publishBackLog(pubSub, backLog)
@@ -69,7 +63,7 @@ async function bootstrap(): Promise<void> {
   })
 
   bot.command('start', async (ctx) => {
-    await ctx.reply(`user isPaid: ${ctx.user.isPaid}`)
+    await ctx.reply(`user subscription: ${ctx.user.activeSubscriptionId}`)
   })
 
   bot.on('message:photo', async (ctx) => {
@@ -103,9 +97,9 @@ async function bootstrap(): Promise<void> {
 
   server.get('/plans', async function (request, reply) {
     try {
-      const { plans } = await planService.listPlans(db)
+      const { plansCache } = await planCacheService.fetchPlansCache(redis)
 
-      return { plans }
+      return { plansCache }
     } catch (error) {
       return {
         code: 100,
