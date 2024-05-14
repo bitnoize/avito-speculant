@@ -1,19 +1,20 @@
 import { Redis } from 'ioredis'
 import {
   ReportCache,
-  AvitoReport,
+  ReportTopic,
+  CategoryReport,
   reportCacheKey,
   reportsIndexKey
 } from './report-cache.js'
+import { advertsIndexKey } from '../advert-cache/advert-cache.js'
 import {
   parseNumber,
+  parseManyNumbers,
   parseString,
-  parseManyStrings,
   parseHash,
   parsePipeline,
   parseCommand
 } from '../redis.utils.js'
-import { categoryAdvertsKey } from '../advert-cache/advert-cache.js'
 
 export async function fetchReportCache(
   redis: Redis,
@@ -30,7 +31,7 @@ export async function fetchReportCache(
 export async function stampReportCache(
   redis: Redis,
   categoryId: number,
-  advertId: number,
+  advertId: number
 ): Promise<ReportCache | undefined> {
   const result = await redis.stampReportCache(
     reportCacheKey(categoryId, advertId) // KEYS[1]
@@ -45,16 +46,21 @@ export async function stampReportCache(
 
 export async function fetchReportsIndex(
   redis: Redis,
-  categoryId: number
-): Promise<string[]> {
+  categoryId: number,
+  topic: ReportTopic
+): Promise<number[]> {
   const result = await redis.fetchReportsIndex(
-    reportsIndexKey(categoryId) // KEYS[1]
+    reportsIndexKey(categoryId, topic) // KEYS[1]
   )
 
-  return parseManyStrings(result, `fetchReportsIndex malformed result`)
+  return parseManyNumbers(result, `fetchReportsIndex malformed result`)
 }
 
-export async function fetchReportsCache(redis: Redis, reportIds: string[]): Promise<ReportCache[]> {
+export async function fetchReportsCache(
+  redis: Redis,
+  categoryId: number,
+  reportIds: number[]
+): Promise<ReportCache[]> {
   if (reportIds.length === 0) {
     return []
   }
@@ -63,7 +69,7 @@ export async function fetchReportsCache(redis: Redis, reportIds: string[]): Prom
 
   reportIds.forEach((reportId) => {
     pipeline.fetchReportCache(
-      reportCacheKey(reportId) // KEYS[1]
+      reportCacheKey(categoryId, reportId) // KEYS[1]
     )
   })
 
@@ -74,65 +80,99 @@ export async function fetchReportsCache(redis: Redis, reportIds: string[]): Prom
 
 export async function saveReportsCache(
   redis: Redis,
-  avitoReports: AvitoReport[]
+  categoryId: number,
+  categoryReports: CategoryReport[]
 ): Promise<void> {
-  if (avitoReports.length === 0) {
+  if (categoryReports.length === 0) {
     return
   }
 
-  const pipeline = redis.pipeline()
+  const multi = redis.multi()
 
-  avitoReports.forEach((avitoReport) => {
-    const [categoryId, advertId, tgFromId, postedAt] = ...avitoReport
+  categoryReports.forEach((categoryReport) => {
+    const [advertId, tgFromId, postedAt] = categoryReport
 
-    pipeline.saveReportCache(
+    multi.saveReportCache(
       reportCacheKey(categoryId, advertId), // KEYS[1]
       categoryId, // ARGV[1]
       advertId, // ARGV[2]
       tgFromId, // ARGV[3]
-      postedAt, // ARGV[4]
-    )
-
-    pipeline.saveReportsIndex(
-      reportsIndexKey(categoryId), // KEYS[1]
-      advertId // ARGV[1]
+      postedAt // ARGV[4]
     )
   })
 
-  await pipeline.exec()
+  await multi.exec()
+}
+
+export async function saveSkipReportsIndex(
+  redis: Redis,
+  scraperId: string,
+  categoryId: number
+): Promise<void> {
+  await redis.saveSkipReportsIndex(
+    advertsIndexKey(scraperId), // KEYS[1]
+    reportsIndexKey(categoryId, 'wait'), // KEYS[2]
+    reportsIndexKey(categoryId, 'send'), // KEYS[3]
+    reportsIndexKey(categoryId, 'done') // KEYS[4]
+  )
+}
+
+export async function saveWaitReportsIndex(
+  redis: Redis,
+  scraperId: string,
+  categoryId: number
+): Promise<void> {
+  await redis.saveWaitReportsIndex(
+    advertsIndexKey(scraperId), // KEYS[1]
+    reportsIndexKey(categoryId, 'wait'), // KEYS[2]
+    reportsIndexKey(categoryId, 'send'), // KEYS[3]
+    reportsIndexKey(categoryId, 'done') // KEYS[4]
+  )
+}
+
+export async function saveSendReportsIndex(
+  redis: Redis,
+  categoryId: number,
+  limit: number
+): Promise<void> {
+  await redis.saveSendReportsIndex(
+    reportsIndexKey(categoryId, 'wait'), // KEYS[1]
+    reportsIndexKey(categoryId, 'send'), // KEYS[2]
+    limit // ARGV[1]
+  )
+}
+
+export async function saveDoneReportsIndex(
+  redis: Redis,
+  categoryId: number,
+  advertId: number
+): Promise<void> {
+  await redis.saveDoneReportsIndex(
+    reportsIndexKey(categoryId, 'send'), // KEYS[1]
+    reportsIndexKey(categoryId, 'done'), // KEYS[2]
+    advertId // ARGV[1]
+  )
 }
 
 export async function dropReportCache(
   redis: Redis,
   categoryId: number,
-  advertId: number,
-  postedAt: number
+  advertId: number
 ): Promise<void> {
-  const pipeline = redis.pipeline()
+  const multi = redis.multi()
 
-  pipeline.dropReportCache(
-    reportKey(reportId), // KEYS[1]
-    reportId, // ARGV[1]
-    advertId, // ARGV[2]
-    postedAt // ARGV[3]
+  multi.dropReportCache(
+    reportCacheKey(categoryId, advertId) // KEYS[1]
   )
 
-  pipeline.dropReportIndex(
-    reportsIndexKey(categoryId), // KEYS[1]
+  multi.dropReportsIndex(
+    reportsIndexKey(categoryId, 'wait'), // KEYS[1]
+    reportsIndexKey(categoryId, 'send'), // KEYS[2]
+    reportsIndexKey(categoryId, 'done'), // KEYS[3]
     advertId // ARGV[1]
   )
 
-  pipeline.dropAdvertIndex(
-    categoryAdvertsIndexKey(categoryId, 'send'), // KEYS[1]
-    advertId // ARGV[1]
-  )
-
-  pipeline.saveAdvertIndex(
-    categoryAdvertsIndexKey(categoryId, 'done'), // KEYS[1]
-    advertId // ARGV[1]
-  )
-
-  await pipeline.exec()
+  await multi.exec()
 }
 
 const parseModel = (result: unknown, message: string): ReportCache | undefined => {
@@ -152,7 +192,7 @@ const parseModel = (result: unknown, message: string): ReportCache | undefined =
 }
 
 const parseCollection = (result: unknown, message: string): ReportCache[] => {
-  const collection: ScraperCache[] = []
+  const collection: ReportCache[] = []
 
   const pipeline = parsePipeline(result, message)
 

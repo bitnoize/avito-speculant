@@ -16,7 +16,7 @@ declare module 'ioredis' {
       scrapersIndexKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
-    
+
     saveScraperCache(
       scraperCacheKey: string, // KEYS[1]
       scraperId: string, // ARGV[1]

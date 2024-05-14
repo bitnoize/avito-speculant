@@ -2,7 +2,8 @@ import { ReportCache } from '../report-cache.js'
 import { RedisMethod } from '../../redis.js'
 
 export type StampReportCacheRequest = {
-  reportId: string
+  categoryId: number
+  advertId: number
 }
 
 export type StampReportCacheResponse = {

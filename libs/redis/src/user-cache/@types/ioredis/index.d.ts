@@ -11,7 +11,7 @@ declare module 'ioredis' {
       userLinkKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
-    
+
     fetchUsersIndex(
       usersIndexKey: string, // KEYS[1]
       callback?: Callback<string>

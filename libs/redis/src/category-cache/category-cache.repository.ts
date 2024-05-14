@@ -3,7 +3,7 @@ import {
   CategoryCache,
   categoryCacheKey,
   userCategoriesIndexKey,
-  scraperEnabledCategoriesIndexKey
+  scraperCategoriesIndexKey
 } from './category-cache.js'
 import {
   parseNumber,
@@ -26,10 +26,7 @@ export async function fetchCategoryCache(
   return parseModel(result, `fetchCategoryCache malformed result`)
 }
 
-export async function fetchUserCategoriesIndex(
-  redis: Redis,
-  userId: number
-): Promise<number[]> {
+export async function fetchUserCategoriesIndex(redis: Redis, userId: number): Promise<number[]> {
   const result = await redis.fetchCategoriesIndex(
     userCategoriesIndexKey(userId) // KEYS[1]
   )
@@ -37,15 +34,15 @@ export async function fetchUserCategoriesIndex(
   return parseManyNumbers(result, `fetchUserCategoriesIndex malformed result`)
 }
 
-export async function fetchScraperEnabledCategoriesIndex(
+export async function fetchScraperCategoriesIndex(
   redis: Redis,
   scraperId: string
 ): Promise<number[]> {
   const result = await redis.fetchCategoriesIndex(
-    scraperEnabledCategoriesIndexKey(scraperId) // KEYS[1]
+    scraperCategoriesIndexKey(scraperId) // KEYS[1]
   )
 
-  return parseManyNumbers(result, `fetchScraperEnabledCategoriesIndex malformed result`)
+  return parseManyNumbers(result, `fetchScraperCategoriesIndex malformed result`)
 }
 
 export async function fetchCategoriesCache(
@@ -79,7 +76,7 @@ export async function saveCategoryCache(
   isEnabled: boolean,
   createdAt: number,
   updatedAt: number,
-  queuedAt: number,
+  queuedAt: number
 ): Promise<void> {
   const multi = redis.multi()
 
@@ -104,16 +101,31 @@ export async function saveCategoryCache(
 
   if (isEnabled) {
     multi.saveCategoriesIndex(
-      scraperEnabledCategoriesIndexKey(scraperId), // KEYS[1]
+      scraperCategoriesIndexKey(scraperId), // KEYS[1]
       categoryId, // ARGV[1]
       createdAt // ARGV[2]
     )
   } else {
     multi.dropCategoriesIndex(
-      scraperEnabledCategoriesIndexKey(scraperId), // KEYS[1]
+      scraperCategoriesIndexKey(scraperId), // KEYS[1]
       categoryId // ARGV[1]
     )
   }
+
+  await multi.exec()
+}
+
+export async function saveProvisoCategoryCache(
+  redis: Redis,
+  categoryId: number,
+  reportedAt: number
+): Promise<void> {
+  const multi = redis.multi()
+
+  multi.saveProvisoCategoryCache(
+    categoryCacheKey(categoryId), // KEYS[1]
+    reportedAt // ARGV[1]
+  )
 
   await multi.exec()
 }
@@ -136,7 +148,7 @@ export async function dropCategoryCache(
   )
 
   multi.dropCategoriesIndex(
-    scraperEnabledCategoriesIndexKey(scraperId), // KEYS[1]
+    scraperCategoriesIndexKey(scraperId), // KEYS[1]
     categoryId // ARGV[1]
   )
 
@@ -157,10 +169,10 @@ const parseModel = (result: unknown, message: string): CategoryCache | undefined
     botId: parseNumberOrNull(hash[3], message),
     scraperId: parseString(hash[4], message),
     isEnabled: !!parseNumber(hash[5], message),
-    firstTime: !!parseNumber(hash[6], message),
-    createdAt: parseNumber(hash[7], message),
-    updatedAt: parseNumber(hash[8], message),
-    queuedAt: parseNumber(hash[9], message)
+    createdAt: parseNumber(hash[6], message),
+    updatedAt: parseNumber(hash[7], message),
+    queuedAt: parseNumber(hash[8], message),
+    reportedAt: parseNumber(hash[9], message)
   }
 }
 

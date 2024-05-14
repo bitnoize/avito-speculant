@@ -2,7 +2,7 @@ import {
   FetchSubscriptionCache,
   FetchUserSubscriptionsCache,
   SaveSubscriptionCache,
-  DropSubscriptionCache,
+  DropSubscriptionCache
 } from './dto/index.js'
 import { SubscriptionCacheNotFoundError } from './subscription-cache.errors.js'
 import * as subscriptionCacheRepository from './subscription-cache.repository.js'
@@ -22,10 +22,7 @@ export const fetchSubscriptionCache: FetchSubscriptionCache = async function (re
     throw new SubscriptionCacheNotFoundError({ request })
   }
 
-  const planCache = await planCacheRepository.fetchPlanCache(
-    redis,
-    subscriptionCache.planId
-  )
+  const planCache = await planCacheRepository.fetchPlanCache(redis, subscriptionCache.planId)
 
   if (planCache === undefined) {
     throw new PlanCacheNotFoundError({ request, subscriptionCache }, 100)

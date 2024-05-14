@@ -1,12 +1,5 @@
 import { Redis } from 'ioredis'
-import {
-  AdvertCache,
-  AvitoAdvert,
-  CategoryAdvertTopic,
-  advertCacheKey,
-  scraperAdvertsIndexKey,
-  categoryAdvertsIndexKey
-} from './advert-cache.js'
+import { AdvertCache, ScraperAdvert, advertCacheKey, advertsIndexKey } from './advert-cache.js'
 import {
   parseNumber,
   parseString,
@@ -15,43 +8,32 @@ import {
   parsePipeline,
   parseCommand
 } from '../redis.utils.js'
-import { categoryKey } from '../category-cache/category-cache.js'
 
 export async function fetchAdvertCache(
   redis: Redis,
+  scraperId: string,
   advertId: number
 ): Promise<AdvertCache | undefined> {
   const result = await redis.fetchAdvertCache(
-    advertCacheKey(advertId) // KEYS[1]
+    advertCacheKey(scraperId, advertId) // KEYS[1]
   )
 
   return parseModel(result, `fetchAdvertCache malformed result`)
 }
 
-export async function fetchScraperAdvertsIndex(
-  redis: Redis,
-  scraperId: string
-): Promise<number[]> {
+export async function fetchAdvertsIndex(redis: Redis, scraperId: string): Promise<number[]> {
   const result = await redis.fetchAdvertsIndex(
-    scraperAdvertsIndexKey(scraperId) // KEYS[1]
+    advertsIndexKey(scraperId) // KEYS[1]
   )
 
-  return parseManyNumbers(result, `fetchScraperAdvertsIndex malformed result`)
+  return parseManyNumbers(result, `fetchAdvertsIndex malformed result`)
 }
 
-export async function fetchCategoryAdvertsIndex(
+export async function fetchAdvertsCache(
   redis: Redis,
-  categoryId: number,
-  topic: CategoryAdvertTopic
-): Promise<number[]> {
-  const result = await redis.fetchAdvertsIndex(
-    categoryAdvertsIndexKey(categoryId, topic) // KEYS[1]
-  )
-
-  return parseManyNumbers(result, `fetchCategoryAdvertsIndex malformed result`)
-}
-
-export async function fetchAdvertsCache(redis: Redis, advertIds: number[]): Promise<AdvertCache[]> {
+  scraperId: string,
+  advertIds: number[]
+): Promise<AdvertCache[]> {
   if (advertIds.length === 0) {
     return []
   }
@@ -60,7 +42,7 @@ export async function fetchAdvertsCache(redis: Redis, advertIds: number[]): Prom
 
   advertIds.forEach((advertId) => {
     pipeline.fetchAdvertCache(
-      advertCacheKey(advertId) // KEYS[1]
+      advertCacheKey(scraperId, advertId) // KEYS[1]
     )
   })
 
@@ -72,99 +54,61 @@ export async function fetchAdvertsCache(redis: Redis, advertIds: number[]): Prom
 export async function saveAdvertsCache(
   redis: Redis,
   scraperId: string,
-  avitoAdverts: AvitoAdvert[]
+  scraperAdverts: ScraperAdvert[]
 ): Promise<void> {
-  if (avitoAdverts.length === 0) {
+  if (scraperAdverts.length === 0) {
     return
   }
 
-  const pipeline = redis.pipeline()
-
-  avitoAdverts.forEach((avitoAdvert) => {
-    const advertId = avitoAdvert[0]
-    pipeline.saveAdvertCache(
-      advertKey(advertId), // KEYS[1]
-      ...avitoAdvert, // ARGV[1..9]
-    )
-
-    pipeline.saveAdvertsIndex(
-      scraperAdvertsIndexKey(scraperId), // KEYS[1]
-      scraperId
-    )
-  })
-
-  await pipeline.exec()
-}
-
-export async function dropAdvertCache(
-  redis: Redis,
-  advertId: number,
-  scraperId: string
-): Promise<void> {
-  await redis.dropAdvertCache(
-    advertKey(advertId), // KEYS[1]
-    scraperAdvertsKey(scraperId), // KEYS[2]
-    advertId // ARGV[1]
-  )
-}
-
-export async function pourCategoryAdvertsSkip(
-  redis: Redis,
-  scraperId: string,
-  categoryId: number
-): Promise<void> {
   const multi = redis.multi()
 
-  multi.pourCategoryAdvertsSkip(
-    scraperAdvertsKey(scraperId), // KEYS[1]
-    categoryAdvertsKey(categoryId, 'wait'), // KEYS[2]
-    categoryAdvertsKey(categoryId, 'send'), // KEYS[3]
-    categoryAdvertsKey(categoryId, 'done') // KEYS[4]
-  )
+  scraperAdverts.forEach((scraperAdvert) => {
+    const [advertId, title, description, categoryName, priceRub, url, age, imageUrl, postedAt] =
+      scraperAdvert
 
-  multi.resetCategoryCache(
-    categoryKey(categoryId), // KEYS[1]
-    Date.now() // ARGV[1]
-  )
+    multi.saveAdvertCache(
+      advertCacheKey(scraperId, advertId), // KEYS[1]
+      scraperId, // ARGV[1]
+      advertId, // ARGV[2]
+      title, // ARGV[3]
+      description, // ARGV[4]
+      categoryName, // ARGV[5]
+      priceRub, // ARGV[6]
+      url, // ARGV[7]
+      age, // ARGV[8]
+      imageUrl, // ARGV[9]
+      postedAt // ARGV[10]
+    )
+
+    multi.saveAdvertsIndex(
+      advertsIndexKey(scraperId), // KEYS[1]
+      advertId, // ARGV[1]
+      postedAt // ARGV[2]
+    )
+  })
 
   await multi.exec()
 }
 
-export async function pourCategoryAdvertsWait(
+export async function dropAdvertCache(
   redis: Redis,
   scraperId: string,
-  categoryId: number
+  advertIds: number[]
 ): Promise<void> {
-  await redis.pourCategoryAdvertsWait(
-    scraperAdvertsKey(scraperId), // KEYS[1]
-    categoryAdvertsKey(categoryId, 'wait'), // KEYS[2]
-    categoryAdvertsKey(categoryId, 'send'), // KEYS[3]
-    categoryAdvertsKey(categoryId, 'done') // KEYS[4]
-  )
-}
+  const multi = redis.multi()
 
-export async function pourCategoryAdvertsSend(
-  redis: Redis,
-  categoryId: number,
-  count: number
-): Promise<void> {
-  await redis.pourCategoryAdvertsSend(
-    categoryAdvertsKey(categoryId, 'wait'), // KEYS[1]
-    categoryAdvertsKey(categoryId, 'send'), // KEYS[2]
-    count // ARGV[1]
-  )
-}
+  advertIds.forEach((advertId) => {
+    multi.dropAdvertCache(
+      advertCacheKey(scraperId, advertId) // KEYS[1]
+    )
 
-export async function pourCategoryAdvertDone(
-  redis: Redis,
-  categoryId: number,
-  advertId: number
-): Promise<void> {
-  await redis.pourCategoryAdvertDone(
-    categoryAdvertsKey(categoryId, 'send'), // KEYS[1]
-    categoryAdvertsKey(categoryId, 'done'), // KEYS[2]
-    advertId // ARGV[1]
-  )
+    multi.dropAdvertsIndex(
+      advertsIndexKey(scraperId), // KEYS[1]
+      advertId // ARGV[1]
+    )
+  })
+
+  await multi.exec()
 }
 
 const parseModel = (result: unknown, message: string): AdvertCache | undefined => {
@@ -172,18 +116,19 @@ const parseModel = (result: unknown, message: string): AdvertCache | undefined =
     return undefined
   }
 
-  const hash = parseHash(result, 9, message)
+  const hash = parseHash(result, 10, message)
 
   return {
-    id: parseNumber(hash[0], message),
-    title: parseString(hash[1], message),
-    description: parseString(hash[2], message),
-    categoryName: parseString(hash[3], message),
-    priceRub: parseNumber(hash[4], message),
-    url: parseString(hash[5], message),
-    age: parseString(hash[6], message),
-    imageUrl: parseString(hash[7], message),
-    postedAt: parseNumber(hash[8], message),
+    scraperId: parseString(hash[0], message),
+    advertId: parseNumber(hash[1], message),
+    title: parseString(hash[2], message),
+    description: parseString(hash[3], message),
+    categoryName: parseString(hash[4], message),
+    priceRub: parseNumber(hash[5], message),
+    url: parseString(hash[6], message),
+    age: parseString(hash[7], message),
+    imageUrl: parseString(hash[8], message),
+    postedAt: parseNumber(hash[9], message)
   }
 }
 

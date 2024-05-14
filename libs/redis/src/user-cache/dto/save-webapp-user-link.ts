@@ -7,7 +7,4 @@ export type SaveWebappUserLinkRequest = {
 
 export type SaveWebappUserLinkResponse = void
 
-export type SaveWebappUserLink = RedisMethod<
-  SaveWebappUserLinkRequest,
-  SaveWebappUserLinkResponse
->
+export type SaveWebappUserLink = RedisMethod<SaveWebappUserLinkRequest, SaveWebappUserLinkResponse>

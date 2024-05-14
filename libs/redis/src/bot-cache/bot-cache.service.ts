@@ -4,7 +4,7 @@ import {
   SaveBotCache,
   SaveOnlineBotCache,
   SaveOfflineBotCache,
-  DropBotCache,
+  DropBotCache
 } from './dto/index.js'
 import { BotCacheNotFoundError } from './bot-cache.errors.js'
 import * as botCacheRepository from './bot-cache.repository.js'

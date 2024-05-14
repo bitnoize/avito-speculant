@@ -14,7 +14,6 @@ export interface PlanCache {
   queuedAt: number
 }
 
-export const planCacheKey = (planId: number) =>
-  [REDIS_CACHE_PREFIX, 'plan_cache', planId].join(':')
+export const planCacheKey = (planId: number) => [REDIS_CACHE_PREFIX, 'plan_cache', planId].join(':')
 
 export const plansIndexKey = () => [REDIS_CACHE_PREFIX, 'plans_index'].join(':')

@@ -7,10 +7,10 @@ export interface CategoryCache {
   botId: number | null
   scraperId: string
   isEnabled: boolean
-  firstTime: boolean
   createdAt: number
   updatedAt: number
   queuedAt: number
+  reportedAt: number
 }
 
 export const categoryCacheKey = (categoryId: number) =>
@@ -19,5 +19,5 @@ export const categoryCacheKey = (categoryId: number) =>
 export const userCategoriesIndexKey = (userId: number) =>
   [REDIS_CACHE_PREFIX, 'user-categories-index', userId].join(':')
 
-export const scraperEnabledCategoriesIndexKey = (scraperId: string) =>
-  [REDIS_CACHE_PREFIX, 'scraper-enabled-categories-index', scraperId].join(':')
+export const scraperCategoriesIndexKey = (scraperId: string) =>
+  [REDIS_CACHE_PREFIX, 'scraper-categories-index', scraperId].join(':')

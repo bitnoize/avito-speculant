@@ -22,7 +22,7 @@ export const checkbotProcessor: CheckbotProcessor = async function (checkbotJob)
   return checkbotResult
 }
 
-const processDefault: ProcessDefault = async function (
+const processDefault: ProcessName = async function (
   config,
   logger,
   checkbotJob,

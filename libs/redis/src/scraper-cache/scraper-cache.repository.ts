@@ -137,7 +137,7 @@ export async function dropScraperCache(
   )
 
   multi.dropScraperLink(
-    targetScraperLinkKey(urlPath), // KEYS[1]
+    targetScraperLinkKey(urlPath) // KEYS[1]
   )
 
   multi.dropScrapersIndex(
@@ -160,7 +160,7 @@ const parseModel = (result: unknown, message: string): ScraperCache | undefined 
     urlPath: parseString(hash[1], message),
     totalCount: parseNumber(hash[2], message),
     successCount: parseNumber(hash[3], message),
-    sizeBytes: parseNumber(hash[4], message),
+    sizeBytes: parseNumber(hash[4], message)
   }
 }
 

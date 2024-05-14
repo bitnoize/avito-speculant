@@ -1,8 +1,9 @@
-import { AvitoReport } from '../report-cache.js'
+import { CategoryReport } from '../report-cache.js'
 import { RedisMethod } from '../../redis.js'
 
 export type SaveReportsCacheRequest = {
-  avitoReports: AvitoReport[]
+  categoryId: number
+  categoryReports: CategoryReport[]
 }
 
 export type SaveReportsCacheResponse = void

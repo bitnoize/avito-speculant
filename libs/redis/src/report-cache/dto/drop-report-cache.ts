@@ -4,7 +4,6 @@ export type DropReportCacheRequest = {
   reportId: string
   categoryId: number
   advertId: number
-  postedAt: number
 }
 
 export type DropReportCacheResponse = void

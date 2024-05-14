@@ -40,10 +40,7 @@ export async function fetchUserActiveSubscriptionLink(
   return parseNumber(result, `fetchUserActiveSubscriptionLink malformed result`)
 }
 
-export async function fetchUserSubscriptionsIndex(
-  redis: Redis,
-  userId: number
-): Promise<number[]> {
+export async function fetchUserSubscriptionsIndex(redis: Redis, userId: number): Promise<number[]> {
   const result = await redis.fetchSubscriptionsIndex(
     userSubscriptionsIndexKey(userId) // KEYS[1]
   )

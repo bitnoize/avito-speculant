@@ -45,8 +45,73 @@ redis.call('HSETNX', KEYS[1], 'attempt', 0)
 return redis.status_reply('OK')
 `
 
-const saveReportsIndex = `
-redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
+const saveSkipReportsIndex = `
+redis.call('DEL', KEYS[2])
+
+local done_reports = redis.call(
+  'ZDIFF', 3,
+  KEYS[1],
+  KEYS[3],
+  KEYS[4],
+  'WITHSCORES'
+)
+
+if #done_reports > 0 then
+  for i = 1, #done_reports/2 do
+    done_reports[2*i-1], done_reports[2*i] = done_reports[2*i], done_reports[2*i-1]
+  end
+
+  redis.call('ZADD', KEYS[4], unpack(done_reports))
+end
+
+return redis.status_reply('OK')
+`
+
+const saveWaitReportsIndex = `
+local wait_reports = redis.call(
+  'ZDIFF', 4,
+  KEYS[1],
+  KEYS[2],
+  KEYS[3],
+  KEYS[4],
+  'WITHSCORES'
+)
+
+if #wait_reports >= 2 then
+  for i = 1, #wait_reports/2 do
+    wait_reports[2*i-1], wait_reports[2*i] = wait_reports[2*i], wait_reports[2*i-1]
+  end
+
+  redis.call('ZADD', KEYS[2], unpack(wait_reports))
+end
+
+return redis.status_reply('OK')
+`
+
+const saveSendReportsIndex = `
+local count = tonumber(ARGV[1]) - tonumber(redis.call('ZCARD', KEYS[2]))
+
+if count > 0 then
+  local send_reports = redis.call('ZPOPMIN', KEYS[1], count)
+  if #send_reports >= 2 then
+    for i = 1, #send_reports/2 do
+      send_reports[2*i-1], send_reports[2*i] = send_reports[2*i], send_reports[2*i-1]
+    end
+
+    redis.call('ZADD', KEYS[2], unpack(send_reports))
+  end
+end
+
+return redis.status_reply('OK')
+`
+
+const saveDoneReportsIndex = `
+local score  = redis.call('ZSCORE', KEYS[1], ARGV[1])
+
+if score ~= false then
+  redis.call('ZREM', KEYS[1], ARGV[1])
+  redis.call('ZADD', KEYS[2], score, ARGV[1])
+end
 
 return redis.status_reply('OK')
 `
@@ -59,6 +124,8 @@ return redis.status_reply('OK')
 
 const dropReportsIndex = `
 redis.call('ZREM', KEYS[1], ARGV[1])
+redis.call('ZREM', KEYS[2], ARGV[1])
+redis.call('ZREM', KEYS[3], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -84,9 +151,24 @@ const initScripts: InitScripts = (redis) => {
     lua: saveReportCache
   })
 
-  redis.defineCommand('saveReportsIndex', {
-    numberOfKeys: 1,
-    lua: saveReportsIndex
+  redis.defineCommand('saveSkipReportsIndex', {
+    numberOfKeys: 4,
+    lua: saveSkipReportsIndex
+  })
+
+  redis.defineCommand('saveWaitReportsIndex', {
+    numberOfKeys: 4,
+    lua: saveWaitReportsIndex
+  })
+
+  redis.defineCommand('saveSendReportsIndex', {
+    numberOfKeys: 2,
+    lua: saveSendReportsIndex
+  })
+
+  redis.defineCommand('saveDoneReportsIndex', {
+    numberOfKeys: 2,
+    lua: saveDoneReportsIndex
   })
 
   redis.defineCommand('dropReportCache', {
@@ -95,7 +177,7 @@ const initScripts: InitScripts = (redis) => {
   })
 
   redis.defineCommand('dropReportsIndex', {
-    numberOfKeys: 1,
+    numberOfKeys: 3,
     lua: dropReportsIndex
   })
 }

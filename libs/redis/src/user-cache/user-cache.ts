@@ -14,8 +14,7 @@ export interface UserCache {
 
 export const WEBAPP_TOKEN_TIMEOUT = 3600 * 1000
 
-export const userCacheKey = (userId: number) =>
-  [REDIS_CACHE_PREFIX, 'user-cache', userId].join(':')
+export const userCacheKey = (userId: number) => [REDIS_CACHE_PREFIX, 'user-cache', userId].join(':')
 
 export const telegramUserLinkKey = (tgFromId: string) =>
   [REDIS_CACHE_PREFIX, 'telegram-user-link', tgFromId].join(':')

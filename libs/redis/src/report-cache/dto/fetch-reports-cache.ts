@@ -1,8 +1,9 @@
-import { ReportCache } from '../report-cache.js'
+import { ReportCache, ReportTopic } from '../report-cache.js'
 import { RedisMethod } from '../../redis.js'
 
 export type FetchReportsCacheRequest = {
-  limit: number
+  categoryId: number
+  topic: ReportTopic
 }
 
 export type FetchReportsCacheResponse = {

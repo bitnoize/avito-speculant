@@ -7,7 +7,4 @@ export type SaveScraperCacheRequest = {
 
 export type SaveScraperCacheResponse = void
 
-export type SaveScraperCache = RedisMethod<
-  SaveScraperCacheRequest,
-  SaveScraperCacheResponse
->
+export type SaveScraperCache = RedisMethod<SaveScraperCacheRequest, SaveScraperCacheResponse>

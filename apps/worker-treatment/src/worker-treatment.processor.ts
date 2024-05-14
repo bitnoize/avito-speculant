@@ -336,6 +336,11 @@ const processCategory: ProcessName = async function (
     if (category.isEnabled) {
       await broadcastService.addRepeatableJob(broadcastQueue, category.id)
     } else {
+      await categoryCacheService.saveProvisoCategoryCache(redis, {
+        categoryId: category.id,
+        reportedAt: 0
+      })
+
       await broadcastService.removeRepeatableJob(broadcastQueue, category.id)
     }
 

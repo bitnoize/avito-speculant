@@ -5,12 +5,10 @@ import {
   userCacheKey,
   telegramUserLinkKey,
   webappUserLinkKey,
-  usersIndexKey,
+  usersIndexKey
 } from './user-cache.js'
-import { planCacheKey, plansIndexKey } from '../plan-cache/plan-cache.js'
 import {
-  userActiveSubscriptionLinkKey,
-  userSubscriptionsIndexKey,
+  userActiveSubscriptionLinkKey
 } from '../subscription-cache/subscription-cache.js'
 import {
   parseNumber,
@@ -95,7 +93,7 @@ export async function saveUserCache(
   bots: number,
   createdAt: number,
   updatedAt: number,
-  queuedAt: number,
+  queuedAt: number
 ): Promise<void> {
   const multi = redis.multi()
 
@@ -140,7 +138,7 @@ export async function saveUserCache(
 export async function saveWebappUserLink(
   redis: Redis,
   token: string,
-  userId: number,
+  userId: number
 ): Promise<void> {
   await redis.saveUserLinkTimeout(
     webappUserLinkKey(token), // KEYS[1]
@@ -149,11 +147,7 @@ export async function saveWebappUserLink(
   )
 }
 
-export async function dropUserCache(
-  redis: Redis,
-  userId: number,
-  tgFromId: string
-): Promise<void> {
+export async function dropUserCache(redis: Redis, userId: number, tgFromId: string): Promise<void> {
   const multi = redis.multi()
 
   multi.dropUserCache(

@@ -82,10 +82,7 @@ export async function savePlanCache(
   await multi.exec()
 }
 
-export async function dropPlanCache(
-  redis: Redis,
-  planId: number
-): Promise<void> {
+export async function dropPlanCache(redis: Redis, planId: number): Promise<void> {
   const multi = redis.multi()
 
   multi.dropPlanCache(

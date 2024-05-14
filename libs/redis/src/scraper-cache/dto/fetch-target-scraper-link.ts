@@ -1,4 +1,3 @@
-import { ScraperCache } from '../scraper-cache.js'
 import { RedisMethod } from '../../redis.js'
 
 export type FetchTargetScraperLinkRequest = {

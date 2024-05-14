@@ -6,7 +6,7 @@ import {
   SaveProxyCache,
   SaveOnlineProxyCache,
   SaveOfflineProxyCache,
-  DropProxyCache,
+  DropProxyCache
 } from './dto/index.js'
 import { ProxyCacheNotFoundError, OnlineProxyCacheNotFoundError } from './proxy-cache.errors.js'
 import * as proxyCacheRepository from './proxy-cache.repository.js'
@@ -86,7 +86,7 @@ export const saveOnlineProxyCache: SaveOnlineProxyCache = async function (redis,
     redis,
     request.proxyId,
     request.sizeBytes,
-    request.createdAt,
+    request.createdAt
   )
 }
 
@@ -101,8 +101,5 @@ export const saveOfflineProxyCache: SaveOfflineProxyCache = async function (redi
  * Drop ProxyCache
  */
 export const dropProxyCache: DropProxyCache = async function (redis, request) {
-  await proxyCacheRepository.dropProxyCache(
-    redis,
-    request.proxyId
-  )
+  await proxyCacheRepository.dropProxyCache(redis, request.proxyId)
 }

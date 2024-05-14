@@ -9,10 +9,10 @@ return redis.call(
   'bot_id',
   'scraper_id',
   'is_enabled',
-  'first_time',
   'created_at',
   'updated_at',
-  'queued_at'
+  'queued_at',
+  'reported_at'
 )
 `
 
@@ -33,17 +33,17 @@ redis.call(
   'updated_at', ARGV[8],
   'queued_at', ARGV[9]
 )
-redis.call('HSETNX', KEYS[1], 'first_time', 1)
+redis.call('HSETNX', KEYS[1], 'reported_at', 0)
 
 return redis.status_reply('OK')
 `
 
-const saveCategoryFirstTime = `
+const saveProvisoCategoryCache = `
 if redis.call('EXISTS', KEYS[1]) == 1 then
   return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
 end
 
-redis.call('HSET', KEYS[1], 'first_time', ARGV[1])
+redis.call('HSET', KEYS[1], 'reported_at', ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -82,9 +82,9 @@ const initScripts: InitScripts = (redis) => {
     lua: saveCategoryCache
   })
 
-  redis.defineCommand('saveCategoryFirstTime', {
+  redis.defineCommand('saveProvisoCategoryCache', {
     numberOfKeys: 1,
-    lua: saveCategoryFirstTime
+    lua: saveProvisoCategoryCache
   })
 
   redis.defineCommand('saveCategoriesIndex', {

@@ -41,7 +41,7 @@ export const savePlanCache: SavePlanCache = async function (redis, request) {
     request.subscriptions,
     request.createdAt,
     request.updatedAt,
-    request.queuedAt,
+    request.queuedAt
   )
 }
 
@@ -49,8 +49,5 @@ export const savePlanCache: SavePlanCache = async function (redis, request) {
  * Drop PlanCache
  */
 export const dropPlanCache: DropPlanCache = async function (redis, request) {
-  await planCacheRepository.dropPlanCache(
-    redis,
-    request.planId
-  )
+  await planCacheRepository.dropPlanCache(redis, request.planId)
 }

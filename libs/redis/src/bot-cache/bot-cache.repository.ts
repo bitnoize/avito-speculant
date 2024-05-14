@@ -9,10 +9,7 @@ import {
   parseCommand
 } from '../redis.utils.js'
 
-export async function fetchBotCache(
-  redis: Redis,
-  botId: number
-): Promise<BotCache | undefined> {
+export async function fetchBotCache(redis: Redis, botId: number): Promise<BotCache | undefined> {
   const result = await redis.fetchBotCache(
     botCacheKey(botId) // KEYS[1]
   )
@@ -55,7 +52,7 @@ export async function saveBotCache(
   isEnabled: boolean,
   createdAt: number,
   updatedAt: number,
-  queuedAt: number,
+  queuedAt: number
 ): Promise<void> {
   const multi = redis.multi()
 
@@ -80,10 +77,7 @@ export async function saveBotCache(
   await multi.exec()
 }
 
-export async function saveOnlineBotCache(
-  redis: Redis,
-  botId: number
-): Promise<void> {
+export async function saveOnlineBotCache(redis: Redis, botId: number): Promise<void> {
   const multi = redis.multi()
 
   multi.saveOnlineBotCache(
@@ -93,10 +87,7 @@ export async function saveOnlineBotCache(
   await multi.exec()
 }
 
-export async function saveOfflineBotCache(
-  redis: Redis,
-  botId: number,
-): Promise<void> {
+export async function saveOfflineBotCache(redis: Redis, botId: number): Promise<void> {
   const multi = redis.multi()
 
   multi.saveOfflineBotCache(
@@ -106,11 +97,7 @@ export async function saveOfflineBotCache(
   await multi.exec()
 }
 
-export async function dropBotCache(
-  redis: Redis,
-  botId: number,
-  userId: number
-): Promise<void> {
+export async function dropBotCache(redis: Redis, botId: number, userId: number): Promise<void> {
   const multi = redis.multi()
 
   multi.dropBotCache(
@@ -143,7 +130,7 @@ const parseModel = (result: unknown, message: string): BotCache | undefined => {
     successCount: parseNumber(hash[7], message),
     createdAt: parseNumber(hash[8], message),
     updatedAt: parseNumber(hash[9], message),
-    queuedAt: parseNumber(hash[10], message),
+    queuedAt: parseNumber(hash[10], message)
   }
 }
 

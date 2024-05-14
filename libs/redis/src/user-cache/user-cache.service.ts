@@ -7,7 +7,7 @@ import {
   SaveWebappUserLink,
   DropUserCache
 } from './dto/index.js'
-import { UserCacheNotFoundError, } from './user-cache.errors.js'
+import { UserCacheNotFoundError } from './user-cache.errors.js'
 import * as userCacheRepository from './user-cache.repository.js'
 import { PlanCacheNotFoundError } from '../plan-cache/plan-cache.errors.js'
 import * as planCacheRepository from '../plan-cache/plan-cache.repository.js'
@@ -41,16 +41,13 @@ export const fetchUserCache: FetchUserCache = async function (redis, request) {
 
     userCache.activeSubscriptionId = subscriptionCache.id
 
-    const planCache = await planCacheRepository.fetchPlanCache(
-      redis,
-      subscriptionCache.planId
-    )
+    const planCache = await planCacheRepository.fetchPlanCache(redis, subscriptionCache.planId)
 
     if (planCache === undefined) {
       throw new PlanCacheNotFoundError({ request, userCache, subscriptionCache }, 100)
     }
 
-    return { userCache,  subscriptionCache, planCache }
+    return { userCache, subscriptionCache, planCache }
   } else {
     userCache.activeSubscriptionId = null
 
@@ -104,20 +101,12 @@ export const saveUserCache: SaveUserCache = async function (redis, request) {
  * Save WebappUserLink
  */
 export const saveWebappUserLink: SaveWebappUserLink = async function (redis, request) {
-  await userCacheRepository.saveWebappUserLink(
-    redis,
-    request.token,
-    request.userId
-  )
+  await userCacheRepository.saveWebappUserLink(redis, request.token, request.userId)
 }
 
 /*
  * Drop UserCache
  */
 export const dropUserCache: DropUserCache = async function (redis, request) {
-  await userCacheRepository.dropUserCache(
-    redis,
-    request.userId,
-    request.tgFromId
-  )
+  await userCacheRepository.dropUserCache(redis, request.userId, request.tgFromId)
 }

@@ -1,8 +1,9 @@
 import {
   FetchCategoryCache,
   FetchUserCategoriesCache,
-  FetchScraperEnabledCategoriesCache,
+  FetchScraperCategoriesCache,
   SaveCategoryCache,
+  SaveProvisoCategoryCache,
   DropCategoryCache
 } from './dto/index.js'
 import { CategoryCacheNotFoundError } from './category-cache.errors.js'
@@ -32,13 +33,13 @@ export const fetchUserCategoriesCache: FetchUserCategoriesCache = async function
 }
 
 /*
- * Fetch ScraperEnabledCategoriesCache
+ * Fetch ScraperCategoriesCache
  */
-export const fetchScraperEnabledCategoriesCache: FetchScraperEnabledCategoriesCache = async function (
+export const fetchScraperCategoriesCache: FetchScraperCategoriesCache = async function (
   redis,
   request
 ) {
-  const categoryIds = await categoryCacheRepository.fetchScraperEnabledCategoriesIndex(
+  const categoryIds = await categoryCacheRepository.fetchScraperCategoriesIndex(
     redis,
     request.scraperId
   )
@@ -62,6 +63,17 @@ export const saveCategoryCache: SaveCategoryCache = async function (redis, reque
     request.createdAt,
     request.updatedAt,
     request.queuedAt
+  )
+}
+
+/*
+ * Save ProvisoCategoryCache
+ */
+export const saveProvisoCategoryCache: SaveProvisoCategoryCache = async function (redis, request) {
+  await categoryCacheRepository.saveProvisoCategoryCache(
+    redis,
+    request.categoryId,
+    request.reportedAt
   )
 }
 

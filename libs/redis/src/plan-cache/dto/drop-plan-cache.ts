@@ -1,7 +1,7 @@
 import { RedisMethod } from '../../redis.js'
 
 export type DropPlanCacheRequest = {
-  planId: number,
+  planId: number
 }
 
 export type DropPlanCacheResponse = void

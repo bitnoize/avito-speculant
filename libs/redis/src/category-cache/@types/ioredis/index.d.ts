@@ -26,9 +26,9 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    saveCategoryFirstTime(
+    saveProvisoCategoryCache(
       categoryCacheKey: string, // KEYS[1]
-      firstTime: number, // ARGV[1]
+      reportedAt: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 

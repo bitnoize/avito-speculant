@@ -1,10 +1,5 @@
 import { Redis } from 'ioredis'
-import {
-  ProxyCache,
-  proxyCacheKey,
-  proxiesIndexKey,
-  onlineProxiesIndexKey
-} from './proxy-cache.js'
+import { ProxyCache, proxyCacheKey, proxiesIndexKey, onlineProxiesIndexKey } from './proxy-cache.js'
 import {
   parseNumber,
   parseManyNumbers,
@@ -78,7 +73,7 @@ export async function saveProxyCache(
   isEnabled: boolean,
   createdAt: number,
   updatedAt: number,
-  queuedAt: number,
+  queuedAt: number
 ): Promise<void> {
   const multi = redis.multi()
 
@@ -143,10 +138,7 @@ export async function saveOfflineProxyCache(
   await multi.exec()
 }
 
-export async function dropProxyCache(
-  redis: Redis,
-  proxyId: number,
-): Promise<void> {
+export async function dropProxyCache(redis: Redis, proxyId: number): Promise<void> {
   const multi = redis.multi()
 
   multi.dropProxyCache(
@@ -183,7 +175,7 @@ const parseModel = (result: unknown, message: string): ProxyCache | undefined =>
     sizeBytes: parseNumber(hash[6], message),
     createdAt: parseNumber(hash[7], message),
     updatedAt: parseNumber(hash[8], message),
-    queuedAt: parseNumber(hash[9], message),
+    queuedAt: parseNumber(hash[9], message)
   }
 }
 

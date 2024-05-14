@@ -14,8 +14,7 @@ export interface BotCache {
   queuedAt: number
 }
 
-export const botCacheKey = (botId: number) =>
-  [REDIS_CACHE_PREFIX, 'bot-cache', botId].join(':')
+export const botCacheKey = (botId: number) => [REDIS_CACHE_PREFIX, 'bot-cache', botId].join(':')
 
 export const userBotsIndexKey = (userId: number) =>
   [REDIS_CACHE_PREFIX, 'user-bots-index', userId].join(':')

@@ -1,9 +1,9 @@
-import { AvitoAdvert } from '../advert-cache.js'
+import { ScraperAdvert } from '../advert-cache.js'
 import { RedisMethod } from '../../redis.js'
 
 export type SaveAdvertsCacheRequest = {
   scraperId: string
-  avitoAdverts: AvitoAdvert[]
+  scraperAdverts: ScraperAdvert[]
 }
 
 export type SaveAdvertsCacheResponse = void

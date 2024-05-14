@@ -14,7 +14,4 @@ export type SaveUserCacheRequest = {
 
 export type SaveUserCacheResponse = void
 
-export type SaveUserCache = RedisMethod<
-  SaveUserCacheRequest,
-  SaveUserCacheResponse
->
+export type SaveUserCache = RedisMethod<SaveUserCacheRequest, SaveUserCacheResponse>

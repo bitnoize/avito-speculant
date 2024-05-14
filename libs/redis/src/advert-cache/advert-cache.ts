@@ -1,7 +1,8 @@
 import { REDIS_CACHE_PREFIX } from '../redis.js'
 
 export interface AdvertCache {
-  id: number
+  scraperId: string
+  advertId: number
   title: string
   description: string
   categoryName: string
@@ -12,7 +13,7 @@ export interface AdvertCache {
   postedAt: number
 }
 
-export type AvitoAdvert = [
+export type ScraperAdvert = [
   number, // advertId
   string, // title
   string, // description
@@ -24,14 +25,8 @@ export type AvitoAdvert = [
   number // postedAt
 ]
 
-export const CATEGORY_ADVERTS_TOPICS = ['wait', 'send', 'done']
-export type CategoryAdvertTopic = (typeof CATEGORY_ADVERTS_TOPICS)[number]
+export const advertCacheKey = (scraperId: string, advertId: number) =>
+  [REDIS_CACHE_PREFIX, 'advert-cache', scraperId, advertId].join(':')
 
-export const advertCacheKey = (advertId: number) =>
-  [REDIS_CACHE_PREFIX, 'advert-cache', advertId].join(':')
-
-export const scraperAdvertsIndexKey = (scraperId: string) =>
-  [REDIS_CACHE_PREFIX, 'scraper-adverts-index', scraperId].join(':')
-
-export const categoryAdvertsIndexKey = (categoryId: number, topic: CategoryAdvertTopic) =>
-  [REDIS_CACHE_PREFIX, 'category-adverts-index', categoryId, topic].join(':')
+export const advertsIndexKey = (scraperId: string) =>
+  [REDIS_CACHE_PREFIX, 'adverts-index', scraperId].join(':')
