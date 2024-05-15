@@ -7,7 +7,6 @@ export interface ProxyCache {
   isOnline: boolean
   totalCount: number
   successCount: number
-  sizeBytes: number
   createdAt: number
   updatedAt: number
   queuedAt: number

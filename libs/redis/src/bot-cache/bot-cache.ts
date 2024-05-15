@@ -7,6 +7,8 @@ export interface BotCache {
   isLinked: boolean
   isEnabled: boolean
   isOnline: boolean
+  tgFromId: string | null
+  username: string | null
   totalCount: number
   successCount: number
   createdAt: number

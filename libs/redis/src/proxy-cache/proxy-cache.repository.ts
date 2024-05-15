@@ -99,14 +99,12 @@ export async function saveProxyCache(
 export async function saveOnlineProxyCache(
   redis: Redis,
   proxyId: number,
-  sizeBytes: number,
   createdAt: number
 ): Promise<void> {
   const multi = redis.multi()
 
   multi.saveOnlineProxyCache(
     proxyCacheKey(proxyId), // KEYS[1]
-    sizeBytes // ARGV[1]
   )
 
   multi.saveProxiesIndex(
@@ -121,13 +119,11 @@ export async function saveOnlineProxyCache(
 export async function saveOfflineProxyCache(
   redis: Redis,
   proxyId: number,
-  sizeBytes: number
 ): Promise<void> {
   const multi = redis.multi()
 
   multi.saveOfflineProxyCache(
     proxyCacheKey(proxyId), // KEYS[1]
-    sizeBytes // ARGV[1]
   )
 
   multi.dropProxiesIndex(
@@ -163,7 +159,7 @@ const parseModel = (result: unknown, message: string): ProxyCache | undefined =>
     return undefined
   }
 
-  const hash = parseHash(result, 10, message)
+  const hash = parseHash(result, 9, message)
 
   return {
     id: parseNumber(hash[0], message),
@@ -172,10 +168,9 @@ const parseModel = (result: unknown, message: string): ProxyCache | undefined =>
     isOnline: !!parseNumber(hash[3], message),
     totalCount: parseNumber(hash[4], message),
     successCount: parseNumber(hash[5], message),
-    sizeBytes: parseNumber(hash[6], message),
-    createdAt: parseNumber(hash[7], message),
-    updatedAt: parseNumber(hash[8], message),
-    queuedAt: parseNumber(hash[9], message)
+    createdAt: parseNumber(hash[6], message),
+    updatedAt: parseNumber(hash[7], message),
+    queuedAt: parseNumber(hash[8], message)
   }
 }
 

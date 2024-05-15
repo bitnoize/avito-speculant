@@ -26,13 +26,11 @@ declare module 'ioredis' {
 
     saveSuccessScraperCache(
       scraperCacheKey: string, // KEYS[1]
-      sizeBytes: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveFailedScraperCache(
       scraperCacheKey: string, // KEYS[1]
-      sizeBytes: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 

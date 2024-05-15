@@ -4,6 +4,7 @@ import {
   parseNumber,
   parseManyNumbers,
   parseString,
+  parseStringOrNull,
   parseHash,
   parsePipeline,
   parseCommand
@@ -77,11 +78,18 @@ export async function saveBotCache(
   await multi.exec()
 }
 
-export async function saveOnlineBotCache(redis: Redis, botId: number): Promise<void> {
+export async function saveOnlineBotCache(
+  redis: Redis,
+  botId: number,
+  tgFromId: string,
+  username: string,
+): Promise<void> {
   const multi = redis.multi()
 
   multi.saveOnlineBotCache(
-    botCacheKey(botId) // KEYS[1]
+    botCacheKey(botId), // KEYS[1]
+    tgFromId, // ARGV[1]
+    username // ARGV[2]
   )
 
   await multi.exec()
@@ -117,7 +125,7 @@ const parseModel = (result: unknown, message: string): BotCache | undefined => {
     return undefined
   }
 
-  const hash = parseHash(result, 11, message)
+  const hash = parseHash(result, 13, message)
 
   return {
     id: parseNumber(hash[0], message),
@@ -126,11 +134,13 @@ const parseModel = (result: unknown, message: string): BotCache | undefined => {
     isLinked: !!parseNumber(hash[3], message),
     isEnabled: !!parseNumber(hash[4], message),
     isOnline: !!parseNumber(hash[5], message),
-    totalCount: parseNumber(hash[6], message),
-    successCount: parseNumber(hash[7], message),
-    createdAt: parseNumber(hash[8], message),
-    updatedAt: parseNumber(hash[9], message),
-    queuedAt: parseNumber(hash[10], message)
+    tgFromId: parseStringOrNull(hash[6], message),
+    username: parseStringOrNull(hash[7], message),
+    totalCount: parseNumber(hash[8], message),
+    successCount: parseNumber(hash[9], message),
+    createdAt: parseNumber(hash[10], message),
+    updatedAt: parseNumber(hash[11], message),
+    queuedAt: parseNumber(hash[12], message)
   }
 }
 

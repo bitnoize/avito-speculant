@@ -1,57 +1,49 @@
 import _Ajv from 'ajv'
 import { curly, CurlyResult } from 'node-libcurl'
-import { AvitoAdvert } from '@avito-speculant/redis'
-import { CurlRequest, ParseAttempt } from './worker-scraping.js'
+import { ScraperAdvert } from '@avito-speculant/redis'
+import { StealRequest, StealResponse, ParseRequest, ParseResponse } from './worker-scraping.js'
 import { avitoDataSchema } from './worker-scraping.schema.js'
 
 const Ajv = _Ajv.default
 
 // Моментально, 15 сек, 1 минута, 10 минут
-export const timeoutAdjust = (intervalSec: number): number => {
-  if (intervalSec > 0 && intervalSec <= 1) {
-    return 900
-  } else if (intervalSec > 1 && intervalSec <= 2) {
-    return 1_000
-  } else if (intervalSec > 2 && intervalSec <= 10) {
-    return (intervalSec - 1) * 1000
-  } else if (intervalSec > 10 && intervalSec <= 3600) {
-    return 10_000
-  } else {
-    throw new TypeError(`Wrong intervalSec: ${intervalSec}`)
+
+export const stealRequest: StealRequest = async (targetUrl, proxyUrl, timeoutMs) => {
+  const startTime = Date.now()
+
+  const stealResponse: StealResponse = {
+    statusCode: 0,
+    body: Buffer.alloc(0),
+    stealingTime: 0
   }
-}
 
-export const curlRequest: CurlRequest = async (url, proxyUrl, timeoutMs, verbose) => {
   try {
-    const startTime = Date.now()
-
-    const { statusCode, data } = await curly.get(url, {
+    const { statusCode, data } = await curly.get(targetUrl, {
       proxy: proxyUrl,
       timeoutMs,
-      verbose
     })
 
-    return {
-      statusCode,
-      body: data,
-      sizeBytes: data.length,
-      durationTime: Date.now() - startTime
+    if (status === 200) {
+      stealResponse.body = data
     }
+
+    stealResponse.statusCode = statusCode
   } catch (error) {
-    return {
-      statusCode: 0,
-      body: Buffer.alloc(0),
-      sizeBytes: 0,
-      durationTime: 0,
-      error: error.message || `Curl unknown error`
-    }
+    stealResponse.error = error.message || 'Unknown error'
+  } finally {
+    stealResponse.stealingTime = Date.now() - startTime
   }
 }
 
-export const parseAttempt: ParseAttempt = (body) => {
-  try {
-    const startTime = Date.now()
+export const parseRequest: ParseRequest = (scraperId: string, body) => {
+  const startTime = Date.now()
 
+  const parseResponse: ParseResponse = {
+    scraperAdverts: [],
+    parsingTime: 0
+  }
+
+  try {
     const ajv = new Ajv()
     const validate = ajv.compile(avitoDataSchema)
 
@@ -64,42 +56,23 @@ export const parseAttempt: ParseAttempt = (body) => {
     const json = JSON.parse(decodeURIComponent(initialData))
 
     if (typeof json !== 'object') {
-      return {
-        avitoAdverts: [],
-        totalAdverts: 0,
-        durationTime: Date.now() - startTime,
-        error: `Not and object JSON`
-      }
+      throw new Error('Not and object JSON')
     }
 
     const avitoKey = Object.keys(json).find((key) => key.startsWith('@avito/bx-single-page'))
 
     if (avitoKey === undefined) {
-      return {
-        avitoAdverts: [],
-        totalAdverts: 0,
-        durationTime: Date.now() - startTime,
-        error: `AvitoKey not found in JSON`
-      }
+      throw new Error('AvitoKey not found in JSON')
     }
 
     const avitoRaw = json[avitoKey]
 
     if (!validate(avitoRaw)) {
-      console.error(validate.errors)
-
-      return {
-        avitoAdverts: [],
-        totalAdverts: 0,
-        durationTime: Date.now() - startTime,
-        error: `AvitoRaw is not valid object`
-      }
+      //console.error(validate.errors)
+      throw new Error('AvitoRaw is not valid object')
     }
 
-    const avitoAdverts = avitoRaw.data.catalog.items.map((item): AvitoAdvert => {
-      const description =
-        item.description.length > 250 ? item.description.slice(0, 250) + '...' : item.description
-
+    const scraperAdverts = avitoRaw.data.catalog.items.map((item): ScraperAdvert => {
       const url = 'https://avito.ru' + item.urlPath
 
       const age =
@@ -110,9 +83,10 @@ export const parseAttempt: ParseAttempt = (body) => {
       const imageUrl = item.images.length > 0 ? item.images[0]['864x648'] : ''
 
       return [
+        scraperId,
         item.id,
         item.title,
-        description,
+        item.description,
         item.category.name,
         item.priceDetailed.value,
         url,
@@ -122,17 +96,10 @@ export const parseAttempt: ParseAttempt = (body) => {
       ]
     })
 
-    return {
-      avitoAdverts,
-      totalAdverts: avitoAdverts.length,
-      durationTime: Date.now() - startTime
-    }
+    parseResponse.scraperAdverts = scraperAdverts
   } catch (error) {
-    return {
-      avitoAdverts: [],
-      totalAdverts: 0,
-      durationTime: 0,
-      error: error.message || `Parse unknown error`
-    }
+    parseResponse.error = error.message || 'Unknown error'
+  } finally {
+    parseResponse.parsingTime = Date.now() - startTime
   }
 }

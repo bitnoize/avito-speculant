@@ -85,7 +85,6 @@ export const saveOnlineProxyCache: SaveOnlineProxyCache = async function (redis,
   await proxyCacheRepository.saveOnlineProxyCache(
     redis,
     request.proxyId,
-    request.sizeBytes,
     request.createdAt
   )
 }
@@ -94,7 +93,7 @@ export const saveOnlineProxyCache: SaveOnlineProxyCache = async function (redis,
  * Save OfflineProxyCache
  */
 export const saveOfflineProxyCache: SaveOfflineProxyCache = async function (redis, request) {
-  await proxyCacheRepository.saveOfflineProxyCache(redis, request.proxyId, request.sizeBytes)
+  await proxyCacheRepository.saveOfflineProxyCache(redis, request.proxyId)
 }
 
 /*

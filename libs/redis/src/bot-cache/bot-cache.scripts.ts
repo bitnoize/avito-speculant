@@ -9,6 +9,8 @@ return redis.call(
   'is_linked',
   'is_enabled',
   'is_online',
+  'tg_from_id',
+  'username',
   'total_count',
   'success_count',
   'created_at',
@@ -50,6 +52,8 @@ if redis.call('EXISTS', KEYS[1]) ~= 1 then
 end
 
 redis.call('HSET', KEYS[1], 'is_online', 1)
+redis.call('HSET', KEYS[1], 'tg_from_id', ARGV[1])
+redis.call('HSET', KEYS[1], 'username', ARGV[2])
 redis.call('HINCRBY', KEYS[1], 'total_count', 1)
 redis.call('HINCRBY', KEYS[1], 'success_count', 1)
 
@@ -62,6 +66,7 @@ if redis.call('EXISTS', KEYS[1]) == 1 then
 end
 
 redis.call('HSET', KEYS[1], 'is_online', 0)
+redis.call('HDEL', KEYS[1], 'tg_from_id', 'username')
 redis.call('HINCRBY', KEYS[1], 'total_count', 1)
 
 return redis.status_reply('OK')

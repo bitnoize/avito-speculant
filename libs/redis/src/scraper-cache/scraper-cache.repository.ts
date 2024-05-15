@@ -98,13 +98,11 @@ export async function saveScraperCache(
 export async function saveSuccessScraperCache(
   redis: Redis,
   scraperId: string,
-  sizeBytes: number
 ): Promise<void> {
   const multi = redis.multi()
 
   multi.saveSuccessScraperCache(
     scraperCacheKey(scraperId), // KEYS[1]
-    sizeBytes // ARGV[1]
   )
 
   await multi.exec()
@@ -113,13 +111,11 @@ export async function saveSuccessScraperCache(
 export async function saveFailedScraperCache(
   redis: Redis,
   scraperId: string,
-  sizeBytes: number
 ): Promise<void> {
   const multi = redis.multi()
 
   multi.saveFailedScraperCache(
     scraperCacheKey(scraperId), // KEYS[1]
-    sizeBytes // ARGV[1]
   )
 
   await multi.exec()
@@ -153,14 +149,13 @@ const parseModel = (result: unknown, message: string): ScraperCache | undefined 
     return undefined
   }
 
-  const hash = parseHash(result, 5, message)
+  const hash = parseHash(result, 4, message)
 
   return {
     id: parseString(hash[0], message),
     urlPath: parseString(hash[1], message),
     totalCount: parseNumber(hash[2], message),
     successCount: parseNumber(hash[3], message),
-    sizeBytes: parseNumber(hash[4], message)
   }
 }
 

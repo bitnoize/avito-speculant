@@ -1,10 +1,14 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { redisService, proxyCacheService } from '@avito-speculant/redis'
-import { CheckbotResult, CheckbotProcessor } from '@avito-speculant/queue'
-import { Config, ProcessName, CurlRequestArgs } from './worker-checkbot.js'
+import { redisService, botCacheService, proxyCacheService } from '@avito-speculant/redis'
+import {
+  CHECKBOT_PLACEHOLDER_URL,
+  CheckbotResult,
+  CheckbotProcessor
+} from '@avito-speculant/queue'
+import { Config, ProcessName } from './worker-checkbot.js'
 import { configSchema } from './worker-checkbot.schema.js'
-import { curlRequest } from './worker-checkbot.utils.js'
+import { testRequest } from './worker-checkbot.utils.js'
 
 export const checkbotProcessor: CheckbotProcessor = async function (checkbotJob) {
   const config = configService.initConfig<Config>(configSchema)
@@ -14,7 +18,8 @@ export const checkbotProcessor: CheckbotProcessor = async function (checkbotJob)
 
   const checkbotResult: CheckbotResult = {
     success: false,
-    durationTime: 0
+    testingTime: 0,
+    durationTime: 0,
   }
 
   await processDefault(config, logger, checkbotJob, checkbotResult)
@@ -29,60 +34,49 @@ const processDefault: ProcessName = async function (
   checkbotResult
 ) {
   const startTime = Date.now()
-  const { proxyId } = checkbotJob.data
+  const { botId } = checkbotJob.data
 
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
 
   try {
-    const { proxyCache } = await proxyCacheService.fetchProxyCache(redis, {
-      proxyId
+    const { botCache } = await botCacheService.fetchBotCache(redis, {
+      botId
     })
 
-    const curlRequestArgs: CurlRequestArgs = [
-      config.CHECKBOT_REQUEST_URL,
-      proxyCache.proxyUrl,
-      config.CHECKBOT_REQUEST_TIMEOUT,
-      config.CHECKBOT_REQUEST_VERBOSE
-    ]
+    const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis)
 
-    const curlResponse = await curlRequest(...curlRequestArgs)
+    const {
+      tgFromId,
+      username,
+      placeholderFileId,
+      testingTime,
+      testError
+    } = await testRequest(
+      botCache.token,
+      proxyCache.url,
+      CHECKBOT_PLACEHOLDER_URL,
+    )
 
-    if (curlResponse.error !== undefined) {
-      await proxyCacheService.renewOfflineProxyCache(redis, {
-        proxyId: proxyCache.id,
-        sizeBytes: curlResponse.sizeBytes
-      })
+    checkbotResult.testingTime = testingTime
 
-      const logData = {
-        proxyCache,
-        curlRequestArgs,
-        curlResponse
-      }
-      logger.warn(logData, `Curl request failed`)
-
-      checkbotResult.statusCode = curlResponse.statusCode
-      checkbotResult.sizeBytes = curlResponse.sizeBytes
-      checkbotResult.requestTime = curlResponse.requestTime
-    } else if (curlResponse.statusCode !== 200) {
-      await proxyCacheService.renewOfflineProxyCache(redis, {
-        proxyId: proxyCache.id,
-        sizeBytes: curlResponse.sizeBytes
-      })
-
-      checkbotResult.statusCode = curlResponse.statusCode
-      checkbotResult.sizeBytes = curlResponse.sizeBytes
-      checkbotResult.requestTime = curlResponse.requestTime
-    } else {
-      await proxyCacheService.renewOnlineProxyCache(redis, {
-        proxyId: proxyCache.id,
-        sizeBytes: curlResponse.sizeBytes
-      })
-
+    if (testError === undefined) {
       checkbotResult.success = true
-      checkbotResult.statusCode = curlResponse.statusCode
-      checkbotResult.sizeBytes = curlResponse.sizeBytes
-      checkbotResult.requestTime = curlResponse.requestTime
+    } else {
+      logger.warn({ botCache, testError }, `checkbot test failed`)
+    }
+
+    if (checkbotResult.success) {
+      await botCacheService.saveOnlineBotCache(redis, {
+        botId: botCache.id,
+        tgFromId,
+        username,
+        //placeholderFileId
+      })
+    } else {
+      await botCacheService.saveOfflineBotCache(redis, {
+        botId: botCache.id,
+      })
     }
   } finally {
     await redisService.closeRedis(redis)

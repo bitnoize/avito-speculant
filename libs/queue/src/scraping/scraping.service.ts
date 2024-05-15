@@ -37,7 +37,7 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Scrapi
  */
 export async function addRepeatableJob(
   queue: ScrapingQueue,
-  scraperId: string,
+  scraperId: string
 ): Promise<ScrapingJob> {
   return await queue.add(
     'default',
@@ -58,7 +58,7 @@ export async function addRepeatableJob(
  */
 export async function removeRepeatableJob(
   queue: ScrapingQueue,
-  scraperId: string,
+  scraperId: string
 ): Promise<boolean> {
   return await queue.removeRepeatable(
     'default',

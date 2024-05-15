@@ -10,6 +10,10 @@ import subscriptionCreateCommand from './subscription-create.command.js'
 import subscriptionActivateCommand from './subscription-activate.command.js'
 import subscriptionCancelCommand from './subscription-cancel.command.js'
 import subscriptionLogsListCommand from './subscription-logs-list.command.js'
+import botCreateCommand from './bot-create.command.js'
+import botEnableCommand from './bot-enable.command.js'
+import botDisableCommand from './bot-disable.command.js'
+import botLogsListCommand from './bot-logs-list.command.js'
 import categoryCreateCommand from './category-create.command.js'
 import categoryEnableCommand from './category-enable.command.js'
 import categoryDisableCommand from './category-disable.command.js'
@@ -32,6 +36,10 @@ const initSubcommands: InitSubcommands = (config, logger) => {
       'plan-enable': planEnableCommand(config, logger),
       'plan-disable': planDisableCommand(config, logger),
       'plan-logs-list': planLogsListCommand(config, logger),
+      'bot-create': botCreateCommand(config, logger),
+      'bot-enable': botEnableCommand(config, logger),
+      'bot-disable': botDisableCommand(config, logger),
+      'bot-logs-list': botLogsListCommand(config, logger),
       'subscription-create': subscriptionCreateCommand(config, logger),
       'subscription-activate': subscriptionActivateCommand(config, logger),
       'subscription-cancel': subscriptionCancelCommand(config, logger),

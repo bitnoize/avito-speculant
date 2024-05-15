@@ -6,8 +6,7 @@ return redis.call(
   'id',
   'url_path',
   'total_count',
-  'success_count',
-  'size_bytes'
+  'success_count'
 )
 `
 
@@ -27,7 +26,6 @@ redis.call(
 )
 redis.call('HSETNX', KEYS[1], 'total_count', 0)
 redis.call('HSETNX', KEYS[1], 'success_count', 0)
-redis.call('HSETNX', KEYS[1], 'size_bytes', 0)
 
 return redis.status_reply('OK')
 `
@@ -39,7 +37,6 @@ end
 
 redis.call('HINCRBY', KEYS[1], 'total_count', 1)
 redis.call('HINCRBY', KEYS[1], 'success_count', 1)
-redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -50,7 +47,6 @@ if redis.call('EXISTS', KEYS[1]) == 1 then
 end
 
 redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
 
 return redis.status_reply('OK')
 `

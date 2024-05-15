@@ -52,7 +52,7 @@ const heartbeatProcessor: HeartbeatProcessor = async function (heartbeatJob) {
       case 'subscriptions': {
         await processSubscriptions(config, logger, heartbeatJob, heartbeatResult)
 
-        step = 'categories'
+        step = 'bots'
         await heartbeatJob.updateData({ step })
 
         break

@@ -53,7 +53,12 @@ export const saveBotCache: SaveBotCache = async function (redis, request) {
  * Save Online BotCache
  */
 export const saveOnlineBotCache: SaveOnlineBotCache = async function (redis, request) {
-  await botCacheRepository.saveOnlineBotCache(redis, request.botId)
+  await botCacheRepository.saveOnlineBotCache(
+    redis,
+    request.botId,
+    request.tgFromId,
+    request.username
+  )
 }
 
 /*

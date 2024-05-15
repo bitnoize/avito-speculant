@@ -34,6 +34,8 @@ declare module 'ioredis' {
 
     saveOnlineBotCache(
       botCacheKey: string, // KEYS[1]
+      tgFromId: string, // ARGV[1]
+      username: string, // ARGV[2]
       callback?: Callback<string>
     ): Result<string, Context>
 

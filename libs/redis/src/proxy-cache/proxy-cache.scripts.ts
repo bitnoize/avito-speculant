@@ -9,7 +9,6 @@ return redis.call(
   'is_online',
   'total_count',
   'success_count',
-  'size_bytes',
   'created_at',
   'updated_at',
   'queued_at'
@@ -37,7 +36,6 @@ redis.call(
 redis.call('HSETNX', KEYS[1], 'is_online', 0)
 redis.call('HSETNX', KEYS[1], 'total_count', 0)
 redis.call('HSETNX', KEYS[1], 'success_count', 0)
-redis.call('HSETNX', KEYS[1], 'size_bytes', 0)
 
 return redis.status_reply('OK')
 `
@@ -56,7 +54,6 @@ end
 redis.call('HSET', KEYS[1], 'is_online', 1)
 redis.call('HINCRBY', KEYS[1], 'total_count', 1)
 redis.call('HINCRBY', KEYS[1], 'success_count', 1)
-redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -68,7 +65,6 @@ end
 
 redis.call('HSET', KEYS[1], 'is_online', 0)
 redis.call('HINCRBY', KEYS[1], 'total_count', 1)
-redis.call('HINCRBY', KEYS[1], 'size_bytes', ARGV[1])
 
 return redis.status_reply('OK')
 `

@@ -27,7 +27,9 @@ const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
   const logger = loggerService.initLogger(loggerOptions)
 
-  const sendreportResult: SendreportResult = {}
+  const sendreportResult: SendreportResult = {
+    durationTime: 0
+  }
 
   try {
     await processDefault(config, logger, redis, sendreportJob, sendreportResult)

@@ -5,7 +5,6 @@ export interface ScraperCache {
   urlPath: string
   totalCount: number
   successCount: number
-  sizeBytes: number
 }
 
 export const scraperCacheKey = (scraperId: string) =>

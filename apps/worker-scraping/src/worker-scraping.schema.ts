@@ -12,7 +12,6 @@ import {
   DEFAULT_SCRAPING_CONCURRENCY,
   DEFAULT_SCRAPING_LIMITER_MAX,
   DEFAULT_SCRAPING_LIMITER_DURATION,
-  DEFAULT_SCRAPING_REQUEST_VERBOSE
 } from '@avito-speculant/queue'
 import { Config, AvitoData } from './worker-scraping.js'
 
@@ -29,7 +28,6 @@ export const configSchema: JSONSchemaType<Config> = {
     'SCRAPING_CONCURRENCY',
     'SCRAPING_LIMITER_MAX',
     'SCRAPING_LIMITER_DURATION',
-    'SCRAPING_REQUEST_VERBOSE'
   ],
   properties: {
     LOG_LEVEL: {
@@ -102,10 +100,6 @@ export const configSchema: JSONSchemaType<Config> = {
       maximum: 60000,
       default: DEFAULT_SCRAPING_LIMITER_DURATION
     },
-    SCRAPING_REQUEST_VERBOSE: {
-      type: 'boolean',
-      default: DEFAULT_SCRAPING_REQUEST_VERBOSE
-    }
   }
 }
 

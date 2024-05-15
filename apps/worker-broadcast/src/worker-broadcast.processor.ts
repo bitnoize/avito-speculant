@@ -23,22 +23,9 @@ const broadcastProcessor: BroadcastProcessor = async function (broadcastJob) {
     durationTime: 0
   }
 
-  try {
-    await processDefault(config, logger, redis, broadcastJob, broadcastResult)
-  } catch (error) {
-    if (error instanceof DomainError) {
-      if (error.isEmergency()) {
-        // ...
+  await processDefault(config, logger, broadcastJob, broadcastResult)
 
-        logger.fatal(`BroadcastWorker emergency shutdown`)
-      }
-    }
-
-    throw error
-  } finally {
     await redisService.closeRedis(redis)
-  }
-
   return broadcastResult
 }
 

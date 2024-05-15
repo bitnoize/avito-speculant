@@ -37,13 +37,11 @@ declare module 'ioredis' {
 
     saveOnlineProxyCache(
       proxyCacheKey: string, // KEYS[1]
-      sizeBytes: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 
     saveOfflineProxyCache(
       proxyCacheKey: string, // KEYS[1]
-      sizeBytes: number, // ARGV[1]
       callback?: Callback<string>
     ): Result<string, Context>
 

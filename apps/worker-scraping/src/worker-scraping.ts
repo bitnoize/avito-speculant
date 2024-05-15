@@ -1,42 +1,36 @@
 import { LoggerConfig, Logger } from '@avito-speculant/logger'
-import { RedisConfig, Redis, AvitoAdvert } from '@avito-speculant/redis'
+import { RedisConfig, ScraperAdvert } from '@avito-speculant/redis'
 import { QueueConfig, ScrapingConfig, ScrapingResult, ScrapingJob } from '@avito-speculant/queue'
 
 export type Config = LoggerConfig & RedisConfig & QueueConfig & ScrapingConfig
 
-export type ProcessDefault = (
+export type ProcessName = (
   config: Config,
   logger: Logger,
-  redis: Redis,
   scrapingJob: ScrapingJob,
   scrapingResult: ScrapingResult
 ) => Promise<void>
 
-export type CurlResponse = {
-  statusCode: number
-  body: Buffer
-  sizeBytes: number
-  durationTime: number
-  error?: string
-}
-
-export type CurlRequest = (
-  url: string,
+export type StealRequest = (
+  targetUrl: string,
   proxyUrl: string,
   timeoutMs: number,
-  verbose: boolean
-) => Promise<CurlResponse>
+) => Promise<StealResponse>
 
-export type CurlRequestArgs = [string, string, number, boolean]
-
-export type ParseResult = {
-  avitoAdverts: AvitoAdvert[]
-  totalAdverts: number
-  durationTime: number
+export type StealResponse = {
+  statusCode: number
+  body: Buffer
+  stealingTime: number
   error?: string
 }
 
-export type ParseAttempt = (body: Buffer) => ParseResult
+export type ParseRequest = (body: Buffer) => ParseResponse
+
+export type ParseResponse = {
+  scraperAdverts: ScraperAdvert[]
+  parsingTime: number
+  error?: string
+}
 
 //
 // Avito InitialData

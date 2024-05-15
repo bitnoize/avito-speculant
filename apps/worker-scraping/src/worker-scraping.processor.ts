@@ -8,12 +8,13 @@ import {
   advertCacheService
 } from '@avito-speculant/redis'
 import {
+  SCRAPING_STEAL_TIMEOUT,
   ScrapingResult,
   ScrapingProcessor
 } from '@avito-speculant/queue'
-import { Config, ProcessDefault, CurlRequestArgs } from './worker-scraping.js'
+import { Config, ProcessName } from './worker-scraping.js'
 import { configSchema } from './worker-scraping.schema.js'
-import { timeoutAdjust, curlRequest, parseAttempt } from '././worker-scraping.utils.js'
+import { stealRequest, parseRequest } from '././worker-scraping.utils.js'
 
 const scrapingProcessor: ScrapingProcessor = async function (scrapingJob) {
   const config = configService.initConfig<Config>(configSchema)
@@ -21,70 +22,94 @@ const scrapingProcessor: ScrapingProcessor = async function (scrapingJob) {
   const loggerOptions = loggerService.getLoggerOptions<Config>(config)
   const logger = loggerService.initLogger(loggerOptions)
 
-  const redisOptions = redisService.getRedisOptions<Config>(config)
-  const redis = redisService.initRedis(redisOptions, logger)
-
-  const scrapingResult: ScrapingResult = {}
-
-  try {
-    await processDefault(config, logger, redis, scrapingJob, scrapingResult)
-  } catch (error) {
-    if (error instanceof DomainError) {
-      if (error.isEmergency()) {
-        // ...
-
-        logger.fatal(`ScrapingWorker emergency shutdown`)
-      }
-    }
-
-    throw error
-  } finally {
-    await redisService.closeRedis(redis)
+  const scrapingResult: ScrapingResult = {
+    success: false,
+    statusCode: 0,
+    stealingTime: 0,
+    parsingTime: 0,
+    durationTime: 0
   }
+
+  await processDefault(config, logger, scrapingJob, scrapingResult)
 
   return scrapingResult
 }
 
-const processDefault: ProcessDefault = async function (
+const processDefault: ProcessName = async function (
   config,
   logger,
-  redis,
   scrapingJob,
   scrapingResult
 ) {
-  try {
-    const startTime = Date.now()
-    const name = scrapingJob.name
-    const { scraperId } = scrapingJob.data
+  const startTime = Date.now()
+  const { scraperId } = scrapingJob.data
 
+  try {
     const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
       scraperId
     })
 
-    const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis, undefined)
-
-    if (proxyCache === undefined) {
-      throw new OnlineProxiesUnavailableError({ scraperCache })
-    }
+    const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis)
 
     const avitoUrl = new URL(scraperCache.urlPath, 'https://www.avito.ru')
 
     avitoUrl.searchParams.set('s', '104')
 
-    const curlRequestArgs: CurlRequestArgs = [
+    const { statusCode, body, stealingTime, stealError } = await stealRequest(
       avitoUrl.toString(),
       proxyCache.proxyUrl,
-      SCRAPING_REQUEST_TIMEOUT,
-      config.SCRAPING_REQUEST_VERBOSE
-    ]
+      SCRAPING_STEAL_TIMEOUT
+    )
 
-    const curlResponse = await curlRequest(...curlRequestArgs)
+    scrapingResult.statusCode = statusCode
+    scrapingResult.stealingTime = stealingTime
 
-    if (curlResponse.error !== undefined) {
+    if (stealError === undefined && statusCode === 200) {
+      const { scraperAdverts, parsingTime, parseError } = parseRequest(
+        scraperCache.id,
+        stealResponse.body
+      )
+
+      scrapingResult.parsingTime = parsingTime
+
+      if (parseError === undefined) {
+        await advertCacheService.saveAdvertsCache(redis, {
+          scraperId: scraperCache.id,
+          scraperAdverts
+        })
+
+        scrapingResult.success = true
+      } else {
+        logger.warn({ scraperCache, parseError }, `parse failed`)
+      }
+    } else {
+      logger.warn({ scraperCache, statusCode, stealError }, `steal failed`)
+    }
+
+    if (scrapingResult.success) {
+      await scraperCacheService.saveSuccessScraperCache(redis, {
+        scraperId: scraperCache.id,
+        createdAt: scraperCache.createdAt
+      })
+    } else {
       await scraperCacheService.saveFailedScraperCache(redis, {
         scraperId: scraperCache.id,
-        sizeBytes: curlResponse.sizeBytes
       })
+    }
+  } finally {
+    await redisService.closeRedis(redis)
+
+    checkproxyResult.durationTime = Date.now() - startTime
+  }
+}
+
+export default scrapingProcessor
+/*
+
+
+
+
+
 
       const logData = {
         scraperCache,
@@ -105,35 +130,39 @@ const processDefault: ProcessDefault = async function (
       }
 
       return
-    }
 
-    if (curlResponse.statusCode !== 200) {
-      await scraperCacheService.renewFailedScraperCache(redis, {
+
+
+
+
+
+
+
+
+
+
+
+
+
+    if (stealError !== undefined) {
+      await scraperCacheService.saveFailedScraperCache(redis, {
         scraperId: scraperCache.id,
-        proxyId: proxyCache.id,
-        sizeBytes: curlResponse.sizeBytes
       })
-
-      scrapingResult[name] = {
-        success: false,
-        statusCode: curlResponse.statusCode,
-        sizeBytes: curlResponse.sizeBytes,
-        durationTime: Date.now() - startTime,
-        curlDurationTime: curlResponse.durationTime,
-        parseDurationTime: 0,
-        totalAdverts: 0
-      }
-
-      return
+    } else if (statusCode !== 200) {
+      await scraperCacheService.saveFailedScraperCache(redis, {
+        scraperId: scraperCache.id,
+      })
+    } else {
     }
 
-    const parseResult = parseAttempt(curlResponse.body)
+
+
+
 
     if (parseResult.error !== undefined) {
       await scraperCacheService.renewFailedScraperCache(redis, {
         scraperId: scraperCache.id,
-        proxyId: proxyCache.id,
-        sizeBytes: curlResponse.sizeBytes
+        createdAt: scraperCache.createdAt
       })
 
       const logData = {
@@ -175,17 +204,4 @@ const processDefault: ProcessDefault = async function (
       parseDurationTime: parseResult.durationTime,
       totalAdverts: parseResult.totalAdverts
     }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      if (error instanceof OnlineProxiesUnavailableError) {
-        // ...
-      } else {
-        error.setEmergency()
-      }
-    }
-
-    throw error
-  }
-}
-
-export default scrapingProcessor
+*/

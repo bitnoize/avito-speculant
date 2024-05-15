@@ -2,8 +2,6 @@ import {
   ConnectionOptions,
   RateLimiterOptions,
   Queue,
-  FlowProducer,
-  QueueEvents,
   Worker,
   Processor,
   MetricsTime

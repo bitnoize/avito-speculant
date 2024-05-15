@@ -9,14 +9,11 @@ import {
   DEFAULT_QUEUE_REDIS_HOST,
   DEFAULT_QUEUE_REDIS_PORT,
   DEFAULT_QUEUE_REDIS_DATABASE,
-  DEFAULT_PROXYCHECK_CONCURRENCY,
-  DEFAULT_PROXYCHECK_LIMITER_MAX,
-  DEFAULT_PROXYCHECK_LIMITER_DURATION,
-  DEFAULT_PROXYCHECK_REQUEST_URL,
-  DEFAULT_PROXYCHECK_REQUEST_TIMEOUT,
-  DEFAULT_PROXYCHECK_REQUEST_VERBOSE
+  DEFAULT_CHECKPROXY_CONCURRENCY,
+  DEFAULT_CHECKPROXY_LIMITER_MAX,
+  DEFAULT_CHECKPROXY_LIMITER_DURATION,
 } from '@avito-speculant/queue'
-import { Config } from './worker-proxycheck.js'
+import { Config } from './worker-checkproxy.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
@@ -28,12 +25,9 @@ export const configSchema: JSONSchemaType<Config> = {
     'QUEUE_REDIS_HOST',
     'QUEUE_REDIS_PORT',
     'QUEUE_REDIS_DATABASE',
-    'PROXYCHECK_CONCURRENCY',
-    'PROXYCHECK_LIMITER_MAX',
-    'PROXYCHECK_LIMITER_DURATION',
-    'PROXYCHECK_REQUEST_URL',
-    'PROXYCHECK_REQUEST_TIMEOUT',
-    'PROXYCHECK_REQUEST_VERBOSE'
+    'CHECKPROXY_CONCURRENCY',
+    'CHECKPROXY_LIMITER_MAX',
+    'CHECKPROXY_LIMITER_DURATION',
   ],
   properties: {
     LOG_LEVEL: {
@@ -88,37 +82,23 @@ export const configSchema: JSONSchemaType<Config> = {
       type: 'string',
       nullable: true
     },
-    PROXYCHECK_CONCURRENCY: {
+    CHECKPROXY_CONCURRENCY: {
       type: 'integer',
       minimum: 1,
       maximum: 100,
-      default: DEFAULT_PROXYCHECK_CONCURRENCY
+      default: DEFAULT_CHECKPROXY_CONCURRENCY
     },
-    PROXYCHECK_LIMITER_MAX: {
+    CHECKPROXY_LIMITER_MAX: {
       type: 'integer',
       minimum: 1,
       maximum: 1000,
-      default: DEFAULT_PROXYCHECK_LIMITER_MAX
+      default: DEFAULT_CHECKPROXY_LIMITER_MAX
     },
-    PROXYCHECK_LIMITER_DURATION: {
+    CHECKPROXY_LIMITER_DURATION: {
       type: 'integer',
       minimum: 1000,
       maximum: 60000,
-      default: DEFAULT_PROXYCHECK_LIMITER_DURATION
+      default: DEFAULT_CHECKPROXY_LIMITER_DURATION
     },
-    PROXYCHECK_REQUEST_URL: {
-      type: 'string',
-      default: DEFAULT_PROXYCHECK_REQUEST_URL
-    },
-    PROXYCHECK_REQUEST_TIMEOUT: {
-      type: 'integer',
-      minimum: 1000,
-      maximum: 60000,
-      default: DEFAULT_PROXYCHECK_REQUEST_TIMEOUT
-    },
-    PROXYCHECK_REQUEST_VERBOSE: {
-      type: 'boolean',
-      default: DEFAULT_PROXYCHECK_REQUEST_VERBOSE
-    }
   }
 }

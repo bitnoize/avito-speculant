@@ -51,14 +51,14 @@ export const saveScraperCache: SaveScraperCache = async function (redis, request
  * Save SuccessScraperCache
  */
 export const saveSuccessScraperCache: SaveSuccessScraperCache = async function (redis, request) {
-  await scraperCacheRepository.saveSuccessScraperCache(redis, request.scraperId, request.sizeBytes)
+  await scraperCacheRepository.saveSuccessScraperCache(redis, request.scraperId)
 }
 
 /*
  * Save FailedScraperCache
  */
 export const saveFailedScraperCache: SaveFailedScraperCache = async function (redis, request) {
-  await scraperCacheRepository.saveFailedScraperCache(redis, request.scraperId, request.sizeBytes)
+  await scraperCacheRepository.saveFailedScraperCache(redis, request.scraperId)
 }
 
 /*
