@@ -49,7 +49,6 @@ const processDefault: ProcessName = async function (
     const {
       tgFromId,
       username,
-      placeholderFileId,
       testingTime,
       testError
     } = await testRequest(
@@ -71,7 +70,6 @@ const processDefault: ProcessName = async function (
         botId: botCache.id,
         tgFromId,
         username,
-        //placeholderFileId
       })
     } else {
       await botCacheService.saveOfflineBotCache(redis, {

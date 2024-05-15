@@ -1,6 +1,5 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { DomainError } from '@avito-speculant/common'
 import {
   redisService,
   proxyCacheService,
@@ -44,6 +43,9 @@ const processDefault: ProcessName = async function (
   const startTime = Date.now()
   const { scraperId } = scrapingJob.data
 
+  const redisOptions = redisService.getRedisOptions<Config>(config)
+  const redis = redisService.initRedis(redisOptions, logger)
+
   try {
     const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
       scraperId
@@ -57,7 +59,7 @@ const processDefault: ProcessName = async function (
 
     const { statusCode, body, stealingTime, stealError } = await stealRequest(
       avitoUrl.toString(),
-      proxyCache.proxyUrl,
+      proxyCache.url,
       SCRAPING_STEAL_TIMEOUT
     )
 
@@ -67,7 +69,7 @@ const processDefault: ProcessName = async function (
     if (stealError === undefined && statusCode === 200) {
       const { scraperAdverts, parsingTime, parseError } = parseRequest(
         scraperCache.id,
-        stealResponse.body
+        body
       )
 
       scrapingResult.parsingTime = parsingTime
@@ -80,16 +82,15 @@ const processDefault: ProcessName = async function (
 
         scrapingResult.success = true
       } else {
-        logger.warn({ scraperCache, parseError }, `parse failed`)
+        logger.warn({ scraperCache, parseError }, `scraping parse failed`)
       }
     } else {
-      logger.warn({ scraperCache, statusCode, stealError }, `steal failed`)
+      logger.warn({ scraperCache, statusCode, stealError }, `scraping steal failed`)
     }
 
     if (scrapingResult.success) {
       await scraperCacheService.saveSuccessScraperCache(redis, {
         scraperId: scraperCache.id,
-        createdAt: scraperCache.createdAt
       })
     } else {
       await scraperCacheService.saveFailedScraperCache(redis, {
@@ -99,18 +100,17 @@ const processDefault: ProcessName = async function (
   } finally {
     await redisService.closeRedis(redis)
 
-    checkproxyResult.durationTime = Date.now() - startTime
+    scrapingResult.durationTime = Date.now() - startTime
   }
 }
 
 export default scrapingProcessor
+
+
+
+
+
 /*
-
-
-
-
-
-
       const logData = {
         scraperCache,
         proxyCache,

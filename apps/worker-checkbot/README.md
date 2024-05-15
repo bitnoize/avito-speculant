@@ -1,5 +1,5 @@
-@avito-speculant/worker-checkproxy
-----------------------------------
+@avito-speculant/worker-checkbot
+--------------------------------
 
-Воркер для очереди **checkproxy**
+Воркер для очереди **checkbot**
 

@@ -21,3 +21,5 @@ Avito-Speculant
 * [@avito-speculant/worker-throttle](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-throttle) - Воркер для очереди **throttle**
 * [@avito-speculant/worker-sendreport](https://github.com/bitnoize/avito-speculant/tree/main/apps/worker-sendreport) - Воркер для очереди **sendreport**
 
+Тарифы: Моментально, 15 сек, 1 минута, 10 минут
+

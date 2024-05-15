@@ -9,6 +9,6 @@ export interface Bot {
   queuedAt: number
 }
 
-export const BOT_PRODUCE_AFTER = '5 minutes'
+export const BOT_PRODUCE_AFTER = '1 minute'
 
 export const USER_BOTS_LIMIT = 20

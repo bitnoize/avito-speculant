@@ -1,4 +1,4 @@
-import { curly, CurlyResult } from 'node-libcurl'
+import { curly } from 'node-libcurl'
 import { TestRequest, TestResponse } from './worker-checkproxy.js'
 
 export const testRequest: TestRequest = async (targetUrl, proxyUrl, timeoutMs) => {
@@ -10,7 +10,7 @@ export const testRequest: TestRequest = async (targetUrl, proxyUrl, timeoutMs) =
   }
 
   try {
-    const { statusCode, data } = await curly.get(targetUrl, {
+    const { statusCode } = await curly.get(targetUrl, {
       proxy: proxyUrl,
       timeoutMs,
     })

@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/worker-checkproxy",
   "type": "module",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Avito-Speculant worker-checkproxy application",
   "private": true,
   "main": "dist/index.js",

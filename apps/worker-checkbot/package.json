@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/worker-checkbot",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Avito-Speculant worker-checkbot application",
   "private": true,
   "main": "dist/index.js",

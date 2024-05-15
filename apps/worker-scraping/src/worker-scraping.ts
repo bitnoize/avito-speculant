@@ -21,15 +21,15 @@ export type StealResponse = {
   statusCode: number
   body: Buffer
   stealingTime: number
-  error?: string
+  stealError?: string
 }
 
-export type ParseRequest = (body: Buffer) => ParseResponse
+export type ParseRequest = (scraperId: string, body: Buffer) => ParseResponse
 
 export type ParseResponse = {
   scraperAdverts: ScraperAdvert[]
   parsingTime: number
-  error?: string
+  parseError?: string
 }
 
 //

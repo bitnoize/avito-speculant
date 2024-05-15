@@ -9,7 +9,7 @@ import { Serial } from '../manager.utils.js'
 const initCommand: InitCommand = (config, logger) => {
   return command({
     name: 'database-bot-disable',
-    description: 'enable user bot',
+    description: 'disable user bot',
     args: {
       userId: positional({
         type: Serial,

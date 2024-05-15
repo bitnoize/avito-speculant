@@ -1,12 +1,10 @@
 import _Ajv from 'ajv'
-import { curly, CurlyResult } from 'node-libcurl'
+import { curly } from 'node-libcurl'
 import { ScraperAdvert } from '@avito-speculant/redis'
 import { StealRequest, StealResponse, ParseRequest, ParseResponse } from './worker-scraping.js'
 import { avitoDataSchema } from './worker-scraping.schema.js'
 
 const Ajv = _Ajv.default
-
-// Моментально, 15 сек, 1 минута, 10 минут
 
 export const stealRequest: StealRequest = async (targetUrl, proxyUrl, timeoutMs) => {
   const startTime = Date.now()
@@ -23,19 +21,21 @@ export const stealRequest: StealRequest = async (targetUrl, proxyUrl, timeoutMs)
       timeoutMs,
     })
 
-    if (status === 200) {
+    if (statusCode === 200) {
       stealResponse.body = data
     }
 
     stealResponse.statusCode = statusCode
   } catch (error) {
-    stealResponse.error = error.message || 'Unknown error'
+    stealResponse.stealError = error.message || 'Unknown error'
   } finally {
     stealResponse.stealingTime = Date.now() - startTime
   }
+
+  return stealResponse
 }
 
-export const parseRequest: ParseRequest = (scraperId: string, body) => {
+export const parseRequest: ParseRequest = (scraperId, body) => {
   const startTime = Date.now()
 
   const parseResponse: ParseResponse = {
@@ -83,7 +83,6 @@ export const parseRequest: ParseRequest = (scraperId: string, body) => {
       const imageUrl = item.images.length > 0 ? item.images[0]['864x648'] : ''
 
       return [
-        scraperId,
         item.id,
         item.title,
         item.description,
@@ -98,8 +97,10 @@ export const parseRequest: ParseRequest = (scraperId: string, body) => {
 
     parseResponse.scraperAdverts = scraperAdverts
   } catch (error) {
-    parseResponse.error = error.message || 'Unknown error'
+    parseResponse.parseError = error.message || 'Unknown error'
   } finally {
     parseResponse.parsingTime = Date.now() - startTime
   }
+
+  return parseResponse
 }

@@ -2,13 +2,12 @@ import { HttpsProxyAgent } from 'https-proxy-agent'
 import { Bot, InputMediaBuilder } from 'grammy'
 import { TestRequest, TestResponse } from './worker-checkbot.js'
 
-export const testRequest: TestRequest = async (token, proxyUrl, placeholderUrl) => {
+export const testRequest: TestRequest = async (token, proxyUrl) => {
   const startTime = Date.now()
 
   const testResponse: TestResponse = {
     tgFromId: '',
     username: '',
-    placeholderFileId: '',
     testingTime: 0
   }
 
