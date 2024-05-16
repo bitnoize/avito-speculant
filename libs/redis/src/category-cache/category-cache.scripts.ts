@@ -26,20 +26,32 @@ redis.call(
   'id', ARGV[1],
   'user_id', ARGV[2],
   'url_path', ARGV[3],
-  'bot_id', ARGV[4],
-  'scraper_id', ARGV[5],
-  'is_enabled', ARGV[6],
-  'created_at', ARGV[7],
-  'updated_at', ARGV[8],
-  'queued_at', ARGV[9]
+  'scraper_id', ARGV[4],
+  'created_at', ARGV[5],
+  'updated_at', ARGV[6],
+  'queued_at', ARGV[7]
 )
+redis.call('HSETNX', KEYS[1], 'is_enabled', 0)
 redis.call('HSETNX', KEYS[1], 'reported_at', 0)
 
 return redis.status_reply('OK')
 `
 
+const saveCategoryEnabledCache = `
+redis.call('HSET', KEYS[1], 'bot_id', ARGV[1], 'is_enabled', 1)
+
+return redis.status_reply('OK')
+`
+
+const saveCategoryDisabledCache = `
+redis.call('HDEL', KEYS[1], 'bot_id')
+redis.call('HSET', KEYS[1], 'is_enabled', 0)
+
+return redis.status_reply('OK')
+`
+
 const saveProvisoCategoryCache = `
-if redis.call('EXISTS', KEYS[1]) == 1 then
+if redis.call('EXISTS', KEYS[1]) ~= 1 then
   return redis.error_reply('ERR message ' .. KEYS[1] .. ' lost')
 end
 
@@ -80,6 +92,16 @@ const initScripts: InitScripts = (redis) => {
   redis.defineCommand('saveCategoryCache', {
     numberOfKeys: 1,
     lua: saveCategoryCache
+  })
+
+  redis.defineCommand('saveCategoryEnabledCache', {
+    numberOfKeys: 1,
+    lua: saveCategoryEnabledCache
+  })
+
+  redis.defineCommand('saveCategoryDisabledCache', {
+    numberOfKeys: 1,
+    lua: saveCategoryDisabledCache
   })
 
   redis.defineCommand('saveProvisoCategoryCache', {

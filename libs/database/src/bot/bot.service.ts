@@ -138,8 +138,8 @@ export const disableBot: DisableBot = async function (db, request) {
 
     const linkedCategoryRow = await categoryRepository.selectRowByBotId(trx, botRow.id)
 
-    if (linkedCategoryRow === undefined) {
-      throw new BotNotLinkedError({ request, botRow })
+    if (linkedCategoryRow !== undefined) {
+      throw new BotIsLinkedError({ request, botRow })
     }
 
     userRow.bots -= 1

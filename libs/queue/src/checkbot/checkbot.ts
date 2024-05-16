@@ -1,7 +1,6 @@
 import { Queue, Job, Worker, Processor } from 'bullmq'
 
 export const CHECKBOT_QUEUE_NAME = 'checkbot'
-export const CHECKBOT_PLACEHOLDER_URL = 'https://placehold.co/600x400.png?text=Photo'
 
 export const DEFAULT_CHECKBOT_CONCURRENCY = 10
 export const DEFAULT_CHECKBOT_LIMITER_MAX = 10

@@ -53,9 +53,13 @@ const processDefault: ProcessName = async function (
 
     const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis)
 
+    const views = ['default', 'gallery']
+    const randomView = views[Math.floor(Math.random() * views.length)]
+
     const avitoUrl = new URL(scraperCache.urlPath, 'https://www.avito.ru')
 
     avitoUrl.searchParams.set('s', '104')
+    avitoUrl.searchParams.set('view', randomView)
 
     const { statusCode, body, stealingTime, stealError } = await stealRequest(
       avitoUrl.toString(),
@@ -105,103 +109,3 @@ const processDefault: ProcessName = async function (
 }
 
 export default scrapingProcessor
-
-
-
-
-
-/*
-      const logData = {
-        scraperCache,
-        proxyCache,
-        curlRequestArgs,
-        curlResponse
-      }
-      logger.warn(logData, `ScrapingProcessor processDefault curlRequest failed`)
-
-      scrapingResult[name] = {
-        success: false,
-        statusCode: curlResponse.statusCode,
-        sizeBytes: curlResponse.sizeBytes,
-        durationTime: Date.now() - startTime,
-        curlDurationTime: curlResponse.durationTime,
-        parseDurationTime: 0,
-        totalAdverts: 0
-      }
-
-      return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    if (stealError !== undefined) {
-      await scraperCacheService.saveFailedScraperCache(redis, {
-        scraperId: scraperCache.id,
-      })
-    } else if (statusCode !== 200) {
-      await scraperCacheService.saveFailedScraperCache(redis, {
-        scraperId: scraperCache.id,
-      })
-    } else {
-    }
-
-
-
-
-
-    if (parseResult.error !== undefined) {
-      await scraperCacheService.renewFailedScraperCache(redis, {
-        scraperId: scraperCache.id,
-        createdAt: scraperCache.createdAt
-      })
-
-      const logData = {
-        scraperCache,
-        proxyCache,
-        parseResult
-      }
-      logger.warn(logData, `ScrapingProcessor processDefault parseAttempt failed`)
-
-      scrapingResult[name] = {
-        success: false,
-        statusCode: curlResponse.statusCode,
-        sizeBytes: curlResponse.sizeBytes,
-        durationTime: Date.now() - startTime,
-        curlDurationTime: curlResponse.durationTime,
-        parseDurationTime: parseResult.durationTime,
-        totalAdverts: parseResult.totalAdverts
-      }
-
-      return
-    }
-
-    await scraperCacheService.saveSuccessScraperCache(redis, {
-      scraperId: scraperCache.id,
-      sizeBytes: curlResponse.sizeBytes
-    })
-
-    await advertCacheService.saveAdvertsCache(redis, {
-      scraperId: scraperCache.id,
-      avitoAdverts: parseResult.avitoAdverts
-    })
-
-    scrapingResult[name] = {
-      success: true,
-      statusCode: curlResponse.statusCode,
-      sizeBytes: curlResponse.sizeBytes,
-      durationTime: Date.now() - startTime,
-      curlDurationTime: curlResponse.durationTime,
-      parseDurationTime: parseResult.durationTime,
-      totalAdverts: parseResult.totalAdverts
-    }
-*/

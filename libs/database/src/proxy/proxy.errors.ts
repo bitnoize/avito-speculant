@@ -12,3 +12,14 @@ export class ProxyExistsError extends DatabaseError {
     super(context, code, message)
   }
 }
+
+export class ProxyIsEnabledError extends DatabaseError {
+  constructor(context: ErrorContext, code = 105, message = `Proxy is enabled`) {
+    super(context, code, message)
+  }
+}
+export class ProxyIsDisabledError extends DatabaseError {
+  constructor(context: ErrorContext, code = 105, message = `Proxy is disabled`) {
+    super(context, code, message)
+  }
+}

@@ -6,7 +6,12 @@ import {
   ProduceProxies,
   ConsumeProxy
 } from './dto/index.js'
-import { ProxyNotFoundError, ProxyExistsError } from './proxy.errors.js'
+import {
+  ProxyNotFoundError,
+  ProxyExistsError,
+  ProxyIsEnabledError,
+  ProxyIsDisabledError,
+} from './proxy.errors.js'
 import * as proxyRepository from './proxy.repository.js'
 import * as proxyLogRepository from '../proxy-log/proxy-log.repository.js'
 
@@ -56,10 +61,7 @@ export const enableProxy: EnableProxy = async function (db, request) {
     }
 
     if (proxyRow.is_enabled) {
-      return {
-        proxy: proxyRepository.buildModel(proxyRow),
-        backLog
-      }
+      throw new ProxyIsEnabledError({ request, proxyRow })
     }
 
     proxyRow.is_enabled = true
@@ -101,10 +103,7 @@ export const disableProxy: DisableProxy = async function (db, request) {
     }
 
     if (!proxyRow.is_enabled) {
-      return {
-        proxy: proxyRepository.buildModel(proxyRow),
-        backLog
-      }
+      throw new ProxyIsDisabledError({ request, proxyRow })
     }
 
     proxyRow.is_enabled = false

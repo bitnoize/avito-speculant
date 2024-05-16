@@ -2,7 +2,6 @@ import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { redisService, botCacheService, proxyCacheService } from '@avito-speculant/redis'
 import {
-  CHECKBOT_PLACEHOLDER_URL,
   CheckbotResult,
   CheckbotProcessor
 } from '@avito-speculant/queue'
@@ -54,7 +53,6 @@ const processDefault: ProcessName = async function (
     } = await testRequest(
       botCache.token,
       proxyCache.url,
-      CHECKBOT_PLACEHOLDER_URL,
     )
 
     checkbotResult.testingTime = testingTime

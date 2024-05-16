@@ -37,15 +37,15 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Broadc
  */
 export async function addRepeatableJob(
   queue: BroadcastQueue,
-  userId: number
+  categoryId: number
 ): Promise<BroadcastJob> {
   return await queue.add(
     'default',
     {
-      userId
+      categoryId
     },
     {
-      jobId: `default-${userId}`,
+      jobId: `default-${categoryId}`,
       repeat: {
         every: BROADCAST_REPEAT_EVERY
       }
@@ -56,13 +56,16 @@ export async function addRepeatableJob(
 /**
  * Remove RepeatableJob
  */
-export async function removeRepeatableJob(queue: BroadcastQueue, userId: number): Promise<boolean> {
+export async function removeRepeatableJob(
+  queue: BroadcastQueue,
+  categoryId: number
+): Promise<boolean> {
   return await queue.removeRepeatable(
     'default',
     {
       every: BROADCAST_REPEAT_EVERY
     },
-    `default-${userId}`
+    `default-${categoryId}`
   )
 }
 

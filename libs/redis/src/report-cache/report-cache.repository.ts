@@ -80,7 +80,10 @@ export async function fetchReportsCache(
 
 export async function saveReportsCache(
   redis: Redis,
+  scraperId: string,
   categoryId: number,
+  tgFromId: string,
+  token: string,
   categoryReports: CategoryReport[]
 ): Promise<void> {
   if (categoryReports.length === 0) {
@@ -90,14 +93,16 @@ export async function saveReportsCache(
   const multi = redis.multi()
 
   categoryReports.forEach((categoryReport) => {
-    const [advertId, tgFromId, postedAt] = categoryReport
+    const [advertId, postedAt] = categoryReport
 
     multi.saveReportCache(
       reportCacheKey(categoryId, advertId), // KEYS[1]
-      categoryId, // ARGV[1]
-      advertId, // ARGV[2]
-      tgFromId, // ARGV[3]
-      postedAt // ARGV[4]
+      scraperId, // ARGV[1]
+      categoryId, // ARGV[2]
+      advertId, // ARGV[3]
+      tgFromId, // ARGV[4]
+      token, // ARGV[5]
+      postedAt // ARGV[6]
     )
   })
 
@@ -180,14 +185,16 @@ const parseModel = (result: unknown, message: string): ReportCache | undefined =
     return undefined
   }
 
-  const hash = parseHash(result, 5, message)
+  const hash = parseHash(result, 7, message)
 
   return {
-    categoryId: parseNumber(hash[0], message),
-    advertId: parseNumber(hash[1], message),
-    tgFromId: parseString(hash[2], message),
-    postedAt: parseNumber(hash[3], message),
-    attempt: parseNumber(hash[4], message)
+    scraperId: parseString(hash[0], message),
+    categoryId: parseNumber(hash[1], message),
+    advertId: parseNumber(hash[2], message),
+    tgFromId: parseString(hash[3], message),
+    token: parseString(hash[4], message),
+    postedAt: parseNumber(hash[5], message),
+    attempt: parseNumber(hash[6], message)
   }
 }
 

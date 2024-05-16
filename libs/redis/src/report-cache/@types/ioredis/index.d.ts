@@ -19,10 +19,12 @@ declare module 'ioredis' {
 
     saveReportCache(
       reportCacheKey: string, // KEYS[1]
-      categoryId: number, // ARGV[1]
-      advertId: number, // ARGV[2]
-      tgFromId: string, // ARGV[3]
-      postedAt: number, // ARGV[4]
+      scraperId: string, // ARGV[1]
+      categoryId: number, // ARGV[2]
+      advertId: number, // ARGV[3]
+      tgFromId: string, // ARGV[4]
+      token: string, // ARGV[5]
+      postedAt: number, // ARGV[6]
       callback?: Callback<string>
     ): Result<string, Context>
 

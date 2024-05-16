@@ -1,6 +1,6 @@
 import { Bot } from 'grammy'
 import { LoggerConfig, Logger } from '@avito-speculant/logger'
-import { RedisConfig, Redis } from '@avito-speculant/redis'
+import { RedisConfig } from '@avito-speculant/redis'
 import {
   QueueConfig,
   SendreportConfig,
@@ -10,7 +10,7 @@ import {
 
 export type Config = LoggerConfig & RedisConfig & QueueConfig & SendreportConfig
 
-export type ProcessDefault = (
+export type ProcessName = (
   config: Config,
   logger: Logger,
   sendreportJob: SendreportJob,

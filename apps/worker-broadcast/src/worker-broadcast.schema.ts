@@ -11,8 +11,7 @@ import {
   DEFAULT_QUEUE_REDIS_DATABASE,
   DEFAULT_BROADCAST_CONCURRENCY,
   DEFAULT_BROADCAST_LIMITER_MAX,
-  DEFAULT_BROADCAST_LIMITER_DURATION,
-  DEFAULT_BROADCAST_ADVERTS_LIMIT
+  DEFAULT_BROADCAST_LIMITER_DURATION
 } from '@avito-speculant/queue'
 import { Config } from './worker-broadcast.js'
 
@@ -28,8 +27,7 @@ export const configSchema: JSONSchemaType<Config> = {
     'QUEUE_REDIS_DATABASE',
     'BROADCAST_CONCURRENCY',
     'BROADCAST_LIMITER_MAX',
-    'BROADCAST_LIMITER_DURATION',
-    'BROADCAST_ADVERTS_LIMIT'
+    'BROADCAST_LIMITER_DURATION'
   ],
   properties: {
     LOG_LEVEL: {
@@ -101,12 +99,6 @@ export const configSchema: JSONSchemaType<Config> = {
       minimum: 1000,
       maximum: 60000,
       default: DEFAULT_BROADCAST_LIMITER_DURATION
-    },
-    BROADCAST_ADVERTS_LIMIT: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 100,
-      default: DEFAULT_BROADCAST_ADVERTS_LIMIT
     }
   }
 }

@@ -36,18 +36,23 @@ export function initQueue(connection: ConnectionOptions, logger: Logger): Sendre
  */
 export async function addJobs(
   queue: SendreportQueue,
-  reportIds: string[]
+  reportIds: [number, number][]
 ): Promise<SendreportJob[]> {
   return await queue.addBulk(
-    reportIds.map((reportId) => ({
-      name: 'default',
-      data: {
-        reportId
-      },
-      opts: {
-        jobId: `default-${reportId}`
+    reportIds.map((reportId) => {
+      const [categoryId, advertId] = reportId
+
+      return {
+        name: 'default',
+        data: {
+          categoryId,
+          advertId
+        },
+        opts: {
+          jobId: `default-${categoryId}-${advertId}`
+        }
       }
-    }))
+    })
   )
 }
 

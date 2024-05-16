@@ -1,5 +1,6 @@
 import { Redis } from 'ioredis'
 import { AdvertCache, ScraperAdvert, advertCacheKey, advertsIndexKey } from './advert-cache.js'
+import { reportsIndexKey } from '../report-cache/report-cache.js'
 import {
   parseNumber,
   parseString,
@@ -27,6 +28,18 @@ export async function fetchAdvertsIndex(redis: Redis, scraperId: string): Promis
   )
 
   return parseManyNumbers(result, `fetchAdvertsIndex malformed result`)
+}
+
+export async function fetchReportAdvertsIndex(
+  redis: Redis,
+  categoryId: number,
+  topic: string
+): Promise<number[]> {
+  const result = await redis.fetchAdvertsIndex(
+    reportsIndexKey(categoryId, topic) // KEYS[1]
+  )
+
+  return parseManyNumbers(result, `fetchReportAdvertsIndex malformed result`)
 }
 
 export async function fetchAdvertsCache(

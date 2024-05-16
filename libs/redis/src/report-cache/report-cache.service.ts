@@ -64,7 +64,14 @@ export const fetchReportsCache: FetchReportsCache = async function (redis, reque
  * Save ReportsCache
  */
 export const saveReportsCache: SaveReportsCache = async function (redis, request) {
-  await reportCacheRepository.saveReportsCache(redis, request.categoryId, request.categoryReports)
+  await reportCacheRepository.saveReportsCache(
+    redis,
+    request.scraperId,
+    request.categoryId,
+    request.tgFromId,
+    request.token,
+    request.categoryReports
+  )
 }
 
 /*

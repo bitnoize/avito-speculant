@@ -32,6 +32,7 @@ COPY libs/redis/ libs/redis/
 COPY libs/queue/ libs/queue/
 
 COPY apps/worker-sendreport/ apps/worker-sendreport/
+COPY misc/sendreport/ misc/sendreport/
 
 RUN set -eux; \
     npm run -w @avito-speculant/config build; \

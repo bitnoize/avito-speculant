@@ -1,15 +1,24 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import {
-  AvitoReport,
+  CategoryReport,
   redisService,
   userCacheService,
-  subscriptionCacheService,
+  botCacheService,
   categoryCacheService,
   advertCacheService,
   reportCacheService
 } from '@avito-speculant/redis'
-import { BroadcastResult, BroadcastProcessor } from '@avito-speculant/queue'
+import {
+  BROADCAST_ADVERTS_LIMIT,
+  BroadcastCategoryError,
+  BroadcastUserError,
+  BroadcastBotError,
+  BroadcastResult,
+  BroadcastProcessor,
+  queueService,
+  sendreportService
+} from '@avito-speculant/queue'
 import { Config, ProcessName } from './worker-broadcast.js'
 import { configSchema } from './worker-broadcast.schema.js'
 
@@ -20,162 +29,115 @@ const broadcastProcessor: BroadcastProcessor = async function (broadcastJob) {
   const logger = loggerService.initLogger(loggerOptions)
 
   const broadcastResult: BroadcastResult = {
+    reports: 0,
     durationTime: 0
   }
 
   await processDefault(config, logger, broadcastJob, broadcastResult)
 
-    await redisService.closeRedis(redis)
   return broadcastResult
 }
 
-const processDefault: ProcessName = async function (
-  config,
-  logger,
-  broadcastJob,
-  broadcastResult
-) {
+const processDefault: ProcessName = async function (config, logger, broadcastJob, broadcastResult) {
   const startTime = Date.now()
   const { categoryId } = broadcastJob.data
 
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
 
+  const queueConnection = queueService.getQueueConnection<Config>(config)
+  const sendreportQueue = sendreportService.initQueue(queueConnection, logger)
+
   try {
     const { categoryCache } = await categoryCacheService.fetchCategoryCache(redis, {
       categoryId
     })
 
-    if (!categoryCache.isEnabled) {
-      throw new UserSubscriptionBreakError({ categoryCache })
+    if (!(categoryCache.botId !== null && categoryCache.isEnabled)) {
+      throw new BroadcastCategoryError({ categoryCache })
     }
 
-    const {
-      userCache,
-      subscriptionCache,
-      planCache
-    } = await userCacheService.fetchUserCache(redis, {
-      userId: categoryCache.userId
-    })
+    const { userCache, subscriptionCache, planCache } = await userCacheService.fetchUserCache(
+      redis,
+      {
+        userId: categoryCache.userId
+      }
+    )
 
     if (
       userCache.activeSubscriptionId === null ||
       subscriptionCache === undefined ||
       planCache == undefined
     ) {
-      throw new UserSubscriptionBreakError({ userCache, subscriptionCache, planCache })
+      throw new BroadcastUserError({ userCache, subscriptionCache, planCache })
     }
 
-    const firstTime = categoryCache.reportedAt === 0 ? true : false
+    const { botCache } = await botCacheService.fetchBotCache(redis, {
+      botId: categoryCache.botId
+    })
 
-    if (categoryCache.reportedAt === 0) {
-      await reportCacheService.saveFirstTimeReportsIndex(redis, {
+    if (!(botCache.isLinked && botCache.isEnabled)) {
+      throw new BroadcastBotError({ botCache })
+    }
+
+    if (categoryCache.reportedAt <= 0) {
+      await reportCacheService.saveSkipReportsIndex(redis, {
         scraperId: categoryCache.scraperId,
         categoryId: categoryCache.id
       })
+
+      categoryCache.reportedAt = startTime + planCache.intervalSec * 1000
     } else {
-      if (checkpoint) {
-        await advertCacheService.pourCategoryAdvertsWait(redis, {
+      if (categoryCache.reportedAt < startTime) {
+        await reportCacheService.saveWaitReportsIndex(redis, {
           scraperId: categoryCache.scraperId,
           categoryId: categoryCache.id
         })
+
+        categoryCache.reportedAt = startTime + planCache.intervalSec * 1000
       }
 
-      await advertCacheService.pourCategoryAdvertsSend(redis, {
+      await reportCacheService.saveSendReportsIndex(redis, {
         categoryId: categoryCache.id,
-        limit: config.BROADCAST_ADVERTS_LIMIT
+        limit: BROADCAST_ADVERTS_LIMIT
       })
 
-      const { advertsCache } = await advertCacheService.fetchAdvertsCache(redis, {
-        scraperId: categoryCache.scraperId
+      const { advertsCache } = await advertCacheService.fetchReportAdvertsCache(redis, {
+        scraperId: categoryCache.scraperId,
+        categoryId: categoryCache.id,
+        topic: 'send'
       })
 
-      const avitoReports = advertsCache.map(
-        (advertCache): AvitoReport => [
-          categoryCache.id,
-          advertCache.id,
-          userCache.tgFromId,
-          advertCache.postedAt
-        ]
+      const categoryReports = advertsCache.map(
+        (advertCache): CategoryReport => [advertCache.advertId, advertCache.postedAt]
       )
 
       reportCacheService.saveReportsCache(redis, {
-        avitoReports
+        scraperId: categoryCache.scraperId,
+        categoryId: categoryCache.id,
+        tgFromId: userCache.tgFromId,
+        token: botCache.token,
+        categoryReports
       })
+
+      await sendreportService.addJobs(
+        sendreportQueue,
+        advertsCache.map((advertCache) => [categoryCache.id, advertCache.advertId])
+      )
+
+      broadcastResult.reports = categoryReports.length
     }
 
-
-
-
-
-
-
-
-
-    const checkpoint = startTime > userCache.checkpointAt
-    if (checkpoint) {
-      userCache.checkpointAt = startTime + subscriptionCache.intervalSec * 1000
-    }
-
-    await userCacheService.renewUserCache(redis, {
-      userId: userCache.id,
-      checkpointAt: userCache.checkpointAt
+    await categoryCacheService.saveProvisoCategoryCache(redis, {
+      categoryId: categoryCache.id,
+      reportedAt: categoryCache.reportedAt
     })
+  } finally {
+    await sendreportService.closeQueue(sendreportQueue)
 
-    const { categoriesCache } = await categoryCacheService.fetchUserCategoriesCache(redis, {
-      userId: userCache.id
-    })
+    await redisService.closeRedis(redis)
 
-    for (const categoryCache of categoriesCache) {
-      if (categoryCache.skipFirst) {
-        await advertCacheService.pourCategoryAdvertsSkip(redis, {
-          scraperId: categoryCache.scraperId,
-          categoryId: categoryCache.id
-        })
-      } else {
-        if (checkpoint) {
-          await advertCacheService.pourCategoryAdvertsWait(redis, {
-            scraperId: categoryCache.scraperId,
-            categoryId: categoryCache.id
-          })
-        }
-
-        await advertCacheService.pourCategoryAdvertsSend(redis, {
-          categoryId: categoryCache.id,
-          limit: config.BROADCAST_ADVERTS_LIMIT
-        })
-
-        const { advertsCache } = await advertCacheService.fetchCategoryAdvertsCache(redis, {
-          categoryId: categoryCache.id,
-          topic: 'send'
-        })
-
-        const avitoReports = advertsCache.map(
-          (advertCache): AvitoReport => [
-            categoryCache.id,
-            advertCache.id,
-            userCache.tgFromId,
-            advertCache.postedAt
-          ]
-        )
-
-        reportCacheService.saveReportsCache(redis, {
-          avitoReports
-        })
-      }
-    }
-
-    broadcastResult[name] = {
-      durationTime: Date.now() - startTime
-    }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      logger.error(`BroadcastProcessor processDefault exception`)
-
-      error.setEmergency()
-    }
-
-    throw error
+    broadcastResult.durationTime = Date.now() - startTime
   }
 }
 

@@ -1,6 +1,7 @@
 import {
   FetchAdvertCache,
   FetchAdvertsCache,
+  FetchReportAdvertsCache,
   SaveAdvertsCache,
   DropAdvertsCache
 } from './dto/index.js'
@@ -29,6 +30,24 @@ export const fetchAdvertCache: FetchAdvertCache = async function (redis, request
  */
 export const fetchAdvertsCache: FetchAdvertsCache = async function (redis, request) {
   const advertIds = await advertCacheRepository.fetchAdvertsIndex(redis, request.scraperId)
+  const advertsCache = await advertCacheRepository.fetchAdvertsCache(
+    redis,
+    request.scraperId,
+    advertIds
+  )
+
+  return { advertsCache }
+}
+
+/*
+ * Fetch ReportAdvertsCache
+ */
+export const fetchReportAdvertsCache: FetchReportAdvertsCache = async function (redis, request) {
+  const advertIds = await advertCacheRepository.fetchReportAdvertsIndex(
+    redis,
+    request.categoryId,
+    request.topic
+  )
   const advertsCache = await advertCacheRepository.fetchAdvertsCache(
     redis,
     request.scraperId,

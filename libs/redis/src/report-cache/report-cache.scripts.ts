@@ -3,9 +3,11 @@ import { InitScripts } from '../redis.js'
 const fetchReportCache = `
 return redis.call(
   'HMGET', KEYS[1],
+  'scraper_id',
   'category_id',
   'advert_id',
   'tg_from_id',
+  'token',
   'posted_at',
   'attempt'
 )
@@ -20,9 +22,11 @@ redis.call('HINCRBY', KEYS[1], 'attempt', 1)
 
 return redis.call(
   'HMGET', KEYS[1],
+  'scraper_id',
   'category_id',
   'advert_id',
   'tg_from_id',
+  'token',
   'posted_at',
   'attempt'
 )
@@ -35,10 +39,12 @@ return redis.call('ZRANGE', KEYS[1], 0, -1)
 const saveReportCache = `
 redis.call(
   'HSET', KEYS[1],
-  'category_id', ARGV[1],
-  'advert_id', ARGV[2],
-  'tg_from_id', ARGV[3],
-  'posted_at', ARGV[4]
+  'scraper_id', ARGV[1],
+  'category_id', ARGV[2],
+  'advert_id', ARGV[3],
+  'tg_from_id', ARGV[4],
+  'token', ARGV[5],
+  'posted_at', ARGV[6]
 )
 redis.call('HSETNX', KEYS[1], 'attempt', 0)
 

@@ -15,7 +15,10 @@ export default (config: Config, logger: Logger) => {
       try {
         const queueSummary = await scrapingService.getQueueSummary(scrapingQueue)
 
-        logger.info({ queueSummary }, `ScrapingQueue summary`)
+        const repeatableJobs = await scrapingQueue.getRepeatableJobs()
+        const delayedJobs = await scrapingQueue.getDelayed()
+
+        logger.info({ queueSummary, repeatableJobs, delayedJobs }, `ScrapingQueue summary`)
       } finally {
         await scrapingService.closeQueue(scrapingQueue)
       }

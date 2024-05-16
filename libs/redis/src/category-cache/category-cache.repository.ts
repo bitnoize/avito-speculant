@@ -85,12 +85,10 @@ export async function saveCategoryCache(
     categoryId, // ARGV[1]
     userId, // ARGV[2]
     urlPath, // ARGV[3]
-    botId, // ARGV[4]
-    scraperId, // ARGV[5]
-    isEnabled ? 1 : 0, // ARGV[6]
-    createdAt, // ARGV[7]
-    updatedAt, // ARGV[8]
-    queuedAt // ARGV[9]
+    scraperId, // ARGV[4]
+    createdAt, // ARGV[5]
+    updatedAt, // ARGV[6]
+    queuedAt // ARGV[7]
   )
 
   multi.saveCategoriesIndex(
@@ -99,13 +97,22 @@ export async function saveCategoryCache(
     createdAt // ARGV[2]
   )
 
-  if (isEnabled) {
+  if (isEnabled && botId !== null) {
+    multi.saveCategoryEnabledCache(
+      categoryCacheKey(categoryId), // KEYS[1]
+      botId // ARGV[1]
+    )
+
     multi.saveCategoriesIndex(
       scraperCategoriesIndexKey(scraperId), // KEYS[1]
       categoryId, // ARGV[1]
       createdAt // ARGV[2]
     )
   } else {
+    multi.saveCategoryDisabledCache(
+      categoryCacheKey(categoryId), // KEYS[1]
+    )
+
     multi.dropCategoriesIndex(
       scraperCategoriesIndexKey(scraperId), // KEYS[1]
       categoryId // ARGV[1]

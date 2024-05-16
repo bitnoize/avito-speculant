@@ -1,4 +1,5 @@
 import _Ajv from 'ajv'
+import * as fs from 'fs'
 import { curly } from 'node-libcurl'
 import { ScraperAdvert } from '@avito-speculant/redis'
 import { StealRequest, StealResponse, ParseRequest, ParseResponse } from './worker-scraping.js'
@@ -48,11 +49,16 @@ export const parseRequest: ParseRequest = (scraperId, body) => {
     const validate = ajv.compile(avitoDataSchema)
 
     const str = body.toString()
+    //fs.writeFileSync('/tmp/initialData.txt', str)
 
     const indexStart = str.indexOf('window.__initial') + 'window.__initialData__ = "'.length
-    const indexEnd = str.indexOf('window.__locations__')
-    const initialData = str.substring(indexStart, indexEnd).trim().slice(0, -2)
+    const indexEnd = str.indexOf('window.__mfe__')
 
+    if (!(indexStart > 0 && indexEnd > 0)) {
+      throw new Error('initialData not found')
+    }
+
+    const initialData = str.substring(indexStart, indexEnd).trim().slice(0, -2)
     const json = JSON.parse(decodeURIComponent(initialData))
 
     if (typeof json !== 'object') {

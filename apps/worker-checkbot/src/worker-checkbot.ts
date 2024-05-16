@@ -19,13 +19,11 @@ export type ProcessName = (
 export type TestRequest = (
   token: string,
   proxyUrl: string,
-  placeholderUrl: string,
 ) => Promise<TestResponse>
 
 export type TestResponse = {
   tgFromId: string
   username: string
-  placeholderFileId: string
   testingTime: number
   testError?: string
 }

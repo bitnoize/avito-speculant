@@ -16,6 +16,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@avito-speculant/common": "*",
     "@avito-speculant/config": "*",
     "@avito-speculant/logger": "*",
     "@avito-speculant/queue": "*",

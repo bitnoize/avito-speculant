@@ -45,7 +45,7 @@ export async function addRepeatableJob(
       scraperId
     },
     {
-      jobId: scraperId,
+      jobId: `default-${scraperId}`,
       repeat: {
         every: SCRAPING_REPEAT_EVERY
       }
@@ -65,7 +65,7 @@ export async function removeRepeatableJob(
     {
       every: SCRAPING_REPEAT_EVERY
     },
-    scraperId
+    `default-${scraperId}`
   )
 }
 

@@ -1,7 +1,6 @@
 import { RedisMethod } from '../../redis.js'
 
 export type DropReportCacheRequest = {
-  reportId: string
   categoryId: number
   advertId: number
 }

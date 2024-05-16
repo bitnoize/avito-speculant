@@ -12,7 +12,7 @@ return redis.call(
   'url',
   'age',
   'image_url',
-  'posted_at',
+  'posted_at'
 )
 `
 

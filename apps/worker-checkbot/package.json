@@ -16,10 +16,11 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@avito-speculant/common": "*",
     "@avito-speculant/config": "*",
     "@avito-speculant/logger": "*",
-    "@avito-speculant/redis": "*",
     "@avito-speculant/queue": "*",
+    "@avito-speculant/redis": "*",
     "grammy": "^1.20.3",
     "https-proxy-agent": "^7.0.4"
   }

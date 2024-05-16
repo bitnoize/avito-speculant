@@ -1,16 +1,17 @@
 import { REDIS_CACHE_PREFIX } from '../redis.js'
 
 export interface ReportCache {
+  scraperId: string
   categoryId: number
   advertId: number
   tgFromId: string
+  token: string
   postedAt: number
   attempt: number
 }
 
 export type CategoryReport = [
   number, // advertId
-  string, // tgFromId
   number // postedAt
 ]
 

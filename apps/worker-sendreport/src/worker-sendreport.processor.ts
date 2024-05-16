@@ -1,8 +1,7 @@
 import { HttpsProxyAgent } from 'https-proxy-agent'
-import { Bot, InputMediaBuilder } from 'grammy'
+import { Bot, InputMediaBuilder, InputFile } from 'grammy'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import { DomainError } from '@avito-speculant/common'
 import {
   redisService,
   proxyCacheService,
@@ -10,16 +9,13 @@ import {
   reportCacheService
 } from '@avito-speculant/redis'
 import {
-  OnlineProxiesUnavailableError,
-  ReportGoneAwayError,
+  SENDREPORT_ATTEMPTS_LIMIT,
+  SendreportReportError,
   SendreportResult,
   SendreportProcessor
 } from '@avito-speculant/queue'
-import { Config, ProcessDefault } from './worker-sendreport.js'
+import { Config, ProcessName } from './worker-sendreport.js'
 import { configSchema } from './worker-sendreport.schema.js'
-
-const placeholder =
-  'AgACAgIAAxkBAAIUwWYcePjD-IS7okQN3rZsiYZ49HeZAAIM3DEb3b_hSOSCzTy15IYdAQADAgADbQADNAQ'
 
 const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
   const config = configService.initConfig<Config>(configSchema)
@@ -31,66 +27,52 @@ const sendreportProcessor: SendreportProcessor = async (sendreportJob) => {
     durationTime: 0
   }
 
-  try {
-    await processDefault(config, logger, redis, sendreportJob, sendreportResult)
-  } catch (error) {
-    if (error instanceof DomainError) {
-      if (error.isEmergency()) {
-        // ...
-
-        logger.fatal(`SendreportWorker emergency shutdown`)
-      }
-    }
-
-    throw error
-  } finally {
-    await redisService.closeRedis(redis)
-  }
+  await processDefault(config, logger, sendreportJob, sendreportResult)
 
   return sendreportResult
 }
 
-const processDefault: ProcessDefault = async function (
+const processDefault: ProcessName = async function (
   config,
   logger,
   sendreportJob,
   sendreportResult
 ) {
+  const startTime = Date.now()
+  const { categoryId, advertId } = sendreportJob.data
+
   const redisOptions = redisService.getRedisOptions<Config>(config)
   const redis = redisService.initRedis(redisOptions, logger)
 
   try {
-    const startTime = Date.now()
-    const name = sendreportJob.name
-    const { categoryId, advertId } = sendreportJob.data
-
     const { reportCache } = await reportCacheService.stampReportCache(redis, {
       categoryId,
       advertId
     })
 
     if (reportCache === undefined) {
-      throw new ReportGoneAwayError({ reportId })
+      throw new SendreportReportError({})
     }
 
-    if (reportCache.attempt <= config.SENDREPORT_ATTEMPTS_LIMIT) {
+    if (reportCache.attempt <= SENDREPORT_ATTEMPTS_LIMIT) {
       const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis)
 
       const { advertCache } = await advertCacheService.fetchAdvertCache(redis, {
+        scraperId: reportCache.scraperId,
         advertId: reportCache.advertId
       })
 
-      const bot = new Bot(config.BOT_TOKEN, {
+      const bot = new Bot(reportCache.token, {
         client: {
           baseFetchConfig: {
-            agent: new HttpsProxyAgent(proxyCache.proxyUrl),
+            agent: new HttpsProxyAgent(proxyCache.url),
             compress: true
           }
         }
       })
 
       const caption = renderReport(
-        advertCache.id,
+        advertCache.advertId,
         advertCache.title,
         advertCache.description,
         advertCache.categoryName,
@@ -98,6 +80,8 @@ const processDefault: ProcessDefault = async function (
         advertCache.url,
         advertCache.age
       )
+
+      const placeholder = new InputFile('/tmp/placeholder.png')
 
       const message = await bot.api.sendPhoto(reportCache.tgFromId, placeholder, {
         caption,
@@ -117,36 +101,20 @@ const processDefault: ProcessDefault = async function (
     }
 
     await reportCacheService.dropReportCache(redis, {
-      reportId: reportCache.id,
       categoryId: reportCache.categoryId,
-      advertId: reportCache.advertId,
-      postedAt: reportCache.postedAt
+      advertId: reportCache.advertId
     })
-
-    sendreportResult[name] = {
-      durationTime: Date.now() - startTime
-    }
-  } catch (error) {
-    if (error instanceof DomainError) {
-      if (error instanceof OnlineProxiesUnavailableError) {
-        // ...
-      } else if (error instanceof ReportGoneAwayError) {
-        // ...
-      } else {
-        error.setEmergency()
-      }
-    }
-
-    throw error
   } finally {
     await redisService.closeRedis(redis)
+
+    sendreportResult.durationTime = Date.now() - startTime
   }
 }
 
 export default sendreportProcessor
 
 const renderReport = (
-  id: number,
+  advertId: number,
   title: string,
   description: string,
   categoryName: string,
@@ -155,9 +123,9 @@ const renderReport = (
   age: string
 ): string => {
   return (
-    `<b>#${id}</b>\n` +
+    `<b>#${advertId}</b>\n` +
     `<a href="${url}">${title}</a>\n` +
-    `${description}\n` +
+    `${description.slice(0, 200)}\n` +
     `Категория: <b>${categoryName}</b>\n` +
     `Цена: <b>${priceRub}</b>\n` +
     `Опубликовано: <b>${age}</b>\n`
