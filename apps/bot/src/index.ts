@@ -3,11 +3,7 @@ import { Bot, GrammyError, HttpError, session, webhookCallback } from 'grammy'
 //import { RedisAdapter } from '@grammyjs/storage-redis'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
-import {
-  AuthorizeUserRequest,
-  databaseService,
-  userService
-} from '@avito-speculant/database'
+import { AuthorizeUserRequest, databaseService, userService } from '@avito-speculant/database'
 import { redisService, planCacheService } from '@avito-speculant/redis'
 import { Config } from './bot.js'
 import { configSchema } from './bot.schema.js'
@@ -26,7 +22,7 @@ async function bootstrap(): Promise<void> {
   const redis = redisService.initRedis(redisOptions, logger)
   const pubSub = redisService.initPubSub(redisOptions, logger)
 
-//const storage = new RedisAdapter({ instance: redis, ttl: 10 })
+  //const storage = new RedisAdapter({ instance: redis, ttl: 10 })
 
   const bot = new Bot<BotContext>(config.BOT_TOKEN)
 

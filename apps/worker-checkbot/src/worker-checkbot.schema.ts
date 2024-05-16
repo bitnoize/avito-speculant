@@ -11,7 +11,7 @@ import {
   DEFAULT_QUEUE_REDIS_DATABASE,
   DEFAULT_CHECKBOT_CONCURRENCY,
   DEFAULT_CHECKBOT_LIMITER_MAX,
-  DEFAULT_CHECKBOT_LIMITER_DURATION,
+  DEFAULT_CHECKBOT_LIMITER_DURATION
 } from '@avito-speculant/queue'
 import { Config } from './worker-checkbot.js'
 
@@ -27,7 +27,7 @@ export const configSchema: JSONSchemaType<Config> = {
     'QUEUE_REDIS_DATABASE',
     'CHECKBOT_CONCURRENCY',
     'CHECKBOT_LIMITER_MAX',
-    'CHECKBOT_LIMITER_DURATION',
+    'CHECKBOT_LIMITER_DURATION'
   ],
   properties: {
     LOG_LEVEL: {

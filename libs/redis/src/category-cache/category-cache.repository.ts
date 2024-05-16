@@ -110,7 +110,7 @@ export async function saveCategoryCache(
     )
   } else {
     multi.saveCategoryDisabledCache(
-      categoryCacheKey(categoryId), // KEYS[1]
+      categoryCacheKey(categoryId) // KEYS[1]
     )
 
     multi.dropCategoriesIndex(

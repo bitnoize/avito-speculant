@@ -33,16 +33,12 @@ const initCommand: InitCommand = (config, logger) => {
       const treatmentQueue = treatmentService.initQueue(queueConnection, logger)
 
       try {
-        const {
-          user,
-          subscription,
-          previousSubscription,
-          backLog
-        } = await subscriptionService.activateSubscription(db, {
-          userId,
-          subscriptionId,
-          data: {}
-        })
+        const { user, subscription, previousSubscription, backLog } =
+          await subscriptionService.activateSubscription(db, {
+            userId,
+            subscriptionId,
+            data: {}
+          })
 
         await redisService.publishBackLog(pubSub, backLog)
 
@@ -53,12 +49,15 @@ const initCommand: InitCommand = (config, logger) => {
           await treatmentService.addJob(treatmentQueue, 'subscription', previousSubscription.id)
         }
 
-        logger.info({
-          user,
-          subscription,
-          previousSubscription,
-          backLog
-        }, `Subscription activated`)
+        logger.info(
+          {
+            user,
+            subscription,
+            previousSubscription,
+            backLog
+          },
+          `Subscription activated`
+        )
       } finally {
         await treatmentService.closeQueue(treatmentQueue)
         await redisService.closePubSub(pubSub)

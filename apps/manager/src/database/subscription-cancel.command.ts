@@ -20,7 +20,7 @@ const initCommand: InitCommand = (config, logger) => {
         type: Serial,
         displayName: 'subscriptionId',
         description: 'subscription identifier'
-      }),
+      })
     },
     handler: async ({ userId, subscriptionId }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)

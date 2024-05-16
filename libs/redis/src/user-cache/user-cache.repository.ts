@@ -7,9 +7,7 @@ import {
   webappUserLinkKey,
   usersIndexKey
 } from './user-cache.js'
-import {
-  userActiveSubscriptionLinkKey
-} from '../subscription-cache/subscription-cache.js'
+import { userActiveSubscriptionLinkKey } from '../subscription-cache/subscription-cache.js'
 import {
   parseNumber,
   parseManyNumbers,

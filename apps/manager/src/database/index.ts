@@ -29,7 +29,7 @@ const initSubcommands: InitSubcommands = (config, logger) => {
     name: 'database',
     description: `database commands`,
     cmds: {
-      'migrations': migrationsCommand(config, logger),
+      migrations: migrationsCommand(config, logger),
       'user-logs-list': userLogsListCommand(config, logger),
       'plan-create': planCreateCommand(config, logger),
       'plan-update-price': planUpdatePriceCommand(config, logger),

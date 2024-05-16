@@ -11,7 +11,7 @@ import {
   DEFAULT_QUEUE_REDIS_DATABASE,
   DEFAULT_SCRAPING_CONCURRENCY,
   DEFAULT_SCRAPING_LIMITER_MAX,
-  DEFAULT_SCRAPING_LIMITER_DURATION,
+  DEFAULT_SCRAPING_LIMITER_DURATION
 } from '@avito-speculant/queue'
 import { Config, AvitoData } from './worker-scraping.js'
 
@@ -27,7 +27,7 @@ export const configSchema: JSONSchemaType<Config> = {
     'QUEUE_REDIS_DATABASE',
     'SCRAPING_CONCURRENCY',
     'SCRAPING_LIMITER_MAX',
-    'SCRAPING_LIMITER_DURATION',
+    'SCRAPING_LIMITER_DURATION'
   ],
   properties: {
     LOG_LEVEL: {
@@ -99,7 +99,7 @@ export const configSchema: JSONSchemaType<Config> = {
       minimum: 1000,
       maximum: 60000,
       default: DEFAULT_SCRAPING_LIMITER_DURATION
-    },
+    }
   }
 }
 

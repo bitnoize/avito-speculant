@@ -6,7 +6,7 @@ import {
   SaveSkipReportsIndex,
   SaveWaitReportsIndex,
   SaveSendReportsIndex,
-  SaveDoneReportCache,
+  SaveDoneReportCache
 } from './dto/index.js'
 import { ReportCacheNotFoundError } from './report-cache.errors.js'
 import * as reportCacheRepository from './report-cache.repository.js'

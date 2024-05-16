@@ -12,7 +12,7 @@ export const testRequest: TestRequest = async (targetUrl, proxyUrl, timeoutMs) =
   try {
     const { statusCode } = await curly.get(targetUrl, {
       proxy: proxyUrl,
-      timeoutMs,
+      timeoutMs
     })
 
     testResponse.statusCode = statusCode

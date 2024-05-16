@@ -82,7 +82,7 @@ export async function saveOnlineBotCache(
   redis: Redis,
   botId: number,
   tgFromId: string,
-  username: string,
+  username: string
 ): Promise<void> {
   const multi = redis.multi()
 

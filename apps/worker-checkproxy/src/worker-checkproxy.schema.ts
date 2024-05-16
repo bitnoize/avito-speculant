@@ -11,7 +11,7 @@ import {
   DEFAULT_QUEUE_REDIS_DATABASE,
   DEFAULT_CHECKPROXY_CONCURRENCY,
   DEFAULT_CHECKPROXY_LIMITER_MAX,
-  DEFAULT_CHECKPROXY_LIMITER_DURATION,
+  DEFAULT_CHECKPROXY_LIMITER_DURATION
 } from '@avito-speculant/queue'
 import { Config } from './worker-checkproxy.js'
 
@@ -27,7 +27,7 @@ export const configSchema: JSONSchemaType<Config> = {
     'QUEUE_REDIS_DATABASE',
     'CHECKPROXY_CONCURRENCY',
     'CHECKPROXY_LIMITER_MAX',
-    'CHECKPROXY_LIMITER_DURATION',
+    'CHECKPROXY_LIMITER_DURATION'
   ],
   properties: {
     LOG_LEVEL: {
@@ -99,6 +99,6 @@ export const configSchema: JSONSchemaType<Config> = {
       minimum: 1000,
       maximum: 60000,
       default: DEFAULT_CHECKPROXY_LIMITER_DURATION
-    },
+    }
   }
 }

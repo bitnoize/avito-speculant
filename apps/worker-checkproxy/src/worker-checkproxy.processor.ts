@@ -64,7 +64,7 @@ const processDefault: ProcessName = async function (
     if (checkproxyResult.success) {
       await proxyCacheService.saveOnlineProxyCache(redis, {
         proxyId: proxyCache.id,
-        createdAt: proxyCache.createdAt,
+        createdAt: proxyCache.createdAt
       })
     } else {
       await proxyCacheService.saveOfflineProxyCache(redis, {

@@ -10,7 +10,7 @@ import {
   ProxyNotFoundError,
   ProxyExistsError,
   ProxyIsEnabledError,
-  ProxyIsDisabledError,
+  ProxyIsDisabledError
 } from './proxy.errors.js'
 import * as proxyRepository from './proxy.repository.js'
 import * as proxyLogRepository from '../proxy-log/proxy-log.repository.js'

@@ -19,7 +19,7 @@ export const stealRequest: StealRequest = async (targetUrl, proxyUrl, timeoutMs)
   try {
     const { statusCode, data } = await curly.get(targetUrl, {
       proxy: proxyUrl,
-      timeoutMs,
+      timeoutMs
     })
 
     if (statusCode === 200) {

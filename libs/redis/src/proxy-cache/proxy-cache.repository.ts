@@ -104,7 +104,7 @@ export async function saveOnlineProxyCache(
   const multi = redis.multi()
 
   multi.saveOnlineProxyCache(
-    proxyCacheKey(proxyId), // KEYS[1]
+    proxyCacheKey(proxyId) // KEYS[1]
   )
 
   multi.saveProxiesIndex(
@@ -116,14 +116,11 @@ export async function saveOnlineProxyCache(
   await multi.exec()
 }
 
-export async function saveOfflineProxyCache(
-  redis: Redis,
-  proxyId: number,
-): Promise<void> {
+export async function saveOfflineProxyCache(redis: Redis, proxyId: number): Promise<void> {
   const multi = redis.multi()
 
   multi.saveOfflineProxyCache(
-    proxyCacheKey(proxyId), // KEYS[1]
+    proxyCacheKey(proxyId) // KEYS[1]
   )
 
   multi.dropProxiesIndex(

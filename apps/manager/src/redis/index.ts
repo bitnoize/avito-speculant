@@ -23,7 +23,7 @@ const initSubcommands: InitSubcommands = (config, logger) => {
       'scraper-categories-cache-fetch': scraperCategoriesCacheFetchCommand(config, logger),
       'proxies-cache-fetch': proxiesCacheFetchCommand(config, logger),
       'online-proxies-cache-fetch': onlineProxiesCacheFetchCommand(config, logger),
-      'scrapers-cache-fetch': scrapersCacheFetchCommand(config, logger),
+      'scrapers-cache-fetch': scrapersCacheFetchCommand(config, logger)
     }
   })
 }

@@ -6,11 +6,7 @@ import {
   scraperCacheService,
   advertCacheService
 } from '@avito-speculant/redis'
-import {
-  SCRAPING_STEAL_TIMEOUT,
-  ScrapingResult,
-  ScrapingProcessor
-} from '@avito-speculant/queue'
+import { SCRAPING_STEAL_TIMEOUT, ScrapingResult, ScrapingProcessor } from '@avito-speculant/queue'
 import { Config, ProcessName } from './worker-scraping.js'
 import { configSchema } from './worker-scraping.schema.js'
 import { stealRequest, parseRequest } from '././worker-scraping.utils.js'
@@ -34,12 +30,7 @@ const scrapingProcessor: ScrapingProcessor = async function (scrapingJob) {
   return scrapingResult
 }
 
-const processDefault: ProcessName = async function (
-  config,
-  logger,
-  scrapingJob,
-  scrapingResult
-) {
+const processDefault: ProcessName = async function (config, logger, scrapingJob, scrapingResult) {
   const startTime = Date.now()
   const { scraperId } = scrapingJob.data
 
@@ -71,10 +62,7 @@ const processDefault: ProcessName = async function (
     scrapingResult.stealingTime = stealingTime
 
     if (stealError === undefined && statusCode === 200) {
-      const { scraperAdverts, parsingTime, parseError } = parseRequest(
-        scraperCache.id,
-        body
-      )
+      const { scraperAdverts, parsingTime, parseError } = parseRequest(scraperCache.id, body)
 
       scrapingResult.parsingTime = parsingTime
 
@@ -94,11 +82,11 @@ const processDefault: ProcessName = async function (
 
     if (scrapingResult.success) {
       await scraperCacheService.saveSuccessScraperCache(redis, {
-        scraperId: scraperCache.id,
+        scraperId: scraperCache.id
       })
     } else {
       await scraperCacheService.saveFailedScraperCache(redis, {
-        scraperId: scraperCache.id,
+        scraperId: scraperCache.id
       })
     }
   } finally {

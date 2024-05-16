@@ -14,7 +14,7 @@ export type ProcessName = (
 export type StealRequest = (
   targetUrl: string,
   proxyUrl: string,
-  timeoutMs: number,
+  timeoutMs: number
 ) => Promise<StealResponse>
 
 export type StealResponse = {

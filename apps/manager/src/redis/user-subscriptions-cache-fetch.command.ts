@@ -20,11 +20,12 @@ const initCommand: InitCommand = (config, logger) => {
       const redis = redisService.initRedis(redisOptions, logger)
 
       try {
-        const {
-          subscriptionsCache
-        } = await subscriptionCacheService.fetchUserSubscriptionsCache(redis, {
-          userId
-        })
+        const { subscriptionsCache } = await subscriptionCacheService.fetchUserSubscriptionsCache(
+          redis,
+          {
+            userId
+          }
+        )
 
         logger.info({ subscriptionsCache }, `SubscriptionsCache fetched`)
       } finally {

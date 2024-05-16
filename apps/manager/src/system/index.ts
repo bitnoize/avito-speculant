@@ -9,7 +9,7 @@ const initSubcommands: InitSubcommands = (config, logger) => {
     description: 'system commands',
     cmds: {
       start: startCommand(config, logger),
-      stop: stopCommand(config, logger),
+      stop: stopCommand(config, logger)
     }
   })
 }

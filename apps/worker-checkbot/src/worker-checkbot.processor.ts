@@ -1,10 +1,7 @@
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { redisService, botCacheService, proxyCacheService } from '@avito-speculant/redis'
-import {
-  CheckbotResult,
-  CheckbotProcessor
-} from '@avito-speculant/queue'
+import { CheckbotResult, CheckbotProcessor } from '@avito-speculant/queue'
 import { Config, ProcessName } from './worker-checkbot.js'
 import { configSchema } from './worker-checkbot.schema.js'
 import { testRequest } from './worker-checkbot.utils.js'
@@ -18,7 +15,7 @@ export const checkbotProcessor: CheckbotProcessor = async function (checkbotJob)
   const checkbotResult: CheckbotResult = {
     success: false,
     testingTime: 0,
-    durationTime: 0,
+    durationTime: 0
   }
 
   await processDefault(config, logger, checkbotJob, checkbotResult)
@@ -26,12 +23,7 @@ export const checkbotProcessor: CheckbotProcessor = async function (checkbotJob)
   return checkbotResult
 }
 
-const processDefault: ProcessName = async function (
-  config,
-  logger,
-  checkbotJob,
-  checkbotResult
-) {
+const processDefault: ProcessName = async function (config, logger, checkbotJob, checkbotResult) {
   const startTime = Date.now()
   const { botId } = checkbotJob.data
 
@@ -45,14 +37,9 @@ const processDefault: ProcessName = async function (
 
     const { proxyCache } = await proxyCacheService.fetchRandomOnlineProxyCache(redis)
 
-    const {
-      tgFromId,
-      username,
-      testingTime,
-      testError
-    } = await testRequest(
+    const { tgFromId, username, testingTime, testError } = await testRequest(
       botCache.token,
-      proxyCache.url,
+      proxyCache.url
     )
 
     checkbotResult.testingTime = testingTime
@@ -67,11 +54,11 @@ const processDefault: ProcessName = async function (
       await botCacheService.saveOnlineBotCache(redis, {
         botId: botCache.id,
         tgFromId,
-        username,
+        username
       })
     } else {
       await botCacheService.saveOfflineBotCache(redis, {
-        botId: botCache.id,
+        botId: botCache.id
       })
     }
   } finally {

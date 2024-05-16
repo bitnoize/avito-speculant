@@ -176,10 +176,10 @@ const initScripts: InitScripts = (redis) => {
     lua: dropReportCache
   })
 
-//redis.defineCommand('dropReportsIndex', {
-//  numberOfKeys: 1,
-//  lua: dropReportsIndex
-//})
+  //redis.defineCommand('dropReportsIndex', {
+  //  numberOfKeys: 1,
+  //  lua: dropReportsIndex
+  //})
 }
 
 export default initScripts

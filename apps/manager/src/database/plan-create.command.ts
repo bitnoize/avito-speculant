@@ -42,7 +42,7 @@ const initCommand: InitCommand = (config, logger) => {
         long: 'price-rub',
         short: 'p',
         description: 'price in rubles'
-      }),
+      })
     },
     handler: async ({ categoriesMax, priceRub, durationDays, intervalSec, analyticsOn }) => {
       const databaseConfig = databaseService.getDatabaseConfig<Config>(config)
