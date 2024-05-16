@@ -73,8 +73,8 @@ export const parseRequest: ParseRequest = (scraperId, body) => {
     const avitoRaw = json[avitoKey]
 
     if (!validate(avitoRaw)) {
-      //console.error(validate.errors)
-      fs.writeFileSync('/tmp/initialData.txt', JSON.stringify(validate.errors, null, 2), 'utf-8')
+      console.error(validate.errors)
+      //fs.writeFileSync('/tmp/initialData.txt', JSON.stringify(validate.errors, null, 2), 'utf-8')
       throw new Error('AvitoRaw is not valid object')
     }
 
