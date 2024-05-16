@@ -112,12 +112,8 @@ return redis.status_reply('OK')
 `
 
 const saveDoneReportsIndex = `
-local score  = redis.call('ZSCORE', KEYS[1], ARGV[1])
-
-if score ~= false then
-  redis.call('ZREM', KEYS[1], ARGV[1])
-  redis.call('ZADD', KEYS[2], score, ARGV[1])
-end
+redis.call('ZREM', KEYS[1], ARGV[1])
+redis.call('ZADD', KEYS[2], ARGV[2], ARGV[1])
 
 return redis.status_reply('OK')
 `
@@ -128,13 +124,11 @@ redis.call('DEL', KEYS[1])
 return redis.status_reply('OK')
 `
 
-const dropReportsIndex = `
-redis.call('ZREM', KEYS[1], ARGV[1])
-redis.call('ZREM', KEYS[2], ARGV[1])
-redis.call('ZREM', KEYS[3], ARGV[1])
-
-return redis.status_reply('OK')
-`
+//const dropReportsIndex = `
+//redis.call('ZREM', KEYS[1], ARGV[1])
+//
+//return redis.status_reply('OK')
+//`
 
 const initScripts: InitScripts = (redis) => {
   redis.defineCommand('fetchReportCache', {
@@ -182,10 +176,10 @@ const initScripts: InitScripts = (redis) => {
     lua: dropReportCache
   })
 
-  redis.defineCommand('dropReportsIndex', {
-    numberOfKeys: 3,
-    lua: dropReportsIndex
-  })
+//redis.defineCommand('dropReportsIndex', {
+//  numberOfKeys: 1,
+//  lua: dropReportsIndex
+//})
 }
 
 export default initScripts

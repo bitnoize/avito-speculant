@@ -6,8 +6,7 @@ import {
   SaveSkipReportsIndex,
   SaveWaitReportsIndex,
   SaveSendReportsIndex,
-  SaveDoneReportsIndex,
-  DropReportCache
+  SaveDoneReportCache,
 } from './dto/index.js'
 import { ReportCacheNotFoundError } from './report-cache.errors.js'
 import * as reportCacheRepository from './report-cache.repository.js'
@@ -96,15 +95,13 @@ export const saveSendReportsIndex: SaveSendReportsIndex = async function (redis,
 }
 
 /*
- * Save DoneReportsIndex
+ * Save DoneReportCache
  */
-export const saveDoneReportsIndex: SaveDoneReportsIndex = async function (redis, request) {
-  await reportCacheRepository.saveDoneReportsIndex(redis, request.categoryId, request.advertId)
-}
-
-/*
- * Drop ReportCache
- */
-export const dropReportCache: DropReportCache = async function (redis, request) {
-  await reportCacheRepository.dropReportCache(redis, request.categoryId, request.advertId)
+export const saveDoneReportCache: SaveDoneReportCache = async function (redis, request) {
+  await reportCacheRepository.saveDoneReportCache(
+    redis,
+    request.categoryId,
+    request.advertId,
+    request.postedAt
+  )
 }

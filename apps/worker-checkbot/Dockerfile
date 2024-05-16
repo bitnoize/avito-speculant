@@ -8,7 +8,7 @@ RUN set -eux; \
     # User home
     usermod -d /home/avito-speculant node; \
     mkdir -m 0750 /home/avito-speculant; \
-    chown node:node /home/avito-speculant; \
+    chown node:node /home/avito-speculant
 
 WORKDIR /usr/src/avito-speculant
 

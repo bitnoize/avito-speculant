@@ -81,7 +81,7 @@ const processDefault: ProcessName = async function (
         advertCache.age
       )
 
-      const placeholder = new InputFile('https://placehold.co/1x1/png')
+      const placeholder = new InputFile(new URL('https://placehold.co/1x1/png'))
       const message = await bot.api.sendPhoto(reportCache.tgFromId, placeholder, {
         caption,
         parse_mode: 'HTML'
@@ -99,9 +99,10 @@ const processDefault: ProcessName = async function (
       }
     }
 
-    await reportCacheService.dropReportCache(redis, {
+    await reportCacheService.saveDoneReportCache(redis, {
       categoryId: reportCache.categoryId,
-      advertId: reportCache.advertId
+      advertId: reportCache.advertId,
+      postedAt: reportCache.postedAt
     })
   } finally {
     await redisService.closeRedis(redis)

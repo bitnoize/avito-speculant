@@ -55,6 +55,7 @@ declare module 'ioredis' {
       sendReportsIndexKey: string, // KEYS[1]
       doneReportsIndexKey: string, // KEYS[2]
       advertId: number, // ARGV[1]
+      postedAt: number, // ARGV[2]
       callback?: Callback<string>
     ): Result<string, Context>
 
@@ -63,12 +64,10 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    dropReportsIndex(
-      waitReportsIndexKey: string, // KEYS[1]
-      sendReportsIndexKey: string, // KEYS[2]
-      doneReportsIndexKey: string, // KEYS[3]
-      advertId: number, // ARGV[1]
-      callback?: Callback<string>
-    ): Result<string, Context>
+//  dropReportsIndex(
+//    reportsIndexKey: string, // KEYS[1]
+//    advertId: number, // ARGV[1]
+//    callback?: Callback<string>
+//  ): Result<string, Context>
   }
 }

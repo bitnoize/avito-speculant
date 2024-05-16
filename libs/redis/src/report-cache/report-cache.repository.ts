@@ -147,18 +147,29 @@ export async function saveSendReportsIndex(
   )
 }
 
-export async function saveDoneReportsIndex(
+export async function saveDoneReportCache(
   redis: Redis,
   categoryId: number,
-  advertId: number
+  advertId: number,
+  postedAt: number
 ): Promise<void> {
-  await redis.saveDoneReportsIndex(
+  const multi = redis.multi()
+
+  multi.dropReportCache(
+    reportCacheKey(categoryId, advertId) // KEYS[1]
+  )
+
+  multi.saveDoneReportsIndex(
     reportsIndexKey(categoryId, 'send'), // KEYS[1]
     reportsIndexKey(categoryId, 'done'), // KEYS[2]
-    advertId // ARGV[1]
+    advertId, // ARGV[1]
+    postedAt // ARGV[2]
   )
+
+  await multi.exec()
 }
 
+/*
 export async function dropReportCache(
   redis: Redis,
   categoryId: number,
@@ -179,6 +190,7 @@ export async function dropReportCache(
 
   await multi.exec()
 }
+*/
 
 const parseModel = (result: unknown, message: string): ReportCache | undefined => {
   if (result === null) {
