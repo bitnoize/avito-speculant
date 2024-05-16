@@ -39,7 +39,15 @@ services:
           cpus: "0.2"
           memory: 256Mb
 
-  worker-proxycheck:
+  worker-checkbot:
+    deploy:
+      replicas: 4
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: 256Mb
+
+  worker-checkproxy:
     deploy:
       replicas: 4
       resources:
@@ -50,14 +58,6 @@ services:
   worker-broadcast:
     deploy:
       replicas: 4
-      resources:
-        limits:
-          cpus: "0.2"
-          memory: 256Mb
-
-  worker-throttle:
-    deploy:
-      replicas: 1
       resources:
         limits:
           cpus: "0.2"
