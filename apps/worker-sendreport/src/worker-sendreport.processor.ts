@@ -81,8 +81,7 @@ const processDefault: ProcessName = async function (
         advertCache.age
       )
 
-      const placeholder = new InputFile('/tmp/placeholder.png')
-
+      const placeholder = new InputFile('https://placehold.co/1x1/png')
       const message = await bot.api.sendPhoto(reportCache.tgFromId, placeholder, {
         caption,
         parse_mode: 'HTML'
