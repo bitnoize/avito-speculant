@@ -49,7 +49,6 @@ export const parseRequest: ParseRequest = (scraperId, body) => {
     const validate = ajv.compile(avitoDataSchema)
 
     const str = body.toString()
-    //fs.writeFileSync('/tmp/initialData.txt', str)
 
     const indexStart = str.indexOf('window.__initial') + 'window.__initialData__ = "'.length
     const indexEnd = str.indexOf('window.__mfe__')
@@ -74,7 +73,7 @@ export const parseRequest: ParseRequest = (scraperId, body) => {
     const avitoRaw = json[avitoKey]
 
     if (!validate(avitoRaw)) {
-      //console.error(validate.errors)
+      fs.writeFileSync('/tmp/initialData.txt', JSON.stringify(obj, null, 2), 'utf-8')
       throw new Error('AvitoRaw is not valid object')
     }
 
