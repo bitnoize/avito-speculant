@@ -3,7 +3,7 @@ import * as fs from 'fs'
 import { curly } from 'node-libcurl'
 import { ScraperAdvert } from '@avito-speculant/redis'
 import { StealRequest, StealResponse, ParseRequest, ParseResponse } from './worker-scraping.js'
-import { avitoDataSchema } from './worker-scraping.schema.js'
+import { avitoDesktopSchema } from './worker-scraping.schema.js'
 
 const Ajv = _Ajv.default
 
@@ -46,7 +46,7 @@ export const parseRequest: ParseRequest = (scraperId, body) => {
 
   try {
     const ajv = new Ajv()
-    const validate = ajv.compile(avitoDataSchema)
+    const validate = ajv.compile(avitoDesktopSchema)
 
     const str = body.toString()
 
@@ -78,30 +78,52 @@ export const parseRequest: ParseRequest = (scraperId, body) => {
       throw new Error('AvitoRaw is not valid object')
     }
 
-    const scraperAdverts = avitoRaw.data.catalog.items.map((item): ScraperAdvert => {
-      const url = 'https://avito.ru' + item.urlPath
+    avitoRaw.data.catalog.items.forEach((item) => {
+      const id = item.id ? item.id : null
+      const title = item.title ? item.title : 'Неизвестно'
+      const description = item.description ? item.description : 'Неизвестно'
+      const urlPath = item.urlPath ? item.urlPath : null
 
-      const age =
-        item.iva.DateInfoStep.length > 0
-          ? item.iva.DateInfoStep[0].payload.absolute ?? 'неизвестно'
-          : 'неизвестно'
+      const price = (item.priceDetailed && item.priceDetailed.value) ? item.priceDetailed.value : 0
+      const timestamp = item.sortTimeStamp ? item.sortTimeStamp : null
+      const categoryName = (item.category && item.category.name) ? item.category.name : 'неизвестно'
 
-      const imageUrl = item.images.length > 0 ? item.images[0]['864x648'] : ''
+      let imageUrl = 'https://placehold.co/600x400.png'
 
-      return [
-        item.id,
-        item.title,
-        item.description,
-        item.category.name,
-        item.priceDetailed.value,
-        url,
-        age,
-        imageUrl,
-        item.sortTimeStamp
-      ]
+      if (item.images && item.images.length > 0) {
+        const image = item.images[0]
+
+        if (image['864x648']) {
+          imageUrl = image['864x648']
+        }
+      }
+
+      let age = 'неизвестно'
+
+      if (item.iva && item.iva.DateInfoStep && item.iva.DateInfoStep.length > 0) {
+        const dateInfo = item.iva.DateInfoStep[0]
+
+        if (dateInfo.payload && dateInfo.payload.absolute) {
+          age = dateInfo.payload.absolute
+        }
+      }
+
+      if (id && urlPath && timestamp) {
+        const scraperAdvert: ScraperAdvert = [
+          id,
+          title,
+          description,
+          categoryName,
+          price,
+          `https://avito.ru${urlPath}`,
+          age,
+          imageUrl,
+          timestamp
+        ]
+
+        parseResponse.scraperAdverts.push(scraperAdvert)
+      }
     })
-
-    parseResponse.scraperAdverts = scraperAdverts
   } catch (error) {
     parseResponse.parseError = error.message || 'Unknown error'
   } finally {

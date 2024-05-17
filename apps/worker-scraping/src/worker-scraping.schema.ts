@@ -13,7 +13,15 @@ import {
   DEFAULT_SCRAPING_LIMITER_MAX,
   DEFAULT_SCRAPING_LIMITER_DURATION
 } from '@avito-speculant/queue'
-import { Config, AvitoData } from './worker-scraping.js'
+import {
+  Config,
+  AvitoDesktopDataCatalogItemCategory,
+  AvitoDesktopDataCatalogItemPriceDetailed,
+  AvitoDesktopDataCatalogItemImage,
+  AvitoDesktopDataCatalogItemIva,
+  AvitoDesktopDataCatalogItem,
+  AvitoDesktop,
+} from './worker-scraping.js'
 
 export const configSchema: JSONSchemaType<Config> = {
   type: 'object',
@@ -103,7 +111,153 @@ export const configSchema: JSONSchemaType<Config> = {
   }
 }
 
-export const avitoDataSchema: JSONSchemaType<AvitoData> = {
+export const avitoDesktopDataCatalogItemCategorySchema: JSONSchemaType<
+  AvitoDesktopDataCatalogItemCategory
+> = {
+  type: 'object',
+  properties: {
+    id: {
+      type: 'integer',
+      nullable: true
+    },
+    name: {
+      type: 'string',
+      nullable: true
+    }
+  }
+}
+
+export const avitoDesktopDataCatalogItemPriceDetailedSchema: JSONSchemaType<
+  AvitoDesktopDataCatalogItemPriceDetailed
+> = {
+  type: 'object',
+  properties: {
+    value: {
+      type: 'integer',
+      nullable: true
+    }
+  }
+}
+
+export const avitoDesktopDataCatalogItemImagesSchema: JSONSchemaType<
+  AvitoDesktopDataCatalogItemImage[]
+> = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      '208x156': {
+        type: 'string',
+        nullable: true
+      },
+      '236x177': {
+        type: 'string',
+        nullable: true
+      },
+      '318x238': {
+        type: 'string',
+        nullable: true
+      },
+      '416x312': {
+        type: 'string',
+        nullable: true
+      },
+      '432x324': {
+        type: 'string',
+        nullable: true
+      },
+      '472x354': {
+        type: 'string',
+        nullable: true
+      },
+      '636x476': {
+        type: 'string',
+        nullable: true
+      },
+      '864x648': {
+        type: 'string',
+        nullable: true
+      }
+    }
+  }
+}
+
+export const avitoDesktopDataCatalogItemIvaSchema: JSONSchemaType<
+  AvitoDesktopDataCatalogItemIva
+> = {
+  type: 'object',
+  properties: {
+    DateInfoStep: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          payload: {
+            type: 'object',
+            properties: {
+              absolute: {
+                type: 'string',
+                nullable: true
+              }
+            },
+            nullable: true
+          }
+        }
+      },
+      nullable: true
+    }
+  },
+}
+
+export const avitoDesktopDataCatalogItemsSchema: JSONSchemaType<
+  AvitoDesktopDataCatalogItem[]
+> = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'integer',
+        nullable: true
+      },
+      title: {
+        type: 'string',
+        nullable: true
+      },
+      description: {
+        type: 'string',
+        nullable: true
+      },
+      sortTimeStamp: {
+        type: 'integer',
+        nullable: true
+      },
+      urlPath: {
+        type: 'string',
+        nullable: true
+      },
+      category: {
+        ...avitoDesktopDataCatalogItemCategorySchema,
+        nullable: true
+      },
+      priceDetailed: {
+        ...avitoDesktopDataCatalogItemPriceDetailedSchema,
+        nullable: true
+      },
+      images: {
+        ...avitoDesktopDataCatalogItemImagesSchema,
+        nullable: true
+      },
+      iva: {
+        ...avitoDesktopDataCatalogItemIvaSchema,
+        nullable: true
+      }
+    }
+  }
+
+}
+
+export const avitoDesktopSchema: JSONSchemaType<AvitoDesktop> = {
   type: 'object',
   required: ['data'],
   properties: {
@@ -115,127 +269,7 @@ export const avitoDataSchema: JSONSchemaType<AvitoData> = {
           type: 'object',
           required: ['items'],
           properties: {
-            items: {
-              type: 'array',
-              items: {
-                type: 'object',
-                required: [
-                  'id',
-                  'title',
-                  'description',
-                  'sortTimeStamp',
-                  'urlPath',
-                  'category',
-                  'priceDetailed',
-                  'images',
-                  'iva'
-                ],
-                properties: {
-                  id: {
-                    type: 'integer'
-                  },
-                  title: {
-                    type: 'string'
-                  },
-                  description: {
-                    type: 'string'
-                  },
-                  sortTimeStamp: {
-                    type: 'integer'
-                  },
-                  urlPath: {
-                    type: 'string'
-                  },
-                  category: {
-                    type: 'object',
-                    required: ['id', 'name'],
-                    properties: {
-                      id: {
-                        type: 'integer'
-                      },
-                      name: {
-                        type: 'string'
-                      }
-                    }
-                  },
-                  priceDetailed: {
-                    type: 'object',
-                    required: ['value'],
-                    properties: {
-                      value: {
-                        type: 'integer'
-                      }
-                    }
-                  },
-                  images: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      required: [
-                        '208x156',
-                        '236x177',
-                        '318x238',
-                        '416x312',
-                        '432x324',
-                        '472x354',
-                        '636x476',
-                        '864x648'
-                      ],
-                      properties: {
-                        '208x156': {
-                          type: 'string'
-                        },
-                        '236x177': {
-                          type: 'string'
-                        },
-                        '318x238': {
-                          type: 'string'
-                        },
-                        '416x312': {
-                          type: 'string'
-                        },
-                        '432x324': {
-                          type: 'string'
-                        },
-                        '472x354': {
-                          type: 'string'
-                        },
-                        '636x476': {
-                          type: 'string'
-                        },
-                        '864x648': {
-                          type: 'string'
-                        }
-                      }
-                    }
-                  },
-                  iva: {
-                    type: 'object',
-                    required: ['DateInfoStep'],
-                    properties: {
-                      DateInfoStep: {
-                        type: 'array',
-                        items: {
-                          type: 'object',
-                          required: ['payload'],
-                          properties: {
-                            payload: {
-                              type: 'object',
-                              properties: {
-                                absolute: {
-                                  type: 'string',
-                                  nullable: true
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+            items: avitoDesktopDataCatalogItemsSchema
           }
         }
       }

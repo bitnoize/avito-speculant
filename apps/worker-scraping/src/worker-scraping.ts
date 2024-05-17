@@ -36,58 +36,58 @@ export type ParseResponse = {
 // Avito InitialData
 //
 
-export type AvitoData = {
-  data: AvitoDataData
+export type AvitoDesktop = {
+  data: AvitoDesktopData
 }
 
-export type AvitoDataData = {
-  catalog: AvitoDataDataCatalog
+export type AvitoDesktopData = {
+  catalog: AvitoDesktopDataCatalog
 }
 
-export type AvitoDataDataCatalog = {
-  items: AvitoDataDataCatalogItem[]
+export type AvitoDesktopDataCatalog = {
+  items: AvitoDesktopDataCatalogItem[]
 }
 
-export type AvitoDataDataCatalogItem = {
-  id: number
-  title: string
-  description: string
-  sortTimeStamp: number
-  urlPath: string
-  category: AvitoDataDataCatalogItemCategory
-  priceDetailed: AvitoDataDataCatalogItemPriceDetailed
-  images: AvitoDataDataCatalogItemImage[]
-  iva: AvitoDataDataCatalogItemIva
+export type AvitoDesktopDataCatalogItem = {
+  id?: number
+  title?: string
+  description?: string
+  sortTimeStamp?: number
+  urlPath?: string
+  category?: AvitoDesktopDataCatalogItemCategory
+  priceDetailed?: AvitoDesktopDataCatalogItemPriceDetailed
+  images?: AvitoDesktopDataCatalogItemImage[]
+  iva?: AvitoDesktopDataCatalogItemIva
 }
 
-export type AvitoDataDataCatalogItemPriceDetailed = {
-  value: number
+export type AvitoDesktopDataCatalogItemCategory = {
+  id?: number
+  name?: string
 }
 
-export type AvitoDataDataCatalogItemCategory = {
-  id: number
-  name: string
+export type AvitoDesktopDataCatalogItemPriceDetailed = {
+  value?: number
 }
 
-export type AvitoDataDataCatalogItemImage = {
-  '208x156': string
-  '236x177': string
-  '318x238': string
-  '416x312': string
-  '432x324': string
-  '472x354': string
-  '636x476': string
-  '864x648': string
+export type AvitoDesktopDataCatalogItemImage = {
+  '208x156'?: string
+  '236x177'?: string
+  '318x238'?: string
+  '416x312'?: string
+  '432x324'?: string
+  '472x354'?: string
+  '636x476'?: string
+  '864x648'?: string
 }
 
-export type AvitoDataDataCatalogItemIva = {
-  DateInfoStep: AvitoDataDataCatalogItemIvaDateInfoStep[]
+export type AvitoDesktopDataCatalogItemIva = {
+  DateInfoStep?: AvitoDesktopDataCatalogItemIvaDateInfoStep[]
 }
 
-export type AvitoDataDataCatalogItemIvaDateInfoStep = {
-  payload: AvitoDataDataCatalogItemIvaDateInfoStepPayload
+export type AvitoDesktopDataCatalogItemIvaDateInfoStep = {
+  payload?: AvitoDesktopDataCatalogItemIvaDateInfoStepPayload
 }
 
-export type AvitoDataDataCatalogItemIvaDateInfoStepPayload = {
+export type AvitoDesktopDataCatalogItemIvaDateInfoStepPayload = {
   absolute?: string
 }
