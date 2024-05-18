@@ -1,11 +1,9 @@
-import _Ajv from 'ajv'
-import * as fs from 'fs'
+//import * as fs from 'fs'
+import { Ajv } from 'ajv'
 import { curly } from 'node-libcurl'
 import { ScraperAdvert } from '@avito-speculant/redis'
 import { StealRequest, StealResponse, ParseRequest, ParseResponse } from './worker-scraping.js'
 import { avitoDesktopSchema } from './worker-scraping.schema.js'
-
-const Ajv = _Ajv.default
 
 export const stealRequest: StealRequest = async (targetUrl, proxyUrl, timeoutMs) => {
   const startTime = Date.now()
@@ -84,9 +82,9 @@ export const parseRequest: ParseRequest = (scraperId, body) => {
       const description = item.description ? item.description : 'Неизвестно'
       const urlPath = item.urlPath ? item.urlPath : null
 
-      const price = (item.priceDetailed && item.priceDetailed.value) ? item.priceDetailed.value : 0
+      const price = item.priceDetailed && item.priceDetailed.value ? item.priceDetailed.value : 0
       const timestamp = item.sortTimeStamp ? item.sortTimeStamp : null
-      const categoryName = (item.category && item.category.name) ? item.category.name : 'неизвестно'
+      const categoryName = item.category && item.category.name ? item.category.name : 'неизвестно'
 
       let imageUrl = 'https://placehold.co/600x400.png'
 

@@ -4,10 +4,6 @@ export const CHECKPROXY_QUEUE_NAME = `checkproxy`
 export const CHECKPROXY_TEST_URL = 'https://www.avito.ru/company'
 export const CHECKPROXY_TEST_TIMEOUT = 10_000
 
-export const DEFAULT_CHECKPROXY_CONCURRENCY = 10
-export const DEFAULT_CHECKPROXY_LIMITER_MAX = 10
-export const DEFAULT_CHECKPROXY_LIMITER_DURATION = 1_000
-
 export type CheckproxyConfig = {
   CHECKPROXY_CONCURRENCY: number
   CHECKPROXY_LIMITER_MAX: number

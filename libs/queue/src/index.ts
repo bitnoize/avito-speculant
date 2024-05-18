@@ -11,6 +11,7 @@ export {
 } from 'bullmq'
 
 export * from './queue.js'
+export * from './queue.schema.js'
 export * from './queue.errors.js'
 export * as queueService from './queue.service.js'
 export * from './heartbeat/index.js'

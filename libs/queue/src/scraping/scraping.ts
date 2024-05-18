@@ -4,10 +4,6 @@ export const SCRAPING_QUEUE_NAME = `scraping`
 export const SCRAPING_REPEAT_EVERY = 5_000
 export const SCRAPING_STEAL_TIMEOUT = 10_000
 
-export const DEFAULT_SCRAPING_CONCURRENCY = 10
-export const DEFAULT_SCRAPING_LIMITER_MAX = 10
-export const DEFAULT_SCRAPING_LIMITER_DURATION = 1_000
-
 export type ScrapingConfig = {
   SCRAPING_CONCURRENCY: number
   SCRAPING_LIMITER_MAX: number

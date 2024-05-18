@@ -16,13 +16,14 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@avito-speculant/config": "*",
-    "@avito-speculant/logger": "*",
     "@avito-speculant/common": "*",
+    "@avito-speculant/config": "*",
     "@avito-speculant/database": "*",
-    "@avito-speculant/redis": "*",
+    "@avito-speculant/logger": "*",
     "@avito-speculant/queue": "*",
+    "@avito-speculant/redis": "*",
     "@grammyjs/storage-redis": "^2.4.1",
+    "ajv": "^8.13.0",
     "fastify": "^4.26.0",
     "grammy": "^1.20.3"
   }

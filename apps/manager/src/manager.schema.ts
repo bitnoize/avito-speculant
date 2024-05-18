@@ -1,20 +1,25 @@
-import { JSONSchemaType } from '@avito-speculant/config'
-import { DEFAULT_LOG_LEVEL } from '@avito-speculant/logger'
+import { JSONSchemaType } from 'ajv'
+import { configLogLevelSchema } from '@avito-speculant/logger'
 import {
-  DEFAULT_POSTGRES_HOST,
-  DEFAULT_POSTGRES_PORT,
-  DEFAULT_POSTGRES_DATABASE,
-  DEFAULT_POSTGRES_USERNAME
+  configPostgresHostSchema,
+  configPostgresPortSchema,
+  configPostgresDatabaseSchema,
+  configPostgresUsernameSchema,
+  configPostgresPasswordSchema
 } from '@avito-speculant/database'
 import {
-  DEFAULT_REDIS_HOST,
-  DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE
+  configRedisHostSchema,
+  configRedisPortSchema,
+  configRedisDatabaseSchema,
+  configRedisUsernameSchema,
+  configRedisPasswordSchema
 } from '@avito-speculant/redis'
 import {
-  DEFAULT_QUEUE_REDIS_HOST,
-  DEFAULT_QUEUE_REDIS_PORT,
-  DEFAULT_QUEUE_REDIS_DATABASE
+  configQueueRedisHostSchema,
+  configQueueRedisPortSchema,
+  configQueueRedisDatabaseSchema,
+  configQueueRedisUsernameSchema,
+  configQueueRedisPasswordSchema
 } from '@avito-speculant/queue'
 import { Config } from './manager.js'
 
@@ -29,83 +34,36 @@ export const configSchema: JSONSchemaType<Config> = {
     'REDIS_HOST',
     'REDIS_PORT',
     'REDIS_DATABASE',
+    'REDIS_USERNAME',
     'QUEUE_REDIS_HOST',
     'QUEUE_REDIS_PORT',
-    'QUEUE_REDIS_DATABASE'
+    'QUEUE_REDIS_DATABASE',
+    'QUEUE_REDIS_USERNAME'
   ],
   properties: {
-    LOG_LEVEL: {
-      type: 'string',
-      default: DEFAULT_LOG_LEVEL
-    },
-    POSTGRES_HOST: {
-      type: 'string',
-      default: DEFAULT_POSTGRES_HOST
-    },
-    POSTGRES_PORT: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 65535,
-      default: DEFAULT_POSTGRES_PORT
-    },
-    POSTGRES_DATABASE: {
-      type: 'string',
-      default: DEFAULT_POSTGRES_DATABASE
-    },
-    POSTGRES_USERNAME: {
-      type: 'string',
-      default: DEFAULT_POSTGRES_USERNAME
-    },
+    LOG_LEVEL: configLogLevelSchema,
+    POSTGRES_HOST: configPostgresHostSchema,
+    POSTGRES_PORT: configPostgresPortSchema,
+    POSTGRES_DATABASE: configPostgresDatabaseSchema,
+    POSTGRES_USERNAME: configPostgresUsernameSchema,
     POSTGRES_PASSWORD: {
-      type: 'string',
+      ...configPostgresPasswordSchema,
       nullable: true
     },
-    REDIS_HOST: {
-      type: 'string',
-      default: DEFAULT_REDIS_HOST
-    },
-    REDIS_PORT: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 65535,
-      default: DEFAULT_REDIS_PORT
-    },
-    REDIS_DATABASE: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 15,
-      default: DEFAULT_REDIS_DATABASE
-    },
-    REDIS_USERNAME: {
-      type: 'string',
-      nullable: true
-    },
+    REDIS_HOST: configRedisHostSchema,
+    REDIS_PORT: configRedisPortSchema,
+    REDIS_DATABASE: configRedisDatabaseSchema,
+    REDIS_USERNAME: configRedisUsernameSchema,
     REDIS_PASSWORD: {
-      type: 'string',
+      ...configRedisPasswordSchema,
       nullable: true
     },
-    QUEUE_REDIS_HOST: {
-      type: 'string',
-      default: DEFAULT_QUEUE_REDIS_HOST
-    },
-    QUEUE_REDIS_PORT: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 65535,
-      default: DEFAULT_QUEUE_REDIS_PORT
-    },
-    QUEUE_REDIS_DATABASE: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 15,
-      default: DEFAULT_QUEUE_REDIS_DATABASE
-    },
-    QUEUE_REDIS_USERNAME: {
-      type: 'string',
-      nullable: true
-    },
+    QUEUE_REDIS_HOST: configQueueRedisHostSchema,
+    QUEUE_REDIS_PORT: configQueueRedisPortSchema,
+    QUEUE_REDIS_DATABASE: configQueueRedisDatabaseSchema,
+    QUEUE_REDIS_USERNAME: configQueueRedisUsernameSchema,
     QUEUE_REDIS_PASSWORD: {
-      type: 'string',
+      ...configQueueRedisPasswordSchema,
       nullable: true
     }
   }

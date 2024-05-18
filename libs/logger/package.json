@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/logger",
   "type": "module",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Avito-speculant logger library",
   "private": true,
   "main": "dist/index.js",
@@ -15,6 +15,7 @@
     "build:watch": "tsc -b -w"
   },
   "dependencies": {
+    "ajv": "^8.13.0",
     "pino": "^8.17.2",
     "pino-pretty": "^10.3.1"
   }

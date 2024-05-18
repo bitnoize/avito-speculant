@@ -12,11 +12,6 @@ import { CategoryLogTable } from './category-log/category-log.table.js'
 import { ProxyTable } from './proxy/proxy.table.js'
 import { ProxyLogTable } from './proxy-log/proxy-log.table.js'
 
-export const DEFAULT_POSTGRES_HOST = 'localhost'
-export const DEFAULT_POSTGRES_PORT = 5432
-export const DEFAULT_POSTGRES_DATABASE = 'avito_speculant'
-export const DEFAULT_POSTGRES_USERNAME = 'avito_speculant'
-
 export type DatabaseConfig = {
   POSTGRES_HOST: string
   POSTGRES_PORT: number

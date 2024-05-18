@@ -1,17 +1,21 @@
-import { JSONSchemaType } from '@avito-speculant/config'
-import { DEFAULT_LOG_LEVEL } from '@avito-speculant/logger'
+import { JSONSchemaType } from 'ajv'
+import { configLogLevelSchema } from '@avito-speculant/logger'
 import {
-  DEFAULT_REDIS_HOST,
-  DEFAULT_REDIS_PORT,
-  DEFAULT_REDIS_DATABASE
+  configRedisHostSchema,
+  configRedisPortSchema,
+  configRedisDatabaseSchema,
+  configRedisUsernameSchema,
+  configRedisPasswordSchema
 } from '@avito-speculant/redis'
 import {
-  DEFAULT_QUEUE_REDIS_HOST,
-  DEFAULT_QUEUE_REDIS_PORT,
-  DEFAULT_QUEUE_REDIS_DATABASE,
-  DEFAULT_SCRAPING_CONCURRENCY,
-  DEFAULT_SCRAPING_LIMITER_MAX,
-  DEFAULT_SCRAPING_LIMITER_DURATION
+  configQueueRedisHostSchema,
+  configQueueRedisPortSchema,
+  configQueueRedisDatabaseSchema,
+  configQueueRedisUsernameSchema,
+  configQueueRedisPasswordSchema,
+  configScrapingConcurrencySchema,
+  configScrapingLimiterMaxSchema,
+  configScrapingLimiterDurationSchema
 } from '@avito-speculant/queue'
 import {
   Config,
@@ -20,7 +24,7 @@ import {
   AvitoDesktopDataCatalogItemImage,
   AvitoDesktopDataCatalogItemIva,
   AvitoDesktopDataCatalogItem,
-  AvitoDesktop,
+  AvitoDesktop
 } from './worker-scraping.js'
 
 export const configSchema: JSONSchemaType<Config> = {
@@ -30,114 +34,68 @@ export const configSchema: JSONSchemaType<Config> = {
     'REDIS_HOST',
     'REDIS_PORT',
     'REDIS_DATABASE',
+    'REDIS_USERNAME',
     'QUEUE_REDIS_HOST',
     'QUEUE_REDIS_PORT',
     'QUEUE_REDIS_DATABASE',
+    'QUEUE_REDIS_USERNAME',
     'SCRAPING_CONCURRENCY',
     'SCRAPING_LIMITER_MAX',
     'SCRAPING_LIMITER_DURATION'
   ],
   properties: {
-    LOG_LEVEL: {
-      type: 'string',
-      default: DEFAULT_LOG_LEVEL
-    },
-    REDIS_HOST: {
-      type: 'string',
-      default: DEFAULT_REDIS_HOST
-    },
-    REDIS_PORT: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 65535,
-      default: DEFAULT_REDIS_PORT
-    },
-    REDIS_DATABASE: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 15,
-      default: DEFAULT_REDIS_DATABASE
-    },
-    REDIS_USERNAME: {
-      type: 'string',
-      nullable: true
-    },
+    LOG_LEVEL: configLogLevelSchema,
+    REDIS_HOST: configRedisHostSchema,
+    REDIS_PORT: configRedisPortSchema,
+    REDIS_DATABASE: configRedisDatabaseSchema,
+    REDIS_USERNAME: configRedisUsernameSchema,
     REDIS_PASSWORD: {
-      type: 'string',
+      ...configRedisPasswordSchema,
       nullable: true
     },
-    QUEUE_REDIS_HOST: {
-      type: 'string',
-      default: DEFAULT_QUEUE_REDIS_HOST
-    },
-    QUEUE_REDIS_PORT: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 65535,
-      default: DEFAULT_QUEUE_REDIS_PORT
-    },
-    QUEUE_REDIS_DATABASE: {
-      type: 'integer',
-      minimum: 0,
-      maximum: 15,
-      default: DEFAULT_QUEUE_REDIS_DATABASE
-    },
-    QUEUE_REDIS_USERNAME: {
-      type: 'string',
-      nullable: true
-    },
+    QUEUE_REDIS_HOST: configQueueRedisHostSchema,
+    QUEUE_REDIS_PORT: configQueueRedisPortSchema,
+    QUEUE_REDIS_DATABASE: configQueueRedisDatabaseSchema,
+    QUEUE_REDIS_USERNAME: configQueueRedisUsernameSchema,
     QUEUE_REDIS_PASSWORD: {
-      type: 'string',
+      ...configQueueRedisPasswordSchema,
       nullable: true
     },
-    SCRAPING_CONCURRENCY: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 100,
-      default: DEFAULT_SCRAPING_CONCURRENCY
-    },
-    SCRAPING_LIMITER_MAX: {
-      type: 'integer',
-      minimum: 1,
-      maximum: 1000,
-      default: DEFAULT_SCRAPING_LIMITER_MAX
-    },
-    SCRAPING_LIMITER_DURATION: {
-      type: 'integer',
-      minimum: 1000,
-      maximum: 60000,
-      default: DEFAULT_SCRAPING_LIMITER_DURATION
-    }
+    SCRAPING_CONCURRENCY: configScrapingConcurrencySchema,
+    SCRAPING_LIMITER_MAX: configScrapingLimiterMaxSchema,
+    SCRAPING_LIMITER_DURATION: configScrapingLimiterDurationSchema
   }
 }
 
-export const avitoDesktopDataCatalogItemCategorySchema: JSONSchemaType<
-  AvitoDesktopDataCatalogItemCategory
-> = {
-  type: 'object',
-  properties: {
-    id: {
-      type: 'integer',
-      nullable: true
-    },
-    name: {
-      type: 'string',
-      nullable: true
-    }
-  }
-}
+//
+// AvitoDesktop
+//
 
-export const avitoDesktopDataCatalogItemPriceDetailedSchema: JSONSchemaType<
-  AvitoDesktopDataCatalogItemPriceDetailed
-> = {
-  type: 'object',
-  properties: {
-    value: {
-      type: 'integer',
-      nullable: true
+export const avitoDesktopDataCatalogItemCategorySchema: JSONSchemaType<AvitoDesktopDataCatalogItemCategory> =
+  {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'integer',
+        nullable: true
+      },
+      name: {
+        type: 'string',
+        nullable: true
+      }
     }
   }
-}
+
+export const avitoDesktopDataCatalogItemPriceDetailedSchema: JSONSchemaType<AvitoDesktopDataCatalogItemPriceDetailed> =
+  {
+    type: 'object',
+    properties: {
+      value: {
+        type: 'integer',
+        nullable: true
+      }
+    }
+  }
 
 export const avitoDesktopDataCatalogItemImagesSchema: JSONSchemaType<
   AvitoDesktopDataCatalogItemImage[]
@@ -182,36 +140,33 @@ export const avitoDesktopDataCatalogItemImagesSchema: JSONSchemaType<
   }
 }
 
-export const avitoDesktopDataCatalogItemIvaSchema: JSONSchemaType<
-  AvitoDesktopDataCatalogItemIva
-> = {
-  type: 'object',
-  properties: {
-    DateInfoStep: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          payload: {
-            type: 'object',
-            properties: {
-              absolute: {
-                type: 'string',
-                nullable: true
-              }
-            },
-            nullable: true
+export const avitoDesktopDataCatalogItemIvaSchema: JSONSchemaType<AvitoDesktopDataCatalogItemIva> =
+  {
+    type: 'object',
+    properties: {
+      DateInfoStep: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            payload: {
+              type: 'object',
+              properties: {
+                absolute: {
+                  type: 'string',
+                  nullable: true
+                }
+              },
+              nullable: true
+            }
           }
-        }
-      },
-      nullable: true
+        },
+        nullable: true
+      }
     }
-  },
-}
+  }
 
-export const avitoDesktopDataCatalogItemsSchema: JSONSchemaType<
-  AvitoDesktopDataCatalogItem[]
-> = {
+export const avitoDesktopDataCatalogItemsSchema: JSONSchemaType<AvitoDesktopDataCatalogItem[]> = {
   type: 'array',
   items: {
     type: 'object',
@@ -254,7 +209,6 @@ export const avitoDesktopDataCatalogItemsSchema: JSONSchemaType<
       }
     }
   }
-
 }
 
 export const avitoDesktopSchema: JSONSchemaType<AvitoDesktop> = {

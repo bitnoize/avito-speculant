@@ -15,8 +15,9 @@
     "build:watch": "tsc -b -w"
   },
   "dependencies": {
-    "@avito-speculant/logger": "*",
     "@avito-speculant/common": "*",
+    "@avito-speculant/logger": "*",
+    "ajv": "^8.13.0",
     "bullmq": "^5.1.0"
   }
 }

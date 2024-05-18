@@ -19,9 +19,9 @@
     "@avito-speculant/common": "*",
     "@avito-speculant/config": "*",
     "@avito-speculant/logger": "*",
-    "@avito-speculant/redis": "*",
     "@avito-speculant/queue": "*",
-    "ajv": "^8.12.0",
+    "@avito-speculant/redis": "*",
+    "ajv": "^8.13.0",
     "node-libcurl": "^4.0.0"
   }
 }

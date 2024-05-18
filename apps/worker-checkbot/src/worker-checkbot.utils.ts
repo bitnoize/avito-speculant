@@ -1,5 +1,5 @@
 import { HttpsProxyAgent } from 'https-proxy-agent'
-import { Bot, InputMediaBuilder } from 'grammy'
+import { Bot } from 'grammy'
 import { TestRequest, TestResponse } from './worker-checkbot.js'
 
 export const testRequest: TestRequest = async (token, proxyUrl) => {

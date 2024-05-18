@@ -20,6 +20,7 @@
     "@avito-speculant/config": "*",
     "@avito-speculant/logger": "*",
     "@avito-speculant/queue": "*",
-    "@avito-speculant/redis": "*"
+    "@avito-speculant/redis": "*",
+    "ajv": "^8.13.0"
   }
 }

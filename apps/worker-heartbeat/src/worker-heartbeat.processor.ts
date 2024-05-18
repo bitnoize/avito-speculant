@@ -113,12 +113,12 @@ const processUsers: ProcessStep = async function (config, logger, heartbeatJob, 
   try {
     const jobsCount = await treatmentQueue.count()
 
-    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT) {
       throw new TreatmentOverflowError({ step, jobsCount })
     }
 
     const { users } = await userService.produceUsers(db, {
-      limit: config.HEARTBEAT_PRODUCE_USERS_LIMIT
+      limit: config.HEARTBEAT_PRODUCE_USERS
     })
 
     await treatmentService.addJobs(
@@ -155,12 +155,12 @@ const processPlans: ProcessStep = async function (config, logger, heartbeatJob, 
   try {
     const jobsCount = await treatmentQueue.count()
 
-    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT) {
       throw new TreatmentOverflowError({ step, jobsCount })
     }
 
     const { plans } = await planService.producePlans(db, {
-      limit: config.HEARTBEAT_PRODUCE_PLANS_LIMIT
+      limit: config.HEARTBEAT_PRODUCE_PLANS
     })
 
     await treatmentService.addJobs(
@@ -202,12 +202,12 @@ const processSubscriptions: ProcessStep = async function (
   try {
     const jobsCount = await treatmentQueue.count()
 
-    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT) {
       throw new TreatmentOverflowError({ step, jobsCount })
     }
 
     const { subscriptions } = await subscriptionService.produceSubscriptions(db, {
-      limit: config.HEARTBEAT_PRODUCE_SUBSCRIPTIONS_LIMIT
+      limit: config.HEARTBEAT_PRODUCE_SUBSCRIPTIONS
     })
 
     await treatmentService.addJobs(
@@ -249,12 +249,12 @@ const processCategories: ProcessStep = async function (
   try {
     const jobsCount = await treatmentQueue.count()
 
-    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT) {
       throw new TreatmentOverflowError({ step, jobsCount })
     }
 
     const { categories } = await categoryService.produceCategories(db, {
-      limit: config.HEARTBEAT_PRODUCE_CATEGORIES_LIMIT
+      limit: config.HEARTBEAT_PRODUCE_CATEGORIES
     })
 
     await treatmentService.addJobs(
@@ -291,12 +291,12 @@ const processBots: ProcessStep = async function (config, logger, heartbeatJob, h
   try {
     const jobsCount = await treatmentQueue.count()
 
-    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT) {
       throw new TreatmentOverflowError({ step, jobsCount })
     }
 
     const { bots } = await botService.produceBots(db, {
-      limit: config.HEARTBEAT_PRODUCE_BOTS_LIMIT
+      limit: config.HEARTBEAT_PRODUCE_BOTS
     })
 
     await treatmentService.addJobs(
@@ -333,12 +333,12 @@ const processProxies: ProcessStep = async function (config, logger, heartbeatJob
   try {
     const jobsCount = await treatmentQueue.count()
 
-    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT_MAX) {
+    if (jobsCount > config.HEARTBEAT_FILLING_TREATMENT) {
       throw new TreatmentOverflowError({ step, jobsCount })
     }
 
     const { proxies } = await proxyService.produceProxies(db, {
-      limit: config.HEARTBEAT_PRODUCE_PROXIES_LIMIT
+      limit: config.HEARTBEAT_PRODUCE_PROXIES
     })
 
     await treatmentService.addJobs(

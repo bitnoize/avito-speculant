@@ -1,6 +1,7 @@
 export { Redis } from 'ioredis'
 
 export * from './redis.js'
+export * from './redis.schema.js'
 export * from './redis.errors.js'
 export * as redisService from './redis.service.js'
 export * from './user-cache/index.js'

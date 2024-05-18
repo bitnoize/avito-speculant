@@ -1,7 +1,7 @@
 {
   "name": "@avito-speculant/database",
   "type": "module",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "Avito-speculant database library",
   "private": true,
   "main": "dist/index.js",
@@ -15,8 +15,9 @@
     "build:watch": "tsc -b -w"
   },
   "dependencies": {
-    "@avito-speculant/logger": "*",
     "@avito-speculant/common": "*",
+    "@avito-speculant/logger": "*",
+    "ajv": "^8.13.0",
     "kysely": "^0.27.2",
     "pg": "^8.11.3"
   },

@@ -3,10 +3,6 @@ import { Queue, Job, Worker, Processor } from 'bullmq'
 export const SENDREPORT_QUEUE_NAME = `sendreport`
 export const SENDREPORT_ATTEMPTS_LIMIT = 3
 
-export const DEFAULT_SENDREPORT_CONCURRENCY = 10
-export const DEFAULT_SENDREPORT_LIMITER_MAX = 10
-export const DEFAULT_SENDREPORT_LIMITER_DURATION = 1_000
-
 export type SendreportConfig = {
   SENDREPORT_CONCURRENCY: number
   SENDREPORT_LIMITER_MAX: number

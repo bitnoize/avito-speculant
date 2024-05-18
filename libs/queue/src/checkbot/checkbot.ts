@@ -2,10 +2,6 @@ import { Queue, Job, Worker, Processor } from 'bullmq'
 
 export const CHECKBOT_QUEUE_NAME = 'checkbot'
 
-export const DEFAULT_CHECKBOT_CONCURRENCY = 10
-export const DEFAULT_CHECKBOT_LIMITER_MAX = 10
-export const DEFAULT_CHECKBOT_LIMITER_DURATION = 1_000
-
 export type CheckbotConfig = {
   CHECKBOT_CONCURRENCY: number
   CHECKBOT_LIMITER_MAX: number

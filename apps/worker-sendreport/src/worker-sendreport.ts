@@ -1,4 +1,3 @@
-import { Bot } from 'grammy'
 import { LoggerConfig, Logger } from '@avito-speculant/logger'
 import { RedisConfig } from '@avito-speculant/redis'
 import {
