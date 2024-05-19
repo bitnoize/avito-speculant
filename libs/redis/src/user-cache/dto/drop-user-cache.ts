@@ -5,6 +5,4 @@ export type DropUserCacheRequest = {
   tgFromId: string
 }
 
-export type DropUserCacheResponse = void
-
-export type DropUserCache = RedisMethod<DropUserCacheRequest, DropUserCacheResponse>
+export type DropUserCache = RedisMethod<DropUserCacheRequest, void>

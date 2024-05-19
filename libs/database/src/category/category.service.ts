@@ -19,12 +19,12 @@ import * as categoryRepository from './category.repository.js'
 import * as categoryLogRepository from '../category-log/category-log.repository.js'
 import { UserNotFoundError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
-import { PlanNotFoundError } from '../plan/plan.errors.js'
 import * as planRepository from '../plan/plan.repository.js'
 import { SubscriptionNotFoundError } from '../subscription/subscription.errors.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import { BotNotFoundError, BotIsLinkedError, BotIsDisabledError } from '../bot/bot.errors.js'
 import * as botRepository from '../bot/bot.repository.js'
+import { DatabaseInternalError } from '../database.errors.js'
 
 /**
  * Create Category
@@ -130,7 +130,7 @@ export const enableCategory: EnableCategory = async function (db, request) {
     const planRow = await planRepository.selectRowById(trx, activeSubscriptionRow.plan_id)
 
     if (planRow === undefined) {
-      throw new PlanNotFoundError({ request, activeSubscriptionRow }, 100)
+      throw new DatabaseInternalError({ request, activeSubscriptionRow }, 100, 'Plan not found')
     }
 
     userRow.categories = await categoryRepository.selectCountByUserId(trx, userRow.id)
@@ -285,7 +285,7 @@ export const consumeCategory: ConsumeCategory = async function (db, request) {
     const userRow = await userRepository.selectRowById(trx, categoryRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError({ request, categoryRow }, 100)
+      throw new DatabaseInternalError({ categoryRow }, 100, 'User not found')
     }
 
     const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatus(
@@ -298,7 +298,7 @@ export const consumeCategory: ConsumeCategory = async function (db, request) {
       const planRow = await planRepository.selectRowById(trx, activeSubscriptionRow.plan_id)
 
       if (planRow === undefined) {
-        throw new PlanNotFoundError({ request, categoryRow, activeSubscriptionRow }, 100)
+        throw new DatabaseInternalError({ categoryRow, activeSubscriptionRow }, 100, 'Plan not found')
       }
 
       if (categoryRow.is_enabled) {
@@ -309,7 +309,7 @@ export const consumeCategory: ConsumeCategory = async function (db, request) {
         const botRow = await botRepository.selectRowById(trx, categoryRow.bot_id)
 
         if (botRow === undefined) {
-          throw new BotNotFoundError({ request, categoryRow }, 100)
+          throw new DatabaseInternalError({ categoryRow }, 100, 'Bot not found')
         }
 
         if (!botRow.is_enabled) {

@@ -1,8 +1,7 @@
-import { ErrorContext } from '@avito-speculant/common'
-import { QueueError } from '../queue.errors.js'
+import { DomainError, ErrorContext } from '@avito-speculant/common'
 
-export class SendreportFoobarError extends QueueError {
-  constructor(context: ErrorContext, code = 101, message = `Sendreport foobar error`) {
+export class ScrapingFoobarError extends DomainError {
+  constructor(context: ErrorContext, code = 101, message = `Scraping foobar error`) {
     super(context, code, message)
   }
 }

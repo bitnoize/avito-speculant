@@ -6,6 +6,4 @@ export type DropCategoryCacheRequest = {
   scraperId: string
 }
 
-export type DropCategoryCacheResponse = void
-
-export type DropCategoryCache = RedisMethod<DropCategoryCacheRequest, DropCategoryCacheResponse>
+export type DropCategoryCache = RedisMethod<DropCategoryCacheRequest, void>

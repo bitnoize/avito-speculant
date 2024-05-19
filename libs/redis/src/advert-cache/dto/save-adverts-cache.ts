@@ -6,6 +6,4 @@ export type SaveAdvertsCacheRequest = {
   scraperAdverts: ScraperAdvert[]
 }
 
-export type SaveAdvertsCacheResponse = void
-
-export type SaveAdvertsCache = RedisMethod<SaveAdvertsCacheRequest, SaveAdvertsCacheResponse>
+export type SaveAdvertsCache = RedisMethod<SaveAdvertsCacheRequest, void>

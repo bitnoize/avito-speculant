@@ -5,6 +5,4 @@ export type SaveWebappUserLinkRequest = {
   userId: number
 }
 
-export type SaveWebappUserLinkResponse = void
-
-export type SaveWebappUserLink = RedisMethod<SaveWebappUserLinkRequest, SaveWebappUserLinkResponse>
+export type SaveWebappUserLink = RedisMethod<SaveWebappUserLinkRequest, void>

@@ -5,9 +5,4 @@ export type DropSubscriptionCacheRequest = {
   userId: number
 }
 
-export type DropSubscriptionCacheResponse = void
-
-export type DropSubscriptionCache = RedisMethod<
-  DropSubscriptionCacheRequest,
-  DropSubscriptionCacheResponse
->
+export type DropSubscriptionCache = RedisMethod<DropSubscriptionCacheRequest, void>

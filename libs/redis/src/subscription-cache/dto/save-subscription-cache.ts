@@ -13,9 +13,4 @@ export type SaveSubscriptionCacheRequest = {
   finishAt: number
 }
 
-export type SaveSubscriptionCacheResponse = void
-
-export type SaveSubscriptionCache = RedisMethod<
-  SaveSubscriptionCacheRequest,
-  SaveSubscriptionCacheResponse
->
+export type SaveSubscriptionCache = RedisMethod<SaveSubscriptionCacheRequest, void>

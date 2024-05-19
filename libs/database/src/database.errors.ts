@@ -1,10 +1,7 @@
 import { DomainError, ErrorContext } from '@avito-speculant/common'
 
-/*
- * Abstract class for database level errors
- */
-export abstract class DatabaseError extends DomainError {
-  constructor(context: ErrorContext, code: number, message: string) {
+export class DatabaseInternalError extends DomainError {
+  constructor(context: ErrorContext, code = 100, message = `Database internal error`) {
     super(context, code, message)
   }
 }

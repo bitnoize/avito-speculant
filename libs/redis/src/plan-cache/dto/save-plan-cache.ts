@@ -14,6 +14,4 @@ export type SavePlanCacheRequest = {
   queuedAt: number
 }
 
-export type SavePlanCacheResponse = void
-
-export type SavePlanCache = RedisMethod<SavePlanCacheRequest, SavePlanCacheResponse>
+export type SavePlanCache = RedisMethod<SavePlanCacheRequest, void>

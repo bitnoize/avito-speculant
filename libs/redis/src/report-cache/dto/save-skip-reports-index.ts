@@ -5,9 +5,4 @@ export type SaveSkipReportsIndexRequest = {
   categoryId: number
 }
 
-export type SaveSkipReportsIndexResponse = void
-
-export type SaveSkipReportsIndex = RedisMethod<
-  SaveSkipReportsIndexRequest,
-  SaveSkipReportsIndexResponse
->
+export type SaveSkipReportsIndex = RedisMethod<SaveSkipReportsIndexRequest, void>

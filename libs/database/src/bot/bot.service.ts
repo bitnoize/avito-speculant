@@ -4,7 +4,6 @@ import {
   BotNotFoundError,
   BotExistsError,
   BotIsLinkedError,
-  BotNotLinkedError,
   BotIsEnabledError,
   BotIsDisabledError
 } from './bot.errors.js'
@@ -13,6 +12,7 @@ import * as botLogRepository from '../bot-log/bot-log.repository.js'
 import { UserNotFoundError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
 import * as categoryRepository from '../category/category.repository.js'
+import { DatabaseInternalError } from '../database.errors.js'
 
 /**
  * Create Bot
@@ -209,7 +209,7 @@ export const consumeBot: ConsumeBot = async function (db, request) {
     const userRow = await userRepository.selectRowById(trx, botRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError({ request }, 100)
+      throw new DatabaseInternalError({ botRow }, 100, 'User not found')
     }
 
     const linkedCategoryRow = await categoryRepository.selectRowByBotId(trx, botRow.id)

@@ -5,9 +5,4 @@ export type SaveWaitReportsIndexRequest = {
   categoryId: number
 }
 
-export type SaveWaitReportsIndexResponse = void
-
-export type SaveWaitReportsIndex = RedisMethod<
-  SaveWaitReportsIndexRequest,
-  SaveWaitReportsIndexResponse
->
+export type SaveWaitReportsIndex = RedisMethod<SaveWaitReportsIndexRequest, void>

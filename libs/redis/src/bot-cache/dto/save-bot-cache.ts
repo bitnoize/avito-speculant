@@ -11,6 +11,4 @@ export type SaveBotCacheRequest = {
   queuedAt: number
 }
 
-export type SaveBotCacheResponse = void
-
-export type SaveBotCache = RedisMethod<SaveBotCacheRequest, SaveBotCacheResponse>
+export type SaveBotCache = RedisMethod<SaveBotCacheRequest, void>

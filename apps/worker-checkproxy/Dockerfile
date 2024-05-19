@@ -55,7 +55,7 @@ RUN set -eux; \
     npm run -w @avito-speculant/queue build; \
     npm run -w @avito-speculant/worker-checkproxy build
 
-COPY docker-entrypoint/ /lib/entrypoint/
+COPY misc/docker-entrypoint/ /lib/entrypoint/
 
 CMD ["npm", "-w", "@avito-speculant/worker-checkproxy", "run", "start"]
 

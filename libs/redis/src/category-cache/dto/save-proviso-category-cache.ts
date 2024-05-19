@@ -5,9 +5,4 @@ export type SaveProvisoCategoryCacheRequest = {
   reportedAt: number
 }
 
-export type SaveProvisoCategoryCacheResponse = void
-
-export type SaveProvisoCategoryCache = RedisMethod<
-  SaveProvisoCategoryCacheRequest,
-  SaveProvisoCategoryCacheResponse
->
+export type SaveProvisoCategoryCache = RedisMethod<SaveProvisoCategoryCacheRequest, void>

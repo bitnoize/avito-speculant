@@ -6,6 +6,4 @@ export type SaveOnlineBotCacheRequest = {
   username: string
 }
 
-export type SaveOnlineBotCacheResponse = void
-
-export type SaveOnlineBotCache = RedisMethod<SaveOnlineBotCacheRequest, SaveOnlineBotCacheResponse>
+export type SaveOnlineBotCache = RedisMethod<SaveOnlineBotCacheRequest, void>

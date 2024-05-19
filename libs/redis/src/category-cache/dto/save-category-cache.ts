@@ -12,6 +12,4 @@ export type SaveCategoryCacheRequest = {
   queuedAt: number
 }
 
-export type SaveCategoryCacheResponse = void
-
-export type SaveCategoryCache = RedisMethod<SaveCategoryCacheRequest, SaveCategoryCacheResponse>
+export type SaveCategoryCache = RedisMethod<SaveCategoryCacheRequest, void>

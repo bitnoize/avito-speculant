@@ -5,6 +5,4 @@ export type DropAdvertsCacheRequest = {
   advertIds: number[]
 }
 
-export type DropAdvertsCacheResponse = void
-
-export type DropAdvertsCache = RedisMethod<DropAdvertsCacheRequest, DropAdvertsCacheResponse>
+export type DropAdvertsCache = RedisMethod<DropAdvertsCacheRequest, void>

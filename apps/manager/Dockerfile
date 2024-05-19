@@ -44,7 +44,7 @@ RUN set -eux; \
     npm run -w @avito-speculant/queue build; \
     npm run -w @avito-speculant/manager build
 
-COPY docker-entrypoint/ /lib/entrypoint/
+COPY misc/docker-entrypoint/ /lib/entrypoint/
 
 ENTRYPOINT ["npm", "-w", "@avito-speculant/manager", "run", "start"]
 

@@ -1,4 +1,4 @@
-import { Context, SessionFlavor } from 'grammy'
+import { Context } from 'grammy'
 import { User, Subscription, Plan } from '@avito-speculant/database'
 
 export type BotContext = Context & {

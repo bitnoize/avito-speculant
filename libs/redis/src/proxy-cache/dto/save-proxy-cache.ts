@@ -9,6 +9,4 @@ export type SaveProxyCacheRequest = {
   queuedAt: number
 }
 
-export type SaveProxyCacheResponse = void
-
-export type SaveProxyCache = RedisMethod<SaveProxyCacheRequest, SaveProxyCacheResponse>
+export type SaveProxyCache = RedisMethod<SaveProxyCacheRequest, void>

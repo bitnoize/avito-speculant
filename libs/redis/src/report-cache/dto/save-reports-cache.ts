@@ -9,6 +9,4 @@ export type SaveReportsCacheRequest = {
   categoryReports: CategoryReport[]
 }
 
-export type SaveReportsCacheResponse = void
-
-export type SaveReportsCache = RedisMethod<SaveReportsCacheRequest, SaveReportsCacheResponse>
+export type SaveReportsCache = RedisMethod<SaveReportsCacheRequest, void>

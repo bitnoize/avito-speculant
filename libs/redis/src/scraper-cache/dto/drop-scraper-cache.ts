@@ -5,6 +5,4 @@ export type DropScraperCacheRequest = {
   urlPath: string
 }
 
-export type DropScraperCacheResponse = void
-
-export type DropScraperCache = RedisMethod<DropScraperCacheRequest, DropScraperCacheResponse>
+export type DropScraperCache = RedisMethod<DropScraperCacheRequest, void>

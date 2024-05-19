@@ -5,6 +5,4 @@ export type SaveScraperCacheRequest = {
   urlPath: string
 }
 
-export type SaveScraperCacheResponse = void
-
-export type SaveScraperCache = RedisMethod<SaveScraperCacheRequest, SaveScraperCacheResponse>
+export type SaveScraperCache = RedisMethod<SaveScraperCacheRequest, void>

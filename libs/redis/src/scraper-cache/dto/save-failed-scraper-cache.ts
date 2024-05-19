@@ -4,9 +4,4 @@ export type SaveFailedScraperCacheRequest = {
   scraperId: string
 }
 
-export type SaveFailedScraperCacheResponse = void
-
-export type SaveFailedScraperCache = RedisMethod<
-  SaveFailedScraperCacheRequest,
-  SaveFailedScraperCacheResponse
->
+export type SaveFailedScraperCache = RedisMethod<SaveFailedScraperCacheRequest, void>

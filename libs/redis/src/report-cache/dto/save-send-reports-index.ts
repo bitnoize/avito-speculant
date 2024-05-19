@@ -5,9 +5,4 @@ export type SaveSendReportsIndexRequest = {
   limit: number
 }
 
-export type SaveSendReportsIndexResponse = void
-
-export type SaveSendReportsIndex = RedisMethod<
-  SaveSendReportsIndexRequest,
-  SaveSendReportsIndexResponse
->
+export type SaveSendReportsIndex = RedisMethod<SaveSendReportsIndexRequest, void>

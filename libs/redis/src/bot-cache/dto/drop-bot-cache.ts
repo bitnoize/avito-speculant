@@ -5,6 +5,4 @@ export type DropBotCacheRequest = {
   userId: number
 }
 
-export type DropBotCacheResponse = void
-
-export type DropBotCache = RedisMethod<DropBotCacheRequest, DropBotCacheResponse>
+export type DropBotCache = RedisMethod<DropBotCacheRequest, void>

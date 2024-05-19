@@ -1,7 +1,6 @@
-import { ErrorContext } from '@avito-speculant/common'
-import { QueueError } from '../queue.errors.js'
+import { DomainError, ErrorContext } from '@avito-speculant/common'
 
-export class CheckbotOverflowError extends QueueError {
+export class CheckbotOverflowError extends DomainError {
   constructor(context: ErrorContext, code = 101, message = `Checkbot queue overflow`) {
     super(context, code, message)
   }

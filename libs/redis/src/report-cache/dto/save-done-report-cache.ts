@@ -6,9 +6,4 @@ export type SaveDoneReportCacheRequest = {
   postedAt: number
 }
 
-export type SaveDoneReportCacheResponse = void
-
-export type SaveDoneReportCache = RedisMethod<
-  SaveDoneReportCacheRequest,
-  SaveDoneReportCacheResponse
->
+export type SaveDoneReportCache = RedisMethod<SaveDoneReportCacheRequest, void>

@@ -12,6 +12,4 @@ export type SaveUserCacheRequest = {
   queuedAt: number
 }
 
-export type SaveUserCacheResponse = void
-
-export type SaveUserCache = RedisMethod<SaveUserCacheRequest, SaveUserCacheResponse>
+export type SaveUserCache = RedisMethod<SaveUserCacheRequest, void>

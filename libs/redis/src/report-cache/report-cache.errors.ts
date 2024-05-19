@@ -1,7 +1,6 @@
-import { ErrorContext } from '@avito-speculant/common'
-import { RedisError } from '../redis.errors.js'
+import { DomainError, ErrorContext } from '@avito-speculant/common'
 
-export class ReportCacheNotFoundError extends RedisError {
+export class ReportCacheNotFoundError extends DomainError {
   constructor(context: ErrorContext, code = 101, message = `ReportCache not found`) {
     super(context, code, message)
   }

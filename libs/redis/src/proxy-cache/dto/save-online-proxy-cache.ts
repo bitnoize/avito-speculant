@@ -5,9 +5,4 @@ export type SaveOnlineProxyCacheRequest = {
   createdAt: number
 }
 
-export type SaveOnlineProxyCacheResponse = void
-
-export type SaveOnlineProxyCache = RedisMethod<
-  SaveOnlineProxyCacheRequest,
-  SaveOnlineProxyCacheResponse
->
+export type SaveOnlineProxyCache = RedisMethod<SaveOnlineProxyCacheRequest, void>

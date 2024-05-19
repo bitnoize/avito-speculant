@@ -4,6 +4,4 @@ export type DropProxyCacheRequest = {
   proxyId: number
 }
 
-export type DropProxyCacheResponse = void
-
-export type DropProxyCache = RedisMethod<DropProxyCacheRequest, DropProxyCacheResponse>
+export type DropProxyCache = RedisMethod<DropProxyCacheRequest, void>

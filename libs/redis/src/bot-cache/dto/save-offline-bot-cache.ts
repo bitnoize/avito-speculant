@@ -4,9 +4,4 @@ export type SaveOfflineBotCacheRequest = {
   botId: number
 }
 
-export type SaveOfflineBotCacheResponse = void
-
-export type SaveOfflineBotCache = RedisMethod<
-  SaveOfflineBotCacheRequest,
-  SaveOfflineBotCacheResponse
->
+export type SaveOfflineBotCache = RedisMethod<SaveOfflineBotCacheRequest, void>

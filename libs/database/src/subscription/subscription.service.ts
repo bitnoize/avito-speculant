@@ -20,6 +20,7 @@ import { UserNotFoundError } from '../user/user.errors.js'
 import * as userRepository from '../user/user.repository.js'
 import { PlanNotFoundError, PlanIsDisabledError } from '../plan/plan.errors.js'
 import * as planRepository from '../plan/plan.repository.js'
+import { DatabaseInternalError } from '../database.errors.js'
 
 /**
  * Create Subscription
@@ -277,7 +278,7 @@ export const consumeSubscription: ConsumeSubscription = async function (db, requ
     const userRow = await userRepository.selectRowById(trx, subscriptionRow.user_id)
 
     if (userRow === undefined) {
-      throw new UserNotFoundError({ request, subscriptionRow }, 100)
+      throw new DatabaseInternalError({ subscriptionRow }, 100, 'User not found')
     }
 
     if (subscriptionRow.status === 'wait') {
