@@ -27,8 +27,12 @@ import {
   ApiPutSubscriptionCancel,
   ApiGetSubscriptions,
   ApiPostBot,
-  ApiPutBotEnableDisable,
+  ApiPutBotEnable,
+  ApiPutBotDisable,
   ApiGetBots,
+  ApiPostCategory,
+  ApiPutCategoryEnable,
+  ApiPutCategoryDisable,
   ApiGetCategories,
 } from './bot.js'
 import { configSchema } from './bot.schema.js'
@@ -147,8 +151,12 @@ async function bootstrap(): Promise<void> {
     }
   )
 
+  //
+  // Api Plan
+  //
+
   api.get<ApiGetPlans>(
-    '/plans',
+    '/v1/plans',
     async (request, reply) => {
       if (request.userId === undefined) {
         throw new Error('Authorize lost')
@@ -171,8 +179,12 @@ async function bootstrap(): Promise<void> {
     }
   )
 
+  //
+  // Api Subscription
+  //
+
   api.post<ApiPostSubscription>(
-    '/subscription',
+    '/v1/subscription',
     {
       schema: {
         body: {
@@ -218,7 +230,7 @@ async function bootstrap(): Promise<void> {
   )
 
   api.put<ApiPutSubscriptionCancel>(
-    '/subscription/:subscriptionId/cancel',
+    '/v1/subscription/:subscriptionId/cancel',
     {
       schema: {
         params: {
@@ -264,20 +276,16 @@ async function bootstrap(): Promise<void> {
   )
 
   api.get<ApiGetSubscriptions>(
-    '/subscriptions',
+    '/v1/subscriptions',
     async (request, reply) => {
       if (request.userId === undefined) {
         throw new Error('Authorize lost')
       }
 
-      const { userCache } = await userCacheService.fetchUserCache(redis, {
-        userId: request.userId
-      })
-
       const {
         subscriptionsCache
       } = await subscriptionCacheService.fetchUserSubscriptionsCache(redis, {
-        userId: userCache.id
+        userId: request.userId
       })
 
       reply.code(200).send({
@@ -295,8 +303,12 @@ async function bootstrap(): Promise<void> {
     }
   )
 
+  //
+  // Api Bot
+  //
+
   api.post<ApiPostBot>(
-    '/bot',
+    '/v1/bot',
     {
       schema: {
         body: {
@@ -333,30 +345,22 @@ async function bootstrap(): Promise<void> {
           token: bot.token,
           isLinked: bot.isLinked,
           isEnabled: bot.isEnabled,
-          isOnline: null,
-          tgFromId: null,
-          username: null,
-          totalCount: null,
-          successCount: null,
           createdAt: bot.createdAt
         }
       })
     }
   )
 
-  api.put<ApiPutBotEnableDisable>(
-    '/bot/:botId/:action',
+  api.put<ApiPutBotEnable>(
+    '/v1/bot/:botId/enable',
     {
       schema: {
         params: {
           type: 'object',
-          required: ['botId', 'action'],
+          required: ['botId'],
           properties: {
             'botId': {
               type: 'integer'
-            },
-            'action': {
-              enum: ['enable', 'disable']
             }
           },
           additionalProperties: false
@@ -368,77 +372,84 @@ async function bootstrap(): Promise<void> {
         throw new Error('Authorize lost')
       }
 
-      if (request.params.action === 'enable') {
-        const { user, bot, backLog } = await botService.enableBot(db, {
-          userId: request.userId,
-          botId: request.params.botId,
-          data: {}
-        })
+      const { user, bot, backLog } = await botService.enableBot(db, {
+        userId: request.userId,
+        botId: request.params.botId,
+        data: {}
+      })
 
-        await redisService.publishBackLog(pubSub, backLog)
+      await redisService.publishBackLog(pubSub, backLog)
 
-        await treatmentService.addJob(treatmentQueue, 'user', user.id)
-        await treatmentService.addJob(treatmentQueue, 'bot', bot.id)
+      await treatmentService.addJob(treatmentQueue, 'user', user.id)
+      await treatmentService.addJob(treatmentQueue, 'bot', bot.id)
 
-        reply.code(200).send({
-          ok: true,
-          data: {
-            botId: bot.id,
-            token: bot.token,
-            isLinked: bot.isLinked,
-            isEnabled: bot.isEnabled,
-            isOnline: null,
-            tgFromId: null,
-            username: null,
-            totalCount: null,
-            successCount: null,
-            createdAt: bot.createdAt
-          }
-        })
-      } else if (request.params.action === 'disable') {
-        const { user, bot, backLog } = await botService.disableBot(db, {
-          userId: request.userId,
-          botId: request.params.botId,
-          data: {}
-        })
-
-        await redisService.publishBackLog(pubSub, backLog)
-
-        await treatmentService.addJob(treatmentQueue, 'user', user.id)
-        await treatmentService.addJob(treatmentQueue, 'bot', bot.id)
-
-        reply.code(200).send({
-          ok: true,
-          data: {
-            botId: bot.id,
-            token: bot.token,
-            isLinked: bot.isLinked,
-            isEnabled: bot.isEnabled,
-            isOnline: null,
-            tgFromId: null,
-            username: null,
-            totalCount: null,
-            successCount: null,
-            createdAt: bot.createdAt
-          }
-        })
-      }
+      reply.code(200).send({
+        ok: true,
+        data: {
+          botId: bot.id,
+          token: bot.token,
+          isLinked: bot.isLinked,
+          isEnabled: bot.isEnabled,
+          createdAt: bot.createdAt
+        }
+      })
     }
   )
 
-  api.get<ApiGetBots>(
-    '/bots',
+  api.put<ApiPutBotDisable>(
+    '/v1/bot/:botId/disable',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['botId'],
+          properties: {
+            'botId': {
+              type: 'integer'
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
     async (request, reply) => {
       if (request.userId === undefined) {
         throw new Error('Authorize lost')
       }
 
-      const { userCache } = await userCacheService.fetchUserCache(redis, {
-        userId: request.userId
+      const { user, bot, backLog } = await botService.disableBot(db, {
+        userId: request.userId,
+        botId: request.params.botId,
+        data: {}
       })
 
+      await redisService.publishBackLog(pubSub, backLog)
+
+      await treatmentService.addJob(treatmentQueue, 'user', user.id)
+      await treatmentService.addJob(treatmentQueue, 'bot', bot.id)
+
+      reply.code(200).send({
+        ok: true,
+        data: {
+          botId: bot.id,
+          token: bot.token,
+          isLinked: bot.isLinked,
+          isEnabled: bot.isEnabled,
+          createdAt: bot.createdAt
+        }
+      })
+    }
+  )
+
+  api.get<ApiGetBots>(
+    '/v1/bots',
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
       const { botsCache } = await botCacheService.fetchUserBotsCache(redis, {
-        userId: userCache.id
+        userId: request.userId
       })
 
       reply.code(200).send({
@@ -459,19 +470,157 @@ async function bootstrap(): Promise<void> {
     }
   )
 
-  api.get<ApiGetCategories>(
-    '/categories',
+  //
+  // Api Category
+  //
+
+  api.post<ApiPostCategory>(
+    '/v1/category',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          required: ['urlPath'],
+          properties: {
+            'urlPath': {
+              type: 'string'
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
     async (request, reply) => {
       if (request.userId === undefined) {
         throw new Error('Authorize lost')
       }
 
-      const { userCache } = await userCacheService.fetchUserCache(redis, {
-        userId: request.userId
+      const { category, backLog } = await categoryService.createCategory(db, {
+        userId: request.userId,
+        urlPath: request.body.urlPath,
+        data: {}
       })
 
+      await redisService.publishBackLog(pubSub, backLog)
+
+      await treatmentService.addJob(treatmentQueue, 'category', category.id)
+
+      reply.code(201).send({
+        ok: true,
+        data: {
+          categoryId: category.id,
+          urlPath: category.urlPath,
+          botId: category.botId,
+          isEnabled: category.isEnabled,
+          createdAt: category.createdAt,
+        }
+      })
+    }
+  )
+
+  api.put<ApiPutCategoryEnable>(
+    '/v1/category/:categoryId/enable',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['categoryId', 'botId'],
+          properties: {
+            'categoryId': {
+              type: 'integer'
+            },
+            'botId': {
+              type: 'integer'
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
+      const { user, category, backLog } = await categoryService.enableCategory(db, {
+        userId: request.userId,
+        categoryId: request.params.categoryId,
+        botId: request.params.botId,
+        data: {}
+      })
+
+      await redisService.publishBackLog(pubSub, backLog)
+
+      await treatmentService.addJob(treatmentQueue, 'user', user.id)
+      await treatmentService.addJob(treatmentQueue, 'category', category.id)
+
+      reply.code(200).send({
+        ok: true,
+        data: {
+          categoryId: category.id,
+          urlPath: category.urlPath,
+          botId: category.botId,
+          isEnabled: category.isEnabled,
+          createdAt: category.createdAt,
+        }
+      })
+    }
+  )
+
+  api.put<ApiPutCategoryDisable>(
+    '/v1/category/:categoryId/disable',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['categoryId'],
+          properties: {
+            'categoryId': {
+              type: 'integer'
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
+      const { user, category, backLog } = await categoryService.disableCategory(db, {
+        userId: request.userId,
+        categoryId: request.params.categoryId,
+        data: {}
+      })
+
+      await redisService.publishBackLog(pubSub, backLog)
+
+      await treatmentService.addJob(treatmentQueue, 'user', user.id)
+      await treatmentService.addJob(treatmentQueue, 'category', category.id)
+
+      reply.code(200).send({
+        ok: true,
+        data: {
+          categoryId: category.id,
+          urlPath: category.urlPath,
+          botId: category.botId,
+          isEnabled: category.isEnabled,
+          createdAt: category.createdAt,
+        }
+      })
+    }
+  )
+
+  api.get<ApiGetCategories>(
+    '/v1/categories',
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
       const { categoriesCache } = await categoryCacheService.fetchUserCategoriesCache(redis, {
-        userId: userCache.id
+        userId: request.userId
       })
 
       reply.code(200).send({
@@ -488,54 +637,6 @@ async function bootstrap(): Promise<void> {
       })
     }
   )
-
-  /*
-  api.post<{
-    Body: ApiPostSubscriptionBody,
-    Reply: ApiPostSubscriptionReply
-  }>(
-    '/plans',
-    {
-      schema: {
-        body: {
-          type: 'object',
-          required: ['planId'],
-          properties: {
-            'planId': {
-              type: 'integer'
-            }
-          },
-          additionalProperties: false
-        }
-      }
-    },
-    async (request, reply) => {
-      if (request.userId === undefined) {
-        throw new Error('Authorize lost')
-      }
-
-      const userCache = await userCacheService.fetchUserCache(redis, {
-        userId: request.userId
-      })
-
-      //const { plansCache } = await planCacheService.fetchPlansCache(redis)
-
-      reply.code(200).send({
-        ok: true,
-        plans: plansCache.map((planCache) => ({
-          id: planCache.id,
-          categoriesMax: planCache.categoriesMax,
-          durationDays: planCache.durationDays,
-          intervalSec: planCache.intervalSec,
-          analyticsOn: planCache.analyticsOn,
-          priceRub: planCache.priceRub,
-          isEnabled: planCache.isEnabled
-        }))
-      })
-    }
-  )
-
-*/
 
   //api.post(`/${bot.token}`, webhookCallback(bot, 'fastify'))
 

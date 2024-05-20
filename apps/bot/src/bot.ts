@@ -93,11 +93,11 @@ export interface BotData {
   token: string
   isLinked: boolean
   isEnabled: boolean
-  isOnline: boolean | null
-  tgFromId: string | null
-  username: string | null
-  totalCount: number | null
-  successCount: number | null
+  isOnline?: boolean
+  tgFromId?: string | null
+  username?: string | null
+  totalCount?: number
+  successCount?: number
   createdAt: number
 }
 
@@ -115,19 +115,32 @@ export interface ApiPostBot {
   Reply: ApiPostBotReply
 }
 
-export interface ApiPutBotEnableDisableParams {
+export interface ApiPutBotEnableParams {
   botId: number
-  action: 'enable' | 'disable'
 }
 
-export interface ApiPutBotEnableDisableReply {
+export interface ApiPutBotEnableReply {
   ok: boolean
   data: BotData
 }
 
-export interface ApiPutBotEnableDisable {
-  Params: ApiPutBotEnableDisableParams
-  Reply: ApiPutBotEnableDisableReply
+export interface ApiPutBotEnable {
+  Params: ApiPutBotEnableParams
+  Reply: ApiPutBotEnableReply
+}
+
+export interface ApiPutBotDisableParams {
+  botId: number
+}
+
+export interface ApiPutBotDisableReply {
+  ok: boolean
+  data: BotData
+}
+
+export interface ApiPutBotDisable {
+  Params: ApiPutBotDisableParams
+  Reply: ApiPutBotDisableReply
 }
 
 export interface ApiGetBotsReply {
@@ -147,10 +160,54 @@ export interface CategoryData {
   categoryId: number
   urlPath: string
   botId: number | null
-  scraperId: string
+  scraperId?: string
   isEnabled: boolean
   createdAt: number
-  reportedAt: number
+  reportedAt?: number
+}
+
+export interface ApiPostCategoryBody {
+  urlPath: string
+}
+
+export interface ApiPostCategoryReply {
+  ok: boolean
+  data: CategoryData
+}
+
+export interface ApiPostCategory {
+  Body: ApiPostCategoryBody
+  Reply: ApiPostCategoryReply
+}
+
+export interface ApiPutCategoryEnableParams {
+  categoryId: number
+  botId: number
+}
+
+export interface ApiPutCategoryEnableReply {
+  ok: boolean
+  data: CategoryData
+}
+
+export interface ApiPutCategoryEnable {
+  Params: ApiPutCategoryEnableParams
+  Reply: ApiPutCategoryEnableReply
+}
+
+export interface ApiPutCategoryDisableParams {
+  categoryId: number
+  botId: number
+}
+
+export interface ApiPutCategoryDisableReply {
+  ok: boolean
+  data: CategoryData
+}
+
+export interface ApiPutCategoryDisable {
+  Params: ApiPutCategoryDisableParams
+  Reply: ApiPutCategoryDisableReply
 }
 
 export interface ApiGetCategoriesReply {
