@@ -81,7 +81,7 @@ finishAt - время окончания подписки
 
 GET /v1/subscription/:subscriptionId
 
-Получить подписку план по Id.
+Получить подписку по Id.
 
 ```
 # Получить подписку с идентификатором #1
@@ -147,6 +147,30 @@ updatedAt - время обновления
 
 ```
 
+GET /v1/bot/:botId
+
+Получить бота по Id.
+
+
+POST /v1/bot
+
+  - token - токен бота
+
+Создать бота.
+
+
+PUT /v1/bot/:botId/enable
+
+Включить бота.
+
+PUT /v1/bot/:botId/disable
+
+Выключить бота.
+
+GET /v1/bots
+
+Список ботов пользователя.
+
 Category
 --------
 
@@ -162,9 +186,41 @@ reportedAt - время для отчета, NULL
 
 ```
 
+GET /v1/category/:categoryId
+
+Получить категорию по Id.
+
+
+POST /v1/category
+
+  - urlPath - путь из url авито
+
+Создать категорию.
+
+
+PUT /v1/category/:categoryId/enable
+
+Включить категорию.
+
+PUT /v1/category/:categoryId/disable
+
+Выключить категорию.
+
+GET /v1/categories
+
+Список категорий пользователя.
+
 Scraper
 -------
 
 ```
+scraperId - идентификатор скрапера
+urlPath - путь из url авито
+totalCount - все запросы
+successCount - успешные запросы
 ```
+
+GET /v1/scraper/:scraperId
+
+Получить скрапер по Id.
 
