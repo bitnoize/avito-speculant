@@ -4,7 +4,9 @@ export type FetchTelegramUserLinkRequest = {
   tgFromId: string
 }
 
-export type FetchTelegramUserLinkResponse = number | undefined
+export type FetchTelegramUserLinkResponse = {
+  userId?: number
+}
 
 export type FetchTelegramUserLink = RedisMethod<
   FetchTelegramUserLinkRequest,

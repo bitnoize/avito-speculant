@@ -11,6 +11,30 @@ export type Config = LoggerConfig &
   }
 
 //
+// User
+//
+
+export interface UserData {
+  userId: number
+  tgFromId: string
+  activeSubscriptionId: number | null
+  subscriptions: number
+  categories: number
+  bots: number
+  createdAt: number
+  updatedAt: number
+}
+
+export interface ApiGetUserReply {
+  ok: boolean
+  data: UserData
+}
+
+export interface ApiGetUser {
+  Reply: ApiGetUserReply
+}
+
+//
 // Plan
 //
 
@@ -22,6 +46,20 @@ export interface PlanData {
   analyticsOn: boolean
   priceRub: number
   isEnabled: boolean
+}
+
+export interface ApiGetPlanParams {
+  planId: number
+}
+
+export interface ApiGetPlanReply {
+  ok: boolean
+  data: PlanData
+}
+
+export interface ApiGetPlan {
+  Params: ApiGetPlanParams
+  Reply: ApiGetPlanReply
 }
 
 export interface ApiGetPlansReply {
@@ -43,8 +81,23 @@ export interface SubscriptionData {
   priceRub: number
   status: string
   createdAt: number
+  updatedAt: number
   timeoutAt: number
   finishAt: number
+}
+
+export interface ApiGetSubscriptionParams {
+  subscriptionId: number
+}
+
+export interface ApiGetSubscriptionReply {
+  ok: boolean
+  data: SubscriptionData
+}
+
+export interface ApiGetSubscription {
+  Params: ApiGetSubscriptionParams
+  Reply: ApiGetSubscriptionReply
 }
 
 export interface ApiPostSubscriptionBody {
@@ -99,6 +152,21 @@ export interface BotData {
   totalCount?: number
   successCount?: number
   createdAt: number
+  updatedAt: number
+}
+
+export interface ApiGetBotParams {
+  botId: number
+}
+
+export interface ApiGetBotReply {
+  ok: boolean
+  data: BotData
+}
+
+export interface ApiGetBot {
+  Params: ApiGetBotParams
+  Reply: ApiGetBotReply
 }
 
 export interface ApiPostBotBody {
@@ -163,7 +231,22 @@ export interface CategoryData {
   scraperId?: string
   isEnabled: boolean
   createdAt: number
+  updatedAt: number
   reportedAt?: number
+}
+
+export interface ApiGetCategoryParams {
+  categoryId: number
+}
+
+export interface ApiGetCategoryReply {
+  ok: boolean
+  data: CategoryData
+}
+
+export interface ApiGetCategory {
+  Params: ApiGetCategoryParams
+  Reply: ApiGetCategoryReply
 }
 
 export interface ApiPostCategoryBody {
@@ -182,6 +265,9 @@ export interface ApiPostCategory {
 
 export interface ApiPutCategoryEnableParams {
   categoryId: number
+}
+
+export interface ApiPutCategoryEnableBody {
   botId: number
 }
 
@@ -192,6 +278,7 @@ export interface ApiPutCategoryEnableReply {
 
 export interface ApiPutCategoryEnable {
   Params: ApiPutCategoryEnableParams
+  Body: ApiPutCategoryEnableBody
   Reply: ApiPutCategoryEnableReply
 }
 
@@ -217,4 +304,29 @@ export interface ApiGetCategoriesReply {
 
 export interface ApiGetCategories {
   Reply: ApiGetCategoriesReply
+}
+
+//
+// Scraper
+//
+
+export interface ScraperData {
+  scraperId: string
+  urlPath: string
+  totalCount: number
+  successCount: number
+}
+
+export interface ApiGetScraperParams {
+  scraperId: string
+}
+
+export interface ApiGetScraperReply {
+  ok: boolean
+  data: ScraperData
+}
+
+export interface ApiGetScraper {
+  Params: ApiGetScraperParams
+  Reply: ApiGetScraperReply
 }

@@ -21,13 +21,23 @@ declare module 'ioredis' {
       userCacheKey: string, // KEYS[1]
       userId: number, // ARGV[1]
       tgFromId: string, // ARGV[2]
-      active_subscription_id: number | null, // ARGV[3]
-      subscriptions: number, // ARGV[4]
-      categories: number, // ARGV[5]
-      bots: number, // ARGV[6]
-      createdAt: number, // ARGV[7]
-      updatedAt: number, // ARGV[8]
-      queuedAt: number, // ARGV[9]
+      subscriptions: number, // ARGV[3]
+      categories: number, // ARGV[4]
+      bots: number, // ARGV[5]
+      createdAt: number, // ARGV[6]
+      updatedAt: number, // ARGV[7]
+      queuedAt: number, // ARGV[8]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveUserPaidCache(
+      userCacheKey: string, // KEYS[1]
+      activeSubscriptionId: number, // ARGV[1]
+      callback?: Callback<string>
+    ): Result<string, Context>
+
+    saveUserUnpaidCache(
+      userCacheKey: string, // KEYS[1]
       callback?: Callback<string>
     ): Result<string, Context>
 

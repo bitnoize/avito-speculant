@@ -1,7 +1,7 @@
 import { command } from 'cmd-ts'
 import { Logger } from '@avito-speculant/logger'
 import { redisService, scraperCacheService } from '@avito-speculant/redis'
-import { queueService, scrapingService, DatabaseInternalError } from '@avito-speculant/queue'
+import { queueService, scrapingService } from '@avito-speculant/queue'
 import { Config } from '../manager.js'
 
 export default (config: Config, logger: Logger) => {
@@ -24,7 +24,7 @@ export default (config: Config, logger: Logger) => {
         const scraperIds = scrapersCache.map((scraperCache) => scraperCache.id)
         const orphanScrapingJobs = repeatableJobs.filter((repeatableJob) => {
           if (repeatableJob.id == null) {
-            throw new DatabaseInternalError({ repeatableJob })
+            throw new Error(`bla bla`)
           }
 
           return !scraperIds.includes(repeatableJob.id)

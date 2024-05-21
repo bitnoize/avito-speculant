@@ -1,7 +1,7 @@
 import { RedisMethod } from '../../redis.js'
 
 export type SaveWebappUserLinkRequest = {
-  token: string
+  session: string
   userId: number
 }
 

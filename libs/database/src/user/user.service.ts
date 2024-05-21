@@ -1,43 +1,27 @@
 import { Notify } from '@avito-speculant/common'
-import { AuthorizeUser, ProduceUsers, ConsumeUser } from './dto/index.js'
+import { CreateUser, ProduceUsers, ConsumeUser } from './dto/index.js'
 import { UserNotFoundError } from './user.errors.js'
 import * as userRepository from './user.repository.js'
 import * as userLogRepository from '../user-log/user-log.repository.js'
+import * as planRepository from '../plan/plan.repository.js'
 import * as subscriptionRepository from '../subscription/subscription.repository.js'
 import * as categoryRepository from '../category/category.repository.js'
 import * as botRepository from '../bot/bot.repository.js'
+import { DatabaseInternalError } from '../database.errors.js'
 
 /**
- * Authorize User
+ * Create User
  */
-export const authorizeUser: AuthorizeUser = async function (db, request) {
+export const createUser: CreateUser = async function (db, request) {
   return await db.transaction().execute(async (trx) => {
     const backLog: Notify[] = []
 
     const existsUserRow = await userRepository.selectRowByTgFromId(trx, request.tgFromId)
 
     if (existsUserRow !== undefined) {
-      const activeSubscriptionRow = await subscriptionRepository.selectRowByUserIdStatus(
-        trx,
-        existsUserRow.id,
-        'active'
-      )
-
-      if (activeSubscriptionRow !== undefined) {
-        existsUserRow.active_subscription_id = activeSubscriptionRow.id
-
-        return {
-          user: userRepository.buildModel(existsUserRow),
-          subscription: subscriptionRepository.buildModel(activeSubscriptionRow),
-          backLog
-        }
-      } else {
-        existsUserRow.active_subscription_id = null
-
-        return {
-          user: userRepository.buildModel(existsUserRow),
-          backLog
-        }
+      return {
+        user: userRepository.buildModel(existsUserRow),
+        backLog
       }
     }
 

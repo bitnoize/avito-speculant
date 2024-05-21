@@ -1,18 +1,16 @@
 import { Notify } from '@avito-speculant/common'
 import { User } from '../user.js'
 import { UserLogData } from '../../user-log/user-log.js'
-import { Subscription } from '../../subscription/subscription.js'
 import { DatabaseMethod } from '../../database.js'
 
-export type AuthorizeUserRequest = {
+export type CreateUserRequest = {
   tgFromId: string
   data: UserLogData
 }
 
-export type AuthorizeUserResponse = {
+export type CreateUserResponse = {
   user: User
-  subscription?: Subscription
   backLog: Notify[]
 }
 
-export type AuthorizeUser = DatabaseMethod<AuthorizeUserRequest, AuthorizeUserResponse>
+export type CreateUser = DatabaseMethod<CreateUserRequest, CreateUserResponse>

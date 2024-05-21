@@ -16,9 +16,9 @@ return redis.call(
 )
 `
 
-const fetchSubscriptionLink = `
-return redis.call('GET', KEYS[1])
-`
+//const fetchSubscriptionLink = `
+//return redis.call('GET', KEYS[1])
+//`
 
 const fetchSubscriptionsIndex = `
 return redis.call('ZRANGE', KEYS[1], 0, -1)
@@ -42,11 +42,11 @@ redis.call(
 return redis.status_reply('OK')
 `
 
-const saveSubscriptionLink = `
-redis.call('SET', KEYS[1], ARGV[1])
-
-return redis.status_reply('OK')
-`
+//const saveSubscriptionLink = `
+//redis.call('SET', KEYS[1], ARGV[1])
+//
+//return redis.status_reply('OK')
+//`
 
 const saveSubscriptionsIndex = `
 redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
@@ -60,11 +60,11 @@ redis.call('DEL', KEYS[1])
 return redis.status_reply('OK')
 `
 
-const dropSubscriptionLink = `
-redis.call('DEL', KEYS[1])
-
-return redis.status_reply('OK')
-`
+//const dropSubscriptionLink = `
+//redis.call('DEL', KEYS[1])
+//
+//return redis.status_reply('OK')
+//`
 
 const dropSubscriptionsIndex = `
 redis.call('ZREM', KEYS[1], ARGV[1])
@@ -78,10 +78,10 @@ const initScripts: InitScripts = (redis) => {
     lua: fetchSubscriptionCache
   })
 
-  redis.defineCommand('fetchSubscriptionLink', {
-    numberOfKeys: 1,
-    lua: fetchSubscriptionLink
-  })
+//redis.defineCommand('fetchSubscriptionLink', {
+//  numberOfKeys: 1,
+//  lua: fetchSubscriptionLink
+//})
 
   redis.defineCommand('fetchSubscriptionsIndex', {
     numberOfKeys: 1,
@@ -93,10 +93,10 @@ const initScripts: InitScripts = (redis) => {
     lua: saveSubscriptionCache
   })
 
-  redis.defineCommand('saveSubscriptionLink', {
-    numberOfKeys: 1,
-    lua: saveSubscriptionLink
-  })
+//redis.defineCommand('saveSubscriptionLink', {
+//  numberOfKeys: 1,
+//  lua: saveSubscriptionLink
+//})
 
   redis.defineCommand('saveSubscriptionsIndex', {
     numberOfKeys: 1,
@@ -108,10 +108,10 @@ const initScripts: InitScripts = (redis) => {
     lua: dropSubscriptionCache
   })
 
-  redis.defineCommand('dropSubscriptionLink', {
-    numberOfKeys: 1,
-    lua: dropSubscriptionLink
-  })
+//redis.defineCommand('dropSubscriptionLink', {
+//  numberOfKeys: 1,
+//  lua: dropSubscriptionLink
+//})
 
   redis.defineCommand('dropSubscriptionsIndex', {
     numberOfKeys: 1,

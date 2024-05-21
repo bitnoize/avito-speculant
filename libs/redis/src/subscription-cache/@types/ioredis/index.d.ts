@@ -7,10 +7,10 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchSubscriptionLink(
-      subscriptionLinkKey: string, // KEYS[1]
-      callback?: Callback<string>
-    ): Result<string, Context>
+//  fetchSubscriptionLink(
+//    subscriptionLinkKey: string, // KEYS[1]
+//    callback?: Callback<string>
+//  ): Result<string, Context>
 
     fetchSubscriptionsIndex(
       subscriptionsIndexKey: string, // KEYS[1]
@@ -32,11 +32,11 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    saveSubscriptionLink(
-      subscriptionLinkKey: string, // KEYS[1]
-      subscriptionId: number, // ARGV[1]
-      callback?: Callback<string>
-    ): Result<string, Context>
+//  saveSubscriptionLink(
+//    subscriptionLinkKey: string, // KEYS[1]
+//    subscriptionId: number, // ARGV[1]
+//    callback?: Callback<string>
+//  ): Result<string, Context>
 
     saveSubscriptionsIndex(
       subscriptionsIndexKey: string, // KEYS[1]
@@ -50,10 +50,10 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    dropSubscriptionLink(
-      subscriptionLinkKey: string, // KEYS[1]
-      callback?: Callback<string>
-    ): Result<string, Context>
+//  dropSubscriptionLink(
+//    subscriptionLinkKey: string, // KEYS[1]
+//    callback?: Callback<string>
+//  ): Result<string, Context>
 
     dropSubscriptionsIndex(
       subscriptionsIndexKey: string, // KEYS[1]

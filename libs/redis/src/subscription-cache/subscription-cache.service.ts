@@ -1,5 +1,6 @@
 import {
   FetchSubscriptionCache,
+  FetchUserSubscriptionCache,
   FetchUserSubscriptionsCache,
   SaveSubscriptionCache,
   DropSubscriptionCache
@@ -22,13 +23,30 @@ export const fetchSubscriptionCache: FetchSubscriptionCache = async function (re
     throw new SubscriptionCacheNotFoundError({ request })
   }
 
-  const planCache = await planCacheRepository.fetchPlanCache(redis, subscriptionCache.planId)
+  return { subscriptionCache }
+}
 
-  if (planCache === undefined) {
-    throw new PlanCacheNotFoundError({ request, subscriptionCache }, 100)
+/*
+ * Fetch UserSubscriptionCache
+ */
+export const fetchUserSubscriptionCache: FetchUserSubscriptionCache = async function (
+  redis,
+  request
+) {
+  const subscriptionCache = await subscriptionCacheRepository.fetchSubscriptionCache(
+    redis,
+    request.subscriptionId
+  )
+
+  if (subscriptionCache === undefined) {
+    throw new SubscriptionCacheNotFoundError({ request })
   }
 
-  return { subscriptionCache, planCache }
+  if (subscriptionCache.userId !== request.userId) {
+    throw new SubscriptionCacheNotFoundError({ request })
+  }
+
+  return { subscriptionCache }
 }
 
 /*

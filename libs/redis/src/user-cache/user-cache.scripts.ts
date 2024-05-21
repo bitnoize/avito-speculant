@@ -28,14 +28,25 @@ redis.call(
   'HSET', KEYS[1],
   'id', ARGV[1],
   'tg_from_id', ARGV[2],
-  'active_subscription_id', ARGV[3],
-  'subscriptions', ARGV[4],
-  'categories', ARGV[5],
-  'bots', ARGV[6],
-  'created_at', ARGV[7],
-  'updated_at', ARGV[8],
-  'queued_at', ARGV[9]
+  'subscriptions', ARGV[3],
+  'categories', ARGV[4],
+  'bots', ARGV[5],
+  'created_at', ARGV[6],
+  'updated_at', ARGV[7],
+  'queued_at', ARGV[8]
 )
+
+return redis.status_reply('OK')
+`
+
+const saveUserPaidCache = `
+redis.call('HSET', KEYS[1], 'active_subscription_id', ARGV[1])
+
+return redis.status_reply('OK')
+`
+
+const saveUserUnpaidCache = `
+redis.call('HDEL', KEYS[1], 'active_subscription_id')
 
 return redis.status_reply('OK')
 `
@@ -95,6 +106,16 @@ const initScripts: InitScripts = (redis) => {
   redis.defineCommand('saveUserCache', {
     numberOfKeys: 1,
     lua: saveUserCache
+  })
+
+  redis.defineCommand('saveUserPaidCache', {
+    numberOfKeys: 1,
+    lua: saveUserPaidCache
+  })
+
+  redis.defineCommand('saveUserUnpaidCache', {
+    numberOfKeys: 1,
+    lua: saveUserUnpaidCache
   })
 
   redis.defineCommand('saveUserLink', {

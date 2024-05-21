@@ -1,5 +1,6 @@
 import {
   FetchCategoryCache,
+  FetchUserCategoryCache,
   FetchUserCategoriesCache,
   FetchScraperCategoriesCache,
   SaveCategoryCache,
@@ -16,6 +17,23 @@ export const fetchCategoryCache: FetchCategoryCache = async function (redis, req
   const categoryCache = await categoryCacheRepository.fetchCategoryCache(redis, request.categoryId)
 
   if (categoryCache === undefined) {
+    throw new CategoryCacheNotFoundError({ request })
+  }
+
+  return { categoryCache }
+}
+
+/*
+ * Fetch UserCategoryCache
+ */
+export const fetchUserCategoryCache: FetchUserCategoryCache = async function (redis, request) {
+  const categoryCache = await categoryCacheRepository.fetchCategoryCache(redis, request.categoryId)
+
+  if (categoryCache === undefined) {
+    throw new CategoryCacheNotFoundError({ request })
+  }
+
+  if (categoryCache.userId !== request.userId) {
     throw new CategoryCacheNotFoundError({ request })
   }
 

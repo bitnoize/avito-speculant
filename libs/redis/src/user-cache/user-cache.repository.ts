@@ -1,15 +1,16 @@
 import { Redis } from 'ioredis'
 import {
   UserCache,
-  WEBAPP_TOKEN_TIMEOUT,
+  WEBAPP_SESSION_TIMEOUT,
   userCacheKey,
   telegramUserLinkKey,
   webappUserLinkKey,
   usersIndexKey
 } from './user-cache.js'
-import { userActiveSubscriptionLinkKey } from '../subscription-cache/subscription-cache.js'
+//import { userActiveSubscriptionLinkKey } from '../subscription-cache/subscription-cache.js'
 import {
   parseNumber,
+  parseNumberOrNull,
   parseManyNumbers,
   parseString,
   parseHash,
@@ -42,10 +43,10 @@ export async function fetchTelegramUserLink(
 
 export async function fetchWebappUserLink(
   redis: Redis,
-  token: string
+  session: string
 ): Promise<number | undefined> {
   const result = await redis.fetchUserLink(
-    webappUserLinkKey(token) // KEYS[1]
+    webappUserLinkKey(session) // KEYS[1]
   )
 
   if (result === null) {
@@ -99,13 +100,12 @@ export async function saveUserCache(
     userCacheKey(userId), // KEYS[1]
     userId, // ARGV[1]
     tgFromId, // ARGV[2]
-    activeSubscriptionId, // ARGV[3]
-    subscriptions, // ARGV[4]
-    categories, // ARGV[5]
-    bots, // ARGV[6]
-    createdAt, // ARGV[7]
-    updatedAt, // ARGV[8]
-    queuedAt // ARGV[9]
+    subscriptions, // ARGV[3]
+    categories, // ARGV[4]
+    bots, // ARGV[5]
+    createdAt, // ARGV[6]
+    updatedAt, // ARGV[7]
+    queuedAt // ARGV[8]
   )
 
   multi.saveUserLink(
@@ -120,14 +120,23 @@ export async function saveUserCache(
   )
 
   if (activeSubscriptionId !== null) {
-    multi.saveSubscriptionLink(
-      userActiveSubscriptionLinkKey(userId), // KEYS[1]
+    multi.saveUserPaidCache(
+      userCacheKey(userId), // KEYS[1]
       activeSubscriptionId // ARGV[1]
     )
+
+//  multi.saveSubscriptionLink(
+//    userActiveSubscriptionLinkKey(userId), // KEYS[1]
+//    activeSubscriptionId // ARGV[1]
+//  )
   } else {
-    multi.dropSubscriptionLink(
-      userActiveSubscriptionLinkKey(userId) // KEYS[1]
+    multi.saveUserUnpaidCache(
+      userCacheKey(userId) // KEYS[1]
     )
+
+//  multi.dropSubscriptionLink(
+//    userActiveSubscriptionLinkKey(userId) // KEYS[1]
+//  )
   }
 
   await multi.exec()
@@ -135,13 +144,13 @@ export async function saveUserCache(
 
 export async function saveWebappUserLink(
   redis: Redis,
-  token: string,
+  session: string,
   userId: number
 ): Promise<void> {
   await redis.saveUserLinkTimeout(
-    webappUserLinkKey(token), // KEYS[1]
+    webappUserLinkKey(session), // KEYS[1]
     userId, // ARGV[1]
-    WEBAPP_TOKEN_TIMEOUT // ARGV[2]
+    WEBAPP_SESSION_TIMEOUT // ARGV[2]
   )
 }
 
@@ -161,9 +170,9 @@ export async function dropUserCache(redis: Redis, userId: number, tgFromId: stri
     userId // ARGV[1]
   )
 
-  multi.dropSubscriptionLink(
-    userActiveSubscriptionLinkKey(userId) // KEYS[1]
-  )
+//multi.dropSubscriptionLink(
+//  userActiveSubscriptionLinkKey(userId) // KEYS[1]
+//)
 
   await multi.exec()
 }
@@ -178,7 +187,7 @@ const parseModel = (result: unknown, message: string): UserCache | undefined => 
   return {
     id: parseNumber(hash[0], message),
     tgFromId: parseString(hash[1], message),
-    activeSubscriptionId: parseNumber(hash[2], message),
+    activeSubscriptionId: parseNumberOrNull(hash[2], message),
     subscriptions: parseNumber(hash[3], message),
     categories: parseNumber(hash[4], message),
     bots: parseNumber(hash[5], message),

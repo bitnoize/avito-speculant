@@ -1,5 +1,6 @@
 import {
   FetchBotCache,
+  FetchUserBotCache,
   FetchUserBotsCache,
   SaveBotCache,
   SaveOnlineBotCache,
@@ -16,6 +17,23 @@ export const fetchBotCache: FetchBotCache = async function (redis, request) {
   const botCache = await botCacheRepository.fetchBotCache(redis, request.botId)
 
   if (botCache === undefined) {
+    throw new BotCacheNotFoundError({ request })
+  }
+
+  return { botCache }
+}
+
+/*
+ * Fetch UserBotCache
+ */
+export const fetchUserBotCache: FetchUserBotCache = async function (redis, request) {
+  const botCache = await botCacheRepository.fetchBotCache(redis, request.botId)
+
+  if (botCache === undefined) {
+    throw new BotCacheNotFoundError({ request })
+  }
+
+  if (botCache.userId !== request.userId) {
     throw new BotCacheNotFoundError({ request })
   }
 

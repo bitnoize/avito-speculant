@@ -4,7 +4,7 @@ import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import { DomainError } from '@avito-speculant/common'
 import {
-  AuthorizeUserRequest,
+  CreateUserRequest,
   databaseService,
   userService,
   subscriptionService,
@@ -18,25 +18,49 @@ import {
   subscriptionCacheService,
   botCacheService,
   categoryCacheService,
+  scraperCacheService,
 } from '@avito-speculant/redis'
 import { queueService, treatmentService } from '@avito-speculant/queue'
 import {
   Config,
+  ApiGetUser,
+  ApiGetPlan,
   ApiGetPlans,
+  ApiGetSubscription,
   ApiPostSubscription,
   ApiPutSubscriptionCancel,
   ApiGetSubscriptions,
+  ApiGetBot,
   ApiPostBot,
   ApiPutBotEnable,
   ApiPutBotDisable,
   ApiGetBots,
+  ApiGetCategory,
   ApiPostCategory,
   ApiPutCategoryEnable,
   ApiPutCategoryDisable,
   ApiGetCategories,
+  ApiGetScraper,
 } from './bot.js'
 import { configSchema } from './bot.schema.js'
-import { UnauthorizedError } from './bot.errors.js'
+import {
+  ApiUnauthorizedError, 
+  ApiNotFoundError,
+  ApiForbiddenError,
+} from './bot.errors.js'
+import {
+  userCacheToData,
+  userToData,
+  planCacheToData,
+  planToData,
+  subscriptionCacheToData,
+  subscriptionToData,
+  botCacheToData,
+  botToData,
+  categoryCacheToData,
+  categoryToData,
+  scraperCacheToData
+} from './bot.utils.js'
 import { BotContext } from './context.js'
 
 async function bootstrap(): Promise<void> {
@@ -62,41 +86,42 @@ async function bootstrap(): Promise<void> {
   const bot = new Bot<BotContext>(config.BOT_TOKEN)
 
   bot.use(async (ctx, next) => {
-    if (ctx.from) {
-      const { user, subscription, backLog } = await userService.authorizeUser(db, {
-        tgFromId: ctx.from.id.toString(),
+    if (!(ctx.from !== undefined && !ctx.from.is_bot)) {
+      return
+    }
+
+    const tgFromId = ctx.from.id.toString()
+
+    const { userId } = await userCacheService.fetchTelegramUserLink(redis, {
+      tgFromId
+    })
+
+    if (userId !== undefined) {
+      ctx.userId = userId
+    } else {
+      const { user, backLog } = await userService.createUser(db, {
+        tgFromId,
         data: {
           from: ctx.from,
-          message: `Authorize user via Bot`
+          message: `Create user via Bot`
         }
       })
 
-      ctx.user = user
+      ctx.userId = user.id
 
-      if (user.activeSubscriptionId !== null) {
-        if (subscription === undefined) {
-          throw new Error(`subscription lost`)
-        }
-
-        ctx.subscription = subscription
-      }
+      await treatmentService.addJob(treatmentQueue, 'user', user.id)
 
       await redisService.publishBackLog(pubSub, backLog)
-
-      await next()
     }
+
+    await next()
   })
 
   bot.command('start', async (ctx) => {
-    const { user, subscription } = ctx
+    const session = redisService.randomHash()
+    userCacheService.saveWebappUserLink(redis, { session, userId: ctx.userId })
 
-    const token = redisService.randomHash()
-    userCacheService.saveWebappUserLink(redis, { token, userId: user.id })
-
-    await ctx.reply(
-      `Подписка активирована: ${ctx.user.activeSubscriptionId ? 'да' : 'нет'}\n` +
-      `Токен приложения: ${token}`
-    )
+    await ctx.reply(`Session: ${session}`)
   })
 
   bot.catch(async (botError) => {
@@ -133,18 +158,18 @@ async function bootstrap(): Promise<void> {
   api.addHook(
     'onRequest',
     async (request, reply) => {
-      const token = request.headers['authorization']
+      const session = request.headers['authorization']
 
-      if (!(token !== undefined && token !== '')) {
-        throw new UnauthorizedError()
+      if (!(session !== undefined && session !== '')) {
+        throw new ApiUnauthorizedError()
       }
 
-      const userId = await userCacheService.fetchWebappUserLink(redis, {
-        token
+      const { userId } = await userCacheService.fetchWebappUserLink(redis, {
+        session
       })
 
       if (userId === undefined) {
-        throw new UnauthorizedError()
+        throw new ApiUnauthorizedError()
       }
 
       request.userId = userId
@@ -152,8 +177,62 @@ async function bootstrap(): Promise<void> {
   )
 
   //
+  // Api User
+  //
+
+  api.get<ApiGetUser>(
+    '/v1/me',
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
+      const { userCache } = await userCacheService.fetchUserCache(redis, {
+        userId: request.userId
+      })
+
+      reply.code(200).send({
+        ok: true,
+        data: userCacheToData(userCache)
+      })
+    }
+  )
+
+  //
   // Api Plan
   //
+
+  api.get<ApiGetPlan>(
+    '/v1/plan/:planId',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['planId'],
+          properties: {
+            'planId': {
+              type: 'integer'
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
+      const { planCache } = await planCacheService.fetchPlanCache(redis, {
+        planId: request.params.planId
+      })
+
+      reply.code(200).send({
+        ok: true,
+        data: planCacheToData(planCache),
+      })
+    }
+  )
 
   api.get<ApiGetPlans>(
     '/v1/plans',
@@ -166,15 +245,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(200).send({
         ok: true,
-        data: plansCache.map((planCache) => ({
-          planId: planCache.id,
-          categoriesMax: planCache.categoriesMax,
-          durationDays: planCache.durationDays,
-          intervalSec: planCache.intervalSec,
-          analyticsOn: planCache.analyticsOn,
-          priceRub: planCache.priceRub,
-          isEnabled: planCache.isEnabled
-        }))
+        data: plansCache.map((planCache) => planCacheToData(planCache))
       })
     }
   )
@@ -182,6 +253,41 @@ async function bootstrap(): Promise<void> {
   //
   // Api Subscription
   //
+
+  api.get<ApiGetSubscription>(
+    '/v1/subscription/:subscriptionId',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['subscriptionId'],
+          properties: {
+            'subscriptionId': {
+              type: 'integer'
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
+      const {
+        subscriptionCache
+      } = await subscriptionCacheService.fetchUserSubscriptionCache(redis, {
+        userId: request.userId,
+        subscriptionId: request.params.subscriptionId
+      })
+
+      reply.code(200).send({
+        ok: true,
+        data: subscriptionCacheToData(subscriptionCache),
+      })
+    }
+  )
 
   api.post<ApiPostSubscription>(
     '/v1/subscription',
@@ -216,15 +322,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(201).send({
         ok: true,
-        data: {
-          subscriptionId: subscription.id,
-          planId: subscription.planId,
-          priceRub: subscription.priceRub,
-          status: subscription.status,
-          createdAt: subscription.createdAt,
-          timeoutAt: subscription.timeoutAt,
-          finishAt: subscription.finishAt
-        }
+        data: subscriptionToData(subscription)
       })
     }
   )
@@ -262,15 +360,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(200).send({
         ok: true,
-        data: {
-          subscriptionId: subscription.id,
-          planId: subscription.planId,
-          priceRub: subscription.priceRub,
-          status: subscription.status,
-          createdAt: subscription.createdAt,
-          timeoutAt: subscription.timeoutAt,
-          finishAt: subscription.finishAt
-        }
+        data: subscriptionToData(subscription)
       })
     }
   )
@@ -290,15 +380,9 @@ async function bootstrap(): Promise<void> {
 
       reply.code(200).send({
         ok: true,
-        data: subscriptionsCache.map((subscriptionCache) => ({
-          subscriptionId: subscriptionCache.id,
-          planId: subscriptionCache.planId,
-          priceRub: subscriptionCache.priceRub,
-          status: subscriptionCache.status,
-          createdAt: subscriptionCache.createdAt,
-          timeoutAt: subscriptionCache.timeoutAt,
-          finishAt: subscriptionCache.finishAt
-        }))
+        data: subscriptionsCache.map(
+          (subscriptionCache) => subscriptionCacheToData(subscriptionCache)
+        )
       })
     }
   )
@@ -306,6 +390,39 @@ async function bootstrap(): Promise<void> {
   //
   // Api Bot
   //
+
+  api.get<ApiGetBot>(
+    '/v1/bot/:botId',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['botId'],
+          properties: {
+            'botId': {
+              type: 'integer'
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
+      const { botCache } = await botCacheService.fetchUserBotCache(redis, {
+        userId: request.userId,
+        botId: request.params.botId
+      })
+
+      reply.code(200).send({
+        ok: true,
+        data: botCacheToData(botCache),
+      })
+    }
+  )
 
   api.post<ApiPostBot>(
     '/v1/bot',
@@ -340,13 +457,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(201).send({
         ok: true,
-        data: {
-          botId: bot.id,
-          token: bot.token,
-          isLinked: bot.isLinked,
-          isEnabled: bot.isEnabled,
-          createdAt: bot.createdAt
-        }
+        data: botToData(bot),
       })
     }
   )
@@ -385,13 +496,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(200).send({
         ok: true,
-        data: {
-          botId: bot.id,
-          token: bot.token,
-          isLinked: bot.isLinked,
-          isEnabled: bot.isEnabled,
-          createdAt: bot.createdAt
-        }
+        data: botToData(bot),
       })
     }
   )
@@ -430,13 +535,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(200).send({
         ok: true,
-        data: {
-          botId: bot.id,
-          token: bot.token,
-          isLinked: bot.isLinked,
-          isEnabled: bot.isEnabled,
-          createdAt: bot.createdAt
-        }
+        data: botToData(bot),
       })
     }
   )
@@ -454,18 +553,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(200).send({
         ok: true,
-        data: botsCache.map((botCache) => ({
-          botId: botCache.id,
-          token: botCache.token,
-          isLinked: botCache.isLinked,
-          isEnabled: botCache.isEnabled,
-          isOnline: botCache.isOnline,
-          tgFromId: botCache.tgFromId,
-          username: botCache.username,
-          totalCount: botCache.totalCount,
-          successCount: botCache.successCount,
-          createdAt: botCache.createdAt
-        }))
+        data: botsCache.map((botCache) => botCacheToData(botCache))
       })
     }
   )
@@ -473,6 +561,39 @@ async function bootstrap(): Promise<void> {
   //
   // Api Category
   //
+
+  api.get<ApiGetCategory>(
+    '/v1/category/:categoryId',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['categoryId'],
+          properties: {
+            'categoryId': {
+              type: 'integer'
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
+      const { categoryCache } = await categoryCacheService.fetchUserCategoryCache(redis, {
+        userId: request.userId,
+        categoryId: request.params.categoryId
+      })
+
+      reply.code(200).send({
+        ok: true,
+        data: categoryCacheToData(categoryCache),
+      })
+    }
+  )
 
   api.post<ApiPostCategory>(
     '/v1/category',
@@ -507,13 +628,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(201).send({
         ok: true,
-        data: {
-          categoryId: category.id,
-          urlPath: category.urlPath,
-          botId: category.botId,
-          isEnabled: category.isEnabled,
-          createdAt: category.createdAt,
-        }
+        data: categoryToData(category)
       })
     }
   )
@@ -524,11 +639,18 @@ async function bootstrap(): Promise<void> {
       schema: {
         params: {
           type: 'object',
-          required: ['categoryId', 'botId'],
+          required: ['categoryId'],
           properties: {
             'categoryId': {
               type: 'integer'
-            },
+            }
+          },
+          additionalProperties: false
+        },
+        body: {
+          type: 'object',
+          required: ['botId'],
+          properties: {
             'botId': {
               type: 'integer'
             }
@@ -545,7 +667,7 @@ async function bootstrap(): Promise<void> {
       const { user, category, backLog } = await categoryService.enableCategory(db, {
         userId: request.userId,
         categoryId: request.params.categoryId,
-        botId: request.params.botId,
+        botId: request.body.botId,
         data: {}
       })
 
@@ -556,13 +678,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(200).send({
         ok: true,
-        data: {
-          categoryId: category.id,
-          urlPath: category.urlPath,
-          botId: category.botId,
-          isEnabled: category.isEnabled,
-          createdAt: category.createdAt,
-        }
+        data: categoryToData(category)
       })
     }
   )
@@ -601,13 +717,7 @@ async function bootstrap(): Promise<void> {
 
       reply.code(200).send({
         ok: true,
-        data: {
-          categoryId: category.id,
-          urlPath: category.urlPath,
-          botId: category.botId,
-          isEnabled: category.isEnabled,
-          createdAt: category.createdAt,
-        }
+        data: categoryToData(category)
       })
     }
   )
@@ -625,15 +735,45 @@ async function bootstrap(): Promise<void> {
 
       reply.code(200).send({
         ok: true,
-        data: categoriesCache.map((categoryCache) => ({
-          categoryId: categoryCache.id,
-          urlPath: categoryCache.urlPath,
-          botId: categoryCache.botId,
-          scraperId: categoryCache.scraperId,
-          isEnabled: categoryCache.isEnabled,
-          createdAt: categoryCache.createdAt,
-          reportedAt: categoryCache.reportedAt,
-        }))
+        data: categoriesCache.map((categoryCache) => categoryCacheToData(categoryCache))
+      })
+    }
+  )
+
+  //
+  // Api Scraper
+  //
+
+  api.get<ApiGetScraper>(
+    '/v1/scraper/:scraperId',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['scraperId'],
+          properties: {
+            'scraperId': {
+              type: 'string',
+              minLength: 1,
+              maxLength: 100
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    async (request, reply) => {
+      if (request.userId === undefined) {
+        throw new Error('Authorize lost')
+      }
+
+      const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
+        scraperId: request.params.scraperId
+      })
+
+      reply.code(200).send({
+        ok: true,
+        data: scraperCacheToData(scraperCache),
       })
     }
   )

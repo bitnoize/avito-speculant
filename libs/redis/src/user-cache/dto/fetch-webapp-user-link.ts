@@ -1,10 +1,12 @@
 import { RedisMethod } from '../../redis.js'
 
 export type FetchWebappUserLinkRequest = {
-  token: string
+  session: string
 }
 
-export type FetchWebappUserLinkResponse = number | undefined
+export type FetchWebappUserLinkResponse = {
+  userId?: number
+}
 
 export type FetchWebappUserLink = RedisMethod<
   FetchWebappUserLinkRequest,

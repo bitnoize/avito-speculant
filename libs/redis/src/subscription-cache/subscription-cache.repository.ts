@@ -2,7 +2,7 @@ import { Redis } from 'ioredis'
 import {
   SubscriptionCache,
   subscriptionCacheKey,
-  userActiveSubscriptionLinkKey,
+//userActiveSubscriptionLinkKey,
   userSubscriptionsIndexKey
 } from './subscription-cache.js'
 import {
@@ -25,6 +25,7 @@ export async function fetchSubscriptionCache(
   return parseModel(result, `fetchSubscriptionCache malformed result`)
 }
 
+/*
 export async function fetchUserActiveSubscriptionLink(
   redis: Redis,
   userId: number
@@ -39,6 +40,7 @@ export async function fetchUserActiveSubscriptionLink(
 
   return parseNumber(result, `fetchUserActiveSubscriptionLink malformed result`)
 }
+*/
 
 export async function fetchUserSubscriptionsIndex(redis: Redis, userId: number): Promise<number[]> {
   const result = await redis.fetchSubscriptionsIndex(

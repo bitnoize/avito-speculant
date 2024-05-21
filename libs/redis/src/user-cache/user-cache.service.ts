@@ -24,49 +24,25 @@ export const fetchUserCache: FetchUserCache = async function (redis, request) {
     throw new UserCacheNotFoundError({ request })
   }
 
-  const activeSubscriptionId = await subscriptionCacheRepository.fetchUserActiveSubscriptionLink(
-    redis,
-    userCache.id
-  )
-
-  if (activeSubscriptionId !== undefined) {
-    const subscriptionCache = await subscriptionCacheRepository.fetchSubscriptionCache(
-      redis,
-      activeSubscriptionId
-    )
-
-    if (subscriptionCache === undefined) {
-      throw new SubscriptionCacheNotFoundError({ request, userCache }, 100)
-    }
-
-    userCache.activeSubscriptionId = subscriptionCache.id
-
-    const planCache = await planCacheRepository.fetchPlanCache(redis, subscriptionCache.planId)
-
-    if (planCache === undefined) {
-      throw new PlanCacheNotFoundError({ request, userCache, subscriptionCache }, 100)
-    }
-
-    return { userCache, subscriptionCache, planCache }
-  } else {
-    userCache.activeSubscriptionId = null
-
-    return { userCache }
-  }
+  return { userCache }
 }
 
 /*
  * Fetch TelegramUserLink
  */
 export const fetchTelegramUserLink: FetchTelegramUserLink = async function (redis, request) {
-  return await userCacheRepository.fetchTelegramUserLink(redis, request.tgFromId)
+  const userId = await userCacheRepository.fetchTelegramUserLink(redis, request.tgFromId)
+
+  return { userId }
 }
 
 /*
  * Fetch WebappUserLink
  */
 export const fetchWebappUserLink: FetchWebappUserLink = async function (redis, request) {
-  return await userCacheRepository.fetchWebappUserLink(redis, request.token)
+  const userId = await userCacheRepository.fetchWebappUserLink(redis, request.session)
+
+  return { userId }
 }
 
 /*
@@ -101,7 +77,7 @@ export const saveUserCache: SaveUserCache = async function (redis, request) {
  * Save WebappUserLink
  */
 export const saveWebappUserLink: SaveWebappUserLink = async function (redis, request) {
-  await userCacheRepository.saveWebappUserLink(redis, request.token, request.userId)
+  await userCacheRepository.saveWebappUserLink(redis, request.session, request.userId)
 }
 
 /*
