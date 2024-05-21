@@ -3,7 +3,7 @@ import {
   ScraperCache,
   scraperCacheKey,
   scrapersIndexKey,
-  targetScraperLinkKey
+//targetScraperLinkKey
 } from './scraper-cache.js'
 import {
   parseNumber,
@@ -25,20 +25,20 @@ export async function fetchScraperCache(
   return parseModel(result, `fetchScraperCache malformed result`)
 }
 
-export async function fetchTargetScraperLink(
-  redis: Redis,
-  urlPath: string
-): Promise<string | undefined> {
-  const result = await redis.fetchScraperLink(
-    targetScraperLinkKey(urlPath) // KEYS[1]
-  )
-
-  if (result === null) {
-    return undefined
-  }
-
-  return parseString(result, `fetchTargetScraperLink malformed result`)
-}
+//export async function fetchTargetScraperLink(
+//  redis: Redis,
+//  urlPath: string
+//): Promise<string | undefined> {
+//  const result = await redis.fetchScraperLink(
+//    targetScraperLinkKey(urlPath) // KEYS[1]
+//  )
+//
+//  if (result === null) {
+//    return undefined
+//  }
+//
+//  return parseString(result, `fetchTargetScraperLink malformed result`)
+//}
 
 export async function fetchScrapersIndex(redis: Redis): Promise<string[]> {
   const result = await redis.fetchScrapersIndex(
@@ -69,6 +69,7 @@ export async function fetchScrapersCache(
   return parseCollection(result, `fetchScrapersCache malformed result`)
 }
 
+/*
 export async function saveScraperCache(
   redis: Redis,
   scraperId: string,
@@ -82,10 +83,10 @@ export async function saveScraperCache(
     urlPath // ARGV[2]
   )
 
-  multi.saveScraperLink(
-    targetScraperLinkKey(urlPath), // KEYS[1]
-    scraperId // ARGV[1]
-  )
+//multi.saveScraperLink(
+//  targetScraperLinkKey(urlPath), // KEYS[1]
+//  scraperId // ARGV[1]
+//)
 
   multi.saveScrapersIndex(
     scrapersIndexKey(), // KEYS[1]
@@ -94,6 +95,7 @@ export async function saveScraperCache(
 
   await multi.exec()
 }
+*/
 
 export async function saveSuccessScraperCache(redis: Redis, scraperId: string): Promise<void> {
   const multi = redis.multi()
@@ -126,9 +128,9 @@ export async function dropScraperCache(
     scraperCacheKey(scraperId) // KEYS[1]
   )
 
-  multi.dropScraperLink(
-    targetScraperLinkKey(urlPath) // KEYS[1]
-  )
+//multi.dropScraperLink(
+//  targetScraperLinkKey(urlPath) // KEYS[1]
+//)
 
   multi.dropScrapersIndex(
     scrapersIndexKey(), // KEYS[1]

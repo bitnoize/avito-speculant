@@ -4,6 +4,8 @@ import {
   CategoryReport,
   redisService,
   userCacheService,
+  planCacheService,
+  subscriptionCacheService,
   botCacheService,
   categoryCacheService,
   advertCacheService,
@@ -57,20 +59,21 @@ const processDefault: ProcessName = async function (config, logger, broadcastJob
       throw new BroadcastCategoryError({ categoryCache })
     }
 
-    const { userCache, subscriptionCache, planCache } = await userCacheService.fetchUserCache(
-      redis,
-      {
-        userId: categoryCache.userId
-      }
-    )
+    const { userCache } = await userCacheService.fetchUserCache(redis, {
+      userId: categoryCache.userId
+    })
 
-    if (
-      userCache.activeSubscriptionId === null ||
-      subscriptionCache === undefined ||
-      planCache == undefined
-    ) {
-      throw new BroadcastUserError({ userCache, subscriptionCache, planCache })
+    if (userCache.activeSubscriptionId === null) {
+      throw new BroadcastUserError({ categoryCache })
     }
+
+    const { subscriptionCache } = await subscriptionCacheService.fetchSubscriptionCache(redis, {
+      subscriptionId: userCache.activeSubscriptionId
+    })
+
+    const { planCache } = await planCacheService.fetchPlanCache(redis, {
+      planId: subscriptionCache.planId
+    })
 
     const { botCache } = await botCacheService.fetchBotCache(redis, {
       botId: categoryCache.botId

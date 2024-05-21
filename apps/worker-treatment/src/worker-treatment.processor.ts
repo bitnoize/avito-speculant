@@ -1,3 +1,4 @@
+import * as crypto from 'crypto'
 import { configService } from '@avito-speculant/config'
 import { loggerService } from '@avito-speculant/logger'
 import {
@@ -293,16 +294,18 @@ const processCategory: ProcessName = async function (
       data: {}
     })
 
-    const existsScraperId = await scraperCacheService.fetchTargetScraperLink(redis, {
-      urlPath: category.urlPath
-    })
+    const scraperId = crypto.createHash('md5').update(category.urlPath).digest('hex')
 
-    const scraperId = existsScraperId ?? redisService.randomHash()
+//  const existsScraperId = await scraperCacheService.fetchTargetScraperLink(redis, {
+//    urlPath: category.urlPath
+//  })
 
-    await scraperCacheService.saveScraperCache(redis, {
-      scraperId,
-      urlPath: category.urlPath
-    })
+//  const scraperId = existsScraperId ?? redisService.randomHash()
+
+//  await scraperCacheService.saveScraperCache(redis, {
+//    scraperId,
+//    urlPath: category.urlPath
+//  })
 
     await categoryCacheService.saveCategoryCache(redis, {
       categoryId: category.id,
@@ -327,18 +330,18 @@ const processCategory: ProcessName = async function (
       await broadcastService.removeRepeatableJob(broadcastQueue, category.id)
     }
 
-    const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
+//  const { scraperCache } = await scraperCacheService.fetchScraperCache(redis, {
+//    scraperId
+//  })
+
+    const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
       scraperId
     })
 
-    const { categoriesCache } = await categoryCacheService.fetchScraperCategoriesCache(redis, {
-      scraperId: scraperCache.id
-    })
-
     if (categoriesCache.length > 0) {
-      await scrapingService.addRepeatableJob(scrapingQueue, scraperCache.id)
+      await scrapingService.addRepeatableJob(scrapingQueue, scraperId)
     } else {
-      await scrapingService.removeRepeatableJob(scrapingQueue, scraperCache.id)
+      await scrapingService.removeRepeatableJob(scrapingQueue, scraperId)
     }
 
     await redisService.publishBackLog(pubSub, backLog)

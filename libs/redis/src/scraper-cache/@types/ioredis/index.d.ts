@@ -7,10 +7,10 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    fetchScraperLink(
-      scraperLinkKey: string, // KEYS[1]
-      callback?: Callback<string>
-    ): Result<string, Context>
+//  fetchScraperLink(
+//    scraperLinkKey: string, // KEYS[1]
+//    callback?: Callback<string>
+//  ): Result<string, Context>
 
     fetchScrapersIndex(
       scrapersIndexKey: string, // KEYS[1]
@@ -34,11 +34,11 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    saveScraperLink(
-      scraperLinkKey: string, // KEYS[1]
-      scraperId: string, // ARGV[1]
-      callback?: Callback<string>
-    ): Result<string, Context>
+//  saveScraperLink(
+//    scraperLinkKey: string, // KEYS[1]
+//    scraperId: string, // ARGV[1]
+//    callback?: Callback<string>
+//  ): Result<string, Context>
 
     saveScrapersIndex(
       scrapersIndexKey: string, // KEYS[1]
@@ -51,10 +51,10 @@ declare module 'ioredis' {
       callback?: Callback<string>
     ): Result<string, Context>
 
-    dropScraperLink(
-      scraperLinkKey: string, // KEYS[1]
-      callback?: Callback<string>
-    ): Result<string, Context>
+//  dropScraperLink(
+//    scraperLinkKey: string, // KEYS[1]
+//    callback?: Callback<string>
+//  ): Result<string, Context>
 
     dropScrapersIndex(
       scrapersIndexKey: string, // KEYS[1]

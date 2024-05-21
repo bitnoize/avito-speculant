@@ -181,7 +181,7 @@ async function bootstrap(): Promise<void> {
   //
 
   api.get<ApiGetUser>(
-    '/v1/me',
+    '/v1/user',
     async (request, reply) => {
       if (request.userId === undefined) {
         throw new Error('Authorize lost')

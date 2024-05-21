@@ -1,8 +1,8 @@
 import {
   FetchScraperCache,
-  FetchTargetScraperLink,
+  //FetchTargetScraperLink,
   FetchScrapersCache,
-  SaveScraperCache,
+//SaveScraperCache,
   SaveSuccessScraperCache,
   SaveFailedScraperCache,
   DropScraperCache
@@ -24,11 +24,10 @@ export const fetchScraperCache: FetchScraperCache = async function (redis, reque
 }
 
 /*
- * Fetch TargetScraperLink
- */
 export const fetchTargetScraperLink: FetchTargetScraperLink = async function (redis, request) {
   return await scraperCacheRepository.fetchTargetScraperLink(redis, request.urlPath)
 }
+*/
 
 /*
  * Fetch ScrapersCache
@@ -41,11 +40,10 @@ export const fetchScrapersCache: FetchScrapersCache = async function (redis) {
 }
 
 /*
- * Save ScraperCache
- */
 export const saveScraperCache: SaveScraperCache = async function (redis, request) {
   await scraperCacheRepository.saveScraperCache(redis, request.scraperId, request.urlPath)
 }
+ */
 
 /*
  * Save SuccessScraperCache

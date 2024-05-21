@@ -10,9 +10,9 @@ return redis.call(
 )
 `
 
-const fetchScraperLink = `
-return redis.call('GET', KEYS[1])
-`
+//const fetchScraperLink = `
+//return redis.call('GET', KEYS[1])
+//`
 
 const fetchScrapersIndex = `
 return redis.call('SMEMBERS', KEYS[1])
@@ -51,11 +51,11 @@ redis.call('HINCRBY', KEYS[1], 'total_count', 1)
 return redis.status_reply('OK')
 `
 
-const saveScraperLink = `
-redis.call('SET', KEYS[1], ARGV[1])
-
-return redis.status_reply('OK')
-`
+//const saveScraperLink = `
+//redis.call('SET', KEYS[1], ARGV[1])
+//
+//return redis.status_reply('OK')
+//`
 
 const saveScrapersIndex = `
 redis.call('SADD', KEYS[1], ARGV[1])
@@ -69,11 +69,11 @@ redis.call('DEL', KEYS[1])
 return redis.status_reply('OK')
 `
 
-const dropScraperLink = `
-redis.call('DEL', KEYS[1])
-
-return redis.status_reply('OK')
-`
+//const dropScraperLink = `
+//redis.call('DEL', KEYS[1])
+//
+//return redis.status_reply('OK')
+//`
 
 const dropScrapersIndex = `
 redis.call('SREM', KEYS[1], ARGV[1])
@@ -87,10 +87,10 @@ const initScripts: InitScripts = (redis) => {
     lua: fetchScraperCache
   })
 
-  redis.defineCommand('fetchScraperLink', {
-    numberOfKeys: 1,
-    lua: fetchScraperLink
-  })
+//redis.defineCommand('fetchScraperLink', {
+//  numberOfKeys: 1,
+//  lua: fetchScraperLink
+//})
 
   redis.defineCommand('fetchScrapersIndex', {
     numberOfKeys: 1,
@@ -112,10 +112,10 @@ const initScripts: InitScripts = (redis) => {
     lua: saveFailedScraperCache
   })
 
-  redis.defineCommand('saveScraperLink', {
-    numberOfKeys: 1,
-    lua: saveScraperLink
-  })
+//redis.defineCommand('saveScraperLink', {
+//  numberOfKeys: 1,
+//  lua: saveScraperLink
+//})
 
   redis.defineCommand('saveScrapersIndex', {
     numberOfKeys: 1,
@@ -127,10 +127,10 @@ const initScripts: InitScripts = (redis) => {
     lua: dropScraperCache
   })
 
-  redis.defineCommand('dropScraperLink', {
-    numberOfKeys: 1,
-    lua: dropScraperLink
-  })
+//redis.defineCommand('dropScraperLink', {
+//  numberOfKeys: 1,
+//  lua: dropScraperLink
+//})
 
   redis.defineCommand('dropScrapersIndex', {
     numberOfKeys: 1,

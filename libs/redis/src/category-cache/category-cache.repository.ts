@@ -5,6 +5,7 @@ import {
   userCategoriesIndexKey,
   scraperCategoriesIndexKey
 } from './category-cache.js'
+import { scraperCacheKey, scrapersIndexKey } from '../scraper-cache/scraper-cache.js'
 import {
   parseNumber,
   parseNumberOrNull,
@@ -95,6 +96,17 @@ export async function saveCategoryCache(
     userCategoriesIndexKey(userId), // KEYS[1]
     categoryId, // ARGV[1]
     createdAt // ARGV[2]
+  )
+
+  multi.saveScraperCache(
+    scraperCacheKey(scraperId), // KEYS[1]
+    scraperId, // ARGV[1]
+    urlPath // ARGV[2]
+  )
+
+  multi.saveScrapersIndex(
+    scrapersIndexKey(), // KEYS[1]
+    scraperId // ARGV[1]
   )
 
   if (isEnabled && botId !== null) {
