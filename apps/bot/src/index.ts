@@ -780,7 +780,7 @@ async function bootstrap(): Promise<void> {
 
   //api.post(`/${bot.token}`, webhookCallback(bot, 'fastify'))
 
-  await api.listen({ port: 3000 })
+  await api.listen({ port: 3000, host: '0.0.0.0' })
 }
 
 bootstrap()
