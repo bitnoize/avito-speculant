@@ -132,13 +132,39 @@ curl -X GET \
 Bot
 ---
 
+```
+botId - идентификатор бота
+token - токен бота
+isLinked - бот подключен к категории?
+isEnabled - бот включен?
+isOnline - бот онлайн?, NULL
+tgFromId - идентификатор телеграма, NULL
+username - пользователь телеграма, NULL
+totalCount - общий счетчик проверок, NULL
+successCount - успешный счетчик проверок, NULL
+createdAt - время создания
+updatedAt - время обновления
 
+```
 
 Category
 --------
 
+```
+categoryId - идентификатор категории
+urlPath - путь url для авито
+botId - идентификатор бота, NULL
+scraperId - идентификатор скрапера, NULL
+isEnabled - категория включена?
+createdAt - время создания
+updatedAt - время обновления
+reportedAt - время для отчета, NULL
+
+```
 
 Scraper
 -------
 
+```
+```
 
